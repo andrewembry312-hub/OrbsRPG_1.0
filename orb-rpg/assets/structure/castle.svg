@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Base stone foundation -->
+  <rect x="50" y="280" width="412" height="100" fill="#8B7355" stroke="#5C4A37" stroke-width="2"/>
+  <!-- Left tower -->
+  <rect x="60" y="180" width="80" height="120" fill="#A0826D" stroke="#5C4A37" stroke-width="2"/>
+  <polygon points="60,180 100,120 140,180" fill="#8B7355" stroke="#5C4A37" stroke-width="2"/>
+  <!-- Center keep -->
+  <rect x="180" y="140" width="152" height="160" fill="#B8956A" stroke="#5C4A37" stroke-width="2"/>
+  <polygon points="180,140 256,60 332,140" fill="#8B7355" stroke="#5C4A37" stroke-width="2"/>
+  <!-- Right tower -->
+  <rect x="372" y="180" width="80" height="120" fill="#A0826D" stroke="#5C4A37" stroke-width="2"/>
+  <polygon points="372,180 412,120 452,180" fill="#8B7355" stroke="#5C4A37" stroke-width="2"/>
+  <!-- Windows/crenellations -->
+  <rect x="80" y="210" width="15" height="25" fill="#4A4A4A"/>
+  <rect x="120" y="210" width="15" height="25" fill="#4A4A4A"/>
+  <rect x="205" y="180" width="20" height="30" fill="#4A4A4A"/>
+  <rect x="265" y="180" width="20" height="30" fill="#4A4A4A"/>
+  <rect x="317" y="210" width="15" height="25" fill="#4A4A4A"/>
+  <rect x="357" y="210" width="15" height="25" fill="#4A4A4A"/>
+  <!-- Crenellations (decorative top) -->
+  <rect x="70" y="160" width="20" height="20" fill="#8B7355" stroke="#5C4A37" stroke-width="1"/>
+  <rect x="110" y="160" width="20" height="20" fill="#8B7355" stroke="#5C4A37" stroke-width="1"/>
+  <rect x="190" y="120" width="25" height="25" fill="#8B7355" stroke="#5C4A37" stroke-width="1"/>
+  <rect x="265" y="120" width="25" height="25" fill="#8B7355" stroke="#5C4A37" stroke-width="1"/>
+  <rect x="322" y="160" width="20" height="20" fill="#8B7355" stroke="#5C4A37" stroke-width="1"/>
+  <rect x="362" y="160" width="20" height="20" fill="#8B7355" stroke="#5C4A37" stroke-width="1"/>
+  <!-- Gate/door -->
+  <rect x="225" y="270" width="62" height="50" fill="#5C4A37" stroke="#3C2A1F" stroke-width="2"/>
+  <circle cx="256" cy="295" r="4" fill="#DAA520"/>
+</svg>

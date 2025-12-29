@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect width="100%" height="100%" rx="16" fill="#051018"/>
+  <circle cx="128" cy="96" r="56" fill="#fff3e0" opacity="0.06"/>
+  <!-- helm -->
+  <path d="M96 68 Q128 40 160 68 L160 100 Q128 88 96 100 Z" fill="#bfc7d6" stroke="#788191" stroke-width="2"/>
+  <rect x="120" y="82" width="16" height="8" fill="#6a6f77" rx="2"/>
+  <!-- shield -->
+  <path d="M56 130 Q76 160 56 196 L88 188 Q104 140 88 104 Z" fill="#d0d8e0" stroke="#7c8590" stroke-width="2"/>
+  <!-- body -->
+  <path d="M84 164 Q128 120 172 164 L160 216 L96 216 Z" fill="#5a6f8c" stroke="#3b4860" stroke-width="2"/>
+  <!-- cross emblem -->
+  <rect x="116" y="110" width="24" height="6" fill="#fff"/>
+  <rect x="128" y="102" width="6" height="24" fill="#fff"/>
+</svg>

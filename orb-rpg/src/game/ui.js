@@ -1,0 +1,3601 @@
+import { saveJson, loadJson, clamp } from "../engine/util.js";
+import { DEFAULT_BINDS, ACTION_LABELS, INV_SIZE, ARMOR_SLOTS, SLOT_LABEL } from "./constants.js";
+import { rarityClass } from "./rarity.js";
+import { currentStats, exportSave, importSave, applyClassToUnit } from "./game.js";
+import { xpForNext } from "./progression.js";
+import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots } from "./skills.js";
+import { showCharSelect } from "./charselect.js";
+
+export function buildUI(state){
+  const root=document.getElementById('ui-root');
+  root.innerHTML = `
+    <!-- Main Menu Overlay -->
+    <div id="mainMenu" class="overlay show" style="background: url('assets/ui/MainMenu.png') center/cover no-repeat;">
+      <div class="panel" style="width:min(560px,92vw); background: rgba(0,0,0,0.55)">
+        <h2 style="margin:0">Orb RPG</h2>
+        <div class="box">
+          <div class="row" style="align-items:center; gap:10px">
+            <div class="small" style="width:120px">Hero Name</div>
+            <input id="heroNameInput" type="text" placeholder="Hero" style="flex:1"/>
+          </div>
+          <div class="btnRow" style="margin-top:12px">
+            <button id="btnNewGame">New Game</button>
+            <button id="btnLoadGame" class="secondary">Load Game</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Manager Overlay -->
+    <div id="saveOverlay" class="overlay">
+      <div class="panel" style="width:min(760px,92vw)">
+        <div class="row">
+          <h2 style="margin:0">Save Manager</h2>
+          <div class="btnRow" style="margin:0">
+            <button id="saveClose" class="secondary">Close</button>
+          </div>
+        </div>
+        <div class="grid2" style="margin-top:10px">
+          <div class="box">
+            <div class="small">Existing Saves</div>
+            <div id="saveList" style="margin-top:8px; max-height:360px; overflow:auto"></div>
+          </div>
+          <div class="box">
+            <div class="small">Selected</div>
+            <div id="selSaveMeta" class="small" style="margin-top:6px; line-height:1.5">None</div>
+            <div style="margin-top:12px" class="row" style="gap:8px">
+              <input id="saveNameInput" type="text" placeholder="Hero" style="flex:1"/>
+            </div>
+            <div class="btnRow" style="margin-top:12px">
+              <button id="btnLoadSelected">Load Selected</button>
+              <button id="btnOverwriteSelected" class="secondary">Overwrite Selected</button>
+              <button id="btnDeleteSelected" class="danger">Delete Selected</button>
+              <button id="btnSaveNew">Save New</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hud" id="hud">
+      <div class="row">
+        <div class="pill">Campaign</div>
+        <div class="pill">Enemies <span id="enemyCount">0</span></div>
+        <div class="pill">Friendlies <span id="allyCount">0</span></div>
+      </div>
+
+      
+
+      <div class="row" style="margin-top:8px">
+        <div class="pill">Player Pts <span id="pPts">0</span></div>
+        <div class="pill">Enemy Pts <span id="ePts">0</span></div>
+        <div class="pill">Target <span id="targetPts">250</span></div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div class="pill">Lv <span id="lvl">1</span></div>
+        <div class="pill">XP <span id="xpText">0/20</span></div>
+        <div class="pill">SP <span id="spText">0</span></div>
+      </div>
+
+      <div style="margin-top:10px">
+        <div class="small">HP <span id="hpText"></span></div>
+        <div class="bar"><div id="hpFill" class="fill" style="background:var(--hp);width:100%"></div></div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="small">Mana <span id="manaText"></span></div>
+        <div class="bar"><div id="manaFill" class="fill" style="background:var(--mana);width:100%"></div></div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="small">Stamina <span id="stamText"></span></div>
+        <div class="bar"><div id="stamFill" class="fill" style="background:var(--stam);width:100%"></div></div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="small">Shield <span id="shieldText"></span></div>
+        <div class="bar"><div id="shieldFill" class="fill" style="background:var(--shield);width:0%"></div></div>
+      </div>
+
+      <div class="hint" id="hintText"></div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- Lightweight AI Event Feed (debug) -->
+    <div id="aiFeed" style="position:fixed; left:10px; bottom:10px; max-width:360px; max-height:160px; overflow:auto; background:rgba(10,10,10,0.8); border:1px solid rgba(122,162,255,0.3); color:#ccc; font-size:11px; padding:6px; border-radius:4px; z-index:180; display:none;"></div>
+
+    <!-- Compact bottom bar shown when HUD is hidden -->
+    <div id="bottomBar" class="bottomBar" style="display:none;">
+      <div style="display:flex;gap:10px;align-items:center;justify-content:center;">
+        <div style="width:260px">
+          <div class="small">HP <span id="b_hpText"></span></div>
+          <div class="bar"><div id="b_hpFill" class="fill" style="background:var(--hp);width:100%"></div></div>
+        </div>
+        <div style="width:200px">
+          <div class="small">Mana <span id="b_manaText"></span></div>
+          <div class="bar"><div id="b_manaFill" class="fill" style="background:var(--mana);width:100%"></div></div>
+        </div>
+        <div style="width:200px">
+          <div class="small">Stamina <span id="b_stamText"></span></div>
+          <div class="bar"><div id="b_stamFill" class="fill" style="background:var(--stam);width:100%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="abilBar" id="abilBar"></div>
+
+    <!-- Active Buff/Debuff Icons HUD -->
+    <div id="buffIconsHud" class="buffIconsHud"></div>
+
+    <!-- Active Buff/Debuff Icons HUD -->
+    <div id="buffIconsHud" class="buffIconsHud"></div>
+
+    <!-- Bottom stats (horizontal) above ability bar -->
+    <div id="bottomStats" class="bottomStats">
+      <div class="statBox" style="width:260px">
+        <div class="small">HP <span id="bs_hpText"></span></div>
+        <div class="bar"><div id="bs_hpFill" class="fill" style="background:var(--hp);width:100%"></div></div>
+        <div class="small" style="margin-top:2px">Shield <span id="bs_shieldText"></span></div>
+        <div class="bar"><div id="bs_shieldFill" class="fill" style="background:var(--shield);width:0%"></div></div>
+      </div>
+      <div class="statBox" style="width:200px">
+        <div class="small">Mana <span id="bs_manaText"></span></div>
+        <div class="bar"><div id="bs_manaFill" class="fill" style="background:var(--mana);width:100%"></div></div>
+      </div>
+      <div class="statBox" style="width:200px">
+        <div class="small">Stamina <span id="bs_stamText"></span></div>
+        <div class="bar"><div id="bs_stamFill" class="fill" style="background:var(--stam);width:100%"></div></div>
+      </div>
+    </div>
+
+    <!-- Inventory / Tabbed UI -->
+    <div id="invOverlay" class="overlay">
+      <div class="panel">
+        <div class="row">
+          <h2 style="margin:0">Character Panel</h2>
+          <div class="btnRow" style="margin:0">
+            <button id="invClose" class="secondary">Close</button>
+          </div>
+        </div>
+        <!-- Tab buttons -->
+        <div style="display:flex; gap:6px; border-bottom:1px solid rgba(255,255,255,0.1); margin-top:10px; padding-bottom:8px;">
+          <button class="tab-btn active" data-tab="0" style="flex:1; padding:8px; background:rgba(122,162,255,0.2); border:1px solid rgba(122,162,255,0.4); color:#fff; border-radius:3px; cursor:pointer; font-size:11px;">Inventory</button>
+          <button class="tab-btn" data-tab="1" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Skills</button>
+          <button class="tab-btn" data-tab="2" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Level Up</button>
+          <button class="tab-btn" data-tab="4" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Group</button>
+          <button class="tab-btn" data-tab="5" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Allies</button>
+          <button class="tab-btn" data-tab="7" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Campaign</button>
+          <button class="tab-btn" data-tab="3" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Buffs/Debuffs</button>
+          <button class="tab-btn" data-tab="6" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Help</button>
+        </div>
+
+        <!-- Tab 0: Inventory -->
+        <div class="tab-content" data-tab="0" style="margin-top:10px; display:block;">
+          <div class="invFullGrid">
+            <!-- LEFT: Equipment circle around hero -->
+            <div class="box invLeft">
+              <div class="row" style="justify-content:space-between; align-items:center;">
+                <div class="pill">Gold <span id="gold">0</span></div>
+                <div class="small">Hero: <span id="heroClassName">Warrior</span> • Lv <span id="heroLevel">1</span></div>
+              </div>
+              <div id="equipCircle" class="equipCircle">
+                <img id="heroPortrait" src="assets/char/warrior.svg" alt="Hero" class="heroLarge"/>
+              </div>
+              <div id="equipExtras" class="equipExtras"></div>
+              <div id="weaponSlot" class="weaponSlot"></div>
+              <div class="btnRow" style="margin-top:10px">
+                <button id="btnSelectHero" style="padding:6px 10px; font-size:11px; font-weight:900; border-radius:8px">Select Character</button>
+              </div>
+            </div>
+            <!-- STATS: selected item and stats -->
+            <div class="box invStats">
+              <div style="margin-top:12px" class="small">Selected Item</div>
+              <div id="selName" style="font-weight:900;margin-top:2px">None</div>
+              <div id="selDesc" class="small" style="margin-top:6px; line-height:1.35">Click an item.</div>
+
+              <div style="margin-top:12px" class="small">Stats</div>
+              <table class="statTable" id="statsTable"></table>
+
+              <div class="box" style="margin-top:10px">
+                <div class="pill">Armor Rating: <span id="invArmorStars">☆☆☆☆☆</span> <span id="invArmorText">0/5</span></div>
+              </div>
+            </div>
+
+            <!-- SPACER -->
+            <div class="box invSpacer"></div>
+
+            <!-- RIGHT: Inventory grid -->
+            <div id="invRight" class="box invRight">
+              <div class="invRightHeader">
+                <div class="row">
+                  <div class="small">Inventory</div>
+                  <div class="small">Click to inspect • Double-click to equip</div>
+                </div>
+                <div class="btnRow">
+                  <button id="useEquipBtn">Use/Equip</button>
+                  <button id="dropBtn" class="secondary">Drop</button>
+                  <button id="dropAllBtn" class="danger">Drop All</button>
+                </div>
+              </div>
+              <div id="invGrid" class="invGrid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 1: Skills -->
+        <div class="tab-content" data-tab="1" style="margin-top:10px; display:none;">
+          <div class="grid2">
+            <!-- Left: Category Navigation -->
+            <div class="box" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
+              <div class="small" style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); font-weight:bold;">Categories</div>
+              <div id="skillCategories" class="tab-scroll" style="display:flex; flex-direction:column; flex:1 1 auto;">
+                <!-- Categories will be populated by JS -->
+              </div>
+            </div>
+            
+            <!-- Right: Ability Details & Assignment -->
+            <div class="box tab-scroll" style="overflow:auto;">
+              <div class="small" style="font-weight:bold; margin-bottom:8px;">Active Ability Slots</div>
+              <div id="skillSlots" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;"></div>
+              
+              <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+                <div class="small" style="font-weight:bold; margin-bottom:8px;">Selected Ability</div>
+                <div id="abilityDetails" style="font-size:12px; line-height:1.5; color:#ccc;">
+                  <div style="color:#999; padding:8px;">Select an ability to view details</div>
+                </div>
+              </div>
+              
+              <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+                <div class="small" style="font-weight:bold; margin-bottom:8px;">Passive Abilities</div>
+                <div id="passiveList" style="display:flex; flex-direction:column; gap:6px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Level Up -->
+        <div class="tab-content" data-tab="2" style="margin-top:10px; display:none;">
+          <div class="box">
+            <div class="small">Unspent Points: <b id="lvlPts">0</b></div>
+            <div style="margin-top:10px">
+              <div class="row" style="align-items:center; gap:8px">
+                <div style="width:120px">Max HP</div>
+                <button id="hpDec" class="secondary">◀</button>
+                <div id="hpSpend" style="width:40px;text-align:center">0</div>
+                <button id="hpInc">▶</button>
+              </div>
+              <div class="row" style="align-items:center; gap:8px; margin-top:10px">
+                <div style="width:120px">Max Mana</div>
+                <button id="manaDec" class="secondary">◀</button>
+                <div id="manaSpend" style="width:40px;text-align:center">0</div>
+                <button id="manaInc">▶</button>
+              </div>
+              <div class="row" style="align-items:center; gap:8px; margin-top:10px">
+                <div style="width:120px">Max Stamina</div>
+                <button id="stamDec" class="secondary">◀</button>
+                <div id="stamSpend" style="width:40px;text-align:center">0</div>
+                <button id="stamInc">▶</button>
+              </div>
+            </div>
+            <div class="btnRow" style="margin-top:12px">
+              <button id="levelApply">Apply</button>
+            </div>
+            <div class="small" style="margin-top:8px">Each level grants +1 point. Allocate to HP, Mana, or Stamina.</div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Ability System (Buffs/Debuffs) -->
+        <div class="tab-content" data-tab="3" style="margin-top:10px; display:none;">
+          <div class="box tab-scroll" style="overflow:auto;">
+            <h3 style="margin:0 0 10px 0">Buff & Debuff System</h3>
+            <div class="small" style="margin-bottom:12px; color:#999;">Comprehensive list of all buffs and debuffs in the game. These can be applied by abilities, items, and environmental effects.</div>
+
+            <div style="margin-bottom:12px;">
+              <div class="small" style="font-weight:bold; color:#aaf; margin-bottom:6px;">Active Effects (Player)</div>
+              <div id="activeEffectsIcons" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"></div>
+            </div>
+            <div style="margin-bottom:12px;">
+              <div class="small" style="font-weight:bold; color:#aaf; margin-bottom:6px;">Active Effects (Player)</div>
+              <div id="activeEffectsIcons" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"></div>
+            </div>
+            
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:bold; color:var(--epic); margin-bottom:8px;">⚡ Combat Buffs</div>
+              <div id="combatBuffsList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; font-size:11px;"></div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:bold; color:var(--rare); margin-bottom:8px;">💚 Sustain & Healing Buffs</div>
+              <div id="sustainBuffsList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; font-size:11px;"></div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:bold; color:var(--uncommon); margin-bottom:8px;">🏃 Mobility Buffs</div>
+              <div id="mobilityBuffsList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; font-size:11px;"></div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:bold; color:var(--legend); margin-bottom:8px;">✨ Utility Buffs</div>
+              <div id="utilityBuffsList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; font-size:11px;"></div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <div style="font-weight:bold; color:#c44; margin-bottom:8px;">☠️ Debuffs & DoTs</div>
+              <div id="debuffsList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; font-size:11px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Group -->
+        <div class="tab-content" data-tab="4" style="margin-top:10px; display:none;">
+          <div class="grid2">
+            <!-- Left: Group Members List -->
+            <div class="box" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
+              <div class="small" style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); font-weight:bold;">Group Members (<span id="groupMemberCount">0</span>/10)</div>
+              <div id="groupMembersList" class="tab-scroll" style="flex:1 1 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; padding:8px;">
+                <div class="small" style="padding:12px; color:#888;">No group members yet. Invite allies with "Invite to Group" button.</div>
+              </div>
+            </div>
+            
+            <!-- Right: Member Details & Settings -->
+            <div class="box tab-scroll" style="overflow:auto;">
+              <div class="small" style="font-weight:bold; margin-bottom:8px;">Member Settings</div>
+              <div id="groupMemberDetails" style="font-size:12px; line-height:1.5;">
+                <div class="small" style="color:#999; padding:8px;">Select a group member to manage.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Allies (all spawned friendlies) -->
+        <div class="tab-content" data-tab="5" style="margin-top:10px; display:none;">
+          <div class="grid2">
+            <!-- Left: Allies List -->
+            <div class="box" style="padding:0; overflow:hidden;">
+              <div class="small" style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); font-weight:bold;">All Allies (<span id="allyTabCount">0</span>)</div>
+              <div id="allyList" class="tab-scroll" style="display:flex; flex-direction:column;">
+                <div class="small" style="padding:12px; color:#888;">No allies yet.</div>
+              </div>
+            </div>
+
+            <!-- Right: Ally Details & Actions -->
+            <div class="box">
+              <div class="small" style="font-weight:bold; margin-bottom:8px;">Ally Details</div>
+              <div id="allyDetails" style="font-size:12px; line-height:1.5;">
+                <div class="small" style="color:#999; padding:8px;">Select any ally to manage or invite to group.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 6: Help -->
+        <div class="tab-content" data-tab="6" style="margin-top:10px; display:none;">
+          <div class="box" style="max-height:580px; overflow-y:auto;">
+            <h3 style="margin:0 0 12px 0; color:#4a9eff;">📖 Game Mechanics Guide</h3>
+            
+            <!-- NPC Types -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #4a9eff; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#4a9eff; margin-bottom:8px;">🤖 NPC Types</div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🛡️ Guards (Site Defenders)</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  • <b>Purpose:</b> Defend flags and bases from enemies<br>
+                  • <b>Behavior:</b> ALWAYS AGGRESSIVE (cannot be changed)<br>
+                  • <b>Location:</b> Fixed positions around sites (up to 4 per site)<br>
+                  • <b>Movement:</b> Idle at spawn point, chase enemies within 120 units, max chase distance 140 units<br>
+                  • <b>Respawn:</b> 10 seconds after death if site remains player-controlled<br>
+                  • <b>Cannot be invited to group</b> (site-bound defenders)<br>
+                  • <b>Visual:</b> Blue orbs at static guard positions
+                </div>
+              </div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">👥 Group Members (Player Party)</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  • <b>Purpose:</b> Fight alongside you as a party (max 10 members)<br>
+                  • <b>Behavior:</b> User-controlled (Aggressive or Neutral)<br>
+                  • <b>Formation:</b> Follow player in circular formation (60-100 unit radius)<br>
+                  • <b>Movement:</b> Rotate around player, sprint if >200 units away<br>
+                  • <b>Roles:</b> DPS (damage), Tank (defense), Healer (support)<br>
+                  • <b>Equipment:</b> Can equip gear and assign abilities in Group tab<br>
+                  • <b>Invite:</b> Right-click any non-guard ally → "Invite to Group"<br>
+                  • <b>Visual:</b> Blue orbs following you in formation
+                </div>
+              </div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">⚔️ Non-Group Allies (Autonomous Fighters)</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  • <b>Purpose:</b> Capture enemy flags autonomously<br>
+                  • <b>Behavior:</b> User-controlled (Aggressive or Neutral)<br>
+                  • <b>Movement:</b> Seek nearest enemy flag, return to home base if none<br>
+                  • <b>Can be invited to group</b> to convert to party member<br>
+                  • <b>Spawn:</b> 3 per player-controlled flag (auto-spawn every 1.2s)<br>
+                  • <b>Visual:</b> Blue orbs moving between flags
+                </div>
+              </div>
+            </div>
+
+            <!-- Behaviors -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #f94; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#f94; margin-bottom:8px;">⚡ Behavior System</div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🔴 Aggressive Behavior</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  <b>Group Members:</b><br>
+                  • Break formation to engage enemies within ~180 units<br>
+                  • Actively seek combat opportunities<br>
+                  • Return to formation when no enemies nearby<br><br>
+                  <b>Non-Group Allies:</b><br>
+                  • Detour from flag capture to fight enemies (~140 unit range)<br>
+                  • More combat-focused, engage enemies more often<br>
+                  • Still prioritize objectives but willing to fight en route
+                </div>
+              </div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🔵 Neutral Behavior</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  <b>Group Members:</b><br>
+                  • Stay closer to formation position<br>
+                  • Only engage enemies within ~90 units<br>
+                  • Prioritize protecting player over seeking combat<br><br>
+                  <b>Non-Group Allies:</b><br>
+                  • Focus on flag capture objectives<br>
+                  • Only fight nearby threats (~80 unit range)<br>
+                  • Ignore distant enemies unless blocking path to objective
+                </div>
+              </div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#aaf; margin-top:8px;">
+                💡 <b>Tip:</b> Use Aggressive for offense, Neutral for defense. Guards are ALWAYS aggressive.
+              </div>
+            </div>
+
+            <!-- Group System -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #6f9; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#6f9; margin-bottom:8px;">👥 Group System</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Inviting Members:</b><br>
+                • Right-click any non-guard ally → Select "Invite to Group"<br>
+                • Max 10 members in party<br>
+                • Members follow you in circular formation<br><br>
+                
+                <b>Managing Members:</b><br>
+                • Open Inventory → Group Tab<br>
+                • Click member to view/edit settings<br>
+                • Set Role: DPS (damage), Tank (aggro/defense), Healer (support)<br>
+                • Set Behavior: Aggressive (seek combat) or Neutral (defensive)<br>
+                • Remove members with "Remove" button<br><br>
+                
+                <b>Equipment & Abilities:</b><br>
+                • Click "Edit Equipment & Abilities" for member<br>
+                • Equip armor/weapons from shared inventory<br>
+                • Assign abilities to 5 slots (same as player)<br><br>
+                
+                <b>Formation Mechanics:</b><br>
+                • Members orbit player at 60-100 unit radius<br>
+                • Position based on join order (prevents overlap)<br>
+                • Sprint to catch up if player moves far away (>200 units)<br>
+                • Fine-tune position when close to formation point
+              </div>
+            </div>
+
+            <!-- Role Behaviors -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #cf9; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#cf9; margin-bottom:8px;">🎭 Role Behaviors (Party AI)</div>
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Tank (front lip):</b><br>
+                • Position: Slightly ahead of the stack; rarely roams.<br>
+                • Peel Priority: If healer is pressured, immediately taunt/CC and body-block attackers.<br>
+                • Objective Stop: Interrupt capture attempts on nearby points.<br>
+                • Burst Setup: During burst window, hard CC the focus target; apply debuffs and control clumps.<br>
+                • Survival: If low HP, use defensives and step back to stack edge (don’t kite away).<br>
+                • Avoid: Don’t chase kiters far or waste CC into immunity.<br><br>
+
+                <b>Healer (anchor):</b><br>
+                • Position: Inside the stack; never leaves — out-of-position allies may miss heals.<br>
+                • Emergencies: Self-safety first; use immunity/defensives early when focused.<br>
+                • Saves: Burst heal + shield on critical ally (self > player > other healer > tank > lowest DPS).<br>
+                • Stabilize: Use AoE heals for multiple allies and keep HoTs rolling; cleanse CC immediately on self/other healer.<br>
+                • Pre-burst: During burst/clump pressure, apply mitigation aura and shields.<br>
+                • Avoid: Don’t chase to heal overextended allies; don’t overspend mitigation on reckless DPS.<br><br>
+
+                <b>DPS (execution):</b><br>
+                • Position: Middle of the stack, slightly behind the tank line.<br>
+                • Burst: Follow coordinator focus; during burst, dump damage/finishers; maintain clump bombs when 3+ targets.<br>
+                • Outside Burst: Maintain pressure with DoTs/spammables on focus/highest threat on objective.<br>
+                • Peel (assigned only): Apply CC/slow/knockback on healer’s attacker then return to stack.<br>
+                • Override Rules: Stop captures; avoid tunneling unkillable focus target; help if healer is hard-focused.<br>
+                • Avoid: Don’t over-chase far from objective/stack; don’t blow bombs outside burst unless wipe call.
+              </div>
+            </div>
+
+            <!-- Combat Mechanics -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #f66; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#f66; margin-bottom:8px;">⚔️ Combat Mechanics</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Aggro Ranges (detection distance):</b><br>
+                • Guards: 120 units<br>
+                • Group Aggressive: 180 units<br>
+                • Group Neutral: 90 units<br>
+                • Non-Group Aggressive: 140 units<br>
+                • Non-Group Neutral: 80 units<br><br>
+                
+                <b>Chase Limits:</b><br>
+                • Guards: 140 units from spawn (then return)<br>
+                • Group members: No limit (follow player)<br>
+                • Non-Group: Will pursue to enemy flag<br><br>
+                
+                <b>Respawn System:</b><br>
+                • Guards: 10 seconds, respawn at original site if player-owned<br>
+                • Group Members: 10 seconds, respawn at home base and rejoin formation<br>
+                • Non-Group: 10 seconds, respawn at home flag<br>
+                • Lose site = lose defenders (they disappear)<br><br>
+                
+                <b>Buffs & Debuffs:</b><br>
+                • NPCs can receive all player buffs/debuffs<br>
+                • Healers will cast heals on low HP allies<br>
+                • Tanks use defensive abilities automatically<br>
+                • See Buffs/Debuffs tab for full list
+              </div>
+            </div>
+
+            <!-- Controls -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #fa4; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#fa4; margin-bottom:8px;">🎮 Controls & UI</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Unit Inspection:</b><br>
+                • Right-click any NPC to open inspection panel<br>
+                • Shows: HP, Damage, Speed, Level, Active Effects<br>
+                • For allies: Behavior buttons (Aggressive/Neutral)<br>
+                • For allies: "Invite to Group" button (if not in group)<br><br>
+                
+                <b>Behavior Buttons:</b><br>
+                • Click Aggressive or Neutral to change ally behavior<br>
+                • Active button shows blue highlight<br>
+                • Guards cannot change behavior (always aggressive)<br>
+                • Group members sync behavior in Group tab<br><br>
+                
+                <b>Group Panel (Top-Right):</b><br>
+                • Shows all group member health bars<br>
+                • Displays member count (X/10)<br>
+                • Live updates during combat<br><br>
+                
+                <b>Map (M key):</b><br>
+                • View entire world layout<br>
+                • See all sites and their owners (color-coded)<br>
+                • Fast travel to player-owned sites by clicking
+              </div>
+            </div>
+
+            <!-- Campaign Info -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #c6f; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#c6f; margin-bottom:8px;">🏆 Campaign Objectives</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Victory Conditions:</b><br>
+                • Capture and hold flags to earn points<br>
+                • First to reach target points (default 250) wins<br>
+                • Control more flags than enemies for faster scoring<br>
+                • Control ALL bases to become Emperor (+buffs!)<br><br>
+                
+                <b>Site Types:</b><br>
+                • Flags (site_X): Worth points, spawn 3 defenders when held<br>
+                • Bases (X_base): Team HQ, spawn defenders and knights<br>
+                • Capture by standing near enemy flag for ~3 seconds<br><br>
+                
+                <b>Emperor Bonus:</b><br>
+                • Control all base sites to unlock Emperor powers<br>
+                • +60 HP, +30 Mana, +6 ATK, +8% CDR, +12% Speed<br>
+                • +1.8 HP Regen, +1.2 Mana Regen<br>
+                • All gates open for you
+              </div>
+            </div>
+
+            <!-- Tips & Tricks -->
+            <div style="padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #ff6; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#ff6; margin-bottom:8px;">💡 Tips & Tricks</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                • <b>Early Game:</b> Invite strongest allies to group immediately for protection<br>
+                • <b>Aggressive Groups:</b> Good for offense - they'll clear enemies ahead of you<br>
+                • <b>Neutral Groups:</b> Good for defense - they stay close and guard you<br>
+                • <b>Mixed Behaviors:</b> Set front-line (tanks) to Aggressive, back-line (healers) to Neutral<br>
+                • <b>Flag Capture:</b> Let non-group allies do the work while group protects you<br>
+                • <b>Guard Placement:</b> Guards spawn at sites - capture enemy sites to gain their guards<br>
+                • <b>Respawn Strategy:</b> If ally dies, they respawn at home - plan routes accordingly<br>
+                • <b>Equipment:</b> Share best gear with group members for stronger party<br>
+                • <b>Fast Travel:</b> Use Map (M) to teleport between your sites quickly<br>
+                • <b>Emperor Rush:</b> Capture all bases ASAP for massive power spike
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 7: Campaign -->
+        <div class="tab-content" data-tab="7" style="margin-top:10px; display:none;">
+          <!-- Compact Leader/Last banner -->
+          <div class="box">
+            <div id="campaignHeader" class="small" style="line-height:1.6"></div>
+          </div>
+          <div class="grid2">
+            <!-- Left: Team Metrics -->
+            <div class="box tab-scroll" style="overflow:auto;">
+              <div class="small" style="font-weight:bold; margin-bottom:8px;">Faction Status</div>
+              <div id="campaignTeams" class="small" style="line-height:1.6"></div>
+            </div>
+            <!-- Right: Active Captures -->
+            <div class="box tab-scroll" style="overflow:auto;">
+              <div class="small" style="font-weight:bold; margin-bottom:8px;">Active Captures</div>
+              <div id="campaignCaptures" class="small" style="line-height:1.6"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Remove old separate overlays: Skills and Level overlays are now tabs -->
+
+    <div id="escOverlay" class="overlay">
+      <div class="panel" style="width:min(760px,92vw)">
+        <!-- Main Menu Screen -->
+        <div id="escMenuMain">
+          <h2>Menu</h2>
+          <div class="box">
+            <div class="btnRow" style="display:flex; flex-direction:column; gap:10px; align-items:stretch;">
+              <button id="btnResume" style="font-size:18px; padding:14px;">Resume Game</button>
+              <button id="btnSave" style="font-size:18px; padding:14px;">Save Game</button>
+              <button id="btnLoad" style="font-size:18px; padding:14px;">Load Game</button>
+              <button id="btnOptions" style="font-size:18px; padding:14px;">Options</button>
+              <button id="btnExitToMenu" class="secondary" style="font-size:18px; padding:14px;">Exit to Main Menu</button>
+            </div>
+            <div class="small" style="margin-top:12px; text-align:center;">Save/Load uses browser localStorage.</div>
+          </div>
+        </div>
+
+        <!-- Options Submenu Screen -->
+        <div id="escMenuOptions" style="display:none">
+          <div class="row" style="align-items:center; margin-bottom:12px;">
+            <button id="btnBackToMenu" class="secondary">← Back</button>
+            <h2 style="margin:0; flex:1; text-align:center;">Options</h2>
+            <div style="width:80px;"></div> <!-- Spacer for centering -->
+          </div>
+          
+          <div class="box">
+            <div style="font-weight:900">Gameplay</div>
+            <div style="margin-top:10px" class="row">
+              <label class="small"><input id="optShowAim" type="checkbox" checked/> Show aim line</label>
+              <label class="small"><input id="optShowDebug" type="checkbox"/> Show debug</label>
+              <label class="small"><input id="optShowDebugAI" type="checkbox"/> AI debug (party)</label>
+            </div>
+            <div style="margin-top:8px">
+              <label class="small"><input id="optAutoPickup" type="checkbox"/> Auto-pickup loot when walked over</label>
+            </div>
+            <div style="margin-top:10px">
+              <label class="small"><b>Camera Mode:</b></label>
+              <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <label class="small"><input type="radio" id="optCameraFollowChar" name="cameraMode" value="follow"/> Follow Character</label>
+                <label class="small"><input type="radio" id="optCameraFreeView" name="cameraMode" value="freeview"/> Free View (Dead Zone)</label>
+                <label class="small"><input type="radio" id="optCameraEdgeStrict" name="cameraMode" value="edge_strict"/> Classic Edge Scroll</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="box" style="margin-top:12px">
+            <div class="small" style="font-weight:900">Keybinds</div>
+            <div id="bindList"></div>
+
+            <div class="btnRow">
+              <button id="btnApplyOpts">Apply Options</button>
+              <button id="btnResetBinds" class="secondary">Reset Keybinds</button>
+            </div>
+
+            <div id="rebindHint" class="small" style="margin-top:8px; display:none">
+              Press a key now to rebind, or press Esc to cancel.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Marketplace Overlay -->
+    <div id="marketplaceOverlay" class="overlay">
+      <div class="panel" style="width:min(800px,92vw)">
+        <div class="row" style="position:relative; align-items:center;">
+          <div id="marketConfirm" class="small" style="position:absolute; left:0; top:0; min-height:18px; font-weight:900; background:transparent; padding:0; margin:0; pointer-events:none;"></div>
+          <h2 style="margin:0; flex:1; text-align:center;">🏪 Marketplace</h2>
+          <button id="btnCloseMarket" class="secondary">Close</button>
+        </div>
+        
+        <!-- Marketplace Tabs -->
+        <div class="tabs" style="margin-top:10px; display:flex; gap:4px; border-bottom:2px solid rgba(255,255,255,0.1)">
+          <button id="marketTabShop" class="tab-btn active" style="flex:1; padding:10px; background:rgba(255,255,255,0.1); border:none; color:#fff; cursor:pointer; border-bottom:3px solid var(--epic); font-weight:bold;">Shop</button>
+          <button id="marketTabAllies" class="tab-btn" style="flex:1; padding:10px; background:rgba(255,255,255,0.05); border:none; color:#aaa; cursor:pointer; border-bottom:3px solid transparent; font-weight:normal;">Allies</button>
+        </div>
+        
+        <!-- Shop Tab Content -->
+        <div id="marketContentShop" class="tab-content">
+          <div class="box" style="margin-top:10px">
+            <div class="small" style="font-weight:900; margin-bottom:8px">Your Gold: <span id="marketGold" style="color:var(--epic)">0</span></div>
+            <div class="small" style="margin-bottom:8px">Buy starter gear and potions. Unlimited stock available!</div>
+            <div id="marketInspect" class="small" style="margin-bottom:10px; line-height:1.4">Select an item to view its stats.</div>
+            <div id="shopItems" class="grid2" style="max-height:420px; overflow-y:auto; gap:8px"></div>
+          </div>
+        </div>
+        
+        <!-- Allies Tab Content -->
+        <div id="marketContentAllies" class="tab-content" style="display:none">
+          <div class="box" style="margin-top:10px">
+            <div class="small" style="font-weight:900; margin-bottom:8px">Manage Base Defenders</div>
+            <div class="small" style="margin-bottom:12px; color:#aaa">Assign allies to defend your bases and captured flags.</div>
+            
+            <div style="margin-bottom:12px">
+              <button id="btnCallAllAllies" style="width:100%; padding:12px; font-size:16px; background:var(--player); color:#fff; border:none; cursor:pointer; border-radius:4px; font-weight:bold;">📣 Call All Allies to This Location</button>
+              <div class="small" style="margin-top:4px; color:#999; text-align:center;">Summons all friendly units to your current position</div>
+            </div>
+            
+            <div id="allyBaseList" style="max-height:400px; overflow-y:auto;">
+              <!-- Will be populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- End -->
+    <div id="endOverlay" class="overlay">
+      <div class="panel" style="width:min(560px,92vw)">
+        <h2 id="endTitle">Campaign Complete</h2>
+        <div class="box">
+          <div class="small" id="endText">You won.</div>
+          <div class="box" style="margin-top:10px">
+            <div class="small" style="font-weight:900">Rewards</div>
+            <ul id="endRewards" class="small" style="margin-top:6px"></ul>
+          </div>
+          <div class="btnRow" style="margin-top:10px">
+            <button id="btnNextCampaign">Start Next Campaign</button>
+            <button id="btnRestart" class="secondary">Restart (Reset Loot)</button>
+            <button id="btnOpenInv2" class="secondary">Inventory</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unit Inspection Panel (non-blocking, no overlay dim) -->
+    <div id="unitInspectionPanel" style="position:fixed; inset:0; pointer-events:none; background:transparent; display:none;">
+      <div class="panel" id="unitInspectionContent" style="position:fixed; width:280px; pointer-events:auto; background:rgba(20,20,20,0.92); border:1px solid rgba(122,162,255,0.4); padding:10px; left:20px; top:20px; z-index:200; display:none;">
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <h3 id="unitName" style="margin:0">Unit</h3>
+          <button id="closeUnitPanel" style="background:none; border:1px solid rgba(255,255,255,0.2); color:#fff; padding:4px 8px; cursor:pointer; font-size:12px;">Close</button>
+        </div>
+        <div class="small" id="unitTeam" style="margin-top:6px; color:#aaa"></div>
+        <div style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+          <div class="small" style="font-weight:bold">Stats</div>
+          <table class="small" style="margin-top:6px; width:100%;">
+            <tr><td>HP</td><td id="unitHP" style="text-align:right">0/0</td></tr>
+            <tr><td>DMG</td><td id="unitDMG" style="text-align:right">0</td></tr>
+            <tr><td>Speed</td><td id="unitSpeed" style="text-align:right">0</td></tr>
+            <tr><td>Lvl</td><td id="unitLevel" style="text-align:right">1</td></tr>
+          </table>
+        </div>
+        <div style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+          <div class="small" style="font-weight:bold">Active Effects</div>
+          <div id="unitEffects" class="small effectPills" style="margin-top:6px; line-height:1.4">None</div>
+        </div>
+        <div id="allyControlPanel" style="display:none; margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+          <div class="small" style="font-weight:bold">Behavior</div>
+          <div style="margin-top:6px; display:flex; gap:4px; flex-wrap:wrap;">
+            <button id="btnAllyAggressive" class="secondary" style="flex:1; font-size:10px; padding:4px;">Aggressive</button>
+            <button id="btnAllyNeutral" class="secondary" style="flex:1; font-size:10px; padding:4px;">Neutral</button>
+          </div>
+          <div id="allyBehaviorDesc" class="small" style="margin-top:6px; color:#999; line-height:1.35;">
+            <b>Non-Group Allies:</b> Aggressive detours to fight; Neutral focuses on objectives and only fights nearby threats.
+          </div>
+          <button id="btnEditTarget" style="width:100%; margin-top:6px; padding:6px; font-size:10px;" class="secondary">Edit (requires group)</button>
+          <button id="btnInviteToGroup" style="width:100%; margin-top:6px; padding:6px; font-size:10px;">Invite to Group</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group Display Panel (top-right under minimap, shows group member health) -->
+    <div id="groupPanel" style="position:fixed; right:10px; top:140px; background:rgba(20,20,20,0.8); border:1px solid rgba(122,162,255,0.3); border-radius:4px; padding:8px; z-index:150; display:none; pointer-events:auto; min-width:200px; max-width:220px;">
+      <div class="small" style="font-weight:bold; color:rgba(255,255,255,0.8); margin-bottom:6px;">Group (<span id="groupPanelCount">0</span>)</div>
+      <div id="groupPanelList" style="display:flex; flex-direction:column; gap:6px; font-size:11px;"></div>
+    </div>
+  `;
+
+  const ui = bindUI(state);
+  state.ui = ui;
+  try{ window.ui = ui; }catch{}
+  ui.renderAbilityBar();
+  ui.renderInventory();
+  return ui;
+}
+
+function bindUI(state){
+  const $ = (id)=>document.getElementById(id);
+  const ui={
+      mainMenu: $('mainMenu'), heroNameInput: $('heroNameInput'), btnNewGame: $('btnNewGame'), btnLoadGame: $('btnLoadGame'),
+      saveOverlay: $('saveOverlay'), saveClose: $('saveClose'), saveList: $('saveList'), selSaveMeta: $('selSaveMeta'), saveNameInput: $('saveNameInput'), btnLoadSelected: $('btnLoadSelected'), btnOverwriteSelected: $('btnOverwriteSelected'), btnDeleteSelected: $('btnDeleteSelected'), btnSaveNew: $('btnSaveNew'),
+    enemyCount:$('enemyCount'),
+    allyCount:$('allyCount'),
+    pPts:$('pPts'),
+    ePts:$('ePts'),
+    targetPts:$('targetPts'),
+    gold:$('gold'),
+    lvl:$('lvl'),
+    xpText:$('xpText'),
+    spText:$('spText'),
+    hpFill:$('hpFill'), manaFill:$('manaFill'), stamFill:$('stamFill'), shieldFill:$('shieldFill'),
+    hpText:$('hpText'), manaText:$('manaText'), stamText:$('stamText'), shieldText:$('shieldText'),
+    hintText:$('hintText'),
+    hud:$('hud'),
+    bottomBar:$('bottomBar'),
+    b_hpFill:$('b_hpFill'), b_manaFill:$('b_manaFill'), b_stamFill:$('b_stamFill'),
+    b_hpText:$('b_hpText'), b_manaText:$('b_manaText'), b_stamText:$('b_stamText'),
+    bottomStats:$('bottomStats'), bs_hpFill:$('bs_hpFill'), bs_manaFill:$('bs_manaFill'), bs_stamFill:$('bs_stamFill'),
+    bs_hpText:$('bs_hpText'), bs_manaText:$('bs_manaText'), bs_stamText:$('bs_stamText'),
+    bs_shieldText:$('bs_shieldText'), bs_shieldFill:$('bs_shieldFill'),
+    toastEl:$('toast'),
+    abilBar:$('abilBar'),
+    buffIconsHud:$('buffIconsHud'),
+    invOverlay:$('invOverlay'),
+    invGrid:$('invGrid'),
+    invClose:$('invClose'),
+    skillSlots:$('skillSlots'),
+    skillCategories:$('skillCategories'),
+    abilityDetails:$('abilityDetails'),
+    passiveList:$('passiveList'),
+    combatBuffsList:$('combatBuffsList'),
+    sustainBuffsList:$('sustainBuffsList'),
+    mobilityBuffsList:$('mobilityBuffsList'),
+    utilityBuffsList:$('utilityBuffsList'),
+    debuffsList:$('debuffsList'),
+    activeEffectsIcons:$('activeEffectsIcons'),
+    selName:$('selName'),
+    selDesc:$('selDesc'),
+    statsTable:$('statsTable'),
+    useEquipBtn:$('useEquipBtn'),
+    dropBtn:$('dropBtn'),
+    dropAllBtn:$('dropAllBtn'),
+    equipCircle:$('equipCircle'), equipExtras:$('equipExtras'), weaponSlot:$('weaponSlot'),
+    escOverlay:$('escOverlay'),
+    escMenuMain:$('escMenuMain'),
+    escMenuOptions:$('escMenuOptions'),
+    btnSelectHero:$('btnSelectHero'),
+    btnResume:$('btnResume'),
+    btnSave:$('btnSave'),
+    btnLoad:$('btnLoad'),
+    btnOptions:$('btnOptions'),
+    btnBackToMenu:$('btnBackToMenu'),
+    btnApplyOpts:$('btnApplyOpts'),
+    btnResetBinds:$('btnResetBinds'),
+    optShowAim:$('optShowAim'),
+    optShowDebug:$('optShowDebug'),
+    optShowDebugAI:$('optShowDebugAI'),
+      optCameraFreeView:$('optCameraFreeView'),
+      optCameraFollowChar:$('optCameraFollowChar'),
+      optCameraEdgeStrict:$('optCameraEdgeStrict'),
+    bindList:$('bindList'),
+    rebindHint:$('rebindHint'),
+    marketplaceOverlay:$('marketplaceOverlay'),
+    marketTabShop:$('marketTabShop'),
+    marketTabAllies:$('marketTabAllies'),
+    marketContentShop:$('marketContentShop'),
+    marketContentAllies:$('marketContentAllies'),
+    btnCallAllAllies:$('btnCallAllAllies'),
+    allyBaseList:$('allyBaseList'),
+    marketConfirm:$('marketConfirm'),
+    marketInspect:$('marketInspect'),
+    btnCloseMarket:$('btnCloseMarket'),
+    shopItems:$('shopItems'),
+    marketGold:$('marketGold'),
+    optAutoPickup:$('optAutoPickup'),
+    endOverlay:$('endOverlay'),
+    endTitle:$('endTitle'),
+    endText:$('endText'),
+    btnRestart:$('btnRestart'),
+    btnOpenInv2:$('btnOpenInv2'),
+    invArmorStars:$('invArmorStars'), invArmorText:$('invArmorText'),
+    lvlPts:$('lvlPts'),
+    hpInc:$('hpInc'), hpDec:$('hpDec'), manaInc:$('manaInc'), manaDec:$('manaDec'), stamInc:$('stamInc'), stamDec:$('stamDec'),
+    hpSpend:$('hpSpend'), manaSpend:$('manaSpend'), stamSpend:$('stamSpend'), levelApply:$('levelApply'),
+    heroPortrait:$('heroPortrait'), heroClassName:$('heroClassName'), heroLevel:$('heroLevel'),
+    unitInspectionPanel: $('unitInspectionPanel'), unitInspectionContent: $('unitInspectionContent'), closeUnitPanel: $('closeUnitPanel'),
+    unitName: $('unitName'), unitTeam: $('unitTeam'), unitHP: $('unitHP'), unitDMG: $('unitDMG'), unitSpeed: $('unitSpeed'), unitLevel: $('unitLevel'),
+    unitEffects: $('unitEffects'),
+    allyControlPanel: $('allyControlPanel'), btnAllyAggressive: $('btnAllyAggressive'), btnAllyNeutral: $('btnAllyNeutral'), allyBehaviorDesc: $('allyBehaviorDesc'), btnEditTarget: $('btnEditTarget'), btnInviteToGroup: $('btnInviteToGroup'),
+    // Group UI elements
+    groupPanel: $('groupPanel'), groupPanelCount: $('groupPanelCount'), groupPanelList: $('groupPanelList'),
+    groupMemberCount: $('groupMemberCount'), groupMembersList: $('groupMembersList'), groupMemberDetails: $('groupMemberDetails'),
+    allyList: $('allyList'), allyDetails: $('allyDetails'), allyTabCount: $('allyTabCount'),
+    invRight: $('invRight')
+  };
+  // Sticky header shadow on inventory scroll
+  ui._bindInvRightScroll = ()=>{
+    if(!ui.invRight || ui._invRightBound) return;
+    const updateShadow = ()=>{
+      try{
+        const scrolled = (ui.invRight.scrollTop||0) > 0;
+        ui.invRight.classList.toggle('scrolled', scrolled);
+      }catch{}
+    };
+    ui.invRight.addEventListener('scroll', updateShadow);
+    ui._invRightBound = true;
+    updateShadow();
+  };
+
+  ui.targetPts.textContent = state.campaign.targetPoints;
+
+  const goldIcon = '<span class="gold-icon">💰</span>';
+  const formatGold = (amt)=>`${goldIcon}<span class="gold-amount">${Math.max(0, Math.floor(amt||0))}</span>`;
+  ui.updateGoldDisplay = ()=>{
+    if(ui.gold) ui.gold.innerHTML = formatGold(state.player.gold);
+    if(ui.marketGold) ui.marketGold.innerHTML = formatGold(state.player.gold);
+  };
+
+  ui.updateInventorySelection = ()=>{
+    const isGroupMemberMode = state.groupMemberInventoryMode;
+    const equipSet = isGroupMemberMode ? state.group.settings[state.groupMemberInventoryMode]?.equipment : state.player.equip;
+
+    // Highlight inventory grid selection without rebuilding DOM
+    if(ui.invGrid){
+      const children = ui.invGrid.children || [];
+      for(let j=0;j<children.length;j++){
+        const el = children[j];
+        if(!el || !el.style) continue;
+        el.style.outline = (j === state.selectedIndex) ? '2px solid rgba(122,162,255,.55)' : 'none';
+      }
+    }
+
+    // Update selected details (inventory item or equipped item)
+    const selectedItem = (state.selectedIndex>=0 && state.selectedIndex<state.inventory.length)
+      ? state.inventory[state.selectedIndex]
+      : (state.selectedEquipSlot && equipSet ? equipSet[state.selectedEquipSlot] : null);
+
+    if(selectedItem){
+      const equipTag = state.selectedEquipSlot ? ' (Equipped)' : '';
+      ui.selName.textContent=`${selectedItem.name}${equipTag}`;
+      ui.selName.className=rarityClass(selectedItem.rarity.key);
+      const countText = selectedItem.kind === 'potion' ? ` (x${selectedItem.count || 1})` : '';
+      ui.selDesc.innerHTML=selectedItem.desc + countText + `<br/><span class="small">Rarity: <b class="${rarityClass(selectedItem.rarity.key)}">${selectedItem.rarity.name}</b></span>`;
+    } else {
+      ui.selName.textContent='None';
+      ui.selName.className='';
+      ui.selDesc.textContent='Click an item.';
+    }
+
+    ui.renderStats();
+  };
+
+  // --- Save manager helpers ---
+  function listSaves(){ try{ return JSON.parse(localStorage.getItem('orb_rpg_saves_mod')||'[]'); }catch{ return []; } }
+  function writeSaves(arr){ try{ localStorage.setItem('orb_rpg_saves_mod', JSON.stringify(arr)); }catch{} }
+  function saveNew(name){ const id=Date.now(); const data=exportSave(state); const created=new Date().toISOString(); const arr=listSaves(); arr.push({id,name,created,data}); writeSaves(arr); }
+  function overwrite(id){ const arr=listSaves(); const idx=arr.findIndex(s=>s.id===id); if(idx!==-1){ arr[idx].data=exportSave(state); arr[idx].created=new Date().toISOString(); writeSaves(arr); } }
+  function delSave(id){ const arr=listSaves().filter(s=>s.id!==id); writeSaves(arr); }
+  
+  // Auto-save functions
+  function getAutoSaveId(){ return 'AUTO_SAVE_SLOT'; }
+  function autoSave(){
+    try{
+      const id = getAutoSaveId();
+      const data = exportSave(state);
+      const created = new Date().toISOString();
+      const name = `Auto Save - ${state.player?.name || 'Hero'}`;
+      const arr = listSaves();
+      const existing = arr.findIndex(s => s.id === id);
+      if(existing !== -1){
+        arr[existing] = {id, name, created, data};
+      } else {
+        arr.push({id, name, created, data});
+      }
+      writeSaves(arr);
+    } catch(e){ console.error('Auto save failed:', e); }
+  }
+  
+  function renderSaveList(){ const arr=listSaves(); ui.saveList.innerHTML=''; let selectedId = ui._selectedSaveId; for(const s of arr){ const row=document.createElement('div'); row.className='slot'; row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.gap='8px'; row.innerHTML = `<div><b>${s.name||'Unnamed'}</b><div class="small">${s.created}</div></div><div class="small">ID ${s.id}</div>`; row.onclick=()=>{ ui._selectedSaveId=s.id; ui.selSaveMeta.innerHTML = `<b>${s.name||'Unnamed'}</b><br/>${s.created}<br/>ID ${s.id}`; }; if(selectedId===s.id) row.style.outline='2px solid rgba(122,162,255,.7)'; ui.saveList.appendChild(row); } }
+
+  ui.toggleSaves = (on)=>{ ui.saveOverlay.classList.toggle('show', on); if(on){ renderSaveList(); ui.saveNameInput.value = state.player?.name || 'Hero'; } };
+  // Helper to make default save name (Hero — local date/time)
+  function defaultSaveName(){
+    const nm = state.player?.name || 'Hero';
+    try{
+      return `${nm} — ${new Date().toLocaleString()}`;
+    }catch{ return `${nm} — ${new Date().toISOString()}`; }
+  }
+  // Ensure auto-fill on open
+  ui.toggleSaves = (on)=>{
+    ui.saveOverlay.classList.toggle('show', on);
+    if(on){
+      renderSaveList();
+      ui.saveNameInput.value = defaultSaveName();
+      state.paused = true;
+    } else {
+      if(!state.showInventory && !state.inMenu && !state.campaignEnded) state.paused=false;
+    }
+  };
+  ui.saveClose.onclick=()=>ui.toggleSaves(false);
+  ui.btnSaveNew.onclick=()=>{ const nm = ui.saveNameInput.value || state.player.name || 'Hero'; saveNew(nm); renderSaveList(); ui.toast('Saved new.'); };
+  ui.btnOverwriteSelected.onclick=()=>{ const id=ui._selectedSaveId; if(!id){ ui.toast('Select a save.'); return; } overwrite(id); renderSaveList(); ui.toast('Overwritten.'); };
+  ui.btnDeleteSelected.onclick=()=>{ const id=ui._selectedSaveId; if(!id){ ui.toast('Select a save.'); return; } delSave(id); ui._selectedSaveId=null; ui.selSaveMeta.textContent='None'; renderSaveList(); ui.toast('Deleted.'); };
+  ui.btnLoadSelected.onclick=()=>{ const id=ui._selectedSaveId; if(!id){ ui.toast('Select a save.'); return; } const s=listSaves().find(x=>x.id===id); if(!s){ ui.toast('Missing save.'); return; } try{ if(typeof ui.onLoadGame==='function'){ ui.onLoadGame(s.data); } }catch(e){ ui.toast('Load failed.'); } };
+
+  // Hide all game UI until a game starts
+  ui.setGameUIVisible = (on)=>{
+    try{ ui.hud.style.display = on ? 'block' : 'none'; }catch{}
+    try{ ui.bottomBar.style.display = on ? (state.uiHidden?'block':'none') : 'none'; }catch{}
+    try{ ui.bottomStats.style.display = on ? 'flex' : 'none'; }catch{}
+    try{ ui.abilBar.style.display = on ? 'flex' : 'none'; }catch{}
+    try{ ui.buffIconsHud.style.display = on ? 'flex' : 'none'; }catch{}
+    // ensure overlays are hidden
+    try{ ui.invOverlay.classList.remove('show'); ui.escOverlay.classList.remove('show'); ui.endOverlay.classList.remove('show'); }catch{}
+  };
+  ui.setGameUIVisible(false);
+
+  // Main menu helpers and handlers
+  ui.hideMainMenu = ()=> ui.mainMenu.classList.remove('show');
+  // Main menu background: use default path; you can override via localStorage if needed
+  try{
+    const initBg = localStorage.getItem('orb_rpg_menu_bg') || 'assets/ui/MainMenu.png';
+    ui.mainMenu.style.background = `url('${initBg}') center/cover no-repeat`;
+  }catch(e){}
+
+  // Start and Load buttons (bind immediately, not inside toast)
+  ui.btnNewGame.onclick=()=>{
+    const nm = ui.heroNameInput.value?.trim() || 'Hero';
+    state.player.name = nm;
+    ui.hideMainMenu();
+    if(typeof ui.onNewGame==='function'){
+      ui.onNewGame(nm);
+    } else {
+      console.warn('ui.onNewGame not set');
+    }
+  };
+  ui.btnLoadGame.onclick=()=>{ ui.toggleSaves(true); };
+
+  // Toast utility
+  ui.toast = (msg, ms=1700)=>{
+    ui.toastEl.innerHTML = msg;
+    ui.toastEl.classList.add('show');
+    clearTimeout(ui.toast._t);
+    ui.toast._t = setTimeout(()=>ui.toastEl.classList.remove('show'), ms);
+  };
+
+  // Apply Options button: persist toggles (including AI debug)
+  if(ui.btnApplyOpts){
+    ui.btnApplyOpts.onclick = ()=>{
+      state.options.showAim = !!ui.optShowAim?.checked;
+      state.options.showDebug = !!ui.optShowDebug?.checked;
+      if(ui.optShowDebugAI) state.options.showDebugAI = !!ui.optShowDebugAI.checked;
+      state.options.autoPickup = !!ui.optAutoPickup?.checked;
+      // camera mode
+      try{
+        if(ui.optCameraFollowChar?.checked) state.options.cameraMode = 'follow';
+        else if(ui.optCameraFreeView?.checked) state.options.cameraMode = 'freeview';
+        else if(ui.optCameraEdgeStrict?.checked) state.options.cameraMode = 'edge_strict';
+      }catch{}
+      try{ saveJson('orb_rpg_mod_opts', state.options); }catch{}
+      ui.toast('Options applied');
+    };
+  }
+
+  // Tooltip helpers for buff icons (HUD + Tab)
+  ui._ensureBuffTooltip = ()=>{
+    if(ui.buffTooltipEl) return;
+    try{
+      const root = document.getElementById('ui-root');
+      const tip = document.createElement('div');
+      tip.id = 'buffTooltip';
+      tip.className = 'buffTooltip';
+      root.appendChild(tip);
+      ui.buffTooltipEl = tip;
+    }catch{}
+  };
+  ui.showBuffTooltip = (title, desc, targetEl)=>{
+    ui._ensureBuffTooltip();
+    const tip = ui.buffTooltipEl; if(!tip) return;
+    tip.innerHTML = `<div class="title">${title}</div>${desc?`<div class="sub">${desc}</div>`:''}`;
+    tip.style.display = 'block';
+    // position above target
+    try{
+      const rect = targetEl.getBoundingClientRect();
+      const tw = Math.min(280, tip.offsetWidth || 200);
+      const th = tip.offsetHeight || 32;
+      let left = rect.left + rect.width/2 - tw/2;
+      let top = rect.top - th - 10;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      if(left < 8) left = 8; if(left + tw > vw - 8) left = vw - tw - 8;
+      if(top < 8) top = rect.bottom + 10; // fallback below if not enough space
+      tip.style.left = `${Math.round(left)}px`;
+      tip.style.top = `${Math.round(top)}px`;
+    }catch{}
+  };
+  ui.hideBuffTooltip = ()=>{ try{ if(ui.buffTooltipEl) ui.buffTooltipEl.style.display='none'; }catch{} };
+
+  function setupBuffTooltipHandlers(container){
+    if(!container) return;
+    container.addEventListener('mouseover', (e)=>{
+      const icon = e.target.closest && e.target.closest('.buffIcon');
+      if(!icon) return;
+      const title = icon.getAttribute('data-title') || 'Effect';
+      const desc = icon.getAttribute('data-desc') || '';
+      ui.showBuffTooltip(title, desc, icon);
+    });
+    container.addEventListener('mousemove', (e)=>{
+      const icon = e.target.closest && e.target.closest('.buffIcon');
+      if(!icon){ ui.hideBuffTooltip(); return; }
+      if(!ui.buffTooltipEl || ui.buffTooltipEl.style.display!=='block') return;
+      ui.showBuffTooltip(icon.getAttribute('data-title')||'Effect', icon.getAttribute('data-desc')||'', icon);
+    });
+    container.addEventListener('mouseleave', ()=>{ ui.hideBuffTooltip(); });
+    container.addEventListener('mouseout', (e)=>{
+      const toEl = e.relatedTarget;
+      // If leaving to outside the container, hide the tooltip
+      if(!container.contains(toEl)) ui.hideBuffTooltip();
+    });
+  }
+  setupBuffTooltipHandlers(document.getElementById('buffIconsHud'));
+  setupBuffTooltipHandlers(document.getElementById('activeEffectsIcons'));
+
+  ui.toggleInventory = (on)=>{
+    state.showInventory=on;
+    ui.invOverlay.classList.toggle('show',on);
+    if(on){
+      state.paused=true; state.selectedIndex=-1; state.selectedEquipSlot=null;
+      ui.updateGoldDisplay();
+      ui.renderInventory(); ui.renderSkills(); ui.renderLevel(); ui.renderBuffSystem(); ui.renderCampaignTab?.();
+      ui._bindInvRightScroll();
+      // refresh Campaign tab metrics periodically while inventory is open
+      clearInterval(ui._campaignTick);
+      ui._campaignTick = setInterval(()=>{ try{ ui.renderCampaignTab?.(); }catch(e){} }, 1500);
+    }
+    else if(!state.inMenu && !state.campaignEnded) state.paused=false;
+    if(!on){ clearInterval(ui._campaignTick); ui._campaignTick = null; }
+  };
+
+  // Render Campaign tab contents (team gold, points, flags, avg level, armor rarity)
+  ui.renderCampaignTab = ()=>{
+    const teams = [
+      { key:'player', name:'Player', color:'#6cf' },
+      { key:'teamA', name:'Red Team', color:'#f66' },
+      { key:'teamB', name:'Yellow Team', color:'#fc6' },
+      { key:'teamC', name:'Blue Team', color:'#6af' }
+    ];
+    const toStars=(tier)=>{
+      const t = Math.max(1, Math.min(5, tier||1));
+      return '★'.repeat(t) + '☆'.repeat(5-t);
+    };
+    // compute leader/last and assistance eligibility
+    const now = state.campaign?.time || 0;
+    const cfg = state.rubberband || { gapThreshold:60, closeThreshold:30, baseTickGold:250, interval:300, nonLastScale:0.6, maxAssistPerTeam:10000 };
+    const pts = {
+      player: state.teamPoints?.player||0,
+      teamA: state.teamPoints?.teamA||0,
+      teamB: state.teamPoints?.teamB||0,
+      teamC: state.teamPoints?.teamC||0
+    };
+    let leaderKey = 'player', leaderPts = pts.player;
+    for(const k of ['player','teamA','teamB','teamC']){ if(pts[k] > leaderPts){ leaderPts = pts[k]; leaderKey = k; } }
+    let lastKey = 'player', lastPts = pts.player;
+    for(const k of ['player','teamA','teamB','teamC']){ if(pts[k] < lastPts){ lastPts = pts[k]; lastKey = k; } }
+
+    const teamLines=[];
+    for(const t of teams){
+      const gold = Math.floor((state.factionGold?.[t.key])||0);
+      const points = Math.floor((state.teamPoints?.[t.key])||0);
+      const flags = (t.key==='player') ? state.sites.filter(s=>s.owner==='player' && s.id.startsWith('site_')).length : state.sites.filter(s=>s.owner===t.key && s.id.startsWith('site_')).length;
+      const tier = (state.factionTech?.[t.key])||1;
+      const enemies = state.enemies.filter(e=>e.team===t.key);
+      const avgLevel = enemies.length ? Math.round(enemies.reduce((a,e)=>a+(e.level||1),0)/enemies.length) : 1;
+      const gap = (t.key===leaderKey) ? 0 : Math.max(0, leaderPts - (pts[t.key]||0));
+      const eligible = t.key!==leaderKey && gap >= (cfg.gapThreshold||60);
+      const next = Math.max(0, Math.ceil(((state.rubberbandNext?.[t.key]||0) - now)/60));
+      const awarded = Math.floor(state.rubberbandAwarded?.[t.key]||0);
+      const assistStr = eligible
+        ? `• Assist: <span style="color:#9f6">eligible</span> • Next: <b>${next}m</b> • Total: <b>${awarded}</b>`
+        : `• Assist: <span style="color:#888">off</span>`;
+      teamLines.push(`<div><span style="color:${t.color}; font-weight:900">${t.name}</span> — Gold: <b>${gold}</b> • Points: <b>${points}</b> • Flags: <b>${flags}</b> • Avg Level: <b>${avgLevel}</b> • Armor: <span style="color:#c9f">${toStars(tier)}</span> (Tier ${tier}) ${assistStr}</div>`);
+    }
+    const capLines=[];
+    for(const s of state.sites){
+      if(!s.id || !s.id.startsWith('site_')) continue;
+      if(s._captureTeam){
+        capLines.push(`<div><b>${s.name}</b> capturing by <span style="color:#f66">${s._captureTeam}</span> • Progress: ${(Math.round((s.prog||0)*100))}%</div>`);
+      } else if(s.owner && s.owner!=='player' && s.underAttack){
+        capLines.push(`<div><b>${s.name}</b> under attack • Owner: <span style="color:#f66">${s.owner}</span></div>`);
+      } else if(s.owner==='player' && s.underAttack){
+        capLines.push(`<div><b>${s.name}</b> under attack • Owner: <span style="color:#6cf">player</span></div>`);
+      }
+    }
+    const teamsEl = document.getElementById('campaignTeams');
+    const capsEl = document.getElementById('campaignCaptures');
+    if(teamsEl) teamsEl.innerHTML = teamLines.join('');
+    if(capsEl) capsEl.innerHTML = capLines.length ? capLines.join('') : '<div style="color:#888">No active captures.</div>';
+  };
+
+  ui.toggleMarketplace = (on)=>{
+    state.showMarketplace=on;
+    ui.marketplaceOverlay.classList.toggle('show',on);
+    if(on){
+      state.paused=true;
+      ui.updateGoldDisplay();
+      if(ui.marketConfirm) ui.marketConfirm.innerHTML='';
+      if(ui.marketInspect) ui.marketInspect.innerHTML='Select an item to view its stats.';
+      
+      // Always show Shop tab when opening
+      ui.switchMarketTab('shop');
+      ui.renderShop();
+    } else {
+      if(!state.showInventory && !state.inMenu && !state.campaignEnded) state.paused=false;
+    }
+  };
+  
+  ui.switchMarketTab = (tab)=>{
+    if(tab === 'shop'){
+      ui.marketTabShop.classList.add('active');
+      ui.marketTabShop.style.borderBottomColor = 'var(--epic)';
+      ui.marketTabShop.style.color = '#fff';
+      ui.marketTabShop.style.fontWeight = 'bold';
+      ui.marketTabShop.style.background = 'rgba(255,255,255,0.1)';
+      
+      ui.marketTabAllies.classList.remove('active');
+      ui.marketTabAllies.style.borderBottomColor = 'transparent';
+      ui.marketTabAllies.style.color = '#aaa';
+      ui.marketTabAllies.style.fontWeight = 'normal';
+      ui.marketTabAllies.style.background = 'rgba(255,255,255,0.05)';
+      
+      ui.marketContentShop.style.display = 'block';
+      ui.marketContentAllies.style.display = 'none';
+    } else if(tab === 'allies'){
+      ui.marketTabAllies.classList.add('active');
+      ui.marketTabAllies.style.borderBottomColor = 'var(--epic)';
+      ui.marketTabAllies.style.color = '#fff';
+      ui.marketTabAllies.style.fontWeight = 'bold';
+      ui.marketTabAllies.style.background = 'rgba(255,255,255,0.1)';
+      
+      ui.marketTabShop.classList.remove('active');
+      ui.marketTabShop.style.borderBottomColor = 'transparent';
+      ui.marketTabShop.style.color = '#aaa';
+      ui.marketTabShop.style.fontWeight = 'normal';
+      ui.marketTabShop.style.background = 'rgba(255,255,255,0.05)';
+      
+      ui.marketContentShop.style.display = 'none';
+      ui.marketContentAllies.style.display = 'block';
+      
+      ui.renderAllyBaseList();
+    }
+  };
+  
+  ui.renderAllyBaseList = ()=>{
+    if(!ui.allyBaseList) return;
+    
+    // Collect all player-owned sites (home + captured flags)
+    const sites = [];
+    const homeBase = state.sites?.find(s => s.id === 'player_home');
+    if(homeBase) sites.push({ ...homeBase, name: 'Home Base', isHome: true });
+    
+    if(state.sites){
+      for(const s of state.sites){
+        if(s.owner === 'player' && s.id && s.id.startsWith('site_') && s !== homeBase){
+          sites.push({ ...s, name: s.name || 'Captured Flag', isHome: false });
+        }
+      }
+    }
+    
+    if(sites.length === 0){
+      ui.allyBaseList.innerHTML = '<div class="small" style="color:#999; padding:20px; text-align:center;">No bases or flags captured yet.</div>';
+      return;
+    }
+    
+    // Count allies at each site
+    let html = '';
+    for(const site of sites){
+      const allies = (state.friendlies || []).filter(f => {
+        const dist = Math.hypot(f.x - site.x, f.y - site.y);
+        return dist <= 100; // Consider allies within 100 units as "at" the base
+      });
+      
+      html += `
+        <div class="box" style="margin-bottom:10px; background:rgba(255,255,255,0.05)">
+          <div style="font-weight:bold; margin-bottom:6px;">${site.isHome ? '🏠' : '🚩'} ${site.name}</div>
+          <div class="small" style="color:#aaa; margin-bottom:6px;">Defenders: <span style="color:var(--player); font-weight:bold;">${allies.length}</span></div>
+          <div class="small" style="color:#999;">Position: (${Math.round(site.x)}, ${Math.round(site.y)})</div>
+        </div>
+      `;
+    }
+    
+    ui.allyBaseList.innerHTML = html;
+  };
+
+  ui.showMarketplaceHint = (show)=>{
+    // Could add a visual hint here when player is near marketplace
+    // For now, this is a placeholder for future hint UI
+  };
+
+  ui.renderShop = ()=>{
+    const formatBuffs = (buffs)=>{
+      if(!buffs || Object.keys(buffs).length===0) return 'No bonuses';
+      return Object.entries(buffs).map(([k,v])=>`${k}: ${typeof v==='number'? (Math.abs(v)<1? (v>0?'+':'')+(v*100).toFixed(1)+'%' : (v>0?'+':'')+v) : v}`).join(', ');
+    };
+    const formatElementals = (item)=>{
+      if(!item.elementalEffects || !item.elementalEffects.length) return '';
+      return item.elementalEffects.map(e=>`${Math.round((e.chance||0)*100)}% ${e.type} on-hit`).join(' | ');
+    };
+    const RARITIES = [{key:'common',name:'Common',color:'var(--common)',weight:60}];
+    const commonRarity = RARITIES[0];
+    
+    // Create shop inventory: potions + starter gear (all unlimited)
+    const shopItems = [
+      // Potions (unlimited stock)
+      {item: {kind:'potion', type:'hp', rarity:commonRarity, name:'Health Potion', desc:'Restores HP over time', buffs:{hpRegen:15}, count:1}, price:20, stock:'unlimited'},
+      {item: {kind:'potion', type:'mana', rarity:commonRarity, name:'Mana Potion', desc:'Restores Mana over time', buffs:{manaRegen:12}, count:1}, price:20, stock:'unlimited'},
+      // Common armor (unlimited stock)
+      {item: {kind:'armor', slot:'helm', rarity:commonRarity, name:'Common Helm', desc:'Basic head protection', buffs:{maxHp:8, def:2}}, price:50, stock:'unlimited'},
+      {item: {kind:'armor', slot:'shoulders', rarity:commonRarity, name:'Common Shoulders', desc:'Basic shoulder armor', buffs:{maxHp:6, def:1}}, price:45, stock:'unlimited'},
+      {item: {kind:'armor', slot:'chest', rarity:commonRarity, name:'Common Chestplate', desc:'Basic chest armor', buffs:{maxHp:12, def:3}}, price:60, stock:'unlimited'},
+      {item: {kind:'armor', slot:'hands', rarity:commonRarity, name:'Common Gloves', desc:'Basic hand protection', buffs:{atk:2, def:1}}, price:40, stock:'unlimited'},
+      {item: {kind:'armor', slot:'belt', rarity:commonRarity, name:'Common Belt', desc:'Basic belt', buffs:{maxHp:5, def:1}}, price:35, stock:'unlimited'},
+      {item: {kind:'armor', slot:'legs', rarity:commonRarity, name:'Common Leggings', desc:'Basic leg armor', buffs:{maxHp:10, def:2}}, price:50, stock:'unlimited'},
+      {item: {kind:'armor', slot:'feet', rarity:commonRarity, name:'Common Boots', desc:'Basic footwear', buffs:{speed:5, def:1}}, price:40, stock:'unlimited'},
+      {item: {kind:'armor', slot:'neck', rarity:commonRarity, name:'Common Necklace', desc:'Simple necklace', buffs:{maxHp:6, maxMana:6}}, price:45, stock:'unlimited'},
+      {item: {kind:'armor', slot:'accessory1', rarity:commonRarity, name:'Common Ring', desc:'Simple ring', buffs:{maxMana:8}}, price:35, stock:'unlimited'},
+      {item: {kind:'armor', slot:'accessory2', rarity:commonRarity, name:'Common Bracelet', desc:'Simple bracelet', buffs:{atk:2, maxMana:4}}, price:35, stock:'unlimited'},
+      // Common weapons (unlimited stock)
+      {item: {kind:'weapon', slot:'weapon', weaponType:'Sword', rarity:commonRarity, name:'Common Sword', desc:'Basic sword', buffs:{atk:5}}, price:55, stock:'unlimited'},
+      {item: {kind:'weapon', slot:'weapon', weaponType:'Axe', rarity:commonRarity, name:'Common Axe', desc:'Basic axe', buffs:{atk:6, speed:-3}}, price:55, stock:'unlimited'},
+      {item: {kind:'weapon', slot:'weapon', weaponType:'Dagger', rarity:commonRarity, name:'Common Dagger', desc:'Basic dagger', buffs:{atk:3, speed:8}}, price:50, stock:'unlimited'},
+      {item: {kind:'weapon', slot:'weapon', weaponType:'Destruction Staff', rarity:commonRarity, name:'Common Destruction Staff', desc:'Basic caster staff', buffs:{atk:3, maxMana:12, manaRegen:0.8}}, price:70, stock:'unlimited'},
+      {item: {kind:'weapon', slot:'weapon', weaponType:'Healing Staff', rarity:commonRarity, name:'Common Healing Staff', desc:'Basic healing staff', buffs:{maxMana:14, manaRegen:1.0, cdr:0.03}}, price:70, stock:'unlimited'},
+      // Separate Squad Services
+      {item: {kind:'service', serviceId:'squad_armor', slot:'none', rarity:commonRarity, name:'Upgrade Squad Armor Tier', desc:'Increase allies’ armor rarity by one tier', buffs:{}}, price: state.marketCosts?.squadArmor ?? 1000, stock:'unlimited'},
+      {item: {kind:'service', serviceId:'squad_level', slot:'none', rarity:commonRarity, name:'Increase Squad Level', desc:'Increase all allies’ level by +1', buffs:{}}, price: state.marketCosts?.squadLevel ?? 800, stock:'unlimited'},
+    ];
+
+    ui.shopItems.innerHTML = '';
+    shopItems.forEach((shopItem, idx)=>{
+      const it = shopItem.item;
+      const canBuy = true; // All items are unlimited
+      const affordable = state.player.gold >= shopItem.price;
+      
+      const div = document.createElement('div');
+      div.className = 'box';
+      div.style.cssText = 'padding:8px; opacity:' + (affordable ? '1' : '0.5');
+      
+      const stockText = '∞'; // All unlimited
+      
+      div.innerHTML = `
+        <div class="small" style="font-weight:900; color:var(--common)">${it.name}</div>
+        <div class="small" style="margin-top:4px; color:#999">${it.desc}</div>
+        <div class="small" style="margin-top:6px; display:flex; justify-content:space-between; align-items:center">
+          <span style="color:var(--epic); font-weight:900">${formatGold(shopItem.price)}</span>
+          <span style="color:#666">Stock: ${stockText}</span>
+        </div>
+      `;
+      
+      const btn = document.createElement('button');
+      btn.textContent = 'Buy';
+      btn.className = canBuy && affordable ? '' : 'secondary';
+      btn.disabled = !canBuy || !affordable;
+      btn.style.cssText = 'width:100%; margin-top:8px; padding:6px; font-size:11px';
+      const updateInspect = ()=>{
+        if(!ui.marketInspect) return;
+        const color = it.rarity?.color || '#fff';
+        const buffsText = formatBuffs(it.buffs);
+        const elems = formatElementals(it);
+        ui.marketInspect.innerHTML = `<span style="color:${color}; font-weight:900">${it.name}</span><br>${it.desc || ''}<br>${buffsText}${elems? '<br>'+elems : ''}`;
+      };
+      div.onclick = (ev)=>{ if(ev.target===btn) return; updateInspect(); };
+      btn.onclick = ()=>{
+        if(!affordable){
+          ui.toast('Not enough gold!');
+          return;
+        }
+        
+        // Purchase item
+        state.player.gold -= shopItem.price;
+        
+        // Services apply immediately
+        if(it.kind === 'service'){
+          if(it.serviceId === 'squad_armor' && typeof window.applySquadArmorUpgrade === 'function'){
+            window.applySquadArmorUpgrade(state);
+            // increase future cost
+            state.marketCosts.squadArmor = Math.round((state.marketCosts.squadArmor||1000) * 1.3);
+          } else if(it.serviceId === 'squad_level' && typeof window.applySquadLevelUpgrade === 'function'){
+            window.applySquadLevelUpgrade(state);
+            state.marketCosts.squadLevel = Math.round((state.marketCosts.squadLevel||800) * 1.25);
+          }
+        } else {
+          // Add to inventory
+          const itemCopy = JSON.parse(JSON.stringify(it));
+          itemCopy.count = itemCopy.count || 1;
+          if(itemCopy.kind === 'potion'){
+            const existing = state.inventory.find(i => i.kind === 'potion' && i.type === itemCopy.type && i.rarity.key === itemCopy.rarity.key);
+            if(existing){
+              existing.count = (existing.count || 1) + 1;
+            } else {
+              state.inventory.push(itemCopy);
+            }
+          } else {
+            state.inventory.push(itemCopy);
+          }
+        }
+        
+        const color = it.rarity?.color || '#fff';
+        ui.toast(`<span style="color:${color}"><b>${it.name}</b></span> added to inventory for ${formatGold(shopItem.price)}`);
+        if(ui.marketConfirm){
+          ui.marketConfirm.innerHTML = `<span style="color:${color}"><b>${it.name}</b></span> purchased`;
+          clearTimeout(ui.marketConfirm._t);
+          ui.marketConfirm._t = setTimeout(()=>{ if(ui.marketConfirm) ui.marketConfirm.innerHTML=''; }, 2600);
+        }
+        updateInspect();
+        ui.updateGoldDisplay();
+        ui.renderShop();
+        ui.renderInventory?.();
+      };
+      
+      div.appendChild(btn);
+      ui.shopItems.appendChild(div);
+    });
+  };
+
+  ui.btnCloseMarket.onclick=()=>ui.toggleMarketplace(false);
+  
+  // Marketplace tab switching
+  ui.marketTabShop.onclick=()=>ui.switchMarketTab('shop');
+  ui.marketTabAllies.onclick=()=>ui.switchMarketTab('allies');
+  
+  // Call All Allies button - summon all friendlies to player position
+  ui.btnCallAllAllies.onclick=()=>{
+    if(!state.friendlies || state.friendlies.length === 0){
+      ui.toast('No allies to summon.');
+      return;
+    }
+    
+    let count = 0;
+    for(const f of state.friendlies){
+      if(f && !f.dead){
+        f.x = state.player.x + (Math.random() * 80 - 40);
+        f.y = state.player.y + (Math.random() * 80 - 40);
+        count++;
+      }
+    }
+    
+    ui.toast(`Summoned ${count} allies to your location.`);
+    ui.renderAllyBaseList();
+  };
+
+  ui.btnSelectHero.onclick = ()=>{
+    if(state.groupMemberInventoryMode){
+      ui.toast('Switch class from the Group/Allies tab while editing a member.');
+      return;
+    }
+    console.log('[btnSelectHero] clicked, current class:', state.player.class);
+    // Save current hero's ability slots and equipment before switching
+    const currentClass = state.player.class || 'warrior';
+    state.heroAbilitySlots[currentClass] = [...state.abilitySlots];
+    state.heroEquip[currentClass] = {...state.player.equip};
+    
+    // Show character select overlay
+    console.log('[btnSelectHero] calling showCharSelect');
+    showCharSelect(state, (chosenClass)=>{
+      console.log('[btnSelectHero] hero selected:', chosenClass);
+      // Load the chosen hero's saved ability slots and equipment
+      state.abilitySlots = [...(state.heroAbilitySlots[chosenClass] || [])];
+      state.player.equip = {...(state.heroEquip[chosenClass] || Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])))};
+      state.currentHero = chosenClass;
+      ui.renderAbilityBar();
+      ui.renderSkills();
+      ui.renderInventory();
+      ui.toast(`Switched to <b>${chosenClass.charAt(0).toUpperCase()+chosenClass.slice(1)}</b>`);
+    }, true);
+  };
+
+  ui.toggleHud = (visible)=>{
+    ui.hud.style.display = visible ? 'block' : 'none';
+    ui.bottomBar.style.display = visible ? 'none' : 'block';
+  };
+
+  ui.toggleMenu = (on)=>{
+    state.inMenu=on;
+    ui.escOverlay.classList.toggle('show',on);
+    if(on){
+      // Always show main menu when opening, hide options
+      ui.escMenuMain.style.display = 'block';
+      ui.escMenuOptions.style.display = 'none';
+      
+      state.paused=true;
+      ui.optShowAim.checked=state.options.showAim;
+      ui.optShowDebug.checked=state.options.showDebug;
+      if(ui.optShowDebugAI) ui.optShowDebugAI.checked = !!state.options.showDebugAI;
+      ui.optAutoPickup.checked=state.options.autoPickup || false;
+        const cameraMode = state.options.cameraMode || 'follow';
+        ui.optCameraFollowChar.checked = cameraMode === 'follow';
+        ui.optCameraFreeView.checked = cameraMode === 'freeview';
+        if(ui.optCameraEdgeStrict) ui.optCameraEdgeStrict.checked = cameraMode === 'edge_strict';
+      ui.renderBindList();
+    } else if(!state.showInventory && !state.campaignEnded) state.paused=false;
+  };
+
+  // Show/hide inventory overlay and wire Campaign tab refresh
+  ui.toggleInventory = (on)=>{
+    state.showInventory = !!on;
+    ui.invOverlay.classList.toggle('show', !!on);
+    if(on){
+      state.paused = true;
+      // Default to Inventory tab (by id)
+      activateTab(0);
+      // Render Campaign header and set periodic refresh while open
+      ui.renderCampaignTab?.();
+      if(ui._campaignTimer) clearInterval(ui._campaignTimer);
+      ui._campaignTimer = setInterval(()=>{ try{ ui.renderCampaignTab?.(); }catch{} }, 1500);
+    } else {
+      if(ui._campaignTimer){ clearInterval(ui._campaignTimer); ui._campaignTimer = null; }
+      if(!state.campaignEnded) state.paused = false;
+    }
+  };
+
+  // Render Campaign tab: leader/last banner, team metrics, captures summary
+  ui.renderCampaignTab = ()=>{
+    const headerEl = document.getElementById('campaignHeader');
+    const teamsEl = document.getElementById('campaignTeams');
+    const capsEl = document.getElementById('campaignCaptures');
+    if(!headerEl || !teamsEl || !capsEl) return;
+
+    const teams = ['player','teamA','teamB','teamC'];
+    const pts = {
+      player: state.teamPoints?.player || 0,
+      teamA: state.teamPoints?.teamA || 0,
+      teamB: state.teamPoints?.teamB || 0,
+      teamC: state.teamPoints?.teamC || 0,
+    };
+    const entries = teams.map(k=>({k, v: pts[k]}));
+    const leader = entries.reduce((a,b)=> b.v > a.v ? b : a, entries[0]);
+    const last = entries.reduce((a,b)=> b.v < a.v ? b : a, entries[0]);
+    const gap = Math.max(0, Math.round(leader.v - last.v));
+
+    const cfg = state.rubberband || {};
+    const nextMap = state.rubberbandNext || {};
+    const awardedMap = state.rubberbandAwarded || {};
+    const now = Math.floor(Date.now()/1000);
+    const lastNext = Math.max(0, (nextMap[last.k]||0) - now);
+    const lastETAmin = Math.ceil(lastNext/60);
+    const eligible = gap >= (cfg.gapThreshold||50);
+    const lastAwarded = Math.round(awardedMap[last.k]||0);
+
+    headerEl.innerHTML = `
+      <div><b>Leader:</b> ${leader.k} • ${Math.round(leader.v)} pts</div>
+      <div><b>Last:</b> ${last.k} • ${Math.round(last.v)} pts (gap ${gap})</div>
+      <div><b>Assistance:</b> ${eligible ? '<span style="color:#8f9">Eligible</span>' : '<span style="color:#f99">Off</span>'} • Next tick ~ ${lastETAmin} min • Total awarded to ${last.k}: ${lastAwarded}</div>
+    `;
+
+    // Team metrics lines
+    const sites = state.sites || [];
+    const countFlags = (owner)=> sites.filter(s=> s.owner===owner).length;
+
+    const avgLevelFor = (owner)=>{
+      if(owner==='player'){
+        const pool = [state.player?.level||1, ...((state.friendlies||[]).filter(f=>f.respawnT<=0).map(f=>f.level||1))];
+        const sum = pool.reduce((a,b)=>a+b,0); return Math.round(sum/Math.max(1,pool.length));
+      } else {
+        const pool = (state.enemies||[]).filter(e=>e.team===owner).map(e=>e.level||1);
+        const sum = pool.reduce((a,b)=>a+b,0); return Math.round(sum/Math.max(1,pool.length));
+      }
+    };
+
+    const avgArmorTierFor = (owner)=>{
+      const tierForUnit = (u)=>{
+        const eq = u.equip || {};
+        let total=0, count=0;
+        for(const val of Object.values(eq)){
+          if(val && typeof val._rarityTier === 'number'){ total += val._rarityTier; count++; }
+        }
+        return count ? (total/count) : (owner==='player' ? ((state.factionTech||1)-1) : 0);
+      };
+      const list = owner==='player' ? [state.player, ...(state.friendlies||[]).filter(f=>f.respawnT<=0)] : (state.enemies||[]).filter(e=>e.team===owner);
+      if(!list.length) return 0;
+      const sum = list.reduce((a,u)=> a + (tierForUnit(u)||0), 0);
+      return Math.round(sum / list.length);
+    };
+
+    const goldFor = (owner)=> owner==='player' ? (state.factionGold||0) : 0;
+
+    const teamLines = teams.map(k=>{
+      const stars = avgArmorTierFor(k);
+      const starStr = stars>0 ? ('★'.repeat(Math.min(5,stars))) : '—';
+      return `${k.toUpperCase()}: Gold ${goldFor(k)} • Pts ${Math.round(pts[k])} • Flags ${countFlags(k)} • Avg Lv ${avgLevelFor(k)} • Armor ${starStr}`;
+    });
+    teamsEl.innerHTML = teamLines.map(l=>`<div>${l}</div>`).join('');
+
+    // Captures summary: show counts per owner
+    const owners = ['player','teamA','teamB','teamC','neutral'];
+    const capLines = owners.map(o=> `${o.toUpperCase()}: ${countFlags(o)}`);
+    capsEl.innerHTML = capLines.map(l=>`<div>${l}</div>`).join('');
+  };
+
+  ui.endCampaign = (winner)=>{
+    state.campaignEnded=true;
+    state.paused=true;
+    ui.endTitle.textContent = winner==='player' ? 'You Won the Campaign' : 'You Lost the Campaign';
+    ui.endText.textContent = winner==='player'
+      ? 'You held the flags long enough to win.'
+      : 'Enemies scored faster. Retake flags earlier and hold them.';
+    // Populate rewards (UI only; items/gold granted by game.js)
+    const list = document.getElementById('endRewards');
+    if(list){
+      list.innerHTML = '';
+      for(let i=0;i<3;i++){ const li=document.createElement('li'); li.textContent='Legendary Item'; list.appendChild(li); }
+      const li = document.createElement('li'); li.textContent='5000 Gold'; list.appendChild(li);
+    }
+    ui.endOverlay.classList.add('show');
+  };
+
+  ui.hideEnd = ()=> ui.endOverlay.classList.remove('show');
+
+  // Helper: explain ally behavior based on group status
+  const setAllyBehaviorDesc = (unit)=>{
+    if(!ui.allyBehaviorDesc || !unit) return;
+    const inGroup = state.group?.members?.includes(unit.id);
+    if(inGroup){
+      ui.allyBehaviorDesc.innerHTML = '<b>Group Member:</b> Aggressive breaks formation to engage enemies within ~180; Neutral stays closer (~90) and guards the player.';
+    } else {
+      ui.allyBehaviorDesc.innerHTML = '<b>Non-Group Ally:</b> Aggressive detours to fight; Neutral focuses on capturing flags and only fights nearby threats.';
+    }
+    ui.allyBehaviorDesc.style.display = 'block';
+  };
+
+  ui.showUnitInspection = (clicked)=>{
+    const u = clicked.unit;
+    const type = clicked.type;
+    state.selectedUnit = {unit: u, type}; // Store reference for live updates
+    // Set panel visibility
+    ui.unitInspectionPanel.style.display = 'block';
+    ui.unitInspectionContent.style.display = 'block';
+    // Populate data
+    ui.unitName.textContent = u.name || (type === 'enemy' ? 'Enemy' : type === 'friendly' ? 'Ally' : 'Creature');
+    if(type === 'enemy'){
+      ui.unitTeam.textContent = `Team: ${u.team || 'Unknown'} | Enemy`;
+      ui.unitLevel.textContent = (u.level || 1);
+      ui.allyControlPanel.style.display = 'none';
+      if(ui.allyBehaviorDesc) ui.allyBehaviorDesc.style.display = 'none';
+      if(ui.btnEditTarget) ui.btnEditTarget.style.display = 'none';
+    } else if(type === 'friendly'){
+      ui.unitTeam.textContent = `Allied Unit`;
+      ui.unitLevel.textContent = (u.level || 1);
+      ui.allyControlPanel.style.display = 'block';
+      setAllyBehaviorDesc(u);
+      if(ui.btnEditTarget){
+        const inGroup = state.group.members.includes(u.id);
+        ui.btnEditTarget.style.display = 'block';
+        ui.btnEditTarget.disabled = !inGroup;
+        ui.btnEditTarget.classList.toggle('secondary', !inGroup);
+        ui.btnEditTarget.textContent = inGroup ? 'Edit Equipment & Abilities' : 'Invite to group to edit';
+      }
+      // Set button visual states based on current behavior
+      const currentBehavior = u.behavior || 'neutral';
+      if(currentBehavior === 'aggressive'){
+        ui.btnAllyAggressive.classList.remove('secondary');
+        ui.btnAllyAggressive.style.background = 'rgba(122,162,255,0.3)';
+        ui.btnAllyAggressive.style.borderColor = 'rgba(122,162,255,0.6)';
+        ui.btnAllyNeutral.classList.add('secondary');
+        ui.btnAllyNeutral.style.background = '';
+        ui.btnAllyNeutral.style.borderColor = '';
+      } else {
+        ui.btnAllyNeutral.classList.remove('secondary');
+        ui.btnAllyNeutral.style.background = 'rgba(122,162,255,0.3)';
+        ui.btnAllyNeutral.style.borderColor = 'rgba(122,162,255,0.6)';
+        ui.btnAllyAggressive.classList.add('secondary');
+        ui.btnAllyAggressive.style.background = '';
+        ui.btnAllyAggressive.style.borderColor = '';
+      }
+    } else {
+      ui.unitTeam.textContent = `Neutral Creature`;
+      ui.unitLevel.textContent = '—';
+      ui.allyControlPanel.style.display = 'none';
+      if(ui.allyBehaviorDesc) ui.allyBehaviorDesc.style.display = 'none';
+      if(ui.btnEditTarget) ui.btnEditTarget.style.display = 'none';
+    }
+    ui.unitHP.textContent = `${Math.round(u.hp || 0)}/${Math.round(u.maxHp || 100)}`;
+    ui.unitDMG.textContent = Math.round((u.contactDmg || u.dmg || 0));
+    ui.unitSpeed.textContent = Math.round(u.speed || 0);
+  };
+
+  // Ally behavior and group buttons
+  if(ui.btnAllyAggressive){
+    ui.btnAllyAggressive.onclick = ()=>{
+      if(!state.selectedUnit || state.selectedUnit.type !== 'friendly') return;
+      const friendly = state.selectedUnit.unit;
+      friendly.behavior = 'aggressive';
+      // Also update group settings if in group
+      if(state.group.settings[friendly.id]){
+        state.group.settings[friendly.id].behavior = 'aggressive';
+        ui.renderGroupTab(); // Refresh group tab to show updated behavior
+      }
+      // Visual feedback: highlight active button
+      ui.btnAllyAggressive.classList.remove('secondary');
+      ui.btnAllyAggressive.style.background = 'rgba(122,162,255,0.3)';
+      ui.btnAllyAggressive.style.borderColor = 'rgba(122,162,255,0.6)';
+      ui.btnAllyNeutral.classList.add('secondary');
+      ui.btnAllyNeutral.style.background = '';
+      ui.btnAllyNeutral.style.borderColor = '';
+      setAllyBehaviorDesc(friendly);
+      ui.toast(`${friendly.name} is now <b>Aggressive</b>`);
+    };
+  }
+
+  if(ui.btnAllyNeutral){
+    ui.btnAllyNeutral.onclick = ()=>{
+      if(!state.selectedUnit || state.selectedUnit.type !== 'friendly') return;
+      const friendly = state.selectedUnit.unit;
+      friendly.behavior = 'neutral';
+      // Also update group settings if in group
+      if(state.group.settings[friendly.id]){
+        state.group.settings[friendly.id].behavior = 'neutral';
+        ui.renderGroupTab(); // Refresh group tab to show updated behavior
+      }
+      // Visual feedback: highlight active button
+      ui.btnAllyNeutral.classList.remove('secondary');
+      ui.btnAllyNeutral.style.background = 'rgba(122,162,255,0.3)';
+      ui.btnAllyNeutral.style.borderColor = 'rgba(122,162,255,0.6)';
+      ui.btnAllyAggressive.classList.add('secondary');
+      ui.btnAllyAggressive.style.background = '';
+      ui.btnAllyAggressive.style.borderColor = '';
+      setAllyBehaviorDesc(friendly);
+      ui.toast(`${friendly.name} is now <b>Neutral</b>`);
+    };
+  }
+
+  if(ui.btnInviteToGroup){
+    ui.btnInviteToGroup.onclick = ()=>{
+      if(!state.selectedUnit || state.selectedUnit.type !== 'friendly') return;
+      const friendly = state.selectedUnit.unit;
+      if(!friendly) { console.warn('[GROUP] Cannot invite: no unit'); return; }
+      if(!friendly.id){
+        try{
+          // Assign a stable ID and name if missing
+          friendly.id = `f_${Date.now()}_${Math.floor(Math.random()*100000)}`;
+          if(!friendly.name){ const base = friendly.variant||'ally'; friendly.name = `${String(base).charAt(0).toUpperCase()+String(base).slice(1)} ${Math.floor(Math.random()*999)+1}`; }
+        }catch(e){ console.warn('[GROUP] Failed to assign id/name', e); }
+      }
+      ui.inviteToGroup(friendly);
+      if(ui.btnEditTarget){
+        ui.btnEditTarget.disabled = false;
+        ui.btnEditTarget.classList.remove('secondary');
+        ui.btnEditTarget.textContent = 'Edit Equipment & Abilities';
+        ui.btnEditTarget.style.display = 'block';
+      }
+    };
+  }
+
+  if(ui.btnEditTarget){
+    ui.btnEditTarget.onclick = ()=>{
+      if(!state.selectedUnit || state.selectedUnit.type !== 'friendly') return;
+      const friendly = state.selectedUnit.unit;
+      if(!friendly) return;
+      ensureFriendlyIdentity(friendly);
+      const fid = friendly.id;
+      if(!state.group.members.includes(fid)){
+        ui.toast('Invite this ally to the group to edit their gear.');
+        return;
+      }
+      ui._editAllyEquipment(fid);
+    };
+  }
+
+  ui.updateUnitInspection = ()=>{
+    if(!state.selectedUnit) return;
+    const {unit, type} = state.selectedUnit;
+    // Check if unit is still alive
+    if(unit.hp <= 0 || unit.respawnT > 0 || unit.dead){
+      ui.closeUnitPanel.onclick(); // Auto-close if dead
+      return;
+    }
+    // Update live stats
+    ui.unitHP.textContent = `${Math.round(unit.hp || 0)}/${Math.round(unit.maxHp || 100)}`;
+    ui.unitDMG.textContent = Math.round((unit.contactDmg || unit.dmg || 0));
+    ui.unitSpeed.textContent = Math.round(unit.speed || 0);
+    if(type === 'friendly') setAllyBehaviorDesc(unit);
+    if(ui.btnEditTarget){
+      if(type === 'friendly'){
+        const inGroup = state.group.members.includes(unit.id);
+        ui.btnEditTarget.style.display = 'block';
+        ui.btnEditTarget.disabled = !inGroup;
+        ui.btnEditTarget.classList.toggle('secondary', !inGroup);
+        ui.btnEditTarget.textContent = inGroup ? 'Edit Equipment & Abilities' : 'Invite to group to edit';
+      } else {
+        ui.btnEditTarget.style.display = 'none';
+      }
+    }
+
+    // Update active effects (HoTs detected from global heals + unit dots/buffs)
+    const hotEffects = [];
+    const dotEffects = [];
+    const buffEffects = [];
+    try{
+      for(const h of state.effects.heals||[]){
+        // direct target list
+        if(h.targets && h.targets.includes(unit)){
+          const tl = Math.max(0, h.t);
+          const tick = h.tick || h.tl || 1.0;
+          const amt = h.amt || 0;
+          hotEffects.push({ name:'HoT', amt:Math.round(amt), tick, tl:tl, stacks:h.stacks||1 });
+        }
+        // beacon area check
+        if(h.beacon){
+          const d = Math.hypot(unit.x - h.beacon.x, unit.y - h.beacon.y);
+          if(d <= (h.beacon.r||0)){
+            const tl = Math.max(0, h.t);
+            const tick = h.tick || h.tl || 1.0;
+            const amt = h.amt || 0;
+            hotEffects.push({ name:'HoT (Beacon)', amt:Math.round(amt), tick, tl:tl, stacks:h.stacks||1 });
+          }
+        }
+      }
+    }catch{}
+    // Add DoTs from unit
+    try{
+      if(unit.dots && unit.dots.length){
+        for(const d of unit.dots){
+          const name = DOT_REGISTRY?.[d.id]?.name || (d.id||'DoT').replace(/_/g,' ');
+          const tl = Math.max(0, d.t);
+          const tick = d.tl ?? DOT_REGISTRY?.[d.id]?.interval ?? 1.0;
+          const dmg = d.damage ?? DOT_REGISTRY?.[d.id]?.damage ?? 0;
+          dotEffects.push({ name:`${name}`, dmg:Math.round(dmg), tick, tl, stacks:d.stacks||1 });
+        }
+      }
+    }catch{}
+    // Add Buffs from unit
+    try{
+      if(unit.buffs && unit.buffs.length){
+        for(const b of unit.buffs){
+          const name = BUFF_REGISTRY?.[b.id]?.name || (b.id||'Buff').replace(/_/g,' ');
+          const tl = Math.max(0, b.t ?? b.duration ?? 0);
+          buffEffects.push({ name, tl, stacks:b.stacks||1 });
+        }
+      }
+    }catch{}
+    // Render compact pills with icons and stacks
+    const pill = (type, label, sub, stacks=1)=>{
+      const cls = type==='hot'?'hot':type==='dot'?'dot':'buff';
+      const icon = type==='hot'?'✚':type==='dot'?'☠':'★';
+      const stackHtml = stacks>1 ? `<span class="effect-stack">x${stacks}</span>` : '';
+      return `<span class="effect-pill ${cls}"><span class="effect-icon">${icon}</span><span class="effect-text"><span class="effect-label">${label}${stackHtml}</span><span class="effect-sub">${sub}</span></span></span>`;
+    };
+    const parts = [];
+    for(const h of hotEffects){ parts.push(pill('hot', h.name || 'HoT', `+${h.amt} / ${h.tick}s • ${h.tl.toFixed(1)}s`, h.stacks||1)); }
+    for(const d of dotEffects){ parts.push(pill('dot', d.name || 'DoT', `-${d.dmg} / ${d.tick}s • ${d.tl.toFixed(1)}s`, d.stacks||1)); }
+    for(const b of buffEffects){ parts.push(pill('buff', b.name || 'Buff', `${b.tl.toFixed(1)}s`, b.stacks||1)); }
+    ui.unitEffects.innerHTML = parts.length ? parts.join('') : '<span style="color:#888">None</span>';
+  };
+
+  ui.closeUnitPanel.onclick = ()=>{ ui.unitInspectionPanel.style.display = 'none'; ui.unitInspectionContent.style.display = 'none'; state.selectedUnit = null; };
+
+  // Hide unit inspection panel (called when selected unit dies)
+  ui.hideUnitPanel = ()=>{ 
+    ui.unitInspectionPanel.style.display = 'none'; 
+    ui.unitInspectionContent.style.display = 'none'; 
+    state.selectedUnit = null; 
+  };
+
+  ui.renderHud = (st)=>{
+    ui.enemyCount.textContent = state.enemies.length;
+    ui.allyCount.textContent = state.friendlies.filter(a=>a.respawnT<=0).length;
+    ui.pPts.textContent = Math.floor(state.campaign.playerPoints);
+    ui.ePts.textContent = Math.floor(state.campaign.enemyPoints);
+    ui.lvl.textContent = state.progression.level;
+    ui.xpText.textContent = `${state.progression.xp}/${xpForNext(state.progression.level)}`;
+    ui.spText.textContent = state.progression.statPoints;
+    ui.hpText.textContent = `${Math.round(state.player.hp)}/${Math.round(st.maxHp)}`;
+    ui.manaText.textContent = `${Math.round(state.player.mana)}/${Math.round(st.maxMana)}`;
+    ui.stamText.textContent = `${Math.round(state.player.stam)}/${Math.round(st.maxStam)}`;
+    ui.shieldText.textContent = `${Math.round(state.player.shield)}`;
+    ui.updateGoldDisplay();
+
+    // (Armor rating moved to Inventory UI)
+
+    ui.hpFill.style.width = `${clamp(state.player.hp/st.maxHp,0,1)*100}%`;
+    ui.manaFill.style.width = `${clamp(state.player.mana/st.maxMana,0,1)*100}%`;
+    ui.stamFill.style.width = `${clamp(state.player.stam/st.maxStam,0,1)*100}%`;
+    ui.shieldFill.style.width = `${clamp(state.player.shield/320,0,1)*100}%`;
+
+    // update bottom stats (horizontal) above abilities
+    ui.bs_hpText.textContent = `${Math.round(state.player.hp)}/${Math.round(st.maxHp)}`;
+    ui.bs_manaText.textContent = `${Math.round(state.player.mana)}/${Math.round(st.maxMana)}`;
+    ui.bs_stamText.textContent = `${Math.round(state.player.stam)}/${Math.round(st.maxStam)}`;
+    ui.bs_shieldText.textContent = `${Math.round(state.player.shield)}`;
+    ui.bs_hpFill.style.width = `${clamp(state.player.hp/st.maxHp,0,1)*100}%`;
+    ui.bs_manaFill.style.width = `${clamp(state.player.mana/st.maxMana,0,1)*100}%`;
+    ui.bs_stamFill.style.width = `${clamp(state.player.stam/st.maxStam,0,1)*100}%`;
+    ui.bs_shieldFill.style.width = `${clamp(state.player.shield/320,0,1)*100}%`;
+
+    ui.hintText.innerHTML =
+      `Move <span class="kbd">${nice(state.binds.moveUp)}</span><span class="kbd">${nice(state.binds.moveLeft)}</span><span class="kbd">${nice(state.binds.moveDown)}</span><span class="kbd">${nice(state.binds.moveRight)}</span>
+       | Pick up <span class="kbd">${nice(state.binds.pickup)}</span>
+       | Sprint <span class="kbd">${nice(state.binds.sprint)}</span>
+       | Inventory <span class="kbd">${nice(state.binds.inventory)}</span>
+       | Menu <span class="kbd">${nice(state.binds.menu)}</span><br/>
+       Light <span class="kbd">LMB</span> | Heavy <span class="kbd">Hold LMB</span> | Block <span class="kbd">Hold RMB</span>`;
+  };
+
+  // Build active effect icons list for HUD and tab
+  function buildActiveEffectIcons(state){
+    const ICONS = {
+      // Debuffs / DoTs
+      poison:'☠', bleed:'🩸', burn:'🔥', arcane_burn:'✴', freeze:'❄', shock:'⚡', curse:'☠', weakness:'🪶', vulnerability:'🎯', slow:'🐌', root:'⛓', silence:'🔇', stun:'💫',
+      // Buffs
+      healing_empowerment:'✚', blessed:'✦', radiance:'☀', temporal_flux:'⏳', berserker_rage:'🗡', iron_will:'🛡', swift_strikes:'➤', arcane_power:'✷', battle_fury:'⚔', guardian_stance:'🛡',
+      regeneration:'✚', mana_surge:'💧', vigor:'♥', spirit:'🔮', endurance:'⚡', fortified:'🛡', lifesteal_boost:'🩹',
+      haste:'🏃', sprint:'🏃', flight:'🕊', focus:'🎯', clarity:'💡', stealth:'👁', divine_shield:'✨', lucky:'🍀',
+      // Passives
+      bulwark:'🛡', arcane_focus:'🔮', predator:'🐺', vital_soul:'♥', siphon:'🩹'
+    };
+    const list = [];
+    // Passives (permanent)
+    try{
+      for(const p of state.player.passives||[]){ if(!p) continue; const icon=ICONS[p.id]||'✦'; const title=`${p.name}`; const desc=`${p.details||p.desc||''}`; list.push({ html:`<div class="buffIcon passive" data-title="${title}" data-desc="${desc}"><span>${icon}</span></div>` }); }
+    }catch{}
+    // Buffs
+    try{
+      for(const b of state.player.buffs||[]){ const meta=BUFF_REGISTRY[b.id]; const deb=!!meta?.debuff; const icon=ICONS[b.id]|| (deb?'☠':'★'); const title=`${meta?.name||b.id}`; const desc=`${deb?'Debuff':'Buff'} — ${meta?.desc||''}`; const timer=(b.t||0).toFixed(1)+'s'; const stack=(b.stacks||1)>1?`<span class="stack">x${b.stacks||1}</span>`:''; list.push({ html:`<div class="buffIcon ${deb?'debuff':'buff'}" data-title="${title}" data-desc="${desc}"><span>${icon}</span><span class="timer">${timer}</span>${stack}</div>` }); }
+    }catch{}
+    // DoTs (on player)
+    try{
+      for(const d of state.player.dots||[]){ const meta=DOT_REGISTRY[d.id]; const icon=ICONS[d.id]||'☠'; const title=`${meta?.name||d.id}`; const desc=`DoT — ${Math.round(d.damage||meta?.damage||0)} per ${(meta?.interval||d.tl||1.0)}s`; const timer=(d.t||0).toFixed(1)+'s'; const stack=(d.stacks||1)>1?`<span class="stack">x${d.stacks||1}</span>`:''; list.push({ html:`<div class="buffIcon debuff" data-title="${title}" data-desc="${desc}"><span>${icon}</span><span class="timer">${timer}</span>${stack}</div>` }); }
+    }catch{}
+    return list;
+  }
+
+  // HUD updater for buff icons
+  ui.updateBuffIconsHUD = ()=>{
+    if(!ui.buffIconsHud) return;
+    const icons = buildActiveEffectIcons(state);
+    ui.buffIconsHud.innerHTML = icons.map(i=>i.html).join('');
+    // Hide container if no icons to avoid showing an empty bar
+    ui.buffIconsHud.style.display = icons.length ? 'flex' : 'none';
+    // Reposition to sit directly above bottomStats
+    ui._positionBuffIconsHUD();
+  };
+
+  // Lightweight AI event feed (uses state.debugAiEvents from AI logic)
+  ui.updateAiFeed = ()=>{
+    const el = document.getElementById('aiFeed');
+    if(!el) return;
+    const on = !!(state.options?.showDebugAI);
+    if(!on){ el.style.display='none'; return; }
+    const events = state.debugAiEvents || [];
+    if(!events.length){ el.style.display='none'; return; }
+    el.style.display='block';
+    const recent = events.slice(-12);
+    el.innerHTML = recent.map(ev=>{
+      const t = Math.round((ev.t||0)*10)/10;
+      const nm = (ev.unit||'npc');
+      const act = ev.action||'act';
+      const ab = ev.ability ? ` • ${ev.ability}` : (ev.score!==undefined?` • s=${ev.score}`:'');
+      return `<div><span style="color:#6cf">${t}s</span> <b>${nm}</b> — ${act}${ab}</div>`;
+    }).join('');
+  };
+
+  // Compute dynamic position so the icon bar starts right above the bottom stats UI
+  ui._positionBuffIconsHUD = ()=>{
+    try{
+      if(!ui.buffIconsHud || !ui.bottomStats) return;
+      const rect = ui.bottomStats.getBoundingClientRect();
+      const margin = 8; // small gap above the bottom stats
+      const bottomFromViewport = Math.max(0, (window.innerHeight - rect.top) + margin);
+      ui.buffIconsHud.style.bottom = `${Math.round(bottomFromViewport)}px`;
+    }catch{}
+  };
+
+  // Keep position in sync on resize
+  try{ window.addEventListener('resize', ()=>ui._positionBuffIconsHUD()); }catch{}
+
+  // update compact bottom bar (shown when main HUD is hidden)
+  ui._renderBottomBar = ()=>{
+    const st = currentStats(state);
+    ui.b_hpText.textContent = `${Math.round(state.player.hp)}/${Math.round(st.maxHp)}`;
+    ui.b_manaText.textContent = `${Math.round(state.player.mana)}/${Math.round(st.maxMana)}`;
+    ui.b_stamText.textContent = `${Math.round(state.player.stam)}/${Math.round(st.maxStam)}`;
+    ui.b_hpFill.style.width = `${clamp(state.player.hp/st.maxHp,0,1)*100}%`;
+    ui.b_manaFill.style.width = `${clamp(state.player.mana/st.maxMana,0,1)*100}%`;
+    ui.b_stamFill.style.width = `${clamp(state.player.stam/st.maxStam,0,1)*100}%`;
+    // also update the persistent bottomStats bar we added (keeps values when main HUD hidden)
+    try{
+      ui.bs_hpText.textContent = `${Math.round(state.player.hp)}/${Math.round(st.maxHp)}`;
+      ui.bs_manaText.textContent = `${Math.round(state.player.mana)}/${Math.round(st.maxMana)}`;
+      ui.bs_stamText.textContent = `${Math.round(state.player.stam)}/${Math.round(st.maxStam)}`;
+      ui.bs_shieldText.textContent = `${Math.round(state.player.shield)}`;
+      ui.bs_hpFill.style.width = `${clamp(state.player.hp/st.maxHp,0,1)*100}%`;
+      ui.bs_manaFill.style.width = `${clamp(state.player.mana/st.maxMana,0,1)*100}%`;
+      ui.bs_stamFill.style.width = `${clamp(state.player.stam/st.maxStam,0,1)*100}%`;
+      ui.bs_shieldFill.style.width = `${clamp(state.player.shield/320,0,1)*100}%`;
+    }catch(e){}
+  };
+
+  ui.renderAbilityBar = ()=>{
+    ui.abilBar.innerHTML='';
+    
+    // Potion slot (left of abilities)
+    const potionEl = document.createElement('div');
+    potionEl.className = 'abilSlot';
+    const potion = state.player.potion;
+    potionEl.innerHTML = `
+      <div class="abilKey">${nice(state.binds['potion'])}</div>
+      <div class="abilName">${potion ? potion.name : 'No Potion'}</div>
+      <div class="abilMeta">${potion ? `x${potion.count || 1}` : 'Equip from Inventory'}</div>
+      <div class="cdOverlay" id="cdOvPotion"></div>
+    `;
+    ui.abilBar.appendChild(potionEl);
+    
+    for(let i=0;i<5;i++){
+      const sk=getSkillById(state.abilitySlots[i]);
+      const el=document.createElement('div');
+      el.className='abilSlot';
+      el.innerHTML = `
+        <div class="abilKey">${nice(state.binds['abil'+(i+1)])}</div>
+        <div class="abilName">${sk?sk.name:'None'}</div>
+        <div class="abilMeta">${sk?`Mana ${sk.mana}, CD ${sk.cd}s`:'Assign via Skills (I)'} </div>
+        <div class="cdOverlay" id="cdOv${i}"></div>
+        <div class="cdText" id="cdTx${i}"></div>
+      `;
+      ui.abilBar.appendChild(el);
+    }
+  };
+
+  ui.renderCooldowns = ()=>{
+    for(let i=0;i<5;i++){
+      const cd=state.player.cd[i];
+      const ov=document.getElementById('cdOv'+i);
+      const tx=document.getElementById('cdTx'+i);
+      if(!ov||!tx) continue;
+      if(cd>0){ ov.style.display='block'; tx.style.display='block'; tx.textContent=cd.toFixed(1); }
+      else { ov.style.display='none'; tx.style.display='none'; }
+    }
+  };
+
+  ui.renderEquippedList = ()=>{
+    const isGroupMemberMode = state.groupMemberInventoryMode;
+    const equipTarget = isGroupMemberMode ? state.group.settings[isGroupMemberMode]?.equipment : state.player.equip;
+    if(!equipTarget || !ui.equipCircle) return;
+
+    // Reset containers
+    const heroCls = isGroupMemberMode ? (state.friendlies.find(f=>f.id===isGroupMemberMode)?.variant||'warrior') : (state.player.class||'warrior');
+    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="assets/char/${heroCls}.svg" alt="Hero" class="heroLarge"/>`;
+    ui.equipExtras.innerHTML = '';
+    ui.weaponSlot.innerHTML = '';
+
+    // Circle layout for: helm, chest, belt, feet, legs, shoulders
+    const circleSlots = ['helm','chest','belt','feet','legs','shoulders'];
+    const angles = [-90, -30, 30, 90, 150, -150]; // degrees, clockwise from top
+    const circleRect = ui.equipCircle.getBoundingClientRect();
+    const radius = Math.max(120, Math.min(circleRect.width, circleRect.height)/2 - 70);
+    const centerX = (ui.equipCircle.clientWidth || 420)/2;
+    const centerY = (ui.equipCircle.clientHeight || 420)/2;
+    circleSlots.forEach((slot, idx)=>{
+      const it = equipTarget[slot];
+      const a = angles[idx] * Math.PI/180;
+      let x = centerX + radius * Math.cos(a) - 42; // slot size 84
+      let y = centerY + radius * Math.sin(a) - 42;
+      // Clamp to container to avoid going off-UI
+      const maxX = (ui.equipCircle.clientWidth || 420) - 84;
+      const maxY = (ui.equipCircle.clientHeight || 420) - 84;
+      x = Math.max(0, Math.min(x, maxX));
+      y = Math.max(0, Math.min(y, maxY));
+      const el = document.createElement('div');
+      el.className = 'equipSlot' + (state.selectedEquipSlot === slot ? ' active' : '');
+      el.style.left = `${Math.round(x)}px`;
+      el.style.top = `${Math.round(y)}px`;
+      el.title = SLOT_LABEL[slot];
+      el.innerHTML = it ? `<div style="text-align:center"><div style="color:${it.rarity.color}">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:10px">${it.name}</div></div>`
+                       : `<div style="text-align:center"><div>${SLOT_LABEL[slot]}</div><div class="small" style="color:#aaa">None</div></div>`;
+      el.onclick = ()=>{
+        const now = performance.now ? performance.now() : Date.now();
+        const key = `equip-${slot}`;
+        const last = ui._lastInvClick;
+        if(last && last.key === key && now - last.t < 350){ state.selectedEquipSlot = slot; state.selectedIndex=-1; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return; }
+        ui._lastInvClick = { key, t: now };
+        state.selectedEquipSlot = it ? slot : null; state.selectedIndex=-1; ui.updateInventorySelection();
+      };
+      ui.equipCircle.appendChild(el);
+    });
+
+    // Stack accessories and neck under the circle
+    ['neck','accessory1','accessory2'].forEach(slot=>{
+      const it = equipTarget[slot];
+      const row = document.createElement('div');
+      row.className = 'equip-row' + (state.selectedEquipSlot === slot ? ' active' : '');
+      row.innerHTML = `<span class="label">${SLOT_LABEL[slot]}</span><span class="value">${it ? `<span class=\"${rarityClass(it.rarity.key)}\">${it.name}</span>` : '<span class=\"small\">None</span>'}</span>`;
+      row.onclick = ()=>{
+        const now = performance.now ? performance.now() : Date.now();
+        const key = `equip-${slot}`;
+        const last = ui._lastInvClick;
+        if(last && last.key === key && now - last.t < 350){ state.selectedEquipSlot = slot; state.selectedIndex=-1; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return; }
+        ui._lastInvClick = { key, t: now };
+        state.selectedEquipSlot = it ? slot : null; state.selectedIndex=-1; ui.updateInventorySelection();
+      };
+      ui.equipExtras.appendChild(row);
+    });
+
+    // Weapon row at the very bottom
+    const wIt = equipTarget['weapon'];
+    const wRow = document.createElement('div');
+    wRow.className = 'equip-row' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
+    wRow.innerHTML = `<span class="label">${SLOT_LABEL['weapon']}</span><span class="value">${wIt ? `<span class=\"${rarityClass(wIt.rarity.key)}\">${wIt.name}</span>` : '<span class=\"small\">None</span>'}</span>`;
+    wRow.onclick = ()=>{
+      const now = performance.now ? performance.now() : Date.now();
+      const key = `equip-weapon`;
+      const last = ui._lastInvClick;
+      if(last && last.key === key && now - last.t < 350){ state.selectedEquipSlot = 'weapon'; state.selectedIndex=-1; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return; }
+      ui._lastInvClick = { key, t: now };
+      state.selectedEquipSlot = wIt ? 'weapon' : null; state.selectedIndex=-1; ui.updateInventorySelection();
+    };
+    ui.weaponSlot.appendChild(wRow);
+  };
+
+  function invSlotLabel(it){
+    if(it.kind==='armor') return it.slot.toUpperCase();
+    if(it.kind==='weapon') return 'WEAPON';
+    if(it.kind==='potion') return `${it.type==='hp' ? 'HP' : 'MANA'} x${it.count || 1}`;
+    return it.type==='hp' ? 'HP' : 'MANA';
+  }
+
+  // Check if an item is equipped on another hero (not current hero)
+  function isEquippedOnOtherHero(item){
+    const currentClass = state.currentHero || 'warrior';
+    if(item.kind !== 'armor' && item.kind !== 'weapon') return false;
+    for(const [heroClass, equip] of Object.entries(state.heroEquip)){
+      if(heroClass === currentClass) continue; // skip current hero
+      if(equip[item.slot] === item) return true; // item is equipped on another hero
+    }
+    return false;
+  }
+
+  ui.renderInventory = ()=>{
+    // Determine if we're showing player inventory or group member inventory
+    const isGroupMemberMode = state.groupMemberInventoryMode;
+    let targetUnit = null;
+    let targetSettings = null;
+    
+    if(isGroupMemberMode){
+      targetUnit = state.friendlies.find(f => f.id === isGroupMemberMode);
+      targetSettings = state.group.settings[isGroupMemberMode];
+      if(!targetUnit || !targetSettings){
+        // Exit group member mode if unit not found
+        state.groupMemberInventoryMode = null;
+        ui.toggleInventory(false);
+        return;
+      }
+    }
+    const equip = isGroupMemberMode ? targetSettings?.equipment : state.player.equip;
+    ui.updateGoldDisplay();
+    
+    // Display mode header and add a small switch button when editing a member
+    if(ui.heroClassName){
+      if(isGroupMemberMode){
+        ui.heroClassName.textContent = `${targetSettings.name} - Equipment`;
+        ui.heroClassName.style.color = '#4a9eff';
+        // Insert or update a small switch button next to the header
+        try{
+          const headerEl = ui.heroClassName.parentElement;
+          if(headerEl){
+            let backBtn = headerEl.querySelector('#invSwitchToPlayer');
+            if(!backBtn){ backBtn = document.createElement('button'); backBtn.id='invSwitchToPlayer'; backBtn.className='secondary'; backBtn.style.marginLeft='8px'; backBtn.style.padding='4px 8px'; backBtn.style.fontSize='11px'; headerEl.appendChild(backBtn); }
+            backBtn.textContent = 'Switch to Player';
+            backBtn.onclick = ()=>{ state.groupMemberInventoryMode = null; ui.renderInventory(); ui.renderSkills(); ui.renderLevel(); };
+            if(ui.btnSelectHero){ ui.btnSelectHero.textContent = 'Select Character (player only)'; ui.btnSelectHero.disabled = true; ui.btnSelectHero.classList.add('secondary'); }
+          }
+        }catch{}
+      } else {
+        ui.heroClassName.textContent = (state.player.class || 'warrior').replace(/^./, c=>c.toUpperCase());
+        ui.heroClassName.style.color = '#fff';
+        try{
+          const headerEl = ui.heroClassName.parentElement;
+          const backBtn = headerEl && headerEl.querySelector('#invSwitchToPlayer');
+          if(backBtn) backBtn.remove();
+          if(ui.btnSelectHero){ ui.btnSelectHero.textContent = 'Select Character'; ui.btnSelectHero.disabled = false; ui.btnSelectHero.classList.remove('secondary'); }
+        }catch{}
+      }
+    }
+    
+    // update inventory armor rating stars (5/5 only if all equipped armor is Legendary)
+    try{
+      const slots = ARMOR_SLOTS.filter(s=>s!=='weapon');
+      let score=0, total=slots.length, allLegend=true;
+      const equipSet = equip || {};
+      for(const s of slots){
+        const it=equipSet[s];
+        if(!it){ allLegend=false; continue; }
+        const k = it.rarity?.key || 'common';
+        if(k!=='legend') allLegend=false;
+        const w = k==='legend'?1 : k==='epic'?0.6 : k==='rare'?0.4 : k==='uncommon'?0.2 : 0.1;
+        score += w;
+      }
+      const stars = allLegend ? 5 : Math.max(0, Math.floor(5 * (score/Math.max(1,total))));
+      const starStr = '★★★★★'.slice(0,stars) + '☆☆☆☆☆'.slice(stars);
+      if(ui.invArmorStars) ui.invArmorStars.textContent = starStr;
+      if(ui.invArmorText) ui.invArmorText.textContent = `${stars}/5`;
+    }catch(e){}
+    
+    // hero portrait
+    try{
+      const cls = isGroupMemberMode ? (targetUnit.variant || 'warrior') : (state.player.class || 'warrior');
+      ui.heroPortrait.src = `assets/char/${cls}.svg`;
+      if(!isGroupMemberMode){
+        ui.heroClassName.textContent = cls.charAt(0).toUpperCase()+cls.slice(1);
+        ui.heroClassName.style.color = '#fff';
+        ui.heroLevel.textContent = state.progression.level || 1;
+      } else {
+        // For group members, show their level (currently they don't level up, so show player level as reference)
+        ui.heroLevel.textContent = targetUnit.level || state.progression.level || 1;
+      }
+    }catch(e){}
+    
+    ui.renderEquippedList();
+    ui.invGrid.innerHTML='';
+    const maxSlots = Math.max(500, state.inventory.length);
+    for(let i=0;i<maxSlots;i++){
+      const slot=document.createElement('div');
+      slot.className='slot';
+      if(i<state.inventory.length){
+        const it=state.inventory[i];
+        const equippedOnOther = isEquippedOnOtherHero(it);
+        slot.textContent=invSlotLabel(it);
+        slot.style.borderColor=it.rarity.color;
+        slot.style.color=it.rarity.color;
+        if(equippedOnOther){
+          slot.style.opacity = '0.5';
+          slot.title = 'Equipped on another hero';
+          slot.style.cursor = 'not-allowed';
+        }
+        if(i===state.selectedIndex && !equippedOnOther) slot.style.outline='2px solid rgba(122,162,255,.55)';
+        if(!equippedOnOther){
+          slot.onclick=()=>{
+            const now = performance.now ? performance.now() : Date.now();
+            const key = `inv-${i}`;
+            const last = ui._lastInvClick;
+            if(last && last.key === key && now - last.t < 350){
+              state.selectedIndex=i; state.selectedEquipSlot=null; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return;
+            }
+            ui._lastInvClick = { key, t: now };
+            state.selectedIndex=i; state.selectedEquipSlot=null; ui.updateInventorySelection();
+          };
+        }
+      } else {
+        slot.onclick=()=>{ state.selectedIndex=-1; state.selectedEquipSlot=null; ui.updateInventorySelection(); };
+      }
+      ui.invGrid.appendChild(slot);
+    }
+    ui.updateInventorySelection();
+  };
+
+  ui.renderStats = ()=>{
+    const st=currentStats(state);
+    const isGroupMemberMode = state.groupMemberInventoryMode;
+    const equipSet = isGroupMemberMode ? state.group.settings[isGroupMemberMode]?.equipment : state.player.equip;
+    const selectedItem = state.selectedIndex>=0 && state.selectedIndex<state.inventory.length
+      ? state.inventory[state.selectedIndex]
+      : (state.selectedEquipSlot && equipSet ? equipSet[state.selectedEquipSlot] : null);
+    const it = selectedItem;
+    const isEquip = it && (it.kind==='armor' || it.kind==='weapon');
+    const isEquipped = isEquip && equipSet && equipSet[it.slot] === it;
+    const isArmor = isEquip && it.kind === 'armor';
+    
+    // Calculate delta if armor is unequipped
+    let deltas = null;
+    if(isEquip && !isEquipped && it.buffs){
+      const testSt = {...st};
+      // Simulate removing currently equipped armor in this slot (if any)
+      const currentEquip = equipSet?.[it.slot];
+      if(currentEquip?.buffs) { for(const [k,v] of Object.entries(currentEquip.buffs)) testSt[k] = (testSt[k]??0) - v; }
+      // Simulate adding this armor
+      for(const [k,v] of Object.entries(it.buffs)) testSt[k] = (testSt[k]??0) + v;
+      deltas = { before: st, after: testSt };
+    }
+    
+    const rows=[
+      ['Max HP', st.maxHp], ['HP Regen', st.hpRegen.toFixed(1)],
+      ['Max Mana', st.maxMana], ['Mana Regen', st.manaRegen.toFixed(1)],
+      ['Max Stam', st.maxStam], ['Stam Regen', st.stamRegen.toFixed(1)],
+      ['ATK', st.atk.toFixed(1)], ['DEF', st.def.toFixed(1)],
+      ['Speed', Math.round(st.speed)],
+      ['Crit %', Math.round(st.critChance*100)+'%'],
+      ['Crit Mult', st.critMult.toFixed(2)],
+      ['CDR', Math.round(st.cdr*100)+'%'],
+      ['Block', Math.round(st.blockBase*100)+'%'],
+      ['Lifesteal', Math.round((st.lifesteal??0)*100)+'%'],
+    ];
+    ui.statsTable.innerHTML='';
+    for(const [k,v] of rows){
+      const tr=document.createElement('tr');
+      const td1=document.createElement('td'); td1.textContent=k;
+      const td2=document.createElement('td');
+      
+      // Show delta if comparing unequipped armor
+      if(deltas && isArmor){
+        let actualKey = null;
+        if(k === 'Max HP') actualKey = 'maxHp';
+        else if(k === 'HP Regen') actualKey = 'hpRegen';
+        else if(k === 'Max Mana') actualKey = 'maxMana';
+        else if(k === 'Mana Regen') actualKey = 'manaRegen';
+        else if(k === 'Max Stam') actualKey = 'maxStam';
+        else if(k === 'Stam Regen') actualKey = 'stamRegen';
+        else if(k === 'ATK') actualKey = 'atk';
+        else if(k === 'DEF') actualKey = 'def';
+        else if(k === 'Speed') actualKey = 'speed';
+        else if(k === 'Crit %') actualKey = 'critChance';
+        else if(k === 'Crit Mult') actualKey = 'critMult';
+        else if(k === 'CDR') actualKey = 'cdr';
+        else if(k === 'Block') actualKey = 'blockBase';
+        else if(k === 'Lifesteal') actualKey = 'lifesteal';
+        
+        if(actualKey){
+          const after = deltas.after[actualKey];
+          const before = deltas.before[actualKey];
+          const diff = after - before;
+          const color = diff > 0 ? '#6F9' : diff < 0 ? '#F66' : '#999';
+          const sign = diff > 0 ? '+' : '';
+          
+          let diffDisplay = '';
+          if(actualKey === 'lifesteal') diffDisplay = isNaN(after) ? '0%' : Math.round((after??0)*100)+'%';
+          else if(actualKey === 'critChance') diffDisplay = Math.round(after*100)+'%';
+          else if(actualKey === 'cdr') diffDisplay = Math.round(after*100)+'%';
+          else if(actualKey === 'blockBase') diffDisplay = Math.round(after*100)+'%';
+          else if(actualKey.includes('Regen')) diffDisplay = after.toFixed(1);
+          else if(actualKey === 'atk' || actualKey === 'def') diffDisplay = after.toFixed(1);
+          else diffDisplay = Math.round(after);
+          
+          const diffAmount = actualKey.includes('Regen') || actualKey === 'atk' || actualKey === 'def' ? Math.abs(diff).toFixed(1) : Math.round(Math.abs(diff));
+          td2.innerHTML = `<span style="color: #999;">${v}</span> <span style="color: ${color};">${sign}${diff !== 0 ? diffAmount : ''} → ${diffDisplay}</span>`;
+        } else {
+          td2.textContent = v;
+        }
+      } else {
+        td2.textContent = v;
+      }
+      
+      tr.appendChild(td1); tr.appendChild(td2);
+      ui.statsTable.appendChild(tr);
+    }
+    
+    // Show armor buff details if equipped armor is selected
+    if(isEquipped && it.buffs && Object.keys(it.buffs).length > 0){
+      const buffRow = document.createElement('tr');
+      const td1 = document.createElement('td'); td1.textContent = 'Armor Buffs'; td1.style.fontWeight = 'bold';
+      const td2 = document.createElement('td');
+      const buffParts = [];
+      for(const [k,v] of Object.entries(it.buffs)){
+        const sign = v >= 0 ? '+' : '';
+        if(k === 'maxHp') buffParts.push(`${sign}${Math.round(v)} HP`);
+        else if(k === 'atk') buffParts.push(`${sign}${v.toFixed(1)} ATK`);
+        else if(k === 'def') buffParts.push(`${sign}${v.toFixed(1)} DEF`);
+        else if(k === 'speed') buffParts.push(`${sign}${Math.round(v)} Speed`);
+        else buffParts.push(`${sign}${v.toFixed(2)} ${k}`);
+      }
+      td2.innerHTML = buffParts.join(', ');
+      buffRow.appendChild(td1); buffRow.appendChild(td2);
+      ui.statsTable.appendChild(buffRow);
+    }
+  };
+
+  ui.invClose.onclick=()=>{
+    // Exit group member mode when closing inventory
+    if(state.groupMemberInventoryMode){
+      state.groupMemberInventoryMode = null;
+      ui.renderGroupTab(); // Refresh group tab
+    }
+    ui.toggleInventory(false);
+  };
+
+  // Tabbed interface
+  function activateTab(tabId){
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tc => tc.style.display = 'none');
+    tabButtons.forEach(tb => { tb.classList.remove('active'); tb.style.background='transparent'; tb.style.borderColor='rgba(255,255,255,0.1)'; tb.style.color='#aaa'; });
+    const targetContent = document.querySelector(`.tab-content[data-tab="${tabId}"]`);
+    const targetButton = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if(targetContent) targetContent.style.display = 'block';
+    if(targetButton){ targetButton.classList.add('active'); targetButton.style.background='rgba(122,162,255,0.2)'; targetButton.style.borderColor='rgba(122,162,255,0.4)'; targetButton.style.color='#fff'; }
+    if(tabId === 0){ ui.renderInventory(); }
+    else if(tabId === 1){ ui.renderSkills(); }
+    else if(tabId === 2){ ui.renderLevel(); }
+    else if(tabId === 3){ ui.renderBuffSystem(); }
+    else if(tabId === 4){ ui.renderGroupTab(); }
+    else if(tabId === 5){ ui.renderAlliesTab(); }
+    else if(tabId === 7){ ui.renderCampaignTab(); }
+  }
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  tabButtons.forEach((btn) => { btn.onclick = () => activateTab(Number(btn.getAttribute('data-tab'))); });
+
+  // Show/hide main HUD while keeping bottom stats visible
+  ui.toggleHud = (on)=>{
+    try{ ui.hud.style.display = on ? 'block' : 'none'; }catch(e){}
+    // bottomStats should remain visible regardless of main HUD hidden state
+    try{ ui.bottomStats.style.display = 'flex'; }catch(e){}
+  };
+
+  ui.renderSkills = ()=>{
+    if(!ui._selectedCategory) ui._selectedCategory = 'weapons-damage';
+    
+    // Check if we're in group member mode
+    const isGroupMemberMode = state.groupMemberInventoryMode;
+    let abilitySlots = state.abilitySlots;
+    let memberName = '';
+    
+    if(isGroupMemberMode){
+      const friendly = state.friendlies.find(f => f.id === isGroupMemberMode);
+      const settings = state.group.settings[isGroupMemberMode];
+      if(!friendly || !settings){
+        state.groupMemberInventoryMode = null;
+        ui.toggleInventory(false);
+        return;
+      }
+      abilitySlots = friendly.npcAbilities || [null, null, null, null, null];
+      memberName = settings.name;
+    }
+    
+    // Render ability slots at top
+    ui.skillSlots.innerHTML='';
+    const headerText = isGroupMemberMode ? `${memberName} - Abilities` : 'Your Abilities';
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.alignItems = 'center';
+    header.style.justifyContent = 'space-between';
+    header.style.gap = '8px';
+    header.style.fontWeight = 'bold';
+    header.style.marginBottom = '8px';
+    header.style.color = isGroupMemberMode ? '#4a9eff' : '#fff';
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = headerText;
+    header.appendChild(titleSpan);
+    if(isGroupMemberMode){
+      const backBtn = document.createElement('button');
+      backBtn.className = 'secondary';
+      backBtn.textContent = 'Switch to Player';
+      backBtn.style.padding = '4px 8px';
+      backBtn.style.fontSize = '11px';
+      backBtn.onclick = ()=>{ state.groupMemberInventoryMode = null; ui.renderSkills(); ui.renderInventory(); };
+      header.appendChild(backBtn);
+    }
+    ui.skillSlots.appendChild(header);
+    
+    const slotsContainer = document.createElement('div');
+    slotsContainer.style.display = 'flex';
+    slotsContainer.style.gap = '8px';
+    slotsContainer.style.flexWrap = 'wrap';
+    
+    for(let i=0;i<5;i++){
+      const skId = abilitySlots[i];
+      const sk = getSkillById(skId);
+      const slotEl = document.createElement('div');
+      slotEl.className = 'slot';
+      slotEl.style.minWidth = '110px';
+      slotEl.style.flexGrow = '1';
+      slotEl.innerHTML = `
+        <div style="font-weight:900; font-size:13px">Slot ${i+1}</div>
+        <div style="font-size:12px; color:#4a9eff">${sk ? sk.name : '—'}</div>
+      `;
+      slotEl.style.cursor = 'pointer';
+      slotEl.style.background = ui._selectedAssignSlot === i ? 'rgba(122,162,255,0.2)' : 'transparent';
+      slotEl.style.border = ui._selectedAssignSlot === i ? '2px solid rgba(122,162,255,0.6)' : '1px solid rgba(255,255,255,0.1)';
+      slotEl.onclick = () => { ui._selectedAssignSlot = i; ui.renderSkills(); };
+      // Double-click to assign selected skill to this slot
+      slotEl.ondblclick = () => {
+        if(!ui._selectedAbility){
+          ui.toast('Select a skill first.');
+          return;
+        }
+        const selectedAbility = ABILITIES[ui._selectedAbility];
+        if(!selectedAbility || selectedAbility.type !== 'active'){
+          ui.toast('Can only assign active abilities.');
+          return;
+        }
+        const isGroupMemberMode = state.groupMemberInventoryMode;
+        if(isGroupMemberMode){
+          const friendly = state.friendlies.find(f => f.id === isGroupMemberMode);
+          const settings = state.group.settings[isGroupMemberMode];
+          if(friendly && settings){
+            if(!friendly.npcAbilities) friendly.npcAbilities = [null, null, null, null, null];
+            friendly.npcAbilities[i] = selectedAbility.id;
+            settings.abilities = [...friendly.npcAbilities];
+            ui.toast(`<b>${selectedAbility.name}</b> assigned to ${settings.name} slot ${i+1}`);
+          }
+        } else {
+          state.abilitySlots[i] = selectedAbility.id;
+          ui.renderAbilityBar();
+          ui.toast(`<b>${selectedAbility.name}</b> assigned to slot ${i+1}`);
+        }
+        ui._selectedAbility = null;
+        ui._selectedAssignSlot = -1;
+        ui.renderSkills();
+      };
+      slotsContainer.appendChild(slotEl);
+    }
+    ui.skillSlots.appendChild(slotsContainer);
+    
+    // Render categories on LEFT SIDE
+    ui.skillCategories.innerHTML = '';
+    for(const cat of ABILITY_CATEGORIES){
+      const catBtn = document.createElement('button');
+      catBtn.style.width = '100%';
+      catBtn.style.padding = '10px 8px';
+      catBtn.style.textAlign = 'left';
+      catBtn.style.border = 'none';
+      catBtn.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+      catBtn.style.background = ui._selectedCategory === cat.id ? 'rgba(122,162,255,0.15)' : 'transparent';
+      catBtn.style.color = ui._selectedCategory === cat.id ? '#4a9eff' : '#aaa';
+      catBtn.style.cursor = 'pointer';
+      catBtn.style.fontSize = '12px';
+      catBtn.style.transition = 'all 0.2s';
+      catBtn.textContent = cat.name;
+      catBtn.onclick = () => {
+        ui._selectedCategory = cat.id;
+        ui._selectedAbility = null;
+        ui.renderSkills();
+      };
+      ui.skillCategories.appendChild(catBtn);
+    }
+    
+    // Find the selected category and get abilities
+    const selectedCat = ABILITY_CATEGORIES.find(c => c.id === ui._selectedCategory);
+    const abilitiesInCategory = selectedCat 
+      ? Object.values(ABILITIES).filter(selectedCat.filter)
+      : [];
+    
+    // Render ability list in the middle or show details
+    if(ui._selectedAbility){
+      // Show details for selected ability
+      const ability = ABILITIES[ui._selectedAbility];
+      if(ability){
+        let detailsHtml = `<div style="margin-bottom:12px;">`;
+        detailsHtml += `<div style="font-weight:900; font-size:14px; color:#4a9eff; margin-bottom:6px;">${ability.name}</div>`;
+        detailsHtml += `<div style="color:#999; font-size:11px; margin-bottom:8px;">${ability.category}</div>`;
+        
+        if(ability.type === 'active'){
+          detailsHtml += `<div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:3px; margin-bottom:8px; border-left:3px solid #4a9eff;">`;
+          
+          // Show targeting type with icon and description
+          if(ability.targetType && TARGET_TYPE_INFO[ability.targetType]){
+            const ttype = TARGET_TYPE_INFO[ability.targetType];
+            detailsHtml += `<div class="small" style="color:#8f9; margin-bottom:4px;"><b>Target Type:</b> ${ttype.icon} ${ttype.name}</div>`;
+            detailsHtml += `<div class="small" style="color:#777; margin-bottom:6px; font-style:italic;">${ttype.desc}</div>`;
+          }
+          
+          detailsHtml += `<div class="small"><b>Cast Time:</b> ${ability.castTime ? ability.castTime.toFixed(1) + 's' : 'Instant'}</div>`;
+          detailsHtml += `<div class="small"><b>Target:</b> ${ability.target}</div>`;
+          if(ability.radius > 0){
+            detailsHtml += `<div class="small"><b>Radius:</b> ${ability.radius} meters</div>`;
+          }
+          if(ability.range > 0){
+            detailsHtml += `<div class="small"><b>Max Range:</b> ${ability.range} meters</div>`;
+          }
+          detailsHtml += `<div class="small"><b>Mana Cost:</b> ${ability.mana}</div>`;
+          detailsHtml += `<div class="small"><b>Cooldown:</b> ${ability.cd}s</div>`;
+          detailsHtml += `</div>`;
+        }
+        
+        detailsHtml += `<div style="margin-bottom:8px; line-height:1.6;"><b>Description:</b><br><span style="color:#ccc">${ability.details}</span></div>`;
+        
+        if(ability.scaling){
+          detailsHtml += `<div style="color:#8f9; font-size:11px;"><b>Scaling:</b> ${ability.scaling}</div>`;
+        }
+        
+        if(ability.type === 'passive' && ability.buffs){
+          detailsHtml += `<div style="margin-top:8px; color:#f99;">`;
+          for(const [key, val] of Object.entries(ability.buffs)){
+            detailsHtml += `<div class="small">+${val} ${key}</div>`;
+          }
+          detailsHtml += `</div>`;
+        }
+        
+        if(ui._selectedAssignSlot >= 0 && ability.type === 'active'){
+          detailsHtml += `<button id="assignAbilityBtn" style="margin-top:12px; width:100%; padding:8px; background:rgba(122,162,255,0.2); border:1px solid rgba(122,162,255,0.4); color:#4a9eff; cursor:pointer; border-radius:3px;">Assign to Slot ${ui._selectedAssignSlot+1}</button>`;
+        }
+        
+        // Back button
+        detailsHtml += `<button id="backToListBtn" style="margin-top:8px; width:100%; padding:6px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; cursor:pointer; border-radius:3px; font-size:11px;">← Back to List</button>`;
+        detailsHtml += `</div>`;
+        ui.abilityDetails.innerHTML = detailsHtml;
+        
+        // Wire assign button
+        setTimeout(() => {
+          const assignBtn = document.getElementById('assignAbilityBtn');
+          if(assignBtn && ability.type === 'active'){
+            assignBtn.onclick = () => {
+              const isGroupMemberMode = state.groupMemberInventoryMode;
+              if(isGroupMemberMode){
+                // Assign to group member
+                const friendly = state.friendlies.find(f => f.id === isGroupMemberMode);
+                const settings = state.group.settings[isGroupMemberMode];
+                if(friendly && settings){
+                  if(!friendly.npcAbilities) friendly.npcAbilities = [null, null, null, null, null];
+                  friendly.npcAbilities[ui._selectedAssignSlot] = ability.id;
+                  settings.abilities = [...friendly.npcAbilities];
+                  ui.toast(`<b>${ability.name}</b> assigned to ${settings.name} slot ${ui._selectedAssignSlot+1}`);
+                }
+              } else {
+                // Assign to player
+                state.abilitySlots[ui._selectedAssignSlot] = ability.id;
+                ui.renderAbilityBar();
+                ui.toast(`<b>${ability.name}</b> assigned to slot ${ui._selectedAssignSlot+1}`);
+              }
+              ui._selectedAssignSlot = -1;
+              ui.renderSkills();
+            };
+          }
+          const backBtn = document.getElementById('backToListBtn');
+          if(backBtn){
+            backBtn.onclick = () => {
+              ui._selectedAbility = null;
+              ui.renderSkills();
+            };
+          }
+        }, 0);
+      }
+    } else {
+      // Show list of abilities in selected category
+      let listHtml = `<div style="margin-bottom:12px;"><div class="small" style="font-weight:bold; color:#4a9eff; margin-bottom:8px;">${selectedCat ? selectedCat.name : 'Abilities'}</div>`;
+      
+      if(abilitiesInCategory.length === 0){
+        listHtml += `<div style="color:#666; padding:8px; text-align:center;">No abilities in this category</div>`;
+      } else {
+        for(const ability of abilitiesInCategory){
+          const icon = ability.type === 'passive' ? '✦' : (ability.targetType ? TARGET_TYPE_INFO[ability.targetType]?.icon || '→' : '→');
+          listHtml += `
+            <div style="padding:8px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); margin-bottom:6px; border-radius:3px; cursor:pointer; transition:all 0.2s;" class="ability-item" data-id="${ability.id}">
+              <div style="font-weight:900; font-size:12px; color:#4a9eff;">${icon} ${ability.name}</div>
+              <div style="font-size:11px; color:#999; margin-top:2px;">${ability.desc}</div>
+              ${ability.type === 'active' ? `<div style="font-size:10px; color:#777; margin-top:3px;">Mana: ${ability.mana} | CD: ${ability.cd}s</div>` : '<div style="font-size:10px; color:#8f9; margin-top:3px;">Passive</div>'}
+            </div>
+          `;
+        }
+      }
+      listHtml += `</div>`;
+      ui.abilityDetails.innerHTML = listHtml;
+      
+      // Wire ability item clicks
+      setTimeout(() => {
+        document.querySelectorAll('.ability-item').forEach(el => {
+          el.onclick = () => {
+            ui._selectedAbility = el.getAttribute('data-id');
+            ui.renderSkills();
+          };
+          el.onmouseover = () => el.style.background = 'rgba(122,162,255,0.1)';
+          el.onmouseout = () => el.style.background = 'rgba(0,0,0,0.2)';
+        });
+      }, 0);
+    }
+    
+    // Render passives list at bottom
+    ui.passiveList.innerHTML = '';
+    const passives = Object.values(ABILITIES).filter(a => a.type === 'passive');
+    for(const pass of passives){
+      const passEl = document.createElement('div');
+      passEl.style.padding = '8px';
+      passEl.style.background = 'rgba(0,0,0,0.2)';
+      passEl.style.borderLeft = '3px solid #f99';
+      passEl.style.marginBottom = '6px';
+      passEl.style.borderRadius = '3px';
+      passEl.style.cursor = 'pointer';
+      passEl.innerHTML = `
+        <div style="font-weight:900; color:#f99; font-size:12px;">✦ ${pass.name}</div>
+        <div style="font-size:11px; color:#999; margin-top:2px;">${pass.desc}</div>
+      `;
+      passEl.onmouseover = () => passEl.style.background = 'rgba(249, 153, 153, 0.1)';
+      passEl.onmouseout = () => passEl.style.background = 'rgba(0,0,0,0.2)';
+      passEl.onclick = () => {
+        ui._selectedCategory = 'passive-all';
+        ui._selectedAbility = pass.id;
+        ui.renderSkills();
+      };
+      ui.passiveList.appendChild(passEl);
+    }
+  };
+
+  ui.toggleLevel = (on)=>{
+    state.showLevel = on;
+    ui.invOverlay.classList.toggle('show', on);
+    if(on){ state.paused=true; ui.renderLevel(); }
+    else { if(!state.showInventory && !state.inMenu && !state.campaignEnded) state.paused=false; }
+  };
+
+  ui.renderLevel = ()=>{
+    const sp = state.progression.statPoints|0;
+    // Show header indicating whether we're editing a group member
+    try{
+      const levelTab = document.querySelector('.tab-content[data-tab="2"] .box');
+      if(levelTab){
+        let hdr = levelTab.querySelector('#levelHeader');
+        const isGroupMemberMode = state.groupMemberInventoryMode;
+        if(!hdr){ hdr = document.createElement('div'); hdr.id = 'levelHeader'; hdr.style.marginBottom = '8px'; levelTab.insertBefore(hdr, levelTab.firstChild); }
+        hdr.innerHTML = '';
+        hdr.style.display = 'flex'; hdr.style.alignItems = 'center'; hdr.style.justifyContent = 'space-between'; hdr.style.gap = '8px';
+        const title = document.createElement('span');
+        if(isGroupMemberMode){
+          const settings = state.group.settings[isGroupMemberMode];
+          const nm = settings?.name || 'Group Member';
+          title.textContent = `${nm} - Level`;
+          title.style.color = '#4a9eff';
+          const backBtn = document.createElement('button'); backBtn.className='secondary'; backBtn.textContent='Switch to Player'; backBtn.style.padding='4px 8px'; backBtn.style.fontSize='11px'; backBtn.onclick=()=>{ state.groupMemberInventoryMode=null; ui.renderLevel(); ui.renderInventory(); };
+          hdr.appendChild(title); hdr.appendChild(backBtn);
+        } else {
+          title.textContent = 'Your Level';
+          title.style.color = '#fff';
+          hdr.appendChild(title);
+        }
+      }
+    }catch{}
+    ui.lvlPts.textContent = sp;
+    ui.hpSpend.textContent = (state.progression.spends.vit|0);
+    ui.manaSpend.textContent = (state.progression.spends.int|0);
+    ui.stamSpend.textContent = (state.progression.spends.agi|0);
+  };
+
+  function trySpend(key, delta){
+    const spends = state.progression.spends;
+    const current = spends[key]|0;
+    if(delta>0){ if(state.progression.statPoints<=0) return; spends[key]=current+1; state.progression.statPoints-=1; }
+    else { if(current<=0) return; spends[key]=current-1; state.progression.statPoints+=1; }
+    ui.renderLevel(); ui.renderInventory();
+  }
+  ui.hpInc.onclick=()=>trySpend('vit', +1);
+  ui.hpDec.onclick=()=>trySpend('vit', -1);
+  ui.manaInc.onclick=()=>trySpend('int', +1);
+  ui.manaDec.onclick=()=>trySpend('int', -1);
+  ui.stamInc.onclick=()=>trySpend('agi', +1);
+  ui.stamDec.onclick=()=>trySpend('agi', -1);
+  ui.levelApply.onclick=()=>{ saveJson('orb_rpg_mod_prog', state.progression); ui.toast('Applied level spends.'); ui.toggleLevel(false); };
+
+  ui.renderBuffSystem = ()=>{
+    // Render Active Effects icons within the Buff/Debuff tab
+    const renderActiveIcons = ()=>{
+      if(!ui.activeEffectsIcons) return;
+      const icons = buildActiveEffectIcons(state);
+      ui.activeEffectsIcons.innerHTML = icons.map(i=>i.html).join('');
+    };
+    const renderBuffCard = (id, buff) => {
+      const dur = buff.duration ? `${buff.duration}s` : 'Permanent';
+      const statsList = buff.stats ? Object.entries(buff.stats).map(([k,v])=>`${k}: ${v>=0?'+':''}${typeof v==='number'&&!Number.isInteger(v)?v.toFixed(2):v}`).join(', ') : '';
+      const ticksList = buff.ticks ? `${buff.ticks.damage?'Dmg':'HP/Mana'}: ${buff.ticks.damage||buff.ticks.hp||buff.ticks.mana} every ${buff.ticks.interval}s` : '';
+      const typeColor = buff.debuff ? '#c44' : '#4a4';
+      return `<div style="background:rgba(0,0,0,0.3); padding:8px; border-left:3px solid ${typeColor}; border-radius:3px;">
+        <div style="font-weight:bold; color:${typeColor};">${buff.name}</div>
+        <div style="font-size:10px; color:#999; margin-top:2px;">Duration: ${dur}</div>
+        <div style="margin-top:4px; color:#ccc;">${buff.desc}</div>
+        ${statsList ? `<div style="margin-top:4px; font-size:10px; color:#aaf;">${statsList}</div>` : ''}
+        ${ticksList ? `<div style="margin-top:2px; font-size:10px; color:#f94;">${ticksList}</div>` : ''}
+      </div>`;
+    };
+
+    const combatBuffs = ['healing_empowerment','blessed','radiance','temporal_flux','berserker_rage','iron_will','swift_strikes','arcane_power','battle_fury','guardian_stance'];
+    const sustainBuffs = ['regeneration','mana_surge','vigor','spirit','endurance','fortified','lifesteal_boost'];
+    const mobilityBuffs = ['haste','sprint','slow','root','flight'];
+    const utilityBuffs = ['focus','clarity','stealth','divine_shield','lucky','berserk'];
+    const debuffs = ['poison','bleed','burn','arcane_burn','curse','weakness','vulnerability','silence','stun'];
+
+    ui.combatBuffsList.innerHTML = combatBuffs.map(id => renderBuffCard(id, BUFF_REGISTRY[id])).join('');
+    ui.sustainBuffsList.innerHTML = sustainBuffs.map(id => renderBuffCard(id, BUFF_REGISTRY[id])).join('');
+    ui.mobilityBuffsList.innerHTML = mobilityBuffs.map(id => renderBuffCard(id, BUFF_REGISTRY[id])).join('');
+    ui.utilityBuffsList.innerHTML = utilityBuffs.map(id => renderBuffCard(id, BUFF_REGISTRY[id])).join('');
+    ui.debuffsList.innerHTML = debuffs.map(id => renderBuffCard(id, BUFF_REGISTRY[id])).join('');
+    renderActiveIcons();
+  };
+
+  ui.equipSelected = ()=>{
+    const isGroupMemberMode = state.groupMemberInventoryMode;
+    const memberId = isGroupMemberMode;
+    const settings = isGroupMemberMode ? state.group.settings[memberId] : null;
+    const friendly = isGroupMemberMode ? state.friendlies.find(f => f.id === memberId) : null;
+    const equipTarget = isGroupMemberMode ? settings?.equipment : state.player.equip;
+
+    if(isGroupMemberMode && (!settings || !friendly || !equipTarget)){
+      ui.toast('Group member not found.');
+      state.selectedIndex = -1; state.selectedEquipSlot = null;
+      return;
+    }
+
+    // Unequip currently selected equipped slot
+    if(state.selectedEquipSlot){
+      const slot = state.selectedEquipSlot;
+      const equippedItem = equipTarget?.[slot];
+      if(!equippedItem){ state.selectedEquipSlot=null; return; }
+      equipTarget[slot] = null;
+      state.inventory.push(equippedItem);
+      state.selectedEquipSlot = null;
+      state.selectedIndex = -1;
+      if(!isGroupMemberMode){
+        const currentClass = state.currentHero || 'warrior';
+        state.heroEquip[currentClass] = {...state.player.equip};
+      }
+      ui.toast(`Unequipped: <b class="${rarityClass(equippedItem.rarity.key)}">${equippedItem.name}</b>`);
+      ui.renderInventory();
+      if(isGroupMemberMode) ui.renderGroupTab();
+      return;
+    }
+
+    if(state.selectedIndex<0 || state.selectedIndex>=state.inventory.length) return;
+    const item = state.inventory[state.selectedIndex];
+    state.selectedEquipSlot = null;
+    
+    // Don't allow equipping items that are already on another hero
+    if(!isGroupMemberMode && isEquippedOnOtherHero(item)){
+      ui.toast(`Cannot equip: <b>${item.name}</b> is equipped on another hero.`);
+      return;
+    }
+    
+    const st = currentStats(state);
+    if(item.kind==='potion'){
+      if(isGroupMemberMode){
+        ui.toast('Group members cannot use potions directly.');
+        return;
+      }
+      // Equip potion instead of using it
+      const prev = state.player.potion;
+      state.player.potion = item;
+      state.inventory.splice(state.selectedIndex,1);
+      state.selectedIndex = -1;
+      if(prev) state.inventory.push(prev);
+      ui.toast(`Equipped: <b class="${rarityClass(item.rarity.key)}">${item.name}</b> (x${item.count || 1})`);
+      ui.renderInventory();
+      return;
+    }
+
+    if(item.kind==='armor' || item.kind==='weapon'){
+      const slot = item.slot;
+      
+      if(isGroupMemberMode){
+        const prev = equipTarget[slot];
+        equipTarget[slot] = item;
+        state.inventory.splice(state.selectedIndex,1);
+        state.selectedIndex = -1;
+        if(prev) state.inventory.push(prev);
+        ui.toast(`Equipped on ${settings.name}: <b class="${rarityClass(item.rarity.key)}">${item.name}</b>`);
+        ui.renderInventory();
+        ui.renderGroupTab();
+      } else {
+        const prev = equipTarget[slot];
+        equipTarget[slot] = item;
+        // Save to hero-specific equip
+        const currentClass = state.currentHero || 'warrior';
+        state.heroEquip[currentClass] = {...state.player.equip};
+        state.inventory.splice(state.selectedIndex,1);
+        state.selectedIndex = -1;
+        if(prev) state.inventory.push(prev);
+        ui.toast(`Equipped: <b class="${rarityClass(item.rarity.key)}">${item.name}</b>`);
+        const st2 = currentStats(state);
+        state.player.hp = clamp(state.player.hp,0,st2.maxHp);
+        state.player.mana = clamp(state.player.mana,0,st2.maxMana);
+        state.player.stam = clamp(state.player.stam,0,st2.maxStam);
+        ui.renderInventory();
+      }
+    }
+  };
+
+  ui.useEquipBtn.onclick = ()=>{ ui.equipSelected(); };
+
+  ui.dropBtn.onclick=()=>{
+    if(state.selectedIndex<0 || state.selectedIndex>=state.inventory.length) return;
+    const item=state.inventory[state.selectedIndex];
+    state.inventory.splice(state.selectedIndex,1);
+    state.selectedIndex=-1; state.selectedEquipSlot=null;
+    state.loot.push({x:state.player.x, y:state.player.y, r:12, item, timeLeft:30.0});
+    ui.toast(`Dropped: <b class="${rarityClass(item.rarity.key)}">${item.name}</b>`);
+    ui.renderInventory();
+  };
+
+  ui.dropAllBtn.onclick=()=>{
+    if(state.inventory.length===0){ ui.toast('Inventory is empty.'); return; }
+    const count=state.inventory.length;
+    while(state.inventory.length){
+      const it=state.inventory.pop();
+      state.loot.push({x:state.player.x, y:state.player.y, r:12, item:it, timeLeft:30.0});
+    }
+    state.selectedIndex=-1; state.selectedEquipSlot=null;
+    ui.toast(`Dropped all items (${count}).`);
+    ui.renderInventory();
+  };
+
+  // Menu buttons
+  ui.btnResume.onclick=()=>ui.toggleMenu(false);
+  
+  // Options submenu navigation
+  ui.btnOptions.onclick=()=>{
+    ui.escMenuMain.style.display = 'none';
+    ui.escMenuOptions.style.display = 'block';
+  };
+  
+  ui.btnBackToMenu.onclick=()=>{
+    ui.escMenuOptions.style.display = 'none';
+    ui.escMenuMain.style.display = 'block';
+  };
+
+  // Apply options instantly when toggled so they take effect without needing the button
+  const persistOpts = ()=>saveJson('orb_rpg_mod_opts', state.options);
+  if(ui.optShowAim){
+    ui.optShowAim.addEventListener('change', ()=>{
+      state.options.showAim = !!ui.optShowAim.checked;
+      persistOpts();
+    });
+  }
+  if(ui.optAutoPickup){
+    ui.optAutoPickup.addEventListener('change', ()=>{
+      state.options.autoPickup = !!ui.optAutoPickup.checked;
+      persistOpts();
+    });
+  }
+
+  ui.btnApplyOpts.onclick=()=>{
+    state.options.showAim = !!ui.optShowAim.checked;
+    state.options.showDebug = !!ui.optShowDebug.checked;
+    state.options.autoPickup = !!ui.optAutoPickup.checked;
+      state.options.cameraMode = document.querySelector('input[name="cameraMode"]:checked')?.value || 'follow';
+    saveJson('orb_rpg_mod_opts', state.options);
+    ui.toast('Options applied.');
+  };
+
+  // Apply camera mode instantly on radio change and snap when switching to follow
+  if(!ui._cameraModeBound){
+    const bindCameraModeChange = ()=>{
+      const sel = document.querySelector('input[name="cameraMode"]:checked')?.value;
+      if(!sel) return;
+      state.options.cameraMode = sel;
+      saveJson('orb_rpg_mod_opts', state.options);
+      if(sel === 'follow'){
+        // Snap camera to player immediately to make change obvious
+        state.camera.x = state.player.x;
+        state.camera.y = state.player.y;
+      }
+      ui.toast(`Camera mode: ${sel === 'follow' ? 'Follow Character' : sel === 'freeview' ? 'Free View (Dead Zone)' : 'Classic Edge Scroll'}`);
+    };
+    if(ui.optCameraFreeView){ ui.optCameraFreeView.addEventListener('change', bindCameraModeChange); }
+    if(ui.optCameraFollowChar){ ui.optCameraFollowChar.addEventListener('change', bindCameraModeChange); }
+    if(ui.optCameraEdgeStrict){ ui.optCameraEdgeStrict.addEventListener('change', bindCameraModeChange); }
+    ui._cameraModeBound = true;
+  }
+
+  ui.btnResetBinds.onclick=()=>{
+    state.binds = structuredClone(DEFAULT_BINDS);
+    saveJson('orb_rpg_mod_binds', state.binds);
+    ui.rebindHint.style.display='none';
+    state.rebindAction=null;
+    ui.renderBindList();
+    ui.renderAbilityBar();
+    ui.toast('Keybinds reset.');
+  };
+
+  // Open Save Manager from ESC menu Save
+  ui.btnSave.onclick=()=>{ ui.toggleMenu(false); ui.toggleSaves(true); ui.saveNameInput.value = defaultSaveName(); };
+
+  // Open Save Manager from ESC menu Load
+  ui.btnLoad.onclick=()=>{ ui.toggleMenu(false); ui.toggleSaves(true); };
+
+  ui.btnRestart.onclick=()=>{
+    // super simple reset
+    state.enemies.length=0; state.friendlies.length=0; state.projectiles.length=0; state.loot.length=0; state.inventory.length=0;
+    for(const s of ARMOR_SLOTS) state.player.equip[s]=null;
+    state.player.gold=0; state.player.shield=0;
+    state.campaign.playerPoints=0; state.campaign.enemyPoints=0; state.campaign.time=0;
+    state.campaignEnded=false;
+    ui.hideEnd();
+    ui.toggleMenu(false);
+    ui.toggleInventory(false);
+    state.paused=false;
+    ui.toast('Campaign restarted.');
+  };
+
+  // Start next campaign (preserve loot/stats; reset timer/points only)
+  const btnNextCampaign = document.getElementById('btnNextCampaign');
+  if(btnNextCampaign){
+    btnNextCampaign.onclick=()=>{
+      state.campaign.time = 0;
+      state.campaign.playerPoints = 0;
+      state.campaign.enemyPoints = 0;
+      state.campaignEnded = false;
+      ui.endOverlay.classList.remove('show');
+      state.paused = false;
+      ui.toast('Next campaign started. Loot and stats persist.');
+    };
+  }
+
+  ui.btnOpenInv2.onclick=()=>ui.toggleInventory(true);
+
+  // Exit to Main Menu from ESC overlay
+  // Add button wiring if present in markup (we'll add button in overlay below)
+  const btnExitToMenu = document.getElementById('btnExitToMenu');
+  if(btnExitToMenu){
+    btnExitToMenu.onclick=()=>{
+      // Auto-save before exiting
+      try{ autoSave(); }catch(e){ console.error('Exit auto-save failed:', e); }
+      // Hide in-game UI and show main menu
+      ui.toggleMenu(false);
+      ui.setGameUIVisible(false);
+      // Hide any other overlays that might be open (save/inv/end)
+      try{ ui.saveOverlay.classList.remove('show'); ui.invOverlay.classList.remove('show'); ui.endOverlay.classList.remove('show'); }catch{}
+      ui.mainMenu.classList.add('show');
+      state.paused=true;
+      ui.toast('Returned to Main Menu');
+    };
+  }
+
+  // Keybind rebinding (simple)
+  ui.renderBindList = ()=>{
+    ui.bindList.innerHTML='';
+    for(const act of Object.keys(DEFAULT_BINDS)){
+      const row=document.createElement('div');
+      row.className='bindRow';
+      row.innerHTML = `
+        <div>
+          <div style="font-weight:900">${ACTION_LABELS[act]}</div>
+          <div class="small">Current: <span class="kbd">${nice(state.binds[act])}</span></div>
+        </div>
+      `;
+      const btn=document.createElement('button');
+      btn.className='secondary';
+      btn.textContent='Rebind';
+      btn.onclick=()=>{
+        state.rebindAction=act;
+        ui.rebindHint.style.display='block';
+        ui.toast(`Rebinding: <b>${ACTION_LABELS[act]}</b>`);
+      };
+      row.appendChild(btn);
+      ui.bindList.appendChild(row);
+    }
+  };
+
+  addEventListener('keydown', (e)=>{
+    if(!state.rebindAction) return;
+    if(e.code==='Escape'){
+      state.rebindAction=null;
+      ui.rebindHint.style.display='none';
+      ui.toast('Rebind cancelled.');
+      return;
+    }
+    const newCode=e.code;
+    const old=state.binds[state.rebindAction];
+    for(const [act,code] of Object.entries(state.binds)){
+      if(code===newCode) state.binds[act]=old;
+    }
+    state.binds[state.rebindAction]=newCode;
+    saveJson('orb_rpg_mod_binds', state.binds);
+    state.rebindAction=null;
+    ui.rebindHint.style.display='none';
+    ui.renderBindList();
+    ui.renderAbilityBar();
+    ui.toast('Rebound.');
+  });
+
+  ui.renderBindList();
+  
+  // ===== GROUP SYSTEM FUNCTIONS =====
+  
+  // Add friendly to group
+  ui.inviteToGroup = (friendlyUnit, opts={})=>{
+    const { silent=false, deferRender=false } = opts;
+    console.log(`[GROUP] Attempting to invite ${friendlyUnit.name} (ID: ${friendlyUnit.id}), current members:`, state.group.members.length);
+    if(state.group.members.length >= 10){
+      ui.toast(`Group full! Max 10 members.`);
+      console.log('[GROUP] Group full, cannot invite');
+      return;
+    }
+    if(state.group.members.includes(friendlyUnit.id)){
+      ui.toast(`${friendlyUnit.name} is already in the group.`);
+      console.log('[GROUP] Member already in group');
+      return;
+    }
+    state.group.members.push(friendlyUnit.id);
+    console.log('[GROUP] Member added to group. New count:', state.group.members.length);
+    const baseEquip = friendlyUnit.equipment ? structuredClone(friendlyUnit.equipment) : Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null]));
+    const baseAbilities = friendlyUnit.npcAbilities ? friendlyUnit.npcAbilities.slice() : defaultAbilitySlots();
+    // Default role should reflect the ally's class/role, not always DPS
+    const defaultRole = (friendlyUnit.role
+      || (friendlyUnit.variant==='mage' ? 'healer' : ((friendlyUnit.variant==='tank'||friendlyUnit.variant==='knight') ? 'tank' : 'dps')));
+    state.group.settings[friendlyUnit.id] = {
+      name: friendlyUnit.name || 'Ally',
+      behavior: 'neutral', // neutral is default
+      role: defaultRole, // dps/tank/healer (lowercase for UI)
+      class: friendlyUnit.variant || 'warrior',
+      equipment: baseEquip,
+      abilities: baseAbilities
+    };
+    console.log('[GROUP] Settings role assigned:', defaultRole, 'variant:', friendlyUnit.variant);
+    console.log('[GROUP] Settings created for:', friendlyUnit.id);
+    if(!silent) ui.toast(`<b>${friendlyUnit.name}</b> invited to group!`);
+    if(!deferRender){
+      ui.renderGroupPanel();
+      ui.renderGroupTab(); // Update the group tab to show new member
+    }
+    console.log('[GROUP] Invite complete. Total members:', state.group.members.length);
+  };
+  
+  // Remove friendly from group
+  ui.removeFromGroup = (friendlyId)=>{
+    console.log('[GROUP] Removing member:', friendlyId);
+    state.group.members = state.group.members.filter(id => id !== friendlyId);
+    // Preserve settings so re-adding retains gear/abilities
+    if(state.group.selectedMemberId === friendlyId) state.group.selectedMemberId = null;
+    ui.groupMemberDetails.innerHTML = ''; // Clear details panel
+    ui.renderGroupPanel();
+    ui.renderGroupTab();
+    console.log('[GROUP] Member removed. Remaining:', state.group.members.length);
+  };
+
+  function ensureFriendlyIdentity(f){
+    if(!f.id){ f.id = `f_${Date.now()}_${Math.floor(Math.random()*100000)}`; }
+    if(!f.name){ const base = f.variant||'Ally'; f.name = `${String(base).charAt(0).toUpperCase()+String(base).slice(1)} ${Math.floor(Math.random()*999)+1}`; }
+  }
+
+  ui.addAllAlliesToGroup = ()=>{
+    const openSlots = Math.max(0, 10 - state.group.members.length);
+    if(openSlots <= 0){ ui.toast('Group full! Max 10 members.'); return; }
+    const candidates = state.friendlies.filter(f => !state.group.members.includes(f.id));
+    if(!candidates.length){ ui.toast('No allies available to add.'); return; }
+    let added = 0;
+    for(const friendly of candidates){
+      if(state.group.members.length >= 10) break;
+      ensureFriendlyIdentity(friendly);
+      ui.inviteToGroup(friendly, { silent:true, deferRender:true });
+      added++;
+    }
+    ui.renderGroupPanel();
+    ui.renderGroupTab();
+    ui.toast(`Added ${added} alli${added===1?'y':'es'} to group.`);
+  };
+
+  ui.disbandGroup = ()=>{
+    const had = state.group.members.length;
+    state.group.members = [];
+    state.group.selectedMemberId = null;
+    if(ui.groupMemberDetails) ui.groupMemberDetails.innerHTML = '';
+    ui.renderGroupPanel();
+    ui.renderGroupTab();
+    ui.toast(had ? `Disbanded group (${had}).` : 'Group is already empty.');
+  };
+
+  ui._inviteAlly = (friendlyId)=>{
+    const friendly = state.friendlies.find(f=>f.id===friendlyId);
+    if(!friendly){ ui.toast('Ally not found'); return; }
+    ensureFriendlyIdentity(friendly);
+    ui.inviteToGroup(friendly);
+    ui.renderAlliesTab();
+  };
+
+  ui._setAllyBehavior = (friendlyId, behavior)=>{
+    const friendly = state.friendlies.find(f=>f.id===friendlyId);
+    if(!friendly) return;
+    friendly.behavior = behavior;
+    if(state.group.settings[friendlyId]) state.group.settings[friendlyId].behavior = behavior;
+    ui.renderAlliesTab();
+    if(state.group.members.includes(friendlyId)) ui.renderGroupTab();
+    ui._selectAlly(friendlyId);
+  };
+
+  ui._setAllyRole = (friendlyId, role)=>{
+    const friendly = state.friendlies.find(f=>f.id===friendlyId);
+    if(!friendly) return;
+    friendly.role = role;
+    if(state.group.settings[friendlyId]) state.group.settings[friendlyId].role = role;
+    ui.renderAlliesTab();
+    if(state.group.members.includes(friendlyId)) ui.renderGroupTab();
+    ui._selectAlly(friendlyId);
+  };
+
+  ui._setAllyClass = (friendlyId, cls)=>{
+    const friendly = state.friendlies.find(f=>f.id===friendlyId);
+    if(!friendly) return;
+    ensureFriendlyIdentity(friendly);
+    friendly.variant = cls;
+    try{ applyClassToUnit(friendly, cls); }catch{}
+    if(state.group.settings[friendlyId]) state.group.settings[friendlyId].class = cls;
+    ui.renderAlliesTab();
+    if(state.group.members.includes(friendlyId)) ui.renderGroupTab();
+    ui._selectAlly(friendlyId);
+  };
+
+  ui._editAllyEquipment = (friendlyId)=>{
+    if(!state.group.members.includes(friendlyId)){
+      ui.toast('Invite this ally to the group to edit equipment & abilities.');
+      return;
+    }
+    ui._selectGroupMember(friendlyId);
+    ui._editGroupMemberEquipment(friendlyId);
+  };
+
+  ui._selectAlly = (friendlyId)=>{
+    if(!ui.allyDetails) return;
+    const friendly = state.friendlies.find(f=>f.id===friendlyId);
+    if(!friendly){ ui.allyDetails.innerHTML='<div class="small" style="color:#888;">Ally not found.</div>'; return; }
+    ensureFriendlyIdentity(friendly);
+    state._selectedAllyId = friendlyId;
+    const inGroup = state.group.members.includes(friendlyId);
+    const settings = state.group.settings[friendlyId];
+    const behavior = friendly.behavior || settings?.behavior || 'neutral';
+    const role = (friendly.role || settings?.role || 'dps');
+    const cls = friendly.variant || settings?.class || 'warrior';
+    const guard = !!friendly.guard;
+    const hpPct = Math.round((friendly.hp/friendly.maxHp)*100);
+    const roleOptions = ['dps','tank','healer'];
+    const behaviorOptions = ['aggressive','neutral'];
+    let html = `
+      <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div style="font-weight:bold; color:#fff;">${friendly.name}</div>
+        ${inGroup ? '<span class="pill" style="background:rgba(122,162,255,0.3); border:1px solid rgba(122,162,255,0.6);">In Group</span>' : ''}
+        ${guard ? '<span class="pill" style="background:rgba(255,180,120,0.25); border:1px solid rgba(255,180,120,0.6);">Guard</span>' : ''}
+      </div>
+      <div class="small" style="color:#aaa; margin-bottom:8px;">${hpPct}% HP • Class: ${cls} • Role: ${(role||'dps').toUpperCase()} • Behavior: ${behavior}</div>
+      <div style="margin-bottom:10px;">
+        <input type="text" id="allyNameInput" value="${friendly.name}" style="width:100%; padding:6px; font-size:12px;" placeholder="Ally name" />
+      </div>
+      <div style="margin-bottom:10px;">
+        <div class="small" style="font-weight:bold; margin-bottom:6px;">Class</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          ${['warrior','mage','knight','tank'].map(c=>{
+            const active = cls===c;
+            const clsBtn = active ? '' : 'secondary';
+            const bg = active ? 'background:rgba(122,162,255,0.3);' : '';
+            const label = c.charAt(0).toUpperCase()+c.slice(1);
+            return `<button class="${clsBtn}" style="flex:1; padding:6px; font-size:11px; ${bg}" onclick="ui._setAllyClass('${friendlyId}','${c}')">${label}</button>`;
+          }).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div class="small" style="font-weight:bold; margin-bottom:6px;">Role</div>
+        <div style="display:flex; gap:6px;">
+          ${roleOptions.map(r=>{
+            const active = r===role;
+            const clsBtn = active ? '' : 'secondary';
+            const bg = active ? 'background:rgba(122,162,255,0.3);' : '';
+            return `<button class="${clsBtn}" style="flex:1; padding:6px; font-size:11px; ${bg}" onclick="ui._setAllyRole('${friendlyId}','${r}')">${r.toUpperCase()}</button>`;
+          }).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div class="small" style="font-weight:bold; margin-bottom:6px;">Behavior</div>
+        <div style="display:flex; gap:6px;">
+          ${behaviorOptions.map(b=>{
+            const active = b===behavior;
+            const clsBtn = active ? '' : 'secondary';
+            const bg = active ? 'background:rgba(122,162,255,0.3);' : '';
+            return `<button class="${clsBtn}" style="flex:1; padding:6px; font-size:11px; ${bg}" onclick="ui._setAllyBehavior('${friendlyId}','${b}')">${b.toUpperCase()}</button>`;
+          }).join('')}
+        </div>
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; display:flex; flex-direction:column; gap:6px;">
+        <button style="width:100%; padding:8px;" ${guard ? 'disabled class="secondary"' : ''} onclick="ui._inviteAlly('${friendlyId}')">${guard ? 'Guards cannot join' : (inGroup ? 'Already in Group' : 'Invite to Group')}</button>
+        <button style="width:100%; padding:8px;" onclick="ui._editAllyEquipment('${friendlyId}')" ${inGroup ? '' : 'class="secondary"'}>${inGroup ? 'Edit Equipment & Abilities' : 'Edit (requires group invite)'}</button>
+      </div>
+    `;
+    ui.allyDetails.innerHTML = html;
+
+    // wire name input
+    setTimeout(()=>{
+      const inp = document.getElementById('allyNameInput');
+      if(inp){
+        inp.addEventListener('input', (e)=>{
+          const nm = e.target.value.trim();
+          if(!nm) return;
+          friendly.name = nm;
+          if(state.group.settings[friendlyId]) state.group.settings[friendlyId].name = nm;
+          ui.renderAlliesTab();
+          if(state.group.members.includes(friendlyId)) ui.renderGroupTab();
+        });
+      }
+    },0);
+  };
+
+  ui.renderAlliesTab = ()=>{
+    if(!ui.allyList) return;
+    const allies = (state.friendlies||[]).filter(f=>f.respawnT<=0);
+    if(allies.length===0){
+      ui.allyList.innerHTML = '<div class="small" style="padding:12px; color:#888;">No allies yet.</div>';
+      if(ui.allyTabCount) ui.allyTabCount.textContent = '0';
+      ui.allyDetails.innerHTML = '<div class="small" style="color:#999; padding:8px;">Select any ally to manage or invite to group.</div>';
+      return;
+    }
+    const cards=[];
+    for(const f of allies){
+      ensureFriendlyIdentity(f);
+      const inGroup = state.group.members.includes(f.id);
+      const guard = !!f.guard;
+      const behavior = f.behavior || state.group.settings[f.id]?.behavior || 'neutral';
+      const role = (f.role || state.group.settings[f.id]?.role || 'dps');
+      const cls = f.variant || 'warrior';
+      const hpPct = Math.round((f.hp/f.maxHp)*100);
+      const badge = inGroup ? 'In Group' : (guard ? 'Guard' : 'Ally');
+      const inviteBtn = (!inGroup && !guard) ? `<button class="secondary" style="padding:4px 8px; font-size:10px;" onclick="ui._inviteAlly('${f.id}'); event.stopPropagation();">Invite</button>` : '';
+      const roleU = (role||'dps').toUpperCase();
+      const roleCol = roleU==='HEALER' ? 'rgba(99,200,255,0.25)' : roleU==='TANK' ? 'rgba(255,200,120,0.25)' : 'rgba(200,160,255,0.25)';
+      const roleBorder = roleU==='HEALER' ? 'rgba(99,200,255,0.6)' : roleU==='TANK' ? 'rgba(255,200,120,0.6)' : 'rgba(200,160,255,0.6)';
+      const card = `
+        <div class="box" style="padding:8px; margin:6px; cursor:pointer; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08);" onclick="ui._selectAlly('${f.id}')">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div>
+              <div style="font-weight:bold; color:#fff;">${f.name}</div>
+              <div class="small" style="color:#aaa;">${cls} • ${roleU} • ${behavior}</div>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">${inviteBtn}
+              <span class="pill" style="background:${roleCol}; border:1px solid ${roleBorder};">${roleU}</span>
+              <span class="pill" style="background:rgba(122,162,255,0.2); border:1px solid rgba(122,162,255,0.4);">${badge}</span>
+            </div>
+          </div>
+          <div style="width:100%; height:6px; background:rgba(0,0,0,0.5); border-radius:2px; margin-top:6px; overflow:hidden;">
+            <div style="height:100%; background:rgb(76,175,80); width:${hpPct}%;"></div>
+          </div>
+        </div>
+      `;
+      cards.push(card);
+    }
+    ui.allyList.innerHTML = cards.join('');
+    if(ui.allyTabCount) ui.allyTabCount.textContent = allies.length.toString();
+  };
+  
+  // Render group members list in group tab
+  ui.renderGroupTab = ()=>{
+    if(!ui.groupMembersList) return;
+    console.log('[GROUP] Rendering group tab. Members:', state.group.members.length, state.group.members);
+    const actionsHtml = `
+      <div class="group-actions">
+        <button onclick="ui.addAllAlliesToGroup()">Add all allies to group</button>
+        <button class="danger" onclick="ui.disbandGroup()">Disband group</button>
+        <button id="toggleDenseBtn" class="secondary">${ui._groupDense ? 'Normal mode' : 'Dense mode'}</button>
+      </div>`;
+    if(state.group.members.length === 0){
+      ui.groupMembersList.innerHTML = actionsHtml + '<div class="small" style="padding:12px; color:#888;">No group members. Invite allies to get started.</div>';
+      ui.groupMemberCount.textContent = '0';
+      console.log('[GROUP] No members to display');
+      return;
+    }
+    const list = [];
+    for(const memberId of state.group.members){
+      const friendly = state.friendlies.find(f => f.id === memberId);
+      const settings = state.group.settings[memberId];
+      console.log(`[GROUP] Processing member ${memberId}: friendly=${friendly?.name}, settings=${settings?.name}`);
+      if(!friendly || !settings) {
+        console.log(`[GROUP] Skipping ${memberId} - missing friendly or settings`);
+        continue;
+      }
+      const healthPct = Math.round((friendly.hp / friendly.maxHp) * 100);
+      const roleU = (settings.role||'dps').toUpperCase();
+      const roleCol = roleU==='HEALER' ? 'rgba(99,200,255,0.25)' : roleU==='TANK' ? 'rgba(255,200,120,0.25)' : 'rgba(200,160,255,0.25)';
+      const roleBorder = roleU==='HEALER' ? 'rgba(99,200,255,0.6)' : roleU==='TANK' ? 'rgba(255,200,120,0.6)' : 'rgba(200,160,255,0.6)';
+      const html = `
+        <div class="box group-card" style="padding:8px; margin:0; cursor:pointer; background:rgba(122,162,255,0.1); border:1px solid rgba(122,162,255,0.2)" onclick="ui._selectGroupMember('${memberId}')">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:bold; color:#fff; display:flex; align-items:center; gap:6px;">
+              <span>${settings.name}</span>
+              <span class="pill" style="background:${roleCol}; border:1px solid ${roleBorder};">${roleU}</span>
+            </div>
+            <button class="secondary" style="padding:4px 8px; font-size:10px;" onclick="ui.removeFromGroup('${memberId}'); event.stopPropagation();">Remove</button>
+          </div>
+          <div class="small" style="margin-top:4px; color:#aaa;">${friendly.hp.toFixed(0)}/${friendly.maxHp.toFixed(0)} HP | Role: ${roleU} | Behavior: ${settings.behavior}</div>
+          <div style="width:100%; height:6px; background:rgba(0,0,0,0.5); border-radius:2px; margin-top:4px; overflow:hidden;">
+            <div style="height:100%; background:rgb(76,175,80); width:${healthPct}%;"></div>
+          </div>
+        </div>
+      `;
+      list.push(html);
+    }
+    ui.groupMembersList.innerHTML = actionsHtml + list.join('');
+    ui.groupMemberCount.textContent = state.group.members.length.toString();
+    // Wire dense toggle and apply class on the left Group box container
+    try{
+      const btn = document.getElementById('toggleDenseBtn');
+      if(btn){
+        btn.onclick = ()=>{
+          ui._groupDense = !ui._groupDense;
+          const leftBox = ui.groupMembersList.closest('.box');
+          if(leftBox) leftBox.classList.toggle('group-dense', !!ui._groupDense);
+          // Rerender to update button label state
+          ui.renderGroupTab();
+        };
+      }
+      const leftBox = ui.groupMembersList.closest('.box');
+      if(leftBox) leftBox.classList.toggle('group-dense', !!ui._groupDense);
+    }catch{}
+    console.log('[GROUP] Rendered', list.length, 'members in group tab');
+  };
+  
+  // Select group member for detailed management
+  ui._selectGroupMember = (memberId)=>{
+    if(!ui.groupMemberDetails) {
+      console.log('[GROUP] groupMemberDetails element not found');
+      return;
+    }
+    console.log(`[GROUP] Selecting member ${memberId}`);
+    state.group.selectedMemberId = memberId;
+    const friendly = state.friendlies.find(f => f.id === memberId);
+    const settings = state.group.settings[memberId];
+    console.log('[GROUP] Found friendly:', friendly?.name, 'Settings:', settings?.name);
+    if(!friendly || !settings){
+      ui.groupMemberDetails.innerHTML = '<div class="small" style="color:#888;">Member not found.</div>';
+      console.log('[GROUP] Member or settings not found, showing error');
+      return;
+    }
+    
+    const roleOptions = ['dps', 'tank', 'healer'];
+    const behaviorOptions = ['aggressive', 'neutral'];
+    
+    let html = `
+      <div style="margin-bottom:12px;">
+        <div class="small" style="font-weight:bold; margin-bottom:6px;">Member: ${settings.name}</div>
+        <input type="text" id="groupMemberNameInput" value="${settings.name}" style="width:100%; padding:6px; margin-bottom:8px; font-size:12px;" placeholder="Member name"/>
+      </div>
+      
+      <div style="margin-bottom:12px;">
+        <div class="small" style="font-weight:bold; margin-bottom:6px;">Class</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          ${['warrior','mage','knight','tank'].map(c=>{
+            const active = (friendly.variant||'warrior')===c;
+            const cls = active ? '' : 'secondary';
+            const bg = active ? 'background:rgba(122,162,255,0.3);' : '';
+            const label = c.charAt(0).toUpperCase()+c.slice(1);
+            return `<button class="${cls}" style="flex:1; padding:6px; font-size:11px; ${bg}" onclick="ui._setGroupMemberClass('${memberId}','${c}')">${label}</button>`;
+          }).join('')}
+        </div>
+        <div class="small" style="margin-top:6px; color:#999;">Changing class updates stats; gear/abilities are kept.</div>
+      </div>
+      
+      <div style="margin-bottom:12px;">
+        <div class="small" style="font-weight:bold; margin-bottom:6px;">Role</div>
+        <div style="display:flex; gap:6px;">
+          ${roleOptions.map(r => {
+            const active = r === settings.role;
+            const cls = active ? '' : 'secondary';
+            const bg = active ? 'background:rgba(122,162,255,0.3);' : '';
+            return `<button class="${cls}" style="flex:1; padding:6px; font-size:11px; ${bg}" onclick="ui._setGroupMemberRole('${memberId}', '${r}');">${r.toUpperCase()}</button>`;
+          }).join('')}
+        </div>
+      </div>
+      
+      <div style="margin-bottom:12px;">
+        <div class="small" style="font-weight:bold; margin-bottom:6px;">Behavior</div>
+        <div style="display:flex; gap:6px;">
+          ${behaviorOptions.map(b => {
+            const active = b === settings.behavior;
+            const cls = active ? '' : 'secondary';
+            const bg = active ? 'background:rgba(122,162,255,0.3);' : '';
+            return `<button class="${cls}" style="flex:1; padding:6px; font-size:11px; ${bg}" onclick="ui._setGroupMemberBehavior('${memberId}', '${b}');">${b.toUpperCase()}</button>`;
+          }).join('')}
+        </div>
+        <div class="small" style="margin-top:8px; color:#999; line-height:1.4">
+          <div><b>Group Allies:</b> <span style="color:#aaf">Aggressive</span> will break formation to engage enemies within ~180 units; <span style="color:#aaf">Neutral</span> stays closer and only engages nearby threats (~90 units).</div>
+          <div><b>Non-Group Allies:</b> <span style="color:#aaf">Aggressive</span> seeks combat more often and detours to fight; <span style="color:#aaf">Neutral</span> prioritizes capturing enemy flags and only fights if blocking the path.</div>
+        </div>
+      </div>
+      
+      <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+        <button style="width:100%; padding:8px;" onclick="ui._editGroupMemberEquipment('${memberId}');">Edit Equipment & Abilities</button>
+      </div>
+    `;
+    ui.groupMemberDetails.innerHTML = html;
+    console.log('[GROUP] Member settings panel rendered');
+    
+    // Wire up name input to save changes
+    setTimeout(() => {
+      const nameInput = document.getElementById('groupMemberNameInput');
+      if(nameInput){
+        nameInput.addEventListener('input', (e) => {
+          const newName = e.target.value.trim();
+          if(newName && state.group.settings[memberId]){
+            state.group.settings[memberId].name = newName;
+            // Update friendly unit name too
+            const friendly = state.friendlies.find(f => f.id === memberId);
+            if(friendly) friendly.name = newName;
+            // Refresh group panel to show new name
+            ui.renderGroupPanel();
+            ui.renderGroupTab();
+          }
+        });
+      }
+    }, 0);
+  };
+  
+  ui._setGroupMemberRole = (memberId, role)=>{
+    const friendly = state.friendlies.find(f => f.id === memberId);
+    if(!friendly) return;
+    console.log(`[GROUP] Setting role for ${memberId} to ${role}`);
+    // Save current name from input before refreshing
+    const nameInput = document.getElementById('groupMemberNameInput');
+    if(nameInput && nameInput.value.trim() && state.group.settings[memberId]){
+      state.group.settings[memberId].name = nameInput.value.trim();
+      friendly.name = nameInput.value.trim();
+    }
+    if(state.group.settings[memberId]) state.group.settings[memberId].role = role;
+    ui.renderGroupTab();
+    ui._selectGroupMember(memberId); // Refresh panel highlighting
+  };
+  
+  ui._setGroupMemberBehavior = (memberId, behavior)=>{
+    const friendly = state.friendlies.find(f => f.id === memberId);
+    if(!friendly) return;
+    console.log(`[GROUP] Setting behavior for ${memberId} to ${behavior}`);
+    // Save current name from input before refreshing
+    const nameInput = document.getElementById('groupMemberNameInput');
+    if(nameInput && nameInput.value.trim() && state.group.settings[memberId]){
+      state.group.settings[memberId].name = nameInput.value.trim();
+      friendly.name = nameInput.value.trim();
+    }
+    friendly.behavior = behavior;
+    if(state.group.settings[memberId]) state.group.settings[memberId].behavior = behavior;
+    ui.renderGroupTab();
+    ui._selectGroupMember(memberId); // Refresh panel highlighting
+  };
+
+  ui._setGroupMemberClass = (memberId, cls)=>{
+    const friendly = state.friendlies.find(f => f.id === memberId);
+    if(!friendly) return;
+    // Save typed name first
+    const nameInput = document.getElementById('groupMemberNameInput');
+    if(nameInput && nameInput.value.trim() && state.group.settings[memberId]){
+      state.group.settings[memberId].name = nameInput.value.trim();
+      friendly.name = nameInput.value.trim();
+    }
+    // Apply class template without wiping equipment/abilities
+    friendly.variant = cls;
+    try{ applyClassToUnit(friendly, cls); }catch{}
+    if(state.group.settings[memberId]) state.group.settings[memberId].class = cls;
+    ui.renderGroupTab();
+    ui._selectGroupMember(memberId);
+  };
+  
+  ui._editGroupMemberEquipment = (memberId)=>{
+    // Open inventory overlay in "group member mode" to show full equipment/abilities UI
+    state.groupMemberInventoryMode = memberId;
+    ui.toggleInventory(true);
+    // Switch to inventory tab
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tc => tc.style.display = 'none');
+    tabButtons.forEach(tb => { tb.style.background='transparent'; tb.style.borderColor='rgba(255,255,255,0.1)'; tb.style.color='#aaa'; });
+    tabContents[0].style.display = 'block';
+    tabButtons[0].style.background='rgba(122,162,255,0.2)';
+    tabButtons[0].style.borderColor='rgba(122,162,255,0.4)';
+    tabButtons[0].style.color='#fff';
+    ui.renderInventory(); // Will detect groupMemberInventoryMode
+  };
+  
+  // Render group panel (top-left health display)
+  ui.renderGroupPanel = ()=>{
+    if(!ui.groupPanel || !state.group.members.length){
+      if(ui.groupPanel) ui.groupPanel.style.display = 'none';
+      return;
+    }
+    ui.groupPanel.style.display = 'block';
+    const members = [];
+    for(const memberId of state.group.members){
+      const friendly = state.friendlies.find(f => f.id === memberId);
+      const settings = state.group.settings[memberId];
+      if(!friendly || !settings) continue;
+      const healthPct = Math.round((friendly.hp / friendly.maxHp) * 100);
+      const hp = `${Math.round(friendly.hp)}/${Math.round(friendly.maxHp)}`;
+      members.push(`
+        <div style="margin-bottom:6px; padding:6px; background:rgba(0,0,0,0.3); border-radius:3px; border-left:3px solid rgba(122,162,255,0.5);">
+          <div class="small" style="color:#fff; font-weight:bold;">${settings.name}</div>
+          <div style="width:100%; height:4px; background:rgba(0,0,0,0.5); border-radius:2px; margin:4px 0; overflow:hidden;">
+            <div style="height:100%; background:rgb(76,175,80); width:${healthPct}%;"></div>
+          </div>
+          <div class="small" style="color:#aaa; font-size:10px;">${hp}</div>
+        </div>
+      `);
+    }
+    ui.groupPanelList.innerHTML = members.join('');
+    ui.groupPanelCount.textContent = state.group.members.length.toString();
+  };
+  
+  // Export auto-save function to ui object
+  ui.autoSave = autoSave;
+
+  return ui;
+}
+
+function nice(code){
+  if(!code) return '';
+  if(code.startsWith('Key')) return code.slice(3);
+  if(code.startsWith('Digit')) return code.slice(5);
+  if(code==='ShiftLeft') return 'Left Shift';
+  if(code==='ShiftRight') return 'Right Shift';
+  if(code==='Escape') return 'Esc';
+  return code;
+}
