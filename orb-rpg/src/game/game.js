@@ -2495,7 +2495,8 @@ function tryCastSlot(state, idx){
       const y = target ? target.y : wm.y;
       const radius=115,dmg=24+st.atk*1.15;
       areaDamage(x,y,radius,dmg,'burn','slow');
-      state.effects.flashes.push({ x, y, r: radius, life: 0.7, color: '#ff9a3c' });
+      state.effects.flashes.push({ x, y, r: radius, life: 0.9, color: '#ff9a3c' });
+      state.effects.slashes.push({ x, y, range: radius, arc: Math.PI*2, dir: 0, t: 0, color: '#ff4500' });
       state.ui.toast('Meteor Slam');
       break;
     }
@@ -2731,12 +2732,13 @@ function tryCastSlot(state, idx){
       break;
     }
     case 'warrior_charge':{
-      const dist = Math.min(240, Math.hypot(wm.x-state.player.x, wm.y-state.player.y));
+      const chargeDist = 240;
       const ax = Math.cos(a), ay = Math.sin(a);
-      state.player.x = clamp(state.player.x + ax*dist, 0, state.engine.canvas.width);
-      state.player.y = clamp(state.player.y + ay*dist, 0, state.engine.canvas.height);
+      state.player.x = clamp(state.player.x + ax*chargeDist, 0, state.engine.canvas.width);
+      state.player.y = clamp(state.player.y + ay*chargeDist, 0, state.engine.canvas.height);
       areaDamage(state.player.x,state.player.y,90,14+st.atk*1.1,'bleed','stun');
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 90, life: 0.7, color: '#9b7bff' });
+      state.effects.slashes.push({ x: state.player.x, y: state.player.y, range: 90, arc: Math.PI*2, dir: a, t: 0, color: '#9b7bff' });
       applyBuffSelf('haste');
       break;
     }
@@ -3336,7 +3338,7 @@ export function handleHotkeys(state, dt){
   if(escDown && !state._escLatch){
     state._escLatch = true;
     // if any overlay (including menu itself) is open, close them and DO NOT open menu
-    const anyOverlay = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace || state.showBaseActions || state.showGarrison || state.inMenu;
+    const anyOverlay = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace || state.showBaseActions || state.showGarrison || state.inMenu || state.selectedUnit;
     if(anyOverlay){
       state.showInventory = false; 
       state.showSkills = false; 
@@ -3353,6 +3355,12 @@ export function handleHotkeys(state, dt){
         state.ui.marketplaceOverlay && state.ui.marketplaceOverlay.classList && state.ui.marketplaceOverlay.classList.remove('show');
         state.ui.baseActionsOverlay && state.ui.baseActionsOverlay.classList && state.ui.baseActionsOverlay.classList.remove('show');
         state.ui.garrisonOverlay && state.ui.garrisonOverlay.classList && state.ui.garrisonOverlay.classList.remove('show');
+        // Close unit inspection panel if open
+        if(state.selectedUnit){
+          state.ui.unitInspectionPanel.style.display = 'none';
+          state.ui.unitInspectionContent.style.display = 'none';
+          state.selectedUnit = null;
+        }
       }
       state.inMenu = false;
     } else {
@@ -3369,6 +3377,41 @@ export function handleHotkeys(state, dt){
     state.ui.toggleInventory(!state.showInventory);
   }
   if(!invDown) state._invLatch=false;
+
+  // E key for selling items when marketplace is open
+  const eDown = state.input.keysDown.has('KeyE');
+  if(eDown && !state._eLatch && state.showMarketplace){
+    state._eLatch = true;
+    // Try to sell the last clicked/hovered item
+    const item = state._marketSelectedItem;
+    if(item){
+      // Check if equipped
+      const isEquipped = item.slot && state.equipped && state.equipped[item.slot] === item;
+      if(isEquipped){
+        state.ui.toast('Unequip this item before selling!');
+      } else {
+        const invIdx = state.inventory.indexOf(item);
+        if(invIdx !== -1){
+          const sellVal = item.rarity?.sellValue || 5;
+          state.player.gold += sellVal;
+          const color = item.rarity?.color || '#fff';
+          
+          if(item.count && item.count > 1){
+            item.count--;
+            state.ui.toast(`<span style="color:${color}"><b>${item.name}</b></span> sold for ${sellVal}g (${item.count} remaining)`);
+          } else {
+            state.inventory.splice(invIdx, 1);
+            state.ui.toast(`<span style="color:${color}"><b>${item.name}</b></span> sold for ${sellVal}g`);
+          }
+          
+          state.ui.updateGoldDisplay();
+          state.ui.renderSellItems();
+          state.ui.renderInventory?.();
+        }
+      }
+    }
+  }
+  if(!eDown) state._eLatch = false;
 
   // Interact (dungeons, loot, marketplace)
   const pickDown = state.input.keysDown.has(state.binds.interact);
@@ -3441,15 +3484,32 @@ export function handleHotkeys(state, dt){
     state._potionLatch = true;
     const potion = state.player.potion;
     const st = currentStats(state);
-    if(potion.type === 'hp'){
-      const heal = Math.round(st.maxHp * potion.data.pct);
-      state.player.hp = clamp(state.player.hp + heal, 0, st.maxHp);
-      state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${heal} HP`);
-    } else {
-      const gain = Math.round(st.maxMana * potion.data.pct);
-      state.player.mana = clamp(state.player.mana + gain, 0, st.maxMana);
-      state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${gain} Mana`);
+    
+    // Check if potion has data.pct (old format) or buffs (new format)
+    if(potion.data && potion.data.pct){
+      // Old format with data.pct
+      if(potion.type === 'hp'){
+        const heal = Math.round(st.maxHp * potion.data.pct);
+        state.player.hp = clamp(state.player.hp + heal, 0, st.maxHp);
+        state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${heal} HP`);
+      } else {
+        const gain = Math.round(st.maxMana * potion.data.pct);
+        state.player.mana = clamp(state.player.mana + gain, 0, st.maxMana);
+        state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${gain} Mana`);
+      }
+    } else if(potion.buffs){
+      // New format with buffs (instant heal/mana restore)
+      if(potion.type === 'hp' && potion.buffs.hpRegen){
+        const heal = potion.buffs.hpRegen * 20; // Convert regen to instant heal
+        state.player.hp = clamp(state.player.hp + heal, 0, st.maxHp);
+        state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${heal} HP`);
+      } else if(potion.type === 'mana' && potion.buffs.manaRegen){
+        const gain = potion.buffs.manaRegen * 20; // Convert regen to instant mana
+        state.player.mana = clamp(state.player.mana + gain, 0, st.maxMana);
+        state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${gain} Mana`);
+      }
     }
+    
     potion.count = (potion.count || 1) - 1;
     if(potion.count <= 0){
       state.player.potion = null;
@@ -3659,14 +3719,25 @@ function updatePartyCoordinator(state, dt){
 
   let nextMacro = party.macroState || 'stack';
   const hpPct = state.player.dead ? 0 : state.player.hp / Math.max(1, state.player.maxHp);
-  const enemiesNear = state.enemies.filter(e=>!e.dead && e.hp>0 && Math.hypot(e.x-anchor.x, e.y-anchor.y) <= 260);
+  
+  // In dungeons, filter to dungeon enemies only; otherwise use all enemies near player
+  const enemiesNear = state.inDungeon 
+    ? state.enemies.filter(e=>!e.dead && e.hp>0 && e.dungeonId === state.inDungeon && Math.hypot(e.x-anchor.x, e.y-anchor.y) <= 260)
+    : state.enemies.filter(e=>!e.dead && e.hp>0 && Math.hypot(e.x-anchor.x, e.y-anchor.y) <= 260);
+  
   const wantsReset = hpPct < 0.32;
+  
+  // In dungeons, always be aggressive unless player health is critical
+  const inDungeon = !!state.inDungeon;
 
   if(party.macroLockUntil && party.macroLockUntil > time){
     nextMacro = party.macroState;
   } else {
     if(wantsReset){
       nextMacro = 'stack';
+    } else if(inDungeon && enemiesNear.length > 0){
+      // In dungeons, always engage enemies
+      nextMacro = focus ? 'engage' : 'engage';
     } else if(focus && party.burstUntil > time){
       nextMacro = 'burst';
     } else if(focus && enemiesNear.length>0){
@@ -3844,6 +3915,8 @@ export function updateGame(state, dt){
 
   // If player entered a dungeon, run a focused dungeon update loop and skip world spawn/capture logic
   if(state.inDungeon){
+    updatePartyCoordinator(state, dt);
+    updateFriendlies(state, dt);
     updateEnemies(state, dt);
     updateDots(state, dt);
     updateBuffs(state, dt);

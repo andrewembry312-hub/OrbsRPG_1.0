@@ -1,11 +1,11 @@
 import { cssVar, randi } from "../engine/util.js";
 
 export const RARITIES=[
-  {key:'common',name:'Common',color:cssVar('--common'),weight:60},
-  {key:'uncommon',name:'Uncommon',color:cssVar('--uncommon'),weight:25},
-  {key:'rare',name:'Rare',color:cssVar('--rare'),weight:10},
-  {key:'epic',name:'Epic',color:cssVar('--epic'),weight:4},
-  {key:'legend',name:'Legendary',color:cssVar('--legend'),weight:1},
+  {key:'common',name:'Common',color:cssVar('--common'),weight:60,sellValue:10},
+  {key:'uncommon',name:'Uncommon',color:cssVar('--uncommon'),weight:25,sellValue:25},
+  {key:'rare',name:'Rare',color:cssVar('--rare'),weight:10,sellValue:60},
+  {key:'epic',name:'Epic',color:cssVar('--epic'),weight:4,sellValue:150},
+  {key:'legend',name:'Legendary',color:cssVar('--legend'),weight:1,sellValue:400},
 ];
 
 export function rarityClass(key){

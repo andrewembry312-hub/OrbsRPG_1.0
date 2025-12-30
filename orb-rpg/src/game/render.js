@@ -407,7 +407,11 @@ export function render(state){
 
   // friendlies
   for(const a of state.friendlies){
-    if(activeDungeon) continue;
+    // In dungeons, only show group members; in overworld, hide all friendlies
+    if(activeDungeon){
+      const isGroupMember = state.group && state.group.members && state.group.members.includes(a.id);
+      if(!isGroupMember) continue;
+    }
     if(a.respawnT>0) continue;
     // draw orb first (match player color for all player friendlies)
     const fcol = teamColor('player');

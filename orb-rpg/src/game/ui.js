@@ -13,6 +13,7 @@ export function buildUI(state){
     <div id="mainMenu" class="overlay show" style="background: url('assets/ui/MainMenu.png') center/cover no-repeat;">
       <div class="panel" style="width:min(560px,92vw); background: rgba(0,0,0,0.55)">
         <h2 style="margin:0">Orb RPG</h2>
+        
         <div class="box">
           <div class="row" style="align-items:center; gap:10px">
             <div class="small" style="width:120px">Hero Name</div>
@@ -120,6 +121,11 @@ export function buildUI(state){
       </div>
     </div>
 
+    <!-- Ability Tooltip -->
+    <div id="abilTooltip" style="position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(10,10,20,0.95); border:2px solid rgba(122,162,255,0.5); border-radius:8px; padding:12px 16px; max-width:420px; display:none; z-index:200; pointer-events:none">
+      <div id="abilTooltipContent" class="small" style="line-height:1.6; color:#fff"></div>
+    </div>
+
     <div class="abilBar" id="abilBar"></div>
 
     <!-- Active Buff/Debuff Icons HUD -->
@@ -157,12 +163,12 @@ export function buildUI(state){
         </div>
         <!-- Tab buttons -->
         <div style="display:flex; gap:6px; border-bottom:1px solid #d4af37; margin-top:10px; padding-bottom:8px;">
-          <button class="tab-btn active" data-tab="0" style="flex:1; padding:8px; background:rgba(212,175,55,0.3); border:1px solid #d4af37; color:#d4af37; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold;">Inventory</button>
-          <button class="tab-btn" data-tab="1" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Skills</button>
-          <button class="tab-btn" data-tab="2" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Level Up</button>
-          <button class="tab-btn" data-tab="4" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Group</button>
-          <button class="tab-btn" data-tab="5" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Allies</button>
-          <button class="tab-btn" data-tab="7" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Campaign</button>
+          <button class="tab-btn active" data-tab="0" style="flex:1; padding:8px; background:rgba(212,175,55,0.3); border:1px solid #d4af37; color:#d4af37; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold;">🎒 Inventory</button>
+          <button class="tab-btn" data-tab="1" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">⚔️ Skills ⚔️</button>
+          <button class="tab-btn" data-tab="2" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">📈 Level Up</button>
+          <button class="tab-btn" data-tab="4" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">👥 Group</button>
+          <button class="tab-btn" data-tab="5" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">🤝 Allies</button>
+          <button class="tab-btn" data-tab="7" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">🗺️ Campaign</button>
           <button class="tab-btn" data-tab="3" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Buffs/Debuffs</button>
           <button class="tab-btn" data-tab="6" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Help</button>
         </div>
@@ -210,7 +216,7 @@ export function buildUI(state){
                   <div class="small">Click to inspect • Double-click to equip</div>
                 </div>
                 <div class="btnRow">
-                  <button id="useEquipBtn">Use/Equip</button>
+                  <button id="useEquipBtn">Equip</button>
                   <button id="dropBtn" class="secondary">Drop</button>
                   <button id="dropAllBtn" class="danger">Drop All</button>
                 </div>
@@ -661,6 +667,109 @@ export function buildUI(state){
               </div>
             </div>
 
+            <!-- Leveling System -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #9cf; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#9cf; margin-bottom:8px;">📊 Leveling & Progression System</div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">👤 Player Leveling</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  • Level up manually in the <b>Level Up</b> tab<br>
+                  • Spend attribute points on: Strength, Intelligence, Vitality, etc.<br>
+                  • No automatic leveling - full control over build<br>
+                  • Earn XP from combat and objectives
+                </div>
+              </div>
+
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🤝 Friendly (Ally) Leveling</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  <b>Initial Level:</b><br>
+                  • New friendlies spawn at <b>Tier × 3</b> minimum level<br>
+                  • Tier is your faction's Equipment Tier (1-5)<br>
+                  • Example: Tier 3 → allies spawn at level 9+<br><br>
+                  
+                  <b>Level Increases:</b><br>
+                  • <b>Manual Upgrade:</b> Purchase "Increase Squad Level" at Marketplace<br>
+                  &nbsp;&nbsp;→ Costs 800 gold (increases 25% each purchase)<br>
+                  &nbsp;&nbsp;→ Gives +1 level to ALL living allies instantly<br>
+                  • <b>Equipment Tier Upgrade:</b> When you upgrade equipment tier, new minimum level = new Tier × 3<br>
+                  &nbsp;&nbsp;→ Example: Upgrade from Tier 2 to Tier 3 → min level jumps from 6 to 9<br><br>
+                  
+                  <b>Limitations:</b><br>
+                  • Friendlies do NOT auto-level over time<br>
+                  • Only level up via marketplace purchase or tier upgrades<br>
+                  • Dead allies don't receive marketplace level boosts (only living)<br>
+                  • No individual leveling - all allies level together
+                </div>
+              </div>
+
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">⚔️ Enemy Leveling (Auto-Scaling)</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  <b>Automatic Scaling Formula:</b><br>
+                  Enemy Level = <b>MAX</b> of:<br>
+                  &nbsp;&nbsp;1. <b>Time-Based:</b> (Campaign Time ÷ 60) + 1<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ Example: After 5 minutes → level 6<br>
+                  &nbsp;&nbsp;2. <b>Tier-Based:</b> Enemy Faction Tier × 3<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ Example: Tier 4 → level 12<br><br>
+                  
+                  <b>Level-Up Behavior:</b><br>
+                  • Enemies check for level-ups every game tick<br>
+                  • When targetLevel > currentLevel, they level up instantly<br>
+                  • <b>HP is preserved</b> during level-up (ratio-based, not full heal)<br>
+                  • Stats, armor, and abilities update to new level<br><br>
+                  
+                  <b>Equipment Upgrades:</b><br>
+                  • When enemy faction tier increases, armor rarity improves<br>
+                  • Tier 1 → Common, Tier 2 → Uncommon, Tier 3 → Rare, etc.<br>
+                  • Automatic upgrade applies to all enemies of that faction<br><br>
+                  
+                  <b>Why Enemies Scale:</b><br>
+                  • Prevents early game steamroll<br>
+                  • Ensures late campaign remains challenging<br>
+                  • Catch-up mechanic for losing factions (they get gold assistance)
+                </div>
+              </div>
+
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🏭 Equipment Tier System</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  <b>Tier Progression (1-5):</b><br>
+                  • Tier 1: Common (★☆☆☆☆) - Starting gear<br>
+                  • Tier 2: Uncommon (★★☆☆☆) - Early upgrade<br>
+                  • Tier 3: Rare (★★★☆☆) - Mid-game<br>
+                  • Tier 4: Epic (★★★★☆) - Late-game<br>
+                  • Tier 5: Legendary (★★★★★) - Max power<br><br>
+                  
+                  <div style="text-align:left; margin:12px 0;">
+                    <img src="assets/items/Sword progression from common to legendary.png" alt="Sword Progression" style="max-width:24%; height:auto; border-radius:4px; border:1px solid rgba(255,255,255,0.2);"/>
+                    <div style="font-size:10px; color:#999; margin-top:4px;">Visual progression from Common to Legendary tier</div>
+                  </div>
+                  
+                  <b>Tier Upgrades (Automatic):</b><br>
+                  • Each faction (player, Crimson Legion, etc.) has independent tier<br>
+                  • Upgrades cost gold (spent automatically by AI, manually by player)<br>
+                  • When faction earns enough gold, tier increases automatically<br>
+                  • Upgrading tier improves ALL units' equipment in that faction<br><br>
+                  
+                  <b>Player Tier Upgrade:</b><br>
+                  • Purchase "Squad Armor Upgrade" at Marketplace<br>
+                  • OR tier upgrades automatically when player faction has enough gold<br>
+                  • Costs increase per tier (Tier 2 costs more than Tier 1)<br>
+                  • Affects player AND all friendlies
+                </div>
+              </div>
+
+              <div style="font-size:11px; line-height:1.6; color:#aaf; margin-top:8px;">
+                💡 <b>Summary:</b><br>
+                • <b>Player:</b> Manual leveling via Level Up tab<br>
+                • <b>Friendlies:</b> Level via marketplace purchase OR tier upgrades (min = Tier × 3)<br>
+                • <b>Enemies:</b> Auto-scale based on time AND their faction tier (max of both formulas)<br>
+                • <b>Balance Tip:</b> Keep buying squad level upgrades to stay ahead of enemy scaling!
+              </div>
+            </div>
+
             <!-- Tips & Tricks -->
             <div style="padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #ff6; border-radius:3px;">
               <div style="font-weight:bold; font-size:14px; color:#ff6; margin-bottom:8px;">💡 Tips & Tricks</div>
@@ -751,6 +860,14 @@ export function buildUI(state){
           </div>
 
           <div class="box" style="margin-top:12px">
+            <div style="font-weight:900; margin-bottom:8px;">🖥️ Display</div>
+            <div class="small" style="line-height:1.5; color:#ccc;">
+              If the UI appears too large or small, adjust your browser zoom in settings.<br>
+              <b>Zoom:</b> <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">+</kbd> (in) or <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">-</kbd> (out)
+            </div>
+          </div>
+
+          <div class="box" style="margin-top:12px">
             <div class="small" style="font-weight:900">Keybinds</div>
             <div id="bindList"></div>
 
@@ -769,17 +886,40 @@ export function buildUI(state){
 
     <!-- Marketplace Overlay -->
     <div id="marketplaceOverlay" class="overlay">
-      <div class="panel" style="width:min(760px,92vw)">
-        <div class="row" style="position:relative; align-items:center;">
+      <div class="panel" style="width:min(96vw,1400px); height:90vh; display:flex; flex-direction:column">
+        <div class="row" style="position:relative; align-items:center; margin-bottom:10px; flex-shrink:0">
           <div id="marketConfirm" class="small" style="position:absolute; left:0; top:0; min-height:18px; font-weight:900; background:transparent; padding:0; margin:0; pointer-events:none;"></div>
           <h2 style="margin:0; flex:1; text-align:center;">🏪 Marketplace</h2>
           <button id="btnCloseMarket" class="secondary">Close</button>
         </div>
-        <div class="box" style="margin-top:10px">
-          <div class="small" style="font-weight:900; margin-bottom:8px">Your Gold: <span id="marketGold" style="color:var(--epic)">0</span></div>
-          <div class="small" style="margin-bottom:8px">Buy starter gear and potions. Unlimited stock available!</div>
-          <div id="marketInspect" class="small" style="margin-bottom:10px; line-height:1.4">Select an item to view its stats.</div>
-          <div id="shopItems" class="grid2" style="max-height:420px; overflow-y:auto; gap:8px"></div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; flex:1; overflow:hidden">
+          <!-- Left: Shop (Buy) -->
+          <div class="box" style="display:flex; flex-direction:column; overflow:hidden">
+            <div style="margin-bottom:8px; flex-shrink:0">
+              <div class="small" style="font-weight:900; margin-bottom:4px">🛒 Buy Items</div>
+              <div class="small" style="color:#aaa">Unlimited stock available!</div>
+            </div>
+            <div id="marketInspect" class="small" style="margin-bottom:10px; line-height:1.4; min-height:60px; padding:8px; background:rgba(0,0,0,0.2); border-radius:4px; flex-shrink:0">
+              Select an item to view its stats.
+            </div>
+            <div id="shopItems" class="grid2" style="flex:1; overflow-y:auto; gap:8px"></div>
+          </div>
+          
+          <!-- Right: Player Inventory (Sell) -->
+          <div class="box" style="display:flex; flex-direction:column; overflow:hidden">
+            <div style="margin-bottom:8px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center">
+              <div>
+                <div class="small" style="font-weight:900; margin-bottom:4px">💰 Your Gold: <span id="marketGold" style="color:var(--epic)">0</span></div>
+                <div class="small" style="color:#aaa">📦 Sell Items (Press E or Double-Click)</div>
+              </div>
+              <button id="btnSellAll" class="secondary" style="height:fit-content; padding:6px 12px; font-size:12px">Sell All</button>
+            </div>
+            <div id="sellInspect" class="small" style="margin-bottom:10px; line-height:1.4; min-height:60px; padding:8px; background:rgba(0,0,0,0.2); border-radius:4px; flex-shrink:0">
+              Click an item to view stats and sell value.
+            </div>
+            <div id="sellItems" class="invGrid" style="flex:1; overflow-y:auto; gap:8px"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -977,8 +1117,10 @@ function bindUI(state){
     marketplaceOverlay:$('marketplaceOverlay'),
     marketConfirm:$('marketConfirm'),
     marketInspect:$('marketInspect'),
+    sellInspect:$('sellInspect'),
     btnCloseMarket:$('btnCloseMarket'),
     shopItems:$('shopItems'),
+    sellItems:$('sellItems'),
     marketGold:$('marketGold'),
     garrisonOverlay:$('garrisonOverlay'),
     btnCloseGarrison:$('btnCloseGarrison'),
@@ -1268,17 +1410,13 @@ function bindUI(state){
 
   // Render Campaign tab contents (team gold, points, flags, avg level, armor rarity)
   ui.renderCampaignTab = ()=>{
-    // *** CACHE TEST - Version: Dec 30, 2025 - 15:42 ***
-    console.log('%c🔔 CAMPAIGN TAB LOADED - Latest Version! ' + new Date().toLocaleTimeString(), 'background: #0f0; color: #000; font-size: 16px; padding: 5px;');
-    
-    // *** TEST HEADER - IF YOU SEE THIS, CHANGES ARE LOADING ***
-    ui.campaignPanel.innerHTML = '<div style="background:#ff0;color:#000;padding:20px;text-align:center;font-size:24px;font-weight:bold;margin-bottom:20px;border:5px solid red;">🔔 UI CHANGES ARE WORKING! 🔔<br>Campaign Tab Updated Successfully</div>';
+    console.log('%c🔔 CAMPAIGN TAB RENDERING - Team Names Updated! ' + new Date().toLocaleTimeString(), 'background: #0f0; color: #000; font-size: 16px; padding: 5px;');
     
     const teams = [
-      { key:'player', name:'Kingdom of Light', color:'#6cf' },
-      { key:'teamA', name:'Crimson Legion', color:'#f66' },
-      { key:'teamB', name:'Golden Covenant', color:'#fc6' },
-      { key:'teamC', name:'Azure Order', color:'#6af' }
+      { key:'player', name:'⭐ Kingdom of Light ⭐', color:'#6cf' },
+      { key:'teamA', name:'🔴 Crimson Legion', color:'#f66' },
+      { key:'teamB', name:'🟡 Golden Covenant', color:'#fc6' },
+      { key:'teamC', name:'🔵 Azure Order', color:'#6af' }
     ];
     const toStars=(tier)=>{
       const t = Math.max(1, Math.min(5, tier||1));
@@ -1365,7 +1503,9 @@ function bindUI(state){
       ui.updateGoldDisplay();
       if(ui.marketConfirm) ui.marketConfirm.innerHTML='';
       if(ui.marketInspect) ui.marketInspect.innerHTML='Select an item to view its stats.';
+      if(ui.sellInspect) ui.sellInspect.innerHTML='Click an item to view stats and sell value.';
       ui.renderShop();
+      ui.renderSellItems();
     } else {
       if(!state.showInventory && !state.inMenu && !state.campaignEnded && !state.showGarrison && !state.showBaseActions) state.paused=false;
     }
@@ -1722,6 +1862,7 @@ function bindUI(state){
         updateInspect();
         ui.updateGoldDisplay();
         ui.renderShop();
+        ui.renderSellItems();
         ui.renderInventory?.();
       };
       
@@ -1730,7 +1871,170 @@ function bindUI(state){
     });
   };
 
+  // Render sell items (player inventory for selling)
+  ui.renderSellItems = ()=>{
+    if(!ui.sellItems) return;
+    ui.sellItems.innerHTML = '';
+    
+    const formatBuffs = (buffs)=>{
+      if(!buffs || Object.keys(buffs).length===0) return 'No bonuses';
+      return Object.entries(buffs).map(([k,v])=>`${k}: ${typeof v==='number'? (Math.abs(v)<1? (v>0?'+':'')+(v*100).toFixed(1)+'%' : (v>0?'+':'')+v) : v}`).join(', ');
+    };
+    const formatElementals = (item)=>{
+      if(!item.elementalEffects || !item.elementalEffects.length) return '';
+      return item.elementalEffects.map(e=>`${Math.round((e.chance||0)*100)}% ${e.type} on-hit`).join(' | ');
+    };
+    
+    const maxSlots = 500;
+    
+    for(let i=0; i<maxSlots; i++){
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      
+      if(i < state.inventory.length){
+        const item = state.inventory[i];
+        const isEquipped = item.slot && state.equipped && state.equipped[item.slot] === item;
+        
+        slot.textContent = invSlotLabel(item);
+        slot.style.borderColor = item.rarity.color;
+        slot.style.color = item.rarity.color;
+        slot.style.cursor = 'pointer';
+        
+        if(isEquipped){
+          slot.style.opacity = '0.5';
+          slot.title = 'Equipped - Unequip to sell';
+        }
+        
+        // Store item reference on the slot element
+        slot._itemRef = item;
+        slot._itemIndex = i;
+        slot._isEquipped = isEquipped;
+        
+        let lastClickTime = 0;
+        
+        slot.addEventListener('mouseenter', function(){
+          if(!ui.sellInspect) return;
+          const currentItem = this._itemRef;
+          const itemCount = currentItem.count || 1;
+          const color = currentItem.rarity?.color || '#fff';
+          const countText = itemCount > 1 ? ` (x${itemCount})` : '';
+          const equippedText = this._isEquipped ? ' <span style="color:#4a9eff; font-size:10px">[EQUIPPED]</span>' : '';
+          const buffsText = formatBuffs(currentItem.buffs);
+          const elems = formatElementals(currentItem);
+          const sellVal = currentItem.rarity?.sellValue || 5;
+          const totalSell = sellVal * itemCount;
+          const equipMsg = this._isEquipped ? '<br><span style="color:#f66; font-size:11px">⚠️ Unequip this item before selling</span>' : '<br><span style="color:#4a9eff; font-size:11px; margin-top:4px; display:inline-block">Press E or Double-Click to Sell</span>';
+          ui.sellInspect.innerHTML = `<span style="color:${color}; font-weight:900">${currentItem.name}${countText}${equippedText}</span><br>${currentItem.desc || ''}<br>${buffsText}${elems? '<br>'+elems : ''}<br><br><span style="color:var(--epic); font-weight:900">💰 Sell Value: ${totalSell}g</span>${itemCount > 1 ? ` <span style="color:#999">(${sellVal}g each)</span>` : ''}${equipMsg}`;
+          
+          state._marketSelectedSellIndex = this._itemIndex;
+          state._marketSelectedItem = this._itemRef;
+        });
+        
+        slot.addEventListener('click', function(){
+          const currentItem = this._itemRef;
+          const currentIsEquipped = this._isEquipped;
+          
+          // Update inspect
+          if(ui.sellInspect){
+            const itemCount = currentItem.count || 1;
+            const color = currentItem.rarity?.color || '#fff';
+            const countText = itemCount > 1 ? ` (x${itemCount})` : '';
+            const equippedText = currentIsEquipped ? ' <span style="color:#4a9eff; font-size:10px">[EQUIPPED]</span>' : '';
+            const buffsText = formatBuffs(currentItem.buffs);
+            const elems = formatElementals(currentItem);
+            const sellVal = currentItem.rarity?.sellValue || 5;
+            const totalSell = sellVal * itemCount;
+            const equipMsg = currentIsEquipped ? '<br><span style="color:#f66; font-size:11px">⚠️ Unequip this item before selling</span>' : '<br><span style="color:#4a9eff; font-size:11px; margin-top:4px; display:inline-block">Press E or Double-Click to Sell</span>';
+            ui.sellInspect.innerHTML = `<span style="color:${color}; font-weight:900">${currentItem.name}${countText}${equippedText}</span><br>${currentItem.desc || ''}<br>${buffsText}${elems? '<br>'+elems : ''}<br><br><span style="color:var(--epic); font-weight:900">💰 Sell Value: ${totalSell}g</span>${itemCount > 1 ? ` <span style="color:#999">(${sellVal}g each)</span>` : ''}${equipMsg}`;
+          }
+          
+          state._marketSelectedSellIndex = this._itemIndex;
+          state._marketSelectedItem = this._itemRef;
+          
+          // Double-click detection
+          const now = Date.now();
+          if(now - lastClickTime < 300){
+            // Sell the item
+            if(currentIsEquipped){
+              state.ui.toast('Unequip this item before selling!');
+              return;
+            }
+            
+            const invIdx = state.inventory.indexOf(currentItem);
+            if(invIdx === -1) return;
+            
+            const sellVal = currentItem.rarity?.sellValue || 5;
+            state.player.gold += sellVal;
+            const color = currentItem.rarity?.color || '#fff';
+            
+            if(currentItem.count && currentItem.count > 1){
+              currentItem.count--;
+              state.ui.toast(`<span style="color:${color}"><b>${currentItem.name}</b></span> sold for ${sellVal}g (${currentItem.count} remaining)`);
+            } else {
+              state.inventory.splice(invIdx, 1);
+              state.ui.toast(`<span style="color:${color}"><b>${currentItem.name}</b></span> sold for ${sellVal}g`);
+            }
+            
+            state.ui.updateGoldDisplay();
+            state.ui.renderSellItems();
+            state.ui.renderInventory?.();
+            if(state.selectedIndex === invIdx) state.selectedIndex = -1;
+          }
+          lastClickTime = now;
+        });
+        
+      } else {
+        // Empty slot
+        slot.addEventListener('click', function(){
+          if(ui.sellInspect) ui.sellInspect.innerHTML = 'Click an item to view stats and sell value.';
+          state._marketSelectedSellIndex = undefined;
+          state._marketSelectedItem = undefined;
+        });
+      }
+      
+      ui.sellItems.appendChild(slot);
+    }
+  };
+
   ui.btnCloseMarket.onclick = () => ui.toggleMarketplace(false);
+  
+  ui.btnSellAll = document.getElementById('btnSellAll');
+  ui.btnSellAll.onclick = ()=>{
+    // Sell all non-equipped items
+    let totalGold = 0;
+    let itemsSold = 0;
+    const itemsToRemove = [];
+    
+    for(let i = state.inventory.length - 1; i >= 0; i--){
+      const item = state.inventory[i];
+      const isEquipped = item.slot && state.equipped && state.equipped[item.slot] === item;
+      
+      if(!isEquipped){
+        const sellVal = item.rarity?.sellValue || 5;
+        const count = item.count || 1;
+        totalGold += sellVal * count;
+        itemsSold += count;
+        itemsToRemove.push(i);
+      }
+    }
+    
+    if(itemsSold === 0){
+      ui.toast('No items to sell! (All items are equipped)');
+      return;
+    }
+    
+    // Remove items from inventory
+    for(const idx of itemsToRemove){
+      state.inventory.splice(idx, 1);
+    }
+    
+    state.player.gold += totalGold;
+    ui.toast(`<span style="color:var(--epic); font-weight:900">Sold ${itemsSold} item${itemsSold > 1 ? 's' : ''} for ${totalGold}g!</span>`);
+    ui.updateGoldDisplay();
+    ui.renderSellItems();
+    ui.renderInventory?.();
+    if(state.selectedIndex >= 0) state.selectedIndex = -1;
+  };
   
   // Base Actions menu handlers
   ui.btnOpenMarketplace.onclick = () => {
@@ -1818,10 +2122,19 @@ function bindUI(state){
 
   // Render Campaign tab: leader/last banner, team metrics, captures summary
   ui.renderCampaignTab = ()=>{
+    console.log('%c🔔 CAMPAIGN TAB RENDERING NOW! ' + new Date().toLocaleTimeString(), 'background: #0f0; color: #000; font-size: 16px; padding: 5px;');
+    
     const headerEl = document.getElementById('campaignHeader');
     const teamsEl = document.getElementById('campaignTeams');
     const capsEl = document.getElementById('campaignCaptures');
     if(!headerEl || !teamsEl || !capsEl) return;
+
+    const teamNames = {
+      player: '⭐ Kingdom of Light',
+      teamA: '🔴 Crimson Legion',
+      teamB: '🟡 Golden Covenant',
+      teamC: '🔵 Azure Order'
+    };
 
     const teams = ['player','teamA','teamB','teamC'];
     const pts = {
@@ -1838,17 +2151,34 @@ function bindUI(state){
     const cfg = state.rubberband || {};
     const nextMap = state.rubberbandNext || {};
     const awardedMap = state.rubberbandAwarded || {};
-    const now = Math.floor(Date.now()/1000);
-    const lastNext = Math.max(0, (nextMap[last.k]||0) - now);
+    const campaignTime = state.campaign?.time || 0;
+    const timeMin = Math.floor(campaignTime / 60);
+    const timeSec = Math.floor(campaignTime % 60);
+    const timeStr = `${timeMin}:${timeSec.toString().padStart(2, '0')}`;
+    
+    const lastNext = Math.max(0, (nextMap[last.k]||0) - campaignTime);
     const lastETAmin = Math.ceil(lastNext/60);
     const eligible = gap >= (cfg.gapThreshold||50);
     const lastAwarded = Math.round(awardedMap[last.k]||0);
+    
+    // Check if campaign has actually started (any team has points or multiple teams exist)
+    const totalPoints = entries.reduce((sum, e) => sum + e.v, 0);
+    const hasCompetition = totalPoints > 0 || gap > 0;
 
-    headerEl.innerHTML = `
-      <div><b>Leader:</b> ${leader.k} • ${Math.round(leader.v)} pts</div>
-      <div><b>Last:</b> ${last.k} • ${Math.round(last.v)} pts (gap ${gap})</div>
-      <div><b>Assistance:</b> ${eligible ? '<span style="color:#8f9">Eligible</span>' : '<span style="color:#f99">Off</span>'} • Next tick ~ ${lastETAmin} min • Total awarded to ${last.k}: ${lastAwarded}</div>
-    `;
+    if (hasCompetition) {
+      const nextGoldAmount = cfg.baseTickGold || 250;
+      headerEl.innerHTML = `
+        <div style="font-size:14px; margin-bottom:4px;"><b>Campaign Time:</b> ${timeStr}</div>
+        <div style="font-size:13px;"><b>Leader:</b> ${teamNames[leader.k]} • <b>${Math.round(leader.v)}</b> pts</div>
+        <div style="font-size:13px;"><b>Last Place:</b> ${teamNames[last.k]} • <b>${Math.round(last.v)}</b> pts (gap: ${gap})</div>
+        <div style="font-size:13px;"><b>Catch-Up Assistance:</b> ${eligible ? `<span style="color:#8f9">✓ Active</span> • Next <b>+${nextGoldAmount}g</b> in ${lastETAmin} min • Already given: <b>${lastAwarded}g</b>` : `<span style="color:#f99">✗ Disabled</span> (${gap < 50 ? 'teams too close' : 'leading team'})`}</div>
+      `;
+    } else {
+      headerEl.innerHTML = `
+        <div style="font-size:14px; color:#888;"><b>Campaign Time:</b> ${timeStr}</div>
+        <div style="font-size:13px; color:#888;">No competition yet - capture flags to start earning points!</div>
+      `;
+    }
 
     // Team metrics lines
     const sites = state.sites || [];
@@ -1884,13 +2214,13 @@ function bindUI(state){
     const teamLines = teams.map(k=>{
       const stars = avgArmorTierFor(k);
       const starStr = stars>0 ? ('★'.repeat(Math.min(5,stars))) : '—';
-      return `${k.toUpperCase()}: Gold ${goldFor(k)} • Pts ${Math.round(pts[k])} • Flags ${countFlags(k)} • Avg Lv ${avgLevelFor(k)} • Armor ${starStr}`;
+      return `<b style="font-size:14px;">${teamNames[k]}</b>: Gold ${goldFor(k)} • Pts ${Math.round(pts[k])} • Flags ${countFlags(k)} • Avg Lv ${avgLevelFor(k)} • Armor ${starStr}`;
     });
-    teamsEl.innerHTML = teamLines.map(l=>`<div>${l}</div>`).join('');
+    teamsEl.innerHTML = teamLines.map(l=>`<div style="margin-bottom:6px;">${l}</div>`).join('');
 
     // Captures summary: show counts per owner
     const owners = ['player','teamA','teamB','teamC','neutral'];
-    const capLines = owners.map(o=> `${o.toUpperCase()}: ${countFlags(o)}`);
+    const capLines = owners.map(o=> `${teamNames[o] || o.toUpperCase()}: ${countFlags(o)}`);
     capsEl.innerHTML = capLines.map(l=>`<div>${l}</div>`).join('');
   };
 
@@ -2295,6 +2625,19 @@ function bindUI(state){
   ui.renderAbilityBar = ()=>{
     ui.abilBar.innerHTML='';
     
+    const tooltip = document.getElementById('abilTooltip');
+    const tooltipContent = document.getElementById('abilTooltipContent');
+    
+    const showTooltip = (html)=>{
+      if(tooltip && tooltipContent){
+        tooltipContent.innerHTML = html;
+        tooltip.style.display = 'block';
+      }
+    };
+    const hideTooltip = ()=>{
+      if(tooltip) tooltip.style.display = 'none';
+    };
+    
     // Potion slot (left of abilities)
     const potionEl = document.createElement('div');
     potionEl.className = 'abilSlot';
@@ -2305,6 +2648,15 @@ function bindUI(state){
       <div class="abilMeta">${potion ? `x${potion.count || 1}` : 'Equip from Inventory'}</div>
       <div class="cdOverlay" id="cdOvPotion"></div>
     `;
+    
+    if(potion){
+      potionEl.addEventListener('mouseenter', ()=>{
+        const buffsText = potion.buffs ? Object.entries(potion.buffs).map(([k,v])=>`<span style="color:var(--common)">+${typeof v==='number'? (Math.abs(v)<1? (v*100).toFixed(0)+'%' : v) : v} ${k}</span>`).join(', ') : '';
+        showTooltip(`<div style="font-weight:900; color:${potion.rarity?.color || '#fff'}; margin-bottom:4px">${potion.name}</div><div style="color:#aaa; margin-bottom:8px">${potion.desc || 'Restores health or mana over time'}</div>${buffsText ? `<div>${buffsText}</div>` : ''}<div style="color:#999; margin-top:8px">Quantity: ${potion.count || 1}</div>`);
+      });
+      potionEl.addEventListener('mouseleave', hideTooltip);
+    }
+    
     ui.abilBar.appendChild(potionEl);
     
     for(let i=0;i<5;i++){
@@ -2318,6 +2670,35 @@ function bindUI(state){
         <div class="cdOverlay" id="cdOv${i}"></div>
         <div class="cdText" id="cdTx${i}"></div>
       `;
+      
+      if(sk){
+        el.addEventListener('mouseenter', ()=>{
+          const color = sk.category?.includes('Exclusive') ? 'var(--epic)' : sk.category?.includes('Weapons') ? 'var(--rare)' : 'var(--uncommon)';
+          let html = `<div style="font-weight:900; color:${color}; margin-bottom:4px">${sk.name}</div>`;
+          html += `<div style="color:#aaa; margin-bottom:8px">${sk.desc || ''}</div>`;
+          html += `<div style="margin-bottom:8px">${sk.details || ''}</div>`;
+          
+          const stats = [];
+          if(sk.mana) stats.push(`<span style="color:var(--mana)">💧 ${sk.mana} Mana</span>`);
+          if(sk.cd) stats.push(`<span style="color:var(--uncommon)">⏱️ ${sk.cd}s CD</span>`);
+          if(sk.range) stats.push(`<span style="color:#aaa">📏 ${sk.range}m Range</span>`);
+          if(sk.radius) stats.push(`<span style="color:#aaa">💥 ${sk.radius}m Radius</span>`);
+          if(sk.castTime) stats.push(`<span style="color:#aaa">⚡ ${sk.castTime}s Cast</span>`);
+          if(stats.length > 0) html += `<div style="margin-bottom:8px">${stats.join(' • ')}</div>`;
+          
+          if(sk.scaling) html += `<div style="color:var(--common); margin-bottom:4px">${sk.scaling}</div>`;
+          if(sk.target) html += `<div style="color:#999">Target: ${sk.target}</div>`;
+          
+          const extras = [];
+          if(sk.dots && sk.dots.length > 0) extras.push(`<span style="color:#f66">DoTs: ${sk.dots.join(', ')}</span>`);
+          if(sk.buffs && sk.buffs.length > 0) extras.push(`<span style="color:var(--rare)">Buffs: ${sk.buffs.join(', ')}</span>`);
+          if(extras.length > 0) html += `<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1)">${extras.join(' • ')}</div>`;
+          
+          showTooltip(html);
+        });
+        el.addEventListener('mouseleave', hideTooltip);
+      }
+      
       ui.abilBar.appendChild(el);
     }
   };
@@ -3353,17 +3734,18 @@ function bindUI(state){
     const st = currentStats(state);
     if(item.kind==='potion'){
       if(isGroupMemberMode){
-        ui.toast('Group members cannot use potions directly.');
+        ui.toast('Group members cannot use potions.');
         return;
       }
-      // Equip potion instead of using it
+      // Equip potion to ability bar slot
       const prev = state.player.potion;
       state.player.potion = item;
       state.inventory.splice(state.selectedIndex,1);
       state.selectedIndex = -1;
       if(prev) state.inventory.push(prev);
-      ui.toast(`Equipped: <b class="${rarityClass(item.rarity.key)}">${item.name}</b> (x${item.count || 1})`);
+      ui.toast(`Equipped to Potion Slot: <b class="${rarityClass(item.rarity.key)}">${item.name}</b> (x${item.count || 1}) - Use with [${nice(state.binds['potion'])}]`);
       ui.renderInventory();
+      ui.renderAbilityBar();
       return;
     }
 
@@ -3863,7 +4245,6 @@ function bindUI(state){
       <div class="group-actions">
         <button onclick="ui.addAllAlliesToGroup()">Add all allies to group</button>
         <button class="danger" onclick="ui.disbandGroup()">Disband group</button>
-        <button id="toggleDenseBtn" class="secondary">${ui._groupDense ? 'Normal mode' : 'Dense mode'}</button>
       </div>`;
     if(state.group.members.length === 0){
       ui.groupMembersList.innerHTML = actionsHtml + '<div class="small" style="padding:12px; color:#888;">No group members. Invite allies to get started.</div>';
@@ -3903,21 +4284,6 @@ function bindUI(state){
     }
     ui.groupMembersList.innerHTML = actionsHtml + list.join('');
     ui.groupMemberCount.textContent = state.group.members.length.toString();
-    // Wire dense toggle and apply class on the left Group box container
-    try{
-      const btn = document.getElementById('toggleDenseBtn');
-      if(btn){
-        btn.onclick = ()=>{
-          ui._groupDense = !ui._groupDense;
-          const leftBox = ui.groupMembersList.closest('.box');
-          if(leftBox) leftBox.classList.toggle('group-dense', !!ui._groupDense);
-          // Rerender to update button label state
-          ui.renderGroupTab();
-        };
-      }
-      const leftBox = ui.groupMembersList.closest('.box');
-      if(leftBox) leftBox.classList.toggle('group-dense', !!ui._groupDense);
-    }catch{}
     console.log('[GROUP] Rendered', list.length, 'members in group tab');
   };
   
