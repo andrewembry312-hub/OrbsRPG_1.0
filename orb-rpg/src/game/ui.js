@@ -156,22 +156,22 @@ export function buildUI(state){
           </div>
         </div>
         <!-- Tab buttons -->
-        <div style="display:flex; gap:6px; border-bottom:1px solid rgba(255,255,255,0.1); margin-top:10px; padding-bottom:8px;">
-          <button class="tab-btn active" data-tab="0" style="flex:1; padding:8px; background:rgba(122,162,255,0.2); border:1px solid rgba(122,162,255,0.4); color:#fff; border-radius:3px; cursor:pointer; font-size:11px;">Inventory</button>
-          <button class="tab-btn" data-tab="1" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Skills</button>
-          <button class="tab-btn" data-tab="2" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Level Up</button>
-          <button class="tab-btn" data-tab="4" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Group</button>
-          <button class="tab-btn" data-tab="5" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Allies</button>
-          <button class="tab-btn" data-tab="7" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Campaign</button>
-          <button class="tab-btn" data-tab="3" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Buffs/Debuffs</button>
-          <button class="tab-btn" data-tab="6" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; border-radius:3px; cursor:pointer; font-size:11px;">Help</button>
+        <div style="display:flex; gap:6px; border-bottom:1px solid #d4af37; margin-top:10px; padding-bottom:8px;">
+          <button class="tab-btn active" data-tab="0" style="flex:1; padding:8px; background:rgba(212,175,55,0.3); border:1px solid #d4af37; color:#d4af37; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold;">Inventory</button>
+          <button class="tab-btn" data-tab="1" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Skills</button>
+          <button class="tab-btn" data-tab="2" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Level Up</button>
+          <button class="tab-btn" data-tab="4" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Group</button>
+          <button class="tab-btn" data-tab="5" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Allies</button>
+          <button class="tab-btn" data-tab="7" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Campaign</button>
+          <button class="tab-btn" data-tab="3" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Buffs/Debuffs</button>
+          <button class="tab-btn" data-tab="6" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Help</button>
         </div>
 
         <!-- Tab 0: Inventory -->
         <div class="tab-content" data-tab="0" style="margin-top:10px; display:block;">
           <div class="invFullGrid">
             <!-- LEFT: Equipment circle around hero -->
-            <div class="box invLeft">
+            <div class="box invLeft" style="border-color:#d4af37;">
               <div class="row" style="justify-content:space-between; align-items:center;">
                 <div class="pill">Gold <span id="gold">0</span></div>
                 <div class="small">Hero: <span id="heroClassName">Warrior</span> • Lv <span id="heroLevel">1</span></div>
@@ -186,7 +186,7 @@ export function buildUI(state){
               </div>
             </div>
             <!-- STATS: selected item and stats -->
-            <div class="box invStats">
+            <div class="box invStats" style="border-color:#d4af37;">
               <div style="margin-top:12px" class="small">Selected Item</div>
               <div id="selName" style="font-weight:900;margin-top:2px">None</div>
               <div id="selDesc" class="small" style="margin-top:6px; line-height:1.35">Click an item.</div>
@@ -194,8 +194,8 @@ export function buildUI(state){
               <div style="margin-top:12px" class="small">Stats</div>
               <table class="statTable" id="statsTable"></table>
 
-              <div class="box" style="margin-top:10px">
-                <div class="pill">Armor Rating: <span id="invArmorStars">☆☆☆☆☆</span> <span id="invArmorText">0/5</span></div>
+              <div class="box" style="margin-top:10px; border-color:#d4af37;">
+                <div class="pill" style="border-color:#d4af37; color:#d4af37;">Armor Rating: <span id="invArmorStars">☆☆☆☆☆</span> <span id="invArmorText">0/5</span></div>
               </div>
             </div>
 
@@ -203,7 +203,7 @@ export function buildUI(state){
             <div class="box invSpacer"></div>
 
             <!-- RIGHT: Inventory grid -->
-            <div id="invRight" class="box invRight">
+            <div id="invRight" class="box invRight" style="border-color:#d4af37;">
               <div class="invRightHeader">
                 <div class="row">
                   <div class="small">Inventory</div>
@@ -224,20 +224,20 @@ export function buildUI(state){
         <div class="tab-content" data-tab="1" style="margin-top:10px; display:none;">
           <div class="grid2">
             <!-- Left: Category Navigation -->
-            <div class="box" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
-              <div class="small" style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); font-weight:bold;">Categories</div>
+            <div class="box" style="padding:0; overflow:hidden; display:flex; flex-direction:column; border-color:#d4af37;">
+              <div class="small" style="padding:8px; border-bottom:1px solid #d4af37; background:rgba(0,0,0,0.3); font-weight:bold; color:#d4af37;">Categories</div>
               <div id="skillCategories" class="tab-scroll" style="display:flex; flex-direction:column; flex:1 1 auto;">
                 <!-- Categories will be populated by JS -->
               </div>
             </div>
             
             <!-- Right: Ability Details & Assignment -->
-            <div class="box tab-scroll" style="overflow:auto;">
-              <div class="small" style="font-weight:bold; margin-bottom:8px;">Active Ability Slots</div>
+            <div class="box tab-scroll" style="overflow:auto; border-color:#d4af37;">
+              <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Active Ability Slots</div>
               <div id="skillSlots" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;"></div>
               
-              <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
-                <div class="small" style="font-weight:bold; margin-bottom:8px;">Selected Ability</div>
+              <div style="border-top:1px solid #d4af37; padding-top:12px;">
+                <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Selected Ability</div>
                 <div id="abilityDetails" style="font-size:12px; line-height:1.5; color:#ccc;">
                   <div style="color:#999; padding:8px;">Select an ability to view details</div>
                 </div>
@@ -253,67 +253,132 @@ export function buildUI(state){
 
         <!-- Tab 2: Level Up -->
         <div class="tab-content" data-tab="2" style="margin-top:10px; display:none;">
-          <div class="box">
-            <div class="small">Unspent Points: <b id="lvlPts">0</b></div>
-            <div style="margin-top:10px">
-              <div class="row" style="align-items:center; gap:8px">
-                <div style="width:120px">Max HP</div>
-                <button id="hpDec" class="secondary">◀</button>
-                <div id="hpSpend" style="width:40px;text-align:center">0</div>
-                <button id="hpInc">▶</button>
+          <div style="display:flex; gap:12px; height:calc(100vh - 240px);">
+            <!-- Spacer to push content to the right -->
+            <div style="flex:1;"></div>
+            
+            <!-- Right side: Compact stats panel -->
+            <div class="box" style="border-color:#d4af37; width:50%; font-size:13px; display:flex; flex-direction:column;">
+              <!-- Row 1: Header with Name/Role/Hero and Armor Rating -->
+              <div id="levelHeaderRow" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:6px; border-bottom:1px solid #d4af37; margin-bottom:8px;">
+                <div>
+                  <div id="levelCharName" style="font-size:15px; font-weight:bold; color:#d4af37;">Player Name</div>
+                  <div id="levelCharRole" style="font-size:12px; color:#b8941f; margin-top:2px;">Role • Hero</div>
+                </div>
+                <div id="levelArmorRating" style="text-align:right;">
+                  <div style="font-size:12px; color:#b8941f;">Armor Rating</div>
+                  <div style="font-size:16px; font-weight:bold; color:#d4af37;"><span id="levelArmorStars">☆☆☆☆☆</span></div>
+                </div>
               </div>
-              <div class="row" style="align-items:center; gap:8px; margin-top:10px">
-                <div style="width:120px">Max Mana</div>
-                <button id="manaDec" class="secondary">◀</button>
-                <div id="manaSpend" style="width:40px;text-align:center">0</div>
-                <button id="manaInc">▶</button>
+
+              <!-- Row 2: HP, Mana, Stamina HORIZONTAL with Bars AND +/- Controls -->
+              <div id="levelResourcesRow" style="padding-bottom:8px; border-bottom:1px solid #d4af37; margin-bottom:8px;">
+                <!-- Unspent Points -->
+                <div id="levelPointsDisplay" style="font-size:12px; color:#d4af37; margin-bottom:8px; text-align:center;">
+                  Unspent Points: <b id="lvlPts">0</b>
+                </div>
+                
+                <!-- Resources in horizontal layout -->
+                <div style="display:flex; justify-content:space-evenly; padding:0 12px;">
+                  <!-- HP Column -->
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                    <div style="font-size:12px; color:#f55; font-weight:bold;">HP</div>
+                    <div style="width:140px;">
+                      <div style="font-size:12px; color:#f55; margin-bottom:2px; text-align:center;"><span id="levelHpValue">0/0</span></div>
+                      <div style="width:100%; height:8px; background:rgba(0,0,0,0.5); border:1px solid #d4af37; border-radius:2px; overflow:hidden;">
+                        <div id="levelHpBar" style="height:100%; background:linear-gradient(90deg, #f55, #f77); width:100%; transition:width 0.3s;"></div>
+                      </div>
+                    </div>
+                    <div style="display:flex; gap:4px; align-items:center;">
+                      <button id="hpDec" class="secondary" style="border-color:#f55; color:#f55; padding:3px 8px; font-size:12px; min-width:28px;">◀</button>
+                      <div id="hpSpend" style="width:32px; text-align:center; color:#f55; font-weight:bold; font-size:13px;">0</div>
+                      <button id="hpInc" style="border-color:#f55; background:rgba(255,85,85,0.2); color:#f55; padding:3px 8px; font-size:12px; min-width:28px;">▶</button>
+                    </div>
+                  </div>
+                  
+                  <!-- Mana Column -->
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                    <div style="font-size:12px; color:#5af; font-weight:bold;">Mana</div>
+                    <div style="width:140px;">
+                      <div style="font-size:12px; color:#5af; margin-bottom:2px; text-align:center;"><span id="levelManaValue">0/0</span></div>
+                      <div style="width:100%; height:8px; background:rgba(0,0,0,0.5); border:1px solid #d4af37; border-radius:2px; overflow:hidden;">
+                        <div id="levelManaBar" style="height:100%; background:linear-gradient(90deg, #5af, #7cf); width:100%; transition:width 0.3s;"></div>
+                      </div>
+                    </div>
+                    <div style="display:flex; gap:4px; align-items:center;">
+                      <button id="manaDec" class="secondary" style="border-color:#5af; color:#5af; padding:3px 8px; font-size:12px; min-width:28px;">◀</button>
+                      <div id="manaSpend" style="width:32px; text-align:center; color:#5af; font-weight:bold; font-size:13px;">0</div>
+                      <button id="manaInc" style="border-color:#5af; background:rgba(85,170,255,0.2); color:#5af; padding:3px 8px; font-size:12px; min-width:28px;">▶</button>
+                    </div>
+                  </div>
+                  
+                  <!-- Stamina Column -->
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                    <div style="font-size:12px; color:#5f5; font-weight:bold;">Stamina</div>
+                    <div style="width:140px;">
+                      <div style="font-size:12px; color:#5f5; margin-bottom:2px; text-align:center;"><span id="levelStamValue">0/0</span></div>
+                      <div style="width:100%; height:8px; background:rgba(0,0,0,0.5); border:1px solid #d4af37; border-radius:2px; overflow:hidden;">
+                        <div id="levelStamBar" style="height:100%; background:linear-gradient(90deg, #5f5, #7f7); width:100%; transition:width 0.3s;"></div>
+                      </div>
+                    </div>
+                    <div style="display:flex; gap:4px; align-items:center;">
+                      <button id="stamDec" class="secondary" style="border-color:#5f5; color:#5f5; padding:3px 8px; font-size:12px; min-width:28px;">◀</button>
+                      <div id="stamSpend" style="width:32px; text-align:center; color:#5f5; font-weight:bold; font-size:13px;">0</div>
+                      <button id="stamInc" style="border-color:#5f5; background:rgba(85,255,85,0.2); color:#5f5; padding:3px 8px; font-size:12px; min-width:28px;">▶</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Apply Button Row -->
+                <div style="display:flex; gap:6px; margin-top:8px; justify-content:center;">
+                  <button id="levelApply" style="border-color:#d4af37; background:rgba(212,175,55,0.3); color:#d4af37; padding:5px 14px; font-size:12px;">Apply</button>
+                  <button id="levelSwitchToPlayer" style="border-color:#d4af37; background:rgba(212,175,55,0.1); color:#d4af37; padding:5px 14px; font-size:12px; display:none;">Switch to Player</button>
+                </div>
               </div>
-              <div class="row" style="align-items:center; gap:8px; margin-top:10px">
-                <div style="width:120px">Max Stamina</div>
-                <button id="stamDec" class="secondary">◀</button>
-                <div id="stamSpend" style="width:40px;text-align:center">0</div>
-                <button id="stamInc">▶</button>
+
+              <!-- Row 3: Stats List -->
+              <div id="levelStatsRow" style="padding-bottom:8px; border-bottom:1px solid #d4af37; margin-bottom:8px;">
+                <div style="font-size:12px; font-weight:bold; color:#d4af37; margin-bottom:6px;">STATS</div>
+                <div id="levelStatsList" style="display:grid; grid-template-columns:1fr 1fr; gap:4px; font-size:12px; color:#ccc;"></div>
+              </div>
+
+              <!-- Row 4: Active Effects -->
+              <div id="levelEffectsRow" style="flex:1; display:flex; flex-direction:column; overflow-y:auto;">
+                <div style="font-size:12px; font-weight:bold; color:#d4af37; margin-bottom:6px;">ACTIVE EFFECTS</div>
+                <div id="levelEffectsList" style="display:flex; flex-direction:column; min-height:24px;"></div>
               </div>
             </div>
-            <div class="btnRow" style="margin-top:12px">
-              <button id="levelApply">Apply</button>
-            </div>
-            <div class="small" style="margin-top:8px">Each level grants +1 point. Allocate to HP, Mana, or Stamina.</div>
           </div>
         </div>
 
         <!-- Tab 3: Ability System (Buffs/Debuffs) -->
         <div class="tab-content" data-tab="3" style="margin-top:10px; display:none;">
-          <div class="box tab-scroll" style="overflow:auto;">
-            <h3 style="margin:0 0 10px 0">Buff & Debuff System</h3>
-            <div class="small" style="margin-bottom:12px; color:#999;">Comprehensive list of all buffs and debuffs in the game. These can be applied by abilities, items, and environmental effects.</div>
+          <div class="box tab-scroll" style="overflow:auto; border-color:#d4af37;">
+            <h3 style="margin:0 0 10px 0; color:#d4af37;">Buff & Debuff System</h3>
+            <div class="small" style="margin-bottom:12px; color:#b8941f;">Comprehensive list of all buffs and debuffs in the game. These can be applied by abilities, items, and environmental effects.</div>
 
             <div style="margin-bottom:12px;">
-              <div class="small" style="font-weight:bold; color:#aaf; margin-bottom:6px;">Active Effects (Player)</div>
-              <div id="activeEffectsIcons" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"></div>
-            </div>
-            <div style="margin-bottom:12px;">
-              <div class="small" style="font-weight:bold; color:#aaf; margin-bottom:6px;">Active Effects (Player)</div>
+              <div class="small" style="font-weight:bold; color:#d4af37; margin-bottom:6px;">Active Effects (Player)</div>
               <div id="activeEffectsIcons" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"></div>
             </div>
             
             <div style="margin-bottom:16px;">
-              <div style="font-weight:bold; color:var(--epic); margin-bottom:8px;">⚡ Combat Buffs</div>
+              <div style="font-weight:bold; color:#d4af37; margin-bottom:8px;">⚡ Combat Buffs</div>
               <div id="combatBuffsList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; font-size:11px;"></div>
             </div>
 
             <div style="margin-bottom:16px;">
-              <div style="font-weight:bold; color:var(--rare); margin-bottom:8px;">💚 Sustain & Healing Buffs</div>
+              <div style="font-weight:bold; color:#d4af37; margin-bottom:8px;">💚 Sustain & Healing Buffs</div>
               <div id="sustainBuffsList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; font-size:11px;"></div>
             </div>
 
             <div style="margin-bottom:16px;">
-              <div style="font-weight:bold; color:var(--uncommon); margin-bottom:8px;">🏃 Mobility Buffs</div>
+              <div style="font-weight:bold; color:#d4af37; margin-bottom:8px;">🏃 Mobility Buffs</div>
               <div id="mobilityBuffsList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; font-size:11px;"></div>
             </div>
 
             <div style="margin-bottom:16px;">
-              <div style="font-weight:bold; color:var(--legend); margin-bottom:8px;">✨ Utility Buffs</div>
+              <div style="font-weight:bold; color:#d4af37; margin-bottom:8px;">✨ Utility Buffs</div>
               <div id="utilityBuffsList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; font-size:11px;"></div>
             </div>
 
@@ -328,18 +393,18 @@ export function buildUI(state){
         <div class="tab-content" data-tab="4" style="margin-top:10px; display:none;">
           <div class="grid2">
             <!-- Left: Group Members List -->
-            <div class="box" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
-              <div class="small" style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); font-weight:bold;">Group Members (<span id="groupMemberCount">0</span>/10)</div>
+            <div class="box" style="padding:0; overflow:hidden; display:flex; flex-direction:column; border-color:#d4af37;">
+              <div class="small" style="padding:8px; border-bottom:1px solid #d4af37; background:rgba(0,0,0,0.3); font-weight:bold; color:#d4af37;">Group Members (<span id="groupMemberCount">0</span>/10)</div>
               <div id="groupMembersList" class="tab-scroll" style="flex:1 1 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:8px; padding:8px;">
-                <div class="small" style="padding:12px; color:#888;">No group members yet. Invite allies with "Invite to Group" button.</div>
+                <div class="small" style="padding:12px; color:#b8941f;">No group members yet. Invite allies with "Invite to Group" button.</div>
               </div>
             </div>
             
             <!-- Right: Member Details & Settings -->
-            <div class="box tab-scroll" style="overflow:auto;">
-              <div class="small" style="font-weight:bold; margin-bottom:8px;">Member Settings</div>
+            <div class="box tab-scroll" style="overflow:auto; border-color:#d4af37;">
+              <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Member Settings</div>
               <div id="groupMemberDetails" style="font-size:12px; line-height:1.5;">
-                <div class="small" style="color:#999; padding:8px;">Select a group member to manage.</div>
+                <div class="small" style="color:#b8941f; padding:8px;">Select a group member to manage.</div>
               </div>
             </div>
           </div>
@@ -349,18 +414,18 @@ export function buildUI(state){
         <div class="tab-content" data-tab="5" style="margin-top:10px; display:none;">
           <div class="grid2">
             <!-- Left: Allies List -->
-            <div class="box" style="padding:0; overflow:hidden;">
-              <div class="small" style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); font-weight:bold;">All Allies (<span id="allyTabCount">0</span>)</div>
+            <div class="box" style="padding:0; overflow:hidden; border-color:#d4af37;">
+              <div class="small" style="padding:8px; border-bottom:1px solid #d4af37; background:rgba(0,0,0,0.3); font-weight:bold; color:#d4af37;">All Allies (<span id="allyTabCount">0</span>)</div>
               <div id="allyList" class="tab-scroll" style="display:flex; flex-direction:column;">
-                <div class="small" style="padding:12px; color:#888;">No allies yet.</div>
+                <div class="small" style="padding:12px; color:#b8941f;">No allies yet.</div>
               </div>
             </div>
 
             <!-- Right: Ally Details & Actions -->
-            <div class="box">
-              <div class="small" style="font-weight:bold; margin-bottom:8px;">Ally Details</div>
+            <div class="box" style="border-color:#d4af37;">
+              <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Ally Details</div>
               <div id="allyDetails" style="font-size:12px; line-height:1.5;">
-                <div class="small" style="color:#999; padding:8px;">Select any ally to manage or invite to group.</div>
+                <div class="small" style="color:#b8941f; padding:8px;">Select any ally to manage or invite to group.</div>
               </div>
             </div>
           </div>
@@ -368,12 +433,12 @@ export function buildUI(state){
 
         <!-- Tab 6: Help -->
         <div class="tab-content" data-tab="6" style="margin-top:10px; display:none;">
-          <div class="box" style="max-height:580px; overflow-y:auto;">
-            <h3 style="margin:0 0 12px 0; color:#4a9eff;">📖 Game Mechanics Guide</h3>
+          <div class="box" style="max-height:580px; overflow-y:auto; border-color:#d4af37;">
+            <h3 style="margin:0 0 12px 0; color:#d4af37;">📖 Game Mechanics Guide</h3>
             
             <!-- NPC Types -->
-            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #4a9eff; border-radius:3px;">
-              <div style="font-weight:bold; font-size:14px; color:#4a9eff; margin-bottom:8px;">🤖 NPC Types</div>
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #d4af37; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#d4af37; margin-bottom:8px;">🤖 NPC Types</div>
               
               <div style="margin-bottom:10px;">
                 <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🛡️ Guards (Site Defenders)</div>
@@ -619,18 +684,18 @@ export function buildUI(state){
         <!-- Tab 7: Campaign -->
         <div class="tab-content" data-tab="7" style="margin-top:10px; display:none;">
           <!-- Compact Leader/Last banner -->
-          <div class="box">
-            <div id="campaignHeader" class="small" style="line-height:1.6"></div>
+          <div class="box" style="border-color:#d4af37;">
+            <div id="campaignHeader" class="small" style="line-height:1.6; color:#d4af37;"></div>
           </div>
           <div class="grid2">
             <!-- Left: Team Metrics -->
-            <div class="box tab-scroll" style="overflow:auto;">
-              <div class="small" style="font-weight:bold; margin-bottom:8px;">Faction Status</div>
+            <div class="box tab-scroll" style="overflow:auto; border-color:#d4af37;">
+              <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Faction Status</div>
               <div id="campaignTeams" class="small" style="line-height:1.6"></div>
             </div>
             <!-- Right: Active Captures -->
-            <div class="box tab-scroll" style="overflow:auto;">
-              <div class="small" style="font-weight:bold; margin-bottom:8px;">Active Captures</div>
+            <div class="box tab-scroll" style="overflow:auto; border-color:#d4af37;">
+              <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Active Captures</div>
               <div id="campaignCaptures" class="small" style="line-height:1.6"></div>
             </div>
           </div>
@@ -704,42 +769,65 @@ export function buildUI(state){
 
     <!-- Marketplace Overlay -->
     <div id="marketplaceOverlay" class="overlay">
-      <div class="panel" style="width:min(800px,92vw)">
+      <div class="panel" style="width:min(760px,92vw)">
         <div class="row" style="position:relative; align-items:center;">
           <div id="marketConfirm" class="small" style="position:absolute; left:0; top:0; min-height:18px; font-weight:900; background:transparent; padding:0; margin:0; pointer-events:none;"></div>
           <h2 style="margin:0; flex:1; text-align:center;">🏪 Marketplace</h2>
           <button id="btnCloseMarket" class="secondary">Close</button>
         </div>
-        
-        <!-- Marketplace Tabs -->
-        <div class="tabs" style="margin-top:10px; display:flex; gap:4px; border-bottom:2px solid rgba(255,255,255,0.1)">
-          <button id="marketTabShop" class="tab-btn active" style="flex:1; padding:10px; background:rgba(255,255,255,0.1); border:none; color:#fff; cursor:pointer; border-bottom:3px solid var(--epic); font-weight:bold;">Shop</button>
-          <button id="marketTabAllies" class="tab-btn" style="flex:1; padding:10px; background:rgba(255,255,255,0.05); border:none; color:#aaa; cursor:pointer; border-bottom:3px solid transparent; font-weight:normal;">Allies</button>
+        <div class="box" style="margin-top:10px">
+          <div class="small" style="font-weight:900; margin-bottom:8px">Your Gold: <span id="marketGold" style="color:var(--epic)">0</span></div>
+          <div class="small" style="margin-bottom:8px">Buy starter gear and potions. Unlimited stock available!</div>
+          <div id="marketInspect" class="small" style="margin-bottom:10px; line-height:1.4">Select an item to view its stats.</div>
+          <div id="shopItems" class="grid2" style="max-height:420px; overflow-y:auto; gap:8px"></div>
         </div>
-        
-        <!-- Shop Tab Content -->
-        <div id="marketContentShop" class="tab-content">
-          <div class="box" style="margin-top:10px">
-            <div class="small" style="font-weight:900; margin-bottom:8px">Your Gold: <span id="marketGold" style="color:var(--epic)">0</span></div>
-            <div class="small" style="margin-bottom:8px">Buy starter gear and potions. Unlimited stock available!</div>
-            <div id="marketInspect" class="small" style="margin-bottom:10px; line-height:1.4">Select an item to view its stats.</div>
-            <div id="shopItems" class="grid2" style="max-height:420px; overflow-y:auto; gap:8px"></div>
+      </div>
+    </div>
+
+    <!-- Base Actions Choice Menu -->
+    <div id="baseActionsOverlay" class="overlay">
+      <div class="panel" style="width:min(500px,92vw)">
+        <h2 style="text-align:center;">🏰 Base Actions</h2>
+        <div class="box" style="margin-top:10px">
+          <div class="small" style="margin-bottom:12px; text-align:center; color:#aaa">What would you like to do?</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <button id="btnOpenMarketplace" style="padding:20px; font-size:18px; background:rgba(255,215,0,0.2); border:2px solid rgba(255,215,0,0.4); color:#fff; cursor:pointer; border-radius:6px;">
+              🏪 Open Marketplace
+              <div style="font-size:12px; color:#aaa; margin-top:4px;">Buy weapons, armor, and potions</div>
+            </button>
+            <button id="btnOpenGarrison" style="padding:20px; font-size:18px; background:rgba(75,107,200,0.2); border:2px solid rgba(75,107,200,0.4); color:#fff; cursor:pointer; border-radius:6px;">
+              ⚔️ Garrison Management
+              <div style="font-size:12px; color:#aaa; margin-top:4px;">Command and assign your allies</div>
+            </button>
           </div>
+          <button id="btnCloseBaseActions" class="secondary" style="margin-top:12px; width:100%;">Cancel</button>
         </div>
-        
-        <!-- Allies Tab Content -->
-        <div id="marketContentAllies" class="tab-content" style="display:none">
-          <div class="box" style="margin-top:10px">
-            <div class="small" style="font-weight:900; margin-bottom:8px">Manage Base Defenders</div>
-            <div class="small" style="margin-bottom:12px; color:#aaa">Assign allies to defend your bases and captured flags.</div>
-            
-            <div style="margin-bottom:12px">
-              <button id="btnCallAllAllies" style="width:100%; padding:12px; font-size:16px; background:var(--player); color:#fff; border:none; cursor:pointer; border-radius:4px; font-weight:bold;">📣 Call All Allies to This Location</button>
-              <div class="small" style="margin-top:4px; color:#999; text-align:center;">Summons all friendly units to your current position</div>
-            </div>
-            
-            <div id="allyBaseList" style="max-height:400px; overflow-y:auto;">
-              <!-- Will be populated dynamically -->
+      </div>
+    </div>
+
+    <!-- Garrison Management Overlay -->
+    <div id="garrisonOverlay" class="overlay">
+      <div class="panel" style="width:min(800px,92vw)">
+        <div class="row" style="align-items:center;">
+          <h2 style="margin:0; flex:1; text-align:center;">⚔️ Garrison Management</h2>
+          <button id="btnCloseGarrison" class="secondary">Close</button>
+        </div>
+        <div class="box" style="margin-top:10px">
+          <div class="small" style="font-weight:900; margin-bottom:8px">Base Defense Management</div>
+          <div class="small" style="margin-bottom:12px; color:#aaa">Assign allies to defend your bases and captured flags permanently. They will stay there and respawn at the location.</div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div class="small" style="font-weight:900;">Locations</div>
+            <button id="btnCancelAllGarrison" style="padding:4px 12px; font-size:11px; background:rgba(255,85,85,0.2); border:1px solid rgba(255,85,85,0.4); color:#f55; cursor:pointer; border-radius:3px;">Cancel All Assignments</button>
+          </div>
+          <div id="garrisonLocationList" style="max-height:200px; overflow-y:auto; margin-bottom:16px; border:1px solid rgba(255,255,255,0.1); padding:8px; background:rgba(0,0,0,0.2);">
+            <!-- Locations with garrison counts -->
+          </div>
+          
+          <div style="border-top:2px solid rgba(255,255,255,0.1); padding-top:16px;">
+            <div class="small" style="font-weight:900; margin-bottom:8px;">All Allies (<span id="garrisonAllyCount">0</span>)</div>
+            <div id="garrisonDetailList" style="max-height:320px; overflow-y:auto;">
+              <!-- Individual ally cards -->
             </div>
           </div>
         </div>
@@ -882,18 +970,23 @@ function bindUI(state){
       optCameraEdgeStrict:$('optCameraEdgeStrict'),
     bindList:$('bindList'),
     rebindHint:$('rebindHint'),
+    baseActionsOverlay:$('baseActionsOverlay'),
+    btnOpenMarketplace:$('btnOpenMarketplace'),
+    btnOpenGarrison:$('btnOpenGarrison'),
+    btnCloseBaseActions:$('btnCloseBaseActions'),
     marketplaceOverlay:$('marketplaceOverlay'),
-    marketTabShop:$('marketTabShop'),
-    marketTabAllies:$('marketTabAllies'),
-    marketContentShop:$('marketContentShop'),
-    marketContentAllies:$('marketContentAllies'),
-    btnCallAllAllies:$('btnCallAllAllies'),
-    allyBaseList:$('allyBaseList'),
     marketConfirm:$('marketConfirm'),
     marketInspect:$('marketInspect'),
     btnCloseMarket:$('btnCloseMarket'),
     shopItems:$('shopItems'),
     marketGold:$('marketGold'),
+    garrisonOverlay:$('garrisonOverlay'),
+    btnCloseGarrison:$('btnCloseGarrison'),
+    garrisonLocationList:$('garrisonLocationList'),
+    garrisonDetailList:$('garrisonDetailList'),
+    garrisonAllyCount:$('garrisonAllyCount'),
+    btnCancelAllGarrison:$('btnCancelAllGarrison'),
+    btnCancelAllGarrison:$('btnCancelAllGarrison'),
     optAutoPickup:$('optAutoPickup'),
     endOverlay:$('endOverlay'),
     endTitle:$('endTitle'),
@@ -904,6 +997,13 @@ function bindUI(state){
     lvlPts:$('lvlPts'),
     hpInc:$('hpInc'), hpDec:$('hpDec'), manaInc:$('manaInc'), manaDec:$('manaDec'), stamInc:$('stamInc'), stamDec:$('stamDec'),
     hpSpend:$('hpSpend'), manaSpend:$('manaSpend'), stamSpend:$('stamSpend'), levelApply:$('levelApply'),
+    levelSwitchToPlayer:$('levelSwitchToPlayer'),
+    levelCharName:$('levelCharName'), levelCharRole:$('levelCharRole'), levelArmorRating:$('levelArmorRating'),
+    levelArmorStars:$('levelArmorStars'),
+    levelHpValue:$('levelHpValue'), levelManaValue:$('levelManaValue'), levelStamValue:$('levelStamValue'),
+    levelHpBar:$('levelHpBar'), levelManaBar:$('levelManaBar'), levelStamBar:$('levelStamBar'),
+    levelStatsList:$('levelStatsList'), levelEffectsList:$('levelEffectsList'),
+    levelPointsDisplay:$('levelPointsDisplay'),
     heroPortrait:$('heroPortrait'), heroClassName:$('heroClassName'), heroLevel:$('heroLevel'),
     unitInspectionPanel: $('unitInspectionPanel'), unitInspectionContent: $('unitInspectionContent'), closeUnitPanel: $('closeUnitPanel'),
     unitName: $('unitName'), unitTeam: $('unitTeam'), unitHP: $('unitHP'), unitDMG: $('unitDMG'), unitSpeed: $('unitSpeed'), unitLevel: $('unitLevel'),
@@ -930,6 +1030,14 @@ function bindUI(state){
   };
 
   ui.targetPts.textContent = state.campaign.targetPoints;
+
+  // Debug: Check if market tab elements exist
+  console.log('Market tab elements check:', {
+    marketTabShop: !!ui.marketTabShop,
+    marketTabAllies: !!ui.marketTabAllies,
+    allyLocationList: !!ui.allyLocationList,
+    allyDetailList: !!ui.allyDetailList
+  });
 
   const goldIcon = '<span class="gold-icon">💰</span>';
   const formatGold = (amt)=>`${goldIcon}<span class="gold-amount">${Math.max(0, Math.floor(amt||0))}</span>`;
@@ -1218,6 +1326,16 @@ function bindUI(state){
     if(capsEl) capsEl.innerHTML = capLines.length ? capLines.join('') : '<div style="color:#888">No active captures.</div>';
   };
 
+  ui.toggleBaseActions = (on)=>{
+    state.showBaseActions = on;
+    ui.baseActionsOverlay.classList.toggle('show', on);
+    if(on){
+      state.paused = true;
+    } else {
+      if(!state.showInventory && !state.inMenu && !state.campaignEnded && !state.showMarketplace && !state.showGarrison) state.paused = false;
+    }
+  };
+
   ui.toggleMarketplace = (on)=>{
     state.showMarketplace=on;
     ui.marketplaceOverlay.classList.toggle('show',on);
@@ -1226,90 +1344,238 @@ function bindUI(state){
       ui.updateGoldDisplay();
       if(ui.marketConfirm) ui.marketConfirm.innerHTML='';
       if(ui.marketInspect) ui.marketInspect.innerHTML='Select an item to view its stats.';
-      
-      // Always show Shop tab when opening
-      ui.switchMarketTab('shop');
       ui.renderShop();
     } else {
-      if(!state.showInventory && !state.inMenu && !state.campaignEnded) state.paused=false;
+      if(!state.showInventory && !state.inMenu && !state.campaignEnded && !state.showGarrison && !state.showBaseActions) state.paused=false;
     }
   };
   
-  ui.switchMarketTab = (tab)=>{
-    if(tab === 'shop'){
-      ui.marketTabShop.classList.add('active');
-      ui.marketTabShop.style.borderBottomColor = 'var(--epic)';
-      ui.marketTabShop.style.color = '#fff';
-      ui.marketTabShop.style.fontWeight = 'bold';
-      ui.marketTabShop.style.background = 'rgba(255,255,255,0.1)';
-      
-      ui.marketTabAllies.classList.remove('active');
-      ui.marketTabAllies.style.borderBottomColor = 'transparent';
-      ui.marketTabAllies.style.color = '#aaa';
-      ui.marketTabAllies.style.fontWeight = 'normal';
-      ui.marketTabAllies.style.background = 'rgba(255,255,255,0.05)';
-      
-      ui.marketContentShop.style.display = 'block';
-      ui.marketContentAllies.style.display = 'none';
-    } else if(tab === 'allies'){
-      ui.marketTabAllies.classList.add('active');
-      ui.marketTabAllies.style.borderBottomColor = 'var(--epic)';
-      ui.marketTabAllies.style.color = '#fff';
-      ui.marketTabAllies.style.fontWeight = 'bold';
-      ui.marketTabAllies.style.background = 'rgba(255,255,255,0.1)';
-      
-      ui.marketTabShop.classList.remove('active');
-      ui.marketTabShop.style.borderBottomColor = 'transparent';
-      ui.marketTabShop.style.color = '#aaa';
-      ui.marketTabShop.style.fontWeight = 'normal';
-      ui.marketTabShop.style.background = 'rgba(255,255,255,0.05)';
-      
-      ui.marketContentShop.style.display = 'none';
-      ui.marketContentAllies.style.display = 'block';
-      
-      ui.renderAllyBaseList();
+  ui.toggleGarrison = (on)=>{
+    state.showGarrison = on;
+    ui.garrisonOverlay.classList.toggle('show', on);
+    if(on){
+      state.paused = true;
+      try {
+        ui.renderGarrison();
+      } catch(err) {
+        console.error('[toggleGarrison] renderGarrison error:', err);
+      }
+    } else {
+      if(!state.showInventory && !state.inMenu && !state.campaignEnded && !state.showMarketplace && !state.showBaseActions) state.paused = false;
     }
   };
   
-  ui.renderAllyBaseList = ()=>{
-    if(!ui.allyBaseList) return;
+  ui.renderGarrison = ()=>{
+    try {
+      if(!ui.garrisonLocationList || !ui.garrisonDetailList) {
+        console.error('Garrison UI elements not found!');
+        return;
+      }
     
-    // Collect all player-owned sites (home + captured flags)
-    const sites = [];
-    const homeBase = state.sites?.find(s => s.id === 'player_home');
-    if(homeBase) sites.push({ ...homeBase, name: 'Home Base', isHome: true });
-    
-    if(state.sites){
-      for(const s of state.sites){
-        if(s.owner === 'player' && s.id && s.id.startsWith('site_') && s !== homeBase){
-          sites.push({ ...s, name: s.name || 'Captured Flag', isHome: false });
+      // Collect all player-owned sites (home + captured flags)
+      const sites = [];
+      const homeBase = state.sites?.find(s => s.id === 'player_home');
+      if(homeBase) sites.push({ ...homeBase, name: 'Home Base', isHome: true });
+      
+      if(state.sites){
+        for(const s of state.sites){
+          if(s.owner === 'player' && s.id && s.id.startsWith('site_') && s !== homeBase){
+            sites.push({ ...s, name: s.name || 'Captured Flag', isHome: false });
+          }
         }
       }
-    }
-    
-    if(sites.length === 0){
-      ui.allyBaseList.innerHTML = '<div class="small" style="color:#999; padding:20px; text-align:center;">No bases or flags captured yet.</div>';
-      return;
-    }
-    
-    // Count allies at each site
-    let html = '';
-    for(const site of sites){
-      const allies = (state.friendlies || []).filter(f => {
-        const dist = Math.hypot(f.x - site.x, f.y - site.y);
-        return dist <= 100; // Consider allies within 100 units as "at" the base
+      
+      // Render location list showing garrison assignments
+      if(sites.length === 0){
+        ui.garrisonLocationList.innerHTML = '<div class="small" style="color:#999; padding:12px; text-align:center;">No bases or flags captured yet.</div>';
+      } else {
+        let locHtml = '<div style="display:flex; flex-wrap:wrap; gap:6px;">';
+        for(const site of sites){
+          const garrisoned = (state.friendlies || []).filter(f => f.garrisonSiteId === site.id);
+          const nearby = (state.friendlies || []).filter(f => !f.dead && !f.garrisonSiteId && Math.hypot(f.x - site.x, f.y - site.y) <= 100);
+          const available = (state.friendlies || []).filter(f => !f.dead && !f.garrisonSiteId && !f.guard);
+          locHtml += `
+            <div style="flex:1; min-width:140px; padding:8px; background:rgba(75,107,200,0.15); border:1px solid rgba(75,107,200,0.3); border-radius:4px;">
+              <div style="font-weight:bold; font-size:12px; color:#fff;">${site.isHome ? '🏠' : '🚩'} ${site.name}</div>
+              <div style="font-size:10px; color:#6af; margin-top:2px;">⚔️ Garrisoned: ${garrisoned.length}</div>
+              <div style="font-size:10px; color:#aaa;">📍 Nearby: ${nearby.length}</div>
+              ${available.length > 0 ? `
+                <button class="assign-all-btn" data-site-id="${site.id}" data-site-name="${site.name}"
+                        style="margin-top:6px; width:100%; padding:4px; font-size:10px; background:rgba(75,200,107,0.2); border:1px solid rgba(75,200,107,0.4); color:#7fa; cursor:pointer; border-radius:3px;">
+                  📋 Assign All (${available.length})
+                </button>
+              ` : ''}
+            </div>
+          `;
+        }
+        locHtml += '</div>';
+        ui.garrisonLocationList.innerHTML = locHtml;
+        
+        // Add click handlers for assign all buttons
+        const assignAllBtns = ui.garrisonLocationList.querySelectorAll('.assign-all-btn');
+        assignAllBtns.forEach(btn => {
+          btn.onclick = ()=>{
+            const siteId = btn.dataset.siteId;
+            const siteName = btn.dataset.siteName;
+            const available = (state.friendlies || []).filter(f => !f.dead && !f.garrisonSiteId && !f.guard);
+            
+            let count = 0;
+            for(const ally of available){
+              ally.garrisonSiteId = siteId;
+              // Clear old garrison position to force recalculation
+              delete ally._garrisonX;
+              delete ally._garrisonY;
+              delete ally._garrisonSlot;
+              count++;
+            }
+            
+            ui.toast(`Assigned ${count} allies to garrison ${siteName}`);
+            ui.renderGarrison();
+          };
+        });
+      }
+      
+      // Setup cancel all button
+      if(ui.btnCancelAllGarrison){
+        ui.btnCancelAllGarrison.onclick = ()=>{
+          let count = 0;
+          for(const f of state.friendlies || []){
+            if(f.garrisonSiteId){
+              delete f.garrisonSiteId;
+              count++;
+            }
+          }
+          ui.toast(`Cancelled ${count} garrison assignments`);
+          ui.renderGarrison();
+        };
+      }
+      
+      // Render individual ally list
+      const allies = (state.friendlies || []).filter(f => !f.dead && !f.guard);
+      if(ui.garrisonAllyCount) ui.garrisonAllyCount.textContent = allies.length;
+      
+      if(allies.length === 0){
+        ui.garrisonDetailList.innerHTML = '<div class="small" style="color:#999; padding:20px; text-align:center;">No allies recruited yet.</div>';
+        return;
+      }
+      
+      let allyHtml = '';
+      for(let i = 0; i < allies.length; i++){
+        const ally = allies[i];
+        const allyName = ally.name || `Fighter ${i+1}`;
+        const className = ally.class || 'Warrior';
+        const level = ally.level || 1;
+        const hp = Math.round(ally.hp || 0);
+        const maxHp = Math.round(ally.maxHp || 100);
+        const hpPct = maxHp > 0 ? Math.round((hp / maxHp) * 100) : 0;
+        
+        // Determine status
+        let status = 'Roaming';
+        let statusColor = '#999';
+        if(ally.garrisonSiteId){
+          const garrisonSite = sites.find(s => s.id === ally.garrisonSiteId);
+          if(garrisonSite){
+            status = `⚔️ Garrisoned at ${garrisonSite.name}`;
+            statusColor = '#6af';
+          } else {
+            // Site no longer exists or not player-owned
+            delete ally.garrisonSiteId;
+            status = 'Roaming';
+          }
+        } else {
+          for(const site of sites){
+            const dist = Math.hypot(ally.x - site.x, ally.y - site.y);
+            if(dist <= 100){
+              status = `📍 Near ${site.name}`;
+              statusColor = '#aaa';
+              break;
+            }
+          }
+        }
+        
+        allyHtml += `
+          <div class="box" style="margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <div>
+                <div style="font-weight:bold; font-size:13px; color:var(--player);">${allyName}</div>
+                <div style="font-size:11px; color:#aaa;">Lvl ${level} ${className}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:${statusColor};">${status}</div>
+                <div style="font-size:11px; color:${hpPct > 50 ? '#5f5' : hpPct > 25 ? '#fa5' : '#f55'};">HP: ${hp}/${maxHp}</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+        `;
+        
+        // If garrisoned, show cancel button
+        if(ally.garrisonSiteId){
+          allyHtml += `
+            <button class="cancel-garrison-btn" data-ally-idx="${i}"
+                    style="flex:1; padding:4px 8px; font-size:10px; background:rgba(255,85,85,0.2); border:1px solid rgba(255,85,85,0.4); color:#f55; cursor:pointer; border-radius:3px;">
+              ✕ Cancel Garrison
+            </button>
+          `;
+        } else {
+          // Show "Garrison at" buttons for each location
+          for(const site of sites){
+            allyHtml += `
+              <button class="garrison-ally-btn" data-ally-idx="${i}" data-site-id="${site.id}" data-site-name="${site.name}"
+                      style="flex:1; min-width:80px; padding:4px 8px; font-size:10px; background:rgba(75,107,200,0.2); border:1px solid rgba(75,107,200,0.4); color:#7af; cursor:pointer; border-radius:3px;">
+                ⚔️ ${site.isHome ? '🏠' : '🚩'} ${site.name}
+              </button>
+            `;
+          }
+        }
+        
+        allyHtml += `
+            </div>
+          </div>
+        `;
+      }
+      
+      ui.garrisonDetailList.innerHTML = allyHtml;
+      
+      // Add click handlers for garrison buttons
+      const garrisonBtns = ui.garrisonDetailList.querySelectorAll('.garrison-ally-btn');
+      garrisonBtns.forEach(btn => {
+        btn.onclick = ()=>{
+          const idx = parseInt(btn.dataset.allyIdx);
+          const siteId = btn.dataset.siteId;
+          const siteName = btn.dataset.siteName;
+          const ally = allies[idx];
+          
+          if(ally){
+            ally.garrisonSiteId = siteId;
+            // Clear old garrison position to force recalculation
+            delete ally._garrisonX;
+            delete ally._garrisonY;
+            delete ally._garrisonSlot;
+            ui.toast(`${ally.name || 'Ally'} assigned to garrison ${siteName}`);
+            ui.renderGarrison();
+          }
+        };
       });
       
-      html += `
-        <div class="box" style="margin-bottom:10px; background:rgba(255,255,255,0.05)">
-          <div style="font-weight:bold; margin-bottom:6px;">${site.isHome ? '🏠' : '🚩'} ${site.name}</div>
-          <div class="small" style="color:#aaa; margin-bottom:6px;">Defenders: <span style="color:var(--player); font-weight:bold;">${allies.length}</span></div>
-          <div class="small" style="color:#999;">Position: (${Math.round(site.x)}, ${Math.round(site.y)})</div>
-        </div>
-      `;
+      // Add click handlers for cancel garrison buttons
+      const cancelBtns = ui.garrisonDetailList.querySelectorAll('.cancel-garrison-btn');
+      cancelBtns.forEach(btn => {
+        btn.onclick = ()=>{
+          const idx = parseInt(btn.dataset.allyIdx);
+          const ally = allies[idx];
+          
+          if(ally){
+            delete ally.garrisonSiteId;
+            ui.toast(`${ally.name || 'Ally'} garrison cancelled`);
+            ui.renderGarrison();
+          }
+        };
+      });
+    } catch(err) {
+      console.error('[renderGarrison] Error:', err);
+      if(ui.garrisonLocationList) ui.garrisonLocationList.innerHTML = '<div class="small" style="color:#f55; padding:20px;">Error: ' + err.message + '</div>';
+      if(ui.garrisonDetailList) ui.garrisonDetailList.innerHTML = '';
     }
-    
-    ui.allyBaseList.innerHTML = html;
   };
 
   ui.showMarketplaceHint = (show)=>{
@@ -1443,31 +1709,21 @@ function bindUI(state){
     });
   };
 
-  ui.btnCloseMarket.onclick=()=>ui.toggleMarketplace(false);
+  ui.btnCloseMarket.onclick = () => ui.toggleMarketplace(false);
   
-  // Marketplace tab switching
-  ui.marketTabShop.onclick=()=>ui.switchMarketTab('shop');
-  ui.marketTabAllies.onclick=()=>ui.switchMarketTab('allies');
-  
-  // Call All Allies button - summon all friendlies to player position
-  ui.btnCallAllAllies.onclick=()=>{
-    if(!state.friendlies || state.friendlies.length === 0){
-      ui.toast('No allies to summon.');
-      return;
-    }
-    
-    let count = 0;
-    for(const f of state.friendlies){
-      if(f && !f.dead){
-        f.x = state.player.x + (Math.random() * 80 - 40);
-        f.y = state.player.y + (Math.random() * 80 - 40);
-        count++;
-      }
-    }
-    
-    ui.toast(`Summoned ${count} allies to your location.`);
-    ui.renderAllyBaseList();
+  // Base Actions menu handlers
+  ui.btnOpenMarketplace.onclick = () => {
+    ui.toggleBaseActions(false);
+    ui.toggleMarketplace(true);
   };
+  ui.btnOpenGarrison.onclick = () => {
+    ui.toggleBaseActions(false);
+    ui.toggleGarrison(true);
+  };
+  ui.btnCloseBaseActions.onclick = () => ui.toggleBaseActions(false);
+  
+  // Garrison overlay handlers
+  ui.btnCloseGarrison.onclick = () => ui.toggleGarrison(false);
 
   ui.btnSelectHero.onclick = ()=>{
     if(state.groupMemberInventoryMode){
@@ -2394,11 +2650,23 @@ function bindUI(state){
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(tc => tc.style.display = 'none');
-    tabButtons.forEach(tb => { tb.classList.remove('active'); tb.style.background='transparent'; tb.style.borderColor='rgba(255,255,255,0.1)'; tb.style.color='#aaa'; });
+    tabButtons.forEach(tb => { 
+      tb.classList.remove('active'); 
+      tb.style.background='transparent'; 
+      tb.style.borderColor='rgba(212,175,55,0.3)'; 
+      tb.style.color='#b8941f'; 
+      tb.style.fontWeight='normal';
+    });
     const targetContent = document.querySelector(`.tab-content[data-tab="${tabId}"]`);
     const targetButton = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
     if(targetContent) targetContent.style.display = 'block';
-    if(targetButton){ targetButton.classList.add('active'); targetButton.style.background='rgba(122,162,255,0.2)'; targetButton.style.borderColor='rgba(122,162,255,0.4)'; targetButton.style.color='#fff'; }
+    if(targetButton){ 
+      targetButton.classList.add('active'); 
+      targetButton.style.background='rgba(212,175,55,0.3)'; 
+      targetButton.style.borderColor='#d4af37'; 
+      targetButton.style.color='#d4af37'; 
+      targetButton.style.fontWeight='bold';
+    }
     if(tabId === 0){ ui.renderInventory(); }
     else if(tabId === 1){ ui.renderSkills(); }
     else if(tabId === 2){ ui.renderLevel(); }
@@ -2478,40 +2746,34 @@ function bindUI(state){
         <div style="font-weight:900; font-size:13px">Slot ${i+1}</div>
         <div style="font-size:12px; color:#4a9eff">${sk ? sk.name : '—'}</div>
       `;
-      slotEl.style.cursor = 'pointer';
-      slotEl.style.background = ui._selectedAssignSlot === i ? 'rgba(122,162,255,0.2)' : 'transparent';
-      slotEl.style.border = ui._selectedAssignSlot === i ? '2px solid rgba(122,162,255,0.6)' : '1px solid rgba(255,255,255,0.1)';
-      slotEl.onclick = () => { ui._selectedAssignSlot = i; ui.renderSkills(); };
-      // Double-click to assign selected skill to this slot
-      slotEl.ondblclick = () => {
-        if(!ui._selectedAbility){
-          ui.toast('Select a skill first.');
-          return;
+      slotEl.style.cursor = sk ? 'help' : 'default';
+      slotEl.style.background = 'transparent';
+      slotEl.style.border = '1px solid rgba(255,255,255,0.1)';
+      
+      // Add tooltip on hover if ability is slotted
+      if(sk){
+        const ability = ABILITIES[skId];
+        if(ability){
+          slotEl.onmouseenter = (e) => {
+            let tooltipText = `<b>${ability.name}</b><br><span style="font-size:11px; color:#ccc;">${ability.desc}</span>`;
+            if(ability.type === 'active'){
+              tooltipText += `<br><br><div style="font-size:10px; color:#999;">`;
+              tooltipText += `Mana: ${ability.mana} | CD: ${ability.cd}s`;
+              if(ability.range > 0) tooltipText += ` | Range: ${ability.range}m`;
+              if(ability.radius > 0) tooltipText += ` | Radius: ${ability.radius}m`;
+              tooltipText += `</div>`;
+              if(ability.scaling){
+                tooltipText += `<div style="font-size:10px; color:#8f9; margin-top:4px;">${ability.scaling}</div>`;
+              }
+            }
+            ui.showBuffTooltip('', tooltipText, e.target);
+          };
+          slotEl.onmouseleave = () => {
+            ui.hideBuffTooltip();
+          };
         }
-        const selectedAbility = ABILITIES[ui._selectedAbility];
-        if(!selectedAbility || selectedAbility.type !== 'active'){
-          ui.toast('Can only assign active abilities.');
-          return;
-        }
-        const isGroupMemberMode = state.groupMemberInventoryMode;
-        if(isGroupMemberMode){
-          const friendly = state.friendlies.find(f => f.id === isGroupMemberMode);
-          const settings = state.group.settings[isGroupMemberMode];
-          if(friendly && settings){
-            if(!friendly.npcAbilities) friendly.npcAbilities = [null, null, null, null, null];
-            friendly.npcAbilities[i] = selectedAbility.id;
-            settings.abilities = [...friendly.npcAbilities];
-            ui.toast(`<b>${selectedAbility.name}</b> assigned to ${settings.name} slot ${i+1}`);
-          }
-        } else {
-          state.abilitySlots[i] = selectedAbility.id;
-          ui.renderAbilityBar();
-          ui.toast(`<b>${selectedAbility.name}</b> assigned to slot ${i+1}`);
-        }
-        ui._selectedAbility = null;
-        ui._selectedAssignSlot = -1;
-        ui.renderSkills();
-      };
+      }
+      
       slotsContainer.appendChild(slotEl);
     }
     ui.skillSlots.appendChild(slotsContainer);
@@ -2545,98 +2807,7 @@ function bindUI(state){
       ? Object.values(ABILITIES).filter(selectedCat.filter)
       : [];
     
-    // Render ability list in the middle or show details
-    if(ui._selectedAbility){
-      // Show details for selected ability
-      const ability = ABILITIES[ui._selectedAbility];
-      if(ability){
-        let detailsHtml = `<div style="margin-bottom:12px;">`;
-        detailsHtml += `<div style="font-weight:900; font-size:14px; color:#4a9eff; margin-bottom:6px;">${ability.name}</div>`;
-        detailsHtml += `<div style="color:#999; font-size:11px; margin-bottom:8px;">${ability.category}</div>`;
-        
-        if(ability.type === 'active'){
-          detailsHtml += `<div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:3px; margin-bottom:8px; border-left:3px solid #4a9eff;">`;
-          
-          // Show targeting type with icon and description
-          if(ability.targetType && TARGET_TYPE_INFO[ability.targetType]){
-            const ttype = TARGET_TYPE_INFO[ability.targetType];
-            detailsHtml += `<div class="small" style="color:#8f9; margin-bottom:4px;"><b>Target Type:</b> ${ttype.icon} ${ttype.name}</div>`;
-            detailsHtml += `<div class="small" style="color:#777; margin-bottom:6px; font-style:italic;">${ttype.desc}</div>`;
-          }
-          
-          detailsHtml += `<div class="small"><b>Cast Time:</b> ${ability.castTime ? ability.castTime.toFixed(1) + 's' : 'Instant'}</div>`;
-          detailsHtml += `<div class="small"><b>Target:</b> ${ability.target}</div>`;
-          if(ability.radius > 0){
-            detailsHtml += `<div class="small"><b>Radius:</b> ${ability.radius} meters</div>`;
-          }
-          if(ability.range > 0){
-            detailsHtml += `<div class="small"><b>Max Range:</b> ${ability.range} meters</div>`;
-          }
-          detailsHtml += `<div class="small"><b>Mana Cost:</b> ${ability.mana}</div>`;
-          detailsHtml += `<div class="small"><b>Cooldown:</b> ${ability.cd}s</div>`;
-          detailsHtml += `</div>`;
-        }
-        
-        detailsHtml += `<div style="margin-bottom:8px; line-height:1.6;"><b>Description:</b><br><span style="color:#ccc">${ability.details}</span></div>`;
-        
-        if(ability.scaling){
-          detailsHtml += `<div style="color:#8f9; font-size:11px;"><b>Scaling:</b> ${ability.scaling}</div>`;
-        }
-        
-        if(ability.type === 'passive' && ability.buffs){
-          detailsHtml += `<div style="margin-top:8px; color:#f99;">`;
-          for(const [key, val] of Object.entries(ability.buffs)){
-            detailsHtml += `<div class="small">+${val} ${key}</div>`;
-          }
-          detailsHtml += `</div>`;
-        }
-        
-        if(ui._selectedAssignSlot >= 0 && ability.type === 'active'){
-          detailsHtml += `<button id="assignAbilityBtn" style="margin-top:12px; width:100%; padding:8px; background:rgba(122,162,255,0.2); border:1px solid rgba(122,162,255,0.4); color:#4a9eff; cursor:pointer; border-radius:3px;">Assign to Slot ${ui._selectedAssignSlot+1}</button>`;
-        }
-        
-        // Back button
-        detailsHtml += `<button id="backToListBtn" style="margin-top:8px; width:100%; padding:6px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#aaa; cursor:pointer; border-radius:3px; font-size:11px;">← Back to List</button>`;
-        detailsHtml += `</div>`;
-        ui.abilityDetails.innerHTML = detailsHtml;
-        
-        // Wire assign button
-        setTimeout(() => {
-          const assignBtn = document.getElementById('assignAbilityBtn');
-          if(assignBtn && ability.type === 'active'){
-            assignBtn.onclick = () => {
-              const isGroupMemberMode = state.groupMemberInventoryMode;
-              if(isGroupMemberMode){
-                // Assign to group member
-                const friendly = state.friendlies.find(f => f.id === isGroupMemberMode);
-                const settings = state.group.settings[isGroupMemberMode];
-                if(friendly && settings){
-                  if(!friendly.npcAbilities) friendly.npcAbilities = [null, null, null, null, null];
-                  friendly.npcAbilities[ui._selectedAssignSlot] = ability.id;
-                  settings.abilities = [...friendly.npcAbilities];
-                  ui.toast(`<b>${ability.name}</b> assigned to ${settings.name} slot ${ui._selectedAssignSlot+1}`);
-                }
-              } else {
-                // Assign to player
-                state.abilitySlots[ui._selectedAssignSlot] = ability.id;
-                ui.renderAbilityBar();
-                ui.toast(`<b>${ability.name}</b> assigned to slot ${ui._selectedAssignSlot+1}`);
-              }
-              ui._selectedAssignSlot = -1;
-              ui.renderSkills();
-            };
-          }
-          const backBtn = document.getElementById('backToListBtn');
-          if(backBtn){
-            backBtn.onclick = () => {
-              ui._selectedAbility = null;
-              ui.renderSkills();
-            };
-          }
-        }, 0);
-      }
-    } else {
-      // Show list of abilities in selected category
+    // Show list of abilities in selected category with full stats and buttons
       let listHtml = `<div style="margin-bottom:12px;"><div class="small" style="font-weight:bold; color:#4a9eff; margin-bottom:8px;">${selectedCat ? selectedCat.name : 'Abilities'}</div>`;
       
       if(abilitiesInCategory.length === 0){
@@ -2644,51 +2815,173 @@ function bindUI(state){
       } else {
         for(const ability of abilitiesInCategory){
           const icon = ability.type === 'passive' ? '✦' : (ability.targetType ? TARGET_TYPE_INFO[ability.targetType]?.icon || '→' : '→');
-          listHtml += `
-            <div style="padding:8px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); margin-bottom:6px; border-radius:3px; cursor:pointer; transition:all 0.2s;" class="ability-item" data-id="${ability.id}">
-              <div style="font-weight:900; font-size:12px; color:#4a9eff;">${icon} ${ability.name}</div>
-              <div style="font-size:11px; color:#999; margin-top:2px;">${ability.desc}</div>
-              ${ability.type === 'active' ? `<div style="font-size:10px; color:#777; margin-top:3px;">Mana: ${ability.mana} | CD: ${ability.cd}s</div>` : '<div style="font-size:10px; color:#8f9; margin-top:3px;">Passive</div>'}
-            </div>
-          `;
+          
+          // Check which slots have this ability assigned
+          const assignedSlots = [];
+          for(let i=0; i<5; i++){
+            if(abilitySlots[i] === ability.id) assignedSlots.push(i);
+          }
+          
+          listHtml += `<div style="padding:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); margin-bottom:8px; border-radius:4px;">`;
+          
+          // Title and description
+          listHtml += `<div style="font-weight:900; font-size:13px; color:#4a9eff; margin-bottom:4px;">${icon} ${ability.name}</div>`;
+          listHtml += `<div style="font-size:11px; color:#ccc; margin-bottom:6px; line-height:1.4;">${ability.details || ability.desc}</div>`;
+          
+          if(ability.type === 'active'){
+            // Show stats in a compact grid
+            listHtml += `<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; margin-bottom:8px; font-size:10px; color:#999;">`;
+            
+            // Targeting info
+            if(ability.targetType && TARGET_TYPE_INFO[ability.targetType]){
+              const ttype = TARGET_TYPE_INFO[ability.targetType];
+              listHtml += `<div><b>Target:</b> ${ttype.name}</div>`;
+            } else {
+              listHtml += `<div><b>Target:</b> ${ability.target || 'Self'}</div>`;
+            }
+            
+            listHtml += `<div><b>Mana:</b> ${ability.mana}</div>`;
+            listHtml += `<div><b>CD:</b> ${ability.cd}s</div>`;
+            
+            if(ability.range > 0) listHtml += `<div><b>Range:</b> ${ability.range}m</div>`;
+            if(ability.radius > 0) listHtml += `<div><b>Radius:</b> ${ability.radius}m</div>`;
+            if(ability.castTime) listHtml += `<div><b>Cast:</b> ${ability.castTime.toFixed(1)}s</div>`;
+            
+            listHtml += `</div>`;
+            
+            if(ability.scaling){
+              listHtml += `<div style="font-size:10px; color:#8f9; margin-bottom:6px;"><b>Scaling:</b> ${ability.scaling}</div>`;
+            }
+            
+            // Assign/Remove buttons
+            listHtml += `<div style="display:flex; gap:4px; flex-wrap:wrap;">`;
+            for(let i=0; i<5; i++){
+              const isAssigned = assignedSlots.includes(i);
+              const btnStyle = isAssigned 
+                ? 'background:rgba(255,100,100,0.2); border:1px solid rgba(255,100,100,0.5); color:#ff6666;' 
+                : 'background:rgba(122,162,255,0.2); border:1px solid rgba(122,162,255,0.4); color:#4a9eff;';
+              const btnText = isAssigned ? `✕ ${i+1}` : `${i+1}`;
+              listHtml += `<button class="assign-slot-btn" data-ability="${ability.id}" data-slot="${i}" data-assigned="${isAssigned}" style="flex:1; min-width:45px; padding:5px; ${btnStyle} cursor:pointer; border-radius:3px; font-size:10px; font-weight:bold;">${btnText}</button>`;
+            }
+            listHtml += `</div>`;
+            
+          } else if(ability.type === 'passive'){
+            listHtml += `<div style="font-size:10px; color:#8f9; margin-bottom:4px;"><b>Type:</b> Passive Ability</div>`;
+            if(ability.buffs){
+              listHtml += `<div style="color:#f99; font-size:10px;">`;
+              for(const [key, val] of Object.entries(ability.buffs)){
+                listHtml += `<div>+${val} ${key}</div>`;
+              }
+              listHtml += `</div>`;
+            }
+          }
+          
+          listHtml += `</div>`;
         }
       }
       listHtml += `</div>`;
       ui.abilityDetails.innerHTML = listHtml;
       
-      // Wire ability item clicks
+      // Wire assign/remove slot buttons
       setTimeout(() => {
-        document.querySelectorAll('.ability-item').forEach(el => {
-          el.onclick = () => {
-            ui._selectedAbility = el.getAttribute('data-id');
+        document.querySelectorAll('.assign-slot-btn').forEach(btn => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            const abilityId = btn.getAttribute('data-ability');
+            const slotIndex = parseInt(btn.getAttribute('data-slot'));
+            const isAssigned = btn.getAttribute('data-assigned') === 'true';
+            const ability = ABILITIES[abilityId];
+            const isGroupMemberMode = state.groupMemberInventoryMode;
+            
+            if(isGroupMemberMode){
+              const friendly = state.friendlies.find(f => f.id === isGroupMemberMode);
+              const settings = state.group.settings[isGroupMemberMode];
+              if(friendly && settings){
+                if(!friendly.npcAbilities) friendly.npcAbilities = [null, null, null, null, null];
+                
+                if(isAssigned){
+                  friendly.npcAbilities[slotIndex] = null;
+                  settings.abilities = [...friendly.npcAbilities];
+                  ui.toast(`<b>${ability.name}</b> removed from ${settings.name} slot ${slotIndex+1}`);
+                } else {
+                  friendly.npcAbilities[slotIndex] = abilityId;
+                  settings.abilities = [...friendly.npcAbilities];
+                  ui.toast(`<b>${ability.name}</b> assigned to ${settings.name} slot ${slotIndex+1}`);
+                }
+              }
+            } else {
+              if(isAssigned){
+                state.abilitySlots[slotIndex] = null;
+                ui.renderAbilityBar();
+                ui.toast(`<b>${ability.name}</b> removed from slot ${slotIndex+1}`);
+              } else {
+                state.abilitySlots[slotIndex] = abilityId;
+                ui.renderAbilityBar();
+                ui.toast(`<b>${ability.name}</b> assigned to slot ${slotIndex+1}`);
+              }
+            }
+            
             ui.renderSkills();
           };
-          el.onmouseover = () => el.style.background = 'rgba(122,162,255,0.1)';
-          el.onmouseout = () => el.style.background = 'rgba(0,0,0,0.2)';
         });
       }, 0);
-    }
     
     // Render passives list at bottom
     ui.passiveList.innerHTML = '';
+    
+    // Get player's active passives to determine sources
+    const activePassives = state.player.passives || [];
+    const activePassiveIds = activePassives.map(p => p?.id).filter(Boolean);
+    
     const passives = Object.values(ABILITIES).filter(a => a.type === 'passive');
     for(const pass of passives){
+      const isActive = activePassiveIds.includes(pass.id);
+      
+      // Determine source of passive
+      let source = '';
+      if(isActive){
+        // Check if from equipment
+        for(const slot in state.player.equip){
+          const item = state.player.equip[slot];
+          if(item?.passive === pass.id){
+            source = `From: ${item.name}`;
+            break;
+          }
+        }
+        if(!source) source = 'Active';
+      }
+      
       const passEl = document.createElement('div');
       passEl.style.padding = '8px';
-      passEl.style.background = 'rgba(0,0,0,0.2)';
-      passEl.style.borderLeft = '3px solid #f99';
+      passEl.style.background = isActive ? 'rgba(249, 153, 153, 0.15)' : 'rgba(0,0,0,0.2)';
+      passEl.style.borderLeft = isActive ? '3px solid #f99' : '3px solid rgba(249, 153, 153, 0.3)';
       passEl.style.marginBottom = '6px';
       passEl.style.borderRadius = '3px';
       passEl.style.cursor = 'pointer';
-      passEl.innerHTML = `
-        <div style="font-weight:900; color:#f99; font-size:12px;">✦ ${pass.name}</div>
-        <div style="font-size:11px; color:#999; margin-top:2px;">${pass.desc}</div>
-      `;
-      passEl.onmouseover = () => passEl.style.background = 'rgba(249, 153, 153, 0.1)';
-      passEl.onmouseout = () => passEl.style.background = 'rgba(0,0,0,0.2)';
+      
+      let html = `<div style="font-weight:900; color:#f99; font-size:12px;">✦ ${pass.name}</div>`;
+      html += `<div style="font-size:11px; color:#ccc; margin-top:2px;">${pass.details || pass.desc}</div>`;
+      
+      // Show buff values
+      if(pass.buffs){
+        html += `<div style="font-size:10px; color:#8f9; margin-top:4px;">`;
+        for(const [key, val] of Object.entries(pass.buffs)){
+          const displayVal = val < 1 ? `${(val * 100).toFixed(0)}%` : val;
+          html += `+${displayVal} ${key} `;
+        }
+        html += `</div>`;
+      }
+      
+      // Show source
+      if(source){
+        html += `<div style="font-size:9px; color:#aaa; margin-top:4px; font-style:italic;">${source}</div>`;
+      }
+      
+      passEl.innerHTML = html;
+      passEl.onmouseover = () => passEl.style.background = isActive ? 'rgba(249, 153, 153, 0.25)' : 'rgba(249, 153, 153, 0.1)';
+      passEl.onmouseout = () => passEl.style.background = isActive ? 'rgba(249, 153, 153, 0.15)' : 'rgba(0,0,0,0.2)';
       passEl.onclick = () => {
         ui._selectedCategory = 'passive-all';
-        ui._selectedAbility = pass.id;
         ui.renderSkills();
       };
       ui.passiveList.appendChild(passEl);
@@ -2703,35 +2996,245 @@ function bindUI(state){
   };
 
   ui.renderLevel = ()=>{
-    const sp = state.progression.statPoints|0;
-    // Show header indicating whether we're editing a group member
-    try{
-      const levelTab = document.querySelector('.tab-content[data-tab="2"] .box');
-      if(levelTab){
-        let hdr = levelTab.querySelector('#levelHeader');
-        const isGroupMemberMode = state.groupMemberInventoryMode;
-        if(!hdr){ hdr = document.createElement('div'); hdr.id = 'levelHeader'; hdr.style.marginBottom = '8px'; levelTab.insertBefore(hdr, levelTab.firstChild); }
-        hdr.innerHTML = '';
-        hdr.style.display = 'flex'; hdr.style.alignItems = 'center'; hdr.style.justifyContent = 'space-between'; hdr.style.gap = '8px';
-        const title = document.createElement('span');
-        if(isGroupMemberMode){
-          const settings = state.group.settings[isGroupMemberMode];
-          const nm = settings?.name || 'Group Member';
-          title.textContent = `${nm} - Level`;
-          title.style.color = '#4a9eff';
-          const backBtn = document.createElement('button'); backBtn.className='secondary'; backBtn.textContent='Switch to Player'; backBtn.style.padding='4px 8px'; backBtn.style.fontSize='11px'; backBtn.onclick=()=>{ state.groupMemberInventoryMode=null; ui.renderLevel(); ui.renderInventory(); };
-          hdr.appendChild(title); hdr.appendChild(backBtn);
-        } else {
-          title.textContent = 'Your Level';
-          title.style.color = '#fff';
-          hdr.appendChild(title);
+    const isGroupMemberMode = state.groupMemberInventoryMode;
+    const memberId = isGroupMemberMode;
+    const settings = isGroupMemberMode ? state.group.settings[memberId] : null;
+    const friendly = isGroupMemberMode ? state.friendlies.find(f => f.id === memberId) : null;
+    
+    let stats, name, role, hero, level, hp, maxHp, mana, maxMana, stam, maxStam, armor, buffs;
+    
+    if(isGroupMemberMode && friendly){
+      // Show friendly's stats
+      name = settings?.name || friendly.name || 'Friendly';
+      role = friendly.role || 'DPS';
+      hero = friendly.variant || 'warrior';
+      level = friendly.level || 1;
+      hp = Math.round(friendly.hp || 0);
+      maxHp = Math.round(friendly.maxHp || 100);
+      mana = Math.round(friendly.mana || 0);
+      maxMana = Math.round(friendly.maxMana || 60);
+      stam = 0; // Friendlies don't have stamina
+      maxStam = 0;
+      
+      // Calculate friendly's armor and stats
+      armor = 0;
+      stats = {
+        atk: friendly.contactDmg || friendly.dmg || 8,
+        def: friendly.def || 0,
+        speed: friendly.speed || 100,
+        critChance: 0,
+        critMult: 1.5,
+        manaRegen: friendly.manaRegen || 5,
+        hpRegen: friendly.hpRegen || 0,
+        cdr: 0
+      };
+      
+      // Apply equipment stats
+      if(friendly.equipment){
+        for(const slot in friendly.equipment){
+          const item = friendly.equipment[slot];
+          if(item?.buffs){
+            for(const [key, val] of Object.entries(item.buffs)){
+              if(key === 'def') armor += val;
+              else if(stats.hasOwnProperty(key)) stats[key] = (stats[key] || 0) + val;
+            }
+          }
         }
       }
-    }catch{}
-    ui.lvlPts.textContent = sp;
-    ui.hpSpend.textContent = (state.progression.spends.vit|0);
-    ui.manaSpend.textContent = (state.progression.spends.int|0);
-    ui.stamSpend.textContent = (state.progression.spends.agi|0);
+      
+      buffs = friendly.buffs || [];
+      
+      // Hide level up controls for friendlies
+      if(ui.levelPointsDisplay) ui.levelPointsDisplay.style.display = 'none';
+      if(ui.hpInc) ui.hpInc.style.display = 'none';
+      if(ui.hpDec) ui.hpDec.style.display = 'none';
+      if(ui.hpSpend) ui.hpSpend.style.display = 'none';
+      if(ui.manaInc) ui.manaInc.style.display = 'none';
+      if(ui.manaDec) ui.manaDec.style.display = 'none';
+      if(ui.manaSpend) ui.manaSpend.style.display = 'none';
+      if(ui.stamInc) ui.stamInc.style.display = 'none';
+      if(ui.stamDec) ui.stamDec.style.display = 'none';
+      if(ui.stamSpend) ui.stamSpend.style.display = 'none';
+      if(ui.levelApply) ui.levelApply.style.display = 'none';
+      if(ui.levelSwitchToPlayer){
+        ui.levelSwitchToPlayer.style.display = 'inline-block';
+        ui.levelSwitchToPlayer.onclick = ()=>{ state.groupMemberInventoryMode=null; ui.renderLevel(); ui.renderInventory(); ui.renderSkills(); };
+      }
+      
+    } else {
+      // Show player's stats
+      stats = currentStats(state);
+      name = state.player.name || 'Hero';
+      role = 'Player';
+      hero = state.currentHero || 'warrior';
+      level = state.progression?.level || 1;
+      hp = Math.round(state.player.hp || 0);
+      maxHp = Math.round(stats.maxHp || 100);
+      mana = Math.round(state.player.mana || 0);
+      maxMana = Math.round(stats.maxMana || 60);
+      stam = Math.round(state.player.stam || 0);
+      maxStam = Math.round(stats.maxStam || 100);
+      armor = Math.round(stats.def || 0);
+      buffs = state.player.buffs || [];
+      
+      // Show level up controls for player
+      if(ui.levelPointsDisplay) ui.levelPointsDisplay.style.display = 'block';
+      if(ui.hpInc) ui.hpInc.style.display = 'inline-block';
+      if(ui.hpDec) ui.hpDec.style.display = 'inline-block';
+      if(ui.hpSpend) ui.hpSpend.style.display = 'block';
+      if(ui.manaInc) ui.manaInc.style.display = 'inline-block';
+      if(ui.manaDec) ui.manaDec.style.display = 'inline-block';
+      if(ui.manaSpend) ui.manaSpend.style.display = 'block';
+      if(ui.stamInc) ui.stamInc.style.display = 'inline-block';
+      if(ui.stamDec) ui.stamDec.style.display = 'inline-block';
+      if(ui.stamSpend) ui.stamSpend.style.display = 'block';
+      if(ui.levelApply) ui.levelApply.style.display = 'inline-block';
+      if(ui.levelSwitchToPlayer) ui.levelSwitchToPlayer.style.display = 'none';
+      
+      // Update level up point allocations
+      const sp = state.progression.statPoints|0;
+      if(ui.lvlPts) ui.lvlPts.textContent = sp;
+      if(ui.hpSpend) ui.hpSpend.textContent = (state.progression.spends.vit|0);
+      if(ui.manaSpend) ui.manaSpend.textContent = (state.progression.spends.int|0);
+      if(ui.stamSpend) ui.stamSpend.textContent = (state.progression.spends.agi|0);
+    }
+    
+    // Update header
+    if(ui.levelCharName) ui.levelCharName.textContent = name;
+    if(ui.levelCharRole){
+      const heroName = hero.charAt(0).toUpperCase() + hero.slice(1);
+      ui.levelCharRole.textContent = `${role} • ${heroName} • Lvl ${level}`;
+    }
+    
+    // Calculate armor star rating (0-5 stars based on def value)
+    const armorTier = Math.min(5, Math.max(0, Math.floor(armor / 10)));
+    const starsFilled = '★'.repeat(armorTier);
+    const starsEmpty = '☆'.repeat(5 - armorTier);
+    if(ui.levelArmorStars) ui.levelArmorStars.textContent = starsFilled + starsEmpty;
+    
+    // Update resource bars
+    const hpPct = maxHp > 0 ? (hp / maxHp * 100) : 0;
+    const manaPct = maxMana > 0 ? (mana / maxMana * 100) : 0;
+    const stamPct = maxStam > 0 ? (stam / maxStam * 100) : 0;
+    
+    if(ui.levelHpValue) ui.levelHpValue.textContent = `${hp}/${maxHp}`;
+    if(ui.levelManaValue) ui.levelManaValue.textContent = `${mana}/${maxMana}`;
+    if(ui.levelStamValue) ui.levelStamValue.textContent = maxStam > 0 ? `${stam}/${maxStam}` : 'N/A';
+    
+    if(ui.levelHpBar) ui.levelHpBar.style.width = `${hpPct}%`;
+    if(ui.levelManaBar) ui.levelManaBar.style.width = `${manaPct}%`;
+    if(ui.levelStamBar) ui.levelStamBar.style.width = `${stamPct}%`;
+    
+    // Update stats list
+    if(ui.levelStatsList){
+      const statEntries = [
+        { label: 'Attack', value: stats.atk?.toFixed(1) || '0' },
+        { label: 'Defense', value: armor },
+        { label: 'Speed', value: Math.round(stats.speed || 0) },
+        { label: 'Crit Chance', value: `${Math.round((stats.critChance || 0) * 100)}%` },
+        { label: 'Crit Mult', value: stats.critMult?.toFixed(2) || '1.5' },
+        { label: 'CDR', value: `${Math.round((stats.cdr || 0) * 100)}%` },
+        { label: 'HP Regen', value: stats.hpRegen?.toFixed(1) || '0' },
+        { label: 'Mana Regen', value: stats.manaRegen?.toFixed(1) || '0' }
+      ];
+      
+      ui.levelStatsList.innerHTML = statEntries.map(s => 
+        `<div style="padding:1px 0;">
+          <span style="color:#b8941f;">${s.label}:</span> <span style="color:#d4af37; font-weight:bold;">${s.value}</span>
+        </div>`
+      ).join('');
+    }
+    
+    // Update active effects - use same rendering as buff icons system
+    if(ui.levelEffectsList){
+      const ICONS = {
+        // Debuffs / DoTs
+        poison:'☠', bleed:'🩸', burn:'🔥', arcane_burn:'✴', freeze:'❄', shock:'⚡', curse:'☠', weakness:'🪶', vulnerability:'🎯', slow:'🐌', root:'⛓', silence:'🔇', stun:'💫',
+        // Buffs
+        healing_empowerment:'✚', blessed:'✦', radiance:'☀', temporal_flux:'⏳', berserker_rage:'🗡', iron_will:'🛡', swift_strikes:'➤', arcane_power:'✷', battle_fury:'⚔', guardian_stance:'🛡',
+        regeneration:'✚', mana_surge:'💧', vigor:'♥', spirit:'🔮', endurance:'⚡', fortified:'🛡', lifesteal_boost:'🩹',
+        haste:'🏃', sprint:'🏃', flight:'🕊', focus:'🎯', clarity:'💡', stealth:'👁', divine_shield:'✨', lucky:'🍀',
+        // Passives
+        bulwark:'🛡', arcane_focus:'🔮', predator:'🐺', vital_soul:'♥', siphon:'🩹'
+      };
+      
+      const effectsList = [];
+      
+      // Add passives (only for player)
+      if(!state.groupMemberInventoryMode){
+        try{
+          for(const p of state.player.passives||[]){ 
+            if(!p) continue; 
+            const icon = ICONS[p.id]||'✦'; 
+            const title = `${p.name}`; 
+            const desc = `${p.details||p.desc||''}`; 
+            effectsList.push(`
+              <div style="display:flex; gap:8px; align-items:center; padding:4px; background:rgba(100,200,100,0.1); border-left:2px solid #6c6; border-radius:2px; margin-bottom:4px;">
+                <span style="font-size:20px; flex-shrink:0;">${icon}</span>
+                <div style="flex:1;">
+                  <div style="font-weight:bold; color:#6c6; font-size:11px;">${title}</div>
+                  <div style="color:#999; font-size:10px;">${desc}</div>
+                </div>
+              </div>
+            `); 
+          }
+        }catch{}
+      }
+      
+      // Add buffs
+      try{
+        for(const b of buffs){ 
+          const meta = BUFF_REGISTRY[b.id]; 
+          const deb = !!meta?.debuff; 
+          const icon = ICONS[b.id] || (deb?'☠':'★'); 
+          const title = `${meta?.name||b.id}`; 
+          const desc = `${meta?.desc||''}`; 
+          const timer = (b.t||0).toFixed(1)+'s'; 
+          const stack = (b.stacks||1)>1?` x${b.stacks||1}`:''; 
+          const borderColor = deb ? '#c44' : '#4a4';
+          const bgColor = deb ? 'rgba(200,70,70,0.1)' : 'rgba(70,170,70,0.1)';
+          const textColor = deb ? '#c66' : '#6c6';
+          effectsList.push(`
+            <div style="display:flex; gap:8px; align-items:center; padding:4px; background:${bgColor}; border-left:2px solid ${borderColor}; border-radius:2px; margin-bottom:4px;">
+              <span style="font-size:20px; flex-shrink:0;">${icon}</span>
+              <div style="flex:1;">
+                <div style="font-weight:bold; color:${textColor}; font-size:11px;">${title}${stack} <span style="color:#999; font-size:10px;">(${timer})</span></div>
+                <div style="color:#999; font-size:10px;">${desc}</div>
+              </div>
+            </div>
+          `); 
+        }
+      }catch(e){ console.error('Error rendering buffs:', e); }
+      
+      // Add DoTs (only for player)
+      if(!state.groupMemberInventoryMode){
+        try{
+          for(const d of state.player.dots||[]){ 
+            const meta = DOT_REGISTRY[d.id]; 
+            const icon = ICONS[d.id]||'☠'; 
+            const title = `${meta?.name||d.id}`; 
+            const desc = `${Math.round(d.damage||meta?.damage||0)} damage per ${(meta?.interval||d.tl||1.0)}s`; 
+            const timer = (d.t||0).toFixed(1)+'s'; 
+            const stack = (d.stacks||1)>1?` x${d.stacks||1}`:''; 
+            effectsList.push(`
+              <div style="display:flex; gap:8px; align-items:center; padding:4px; background:rgba(200,70,70,0.1); border-left:2px solid #c44; border-radius:2px; margin-bottom:4px;">
+                <span style="font-size:20px; flex-shrink:0;">${icon}</span>
+                <div style="flex:1;">
+                  <div style="font-weight:bold; color:#c66; font-size:11px;">${title}${stack} <span style="color:#999; font-size:10px;">(${timer})</span></div>
+                  <div style="color:#999; font-size:10px;">${desc}</div>
+                </div>
+              </div>
+            `); 
+          }
+        }catch{}
+      }
+      
+      if(effectsList.length === 0){
+        ui.levelEffectsList.innerHTML = '<div style="color:#999; font-size:10px;">No active effects</div>';
+      } else {
+        ui.levelEffectsList.innerHTML = effectsList.join('');
+      }
+    }
   };
 
   function trySpend(key, delta){

@@ -574,7 +574,7 @@ function pushSlashEffect(state, base){
   const arc = randomMeleeArc(base.arc, state);
   const range = meleeRangeForWeapon(base.range, state);
   const color = meleeSlashColor(base, state);
-  const slash = { ...base, arc, range, color };
+  const slash = { ...base, arc, range, color, x: base.x, y: base.y };
   state.effects.slashes.push(slash);
   return slash;
 }
@@ -753,24 +753,7 @@ function assignNpcEquipment(unit, role){
   unit._rarityTier = rarity.tier;
 }
 
-const CLASS_LOADOUTS = {
-  mage: {
-    weapon: { kind:'weapon', slot:'weapon', weaponType:'Healing Staff', rarity:COMMON_RARITY, name:'Common Healing Staff', buffs:{atk:2, maxMana:15, manaRegen:1.2} },
-    abilities: ['heal_burst','mage_divine_touch','mage_sacred_ground','mage_radiant_aura','ward_barrier']
-  },
-  warrior: {
-    weapon: { kind:'weapon', slot:'weapon', weaponType:'Sword', rarity:COMMON_RARITY, name:'Common Sword', buffs:{atk:5} },
-    abilities: ['slash','cleave','slash','cleave','slash']
-  },
-  knight: {
-    weapon: { kind:'weapon', slot:'weapon', weaponType:'Sword', rarity:COMMON_RARITY, name:'Common Sword', buffs:{atk:5, def:2} },
-    abilities: ['slash','cleave','slash','cleave','slash']
-  },
-  tank: {
-    weapon: { kind:'weapon', slot:'weapon', weaponType:'Axe', rarity:COMMON_RARITY, name:'Common Axe', buffs:{atk:6, speed:-3} },
-    abilities: ['cleave','cleave','slash','cleave','slash']
-  }
-};
+const CLASS_LOADOUTS = META_LOADOUTS; // Use the comprehensive loadouts from loadouts.js
 
 const ABILITY_META = {
   arc_bolt: { range: 280, cost:10, cd:3.5, dmg:12, type:'projectile', speed:420, pierce:0, element:'shock', role:{mage:1.0,dps:0.6} },
@@ -810,9 +793,17 @@ function npcHealPulse(state, cx, cy, radius, amount){
   };
   healOne(state.player, 1);
   for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x-cx,f.y-cy); if(d<=radius) healOne(f, 0.9); }
+  
+  // Visual flash for heal cast
+  state.effects.flashes.push({ x: cx, y: cy, r: radius, life: 0.5, color: '#ffd760' });
 }
 
 function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
+  // Visual flash for shield cast
+  const isEnemy = state.enemies.includes(caster);
+  const flashColor = isEnemy ? '#6ec0ff' : '#ffb347';
+  state.effects.flashes.push({ x: cx, y: cy, r: radius, life: 0.5, color: flashColor });
+  
   const applyShield = (ent, mult=1)=>{
     if(!ent) return;
     const cap = ent.shieldCap || ent.maxShield || (ent===state.player ? 420 : 320);
@@ -911,29 +902,56 @@ function npcCastSupportAbility(state, u, id, target){
   }
 }
 
-function npcInitAbilities(u){
+export function npcInitAbilities(u){
   const variant = u.variant || 'warrior';
   const loadout = CLASS_LOADOUTS[variant] || CLASS_LOADOUTS.warrior;
-  u.weaponType = loadout.weapon.weaponType;
+  
+  // Ensure equipment object exists
   u.equipment = u.equipment || {};
-  u.equipment.weapon = structuredClone(loadout.weapon);
-  // ensure all armor slots filled based on role/variant and level
+  
+  // Handle weapon selection
+  if(loadout.weapons && Array.isArray(loadout.weapons)){
+    // Multiple weapons available - pick one randomly
+    const weaponChoice = loadout.weapons[randi(0, loadout.weapons.length - 1)];
+    u.equipment.weapon = structuredClone(weaponChoice);
+    u.weaponType = weaponChoice.weaponType;
+  } else if(loadout.weapon){
+    // Single weapon defined
+    u.equipment.weapon = structuredClone(loadout.weapon);
+    u.weaponType = loadout.weapon.weaponType;
+  } else {
+    // Fallback: ensure EVERY unit gets a default weapon
+    const COMMON_RARITY = { key:'common', tier: 1, name: 'Common', color: '#c8c8c8' };
+    u.equipment.weapon = { kind:'weapon', slot:'weapon', weaponType:'Sword', rarity:COMMON_RARITY, name:'Common Sword', buffs:{atk:5} };
+    u.weaponType = 'Sword';
+  }
+  
+  // Handle ability selection based on weapon type (for warrior/DPS with dual loadouts)
+  let abilities = loadout.abilities;
+  if(variant === 'warrior' && loadout.abilitiesMagic && loadout.abilitiesMelee){
+    // Warrior: choose abilities based on weapon type
+    const isDestructionStaff = u.weaponType === 'Destruction Staff';
+    abilities = isDestructionStaff ? loadout.abilitiesMagic : loadout.abilitiesMelee;
+  }
+  
+  // Ensure armor slots are filled
   assignNpcEquipment(u, variant);
-  u.npcAbilities = loadout.abilities.slice(0,5);
+  
+  // Assign abilities
+  u.npcAbilities = abilities ? abilities.slice(0,5) : ['slash','cleave','slash','cleave','slash'];
   u.npcCd = [0,0,0,0,0];
   u.maxMana = u.maxMana || 60;
   u.mana = u.mana || u.maxMana;
   const baseManaRegen = { mage: 7.5, warrior: 5.0, knight: 5.5, tank: 5.0 };
   u.manaRegen = u.manaRegen || baseManaRegen[variant] || 5.5;
+  
   // Assign an explicit party role for AI behavior
   if(!u.role){
     u.role = (variant==='mage') ? 'HEALER' : ((variant==='tank'||variant==='knight') ? 'TANK' : 'DPS');
   }
   
-  // Debug log for mages to verify healer loadout
-  if(variant === 'mage') {
-    console.log(`Mage spawned with weapon: ${u.weaponType}, abilities:`, u.npcAbilities);
-  }
+  // Debug log to verify loadouts for all variants
+  console.log(`${variant} spawned: weapon=${u.weaponType}, role=${u.role}, abilities=`, u.npcAbilities);
 }
 
 function npcUpdateAbilities(state, u, dt, kind){
@@ -1055,14 +1073,15 @@ function npcUpdateAbilities(state, u, dt, kind){
     }
     const roleW = meta.role?.[roleKey] ?? 0.6;
     const manaPressure = u.mana / Math.max(1, u.maxMana||60);
-    const manaPenalty = (meta.cost/25) * (manaPressure < 0.35 ? 1.4 : 1.0);
-    const supportBonus = isSupport ? Math.max(0, (1-lowestAllyHp)*2.2) : 0;
-    const score = roleW*1.2 + distScore*1.6 + (meta.type==='melee'?0.2:0) - manaPenalty + supportBonus;
+    const manaPenalty = (meta.cost/30) * (manaPressure < 0.25 ? 1.2 : 0.8);
+    const supportBonus = isSupport ? Math.max(0, (1-lowestAllyHp)*2.5) : 0;
+    const dmgBonus = !isSupport ? 0.5 : 0; // Bonus for damage abilities
+    const score = roleW*1.5 + distScore*2.0 + (meta.type==='melee'?0.4:0) + dmgBonus - manaPenalty + supportBonus;
     if(score > bestScore){ bestScore = score; bestIdx = i; bestSupportTarget = isSupport ? targetForAbility : target; }
   }
 
   const fromPlayer = (kind==='friendly');
-  if(bestIdx !== -1 && bestScore > 0){
+  if(bestIdx !== -1 && bestScore > -0.5){
     const id = u.npcAbilities[bestIdx];
     const meta = ABILITY_META[id];
     const chosenTarget = (meta.kind || meta.type==='support') ? (bestSupportTarget || lowestAlly || target) : target;
@@ -1081,9 +1100,25 @@ function npcUpdateAbilities(state, u, dt, kind){
       }
       spawnProjectile(state, u.x, u.y, aimAng, meta.speed||420, 5, meta.dmg, meta.pierce||0, fromPlayer);
     } else {
+      // Melee attack with visual slash effect
       const range = meta.range;
       const arc = meta.arc || 1.2;
       const targets = kind==='enemy' ? [state.player, ...state.friendlies] : state.enemies;
+      
+      // Create visual slash effect
+      const slashColor = kind==='enemy' ? 'rgba(229, 89, 89, 0.6)' : 'rgba(186, 150, 255, 0.6)';
+      state.effects.slashes.push({
+        t: 0.12,
+        arc,
+        range,
+        dir: ang,
+        x: u.x,
+        y: u.y,
+        color: slashColor,
+        dmg: meta.dmg
+      });
+      
+      // Apply damage to targets in arc
       for(let ei=targets.length-1; ei>=0; ei--){
         const e=targets[ei];
         const dx=e.x-u.x, dy=e.y-u.y; const d=Math.hypot(dx,dy); if(d>range) continue;
@@ -1211,6 +1246,7 @@ function spawnCreatureAt(state, x, y, type){
     name: name,
     agro_range: type.agro,
     attacked: false,
+    hitCd: 0,
     wander: { t: rand(0.5, 2.0), ang: Math.random() * Math.PI * 2 },
     target: null,
     pack_id: undefined
@@ -1227,7 +1263,7 @@ function spawnBossCreature(state){
   const worldH = state.mapHeight || state.engine.canvas.height;
   const x = rand(80, worldW-80);
   const y = rand(80, worldH-80);
-  state.creatures.push({ x,y, r: 24, maxHp: 520, hp: 520, speed: 72, contactDmg: 16, color: cssVar('--legend'), key:'boss', boss:true, attacked:false, wander:{ t: rand(0.5,1.6), ang: Math.random()*Math.PI*2 }, target:null });
+  state.creatures.push({ x,y, r: 24, maxHp: 520, hp: 520, speed: 72, contactDmg: 16, color: cssVar('--legend'), key:'boss', boss:true, attacked:false, hitCd: 0, wander:{ t: rand(0.5,1.6), ang: Math.random()*Math.PI*2 }, target:null });
 }
 
 function killCreature(state, index){
@@ -1509,28 +1545,46 @@ function updateFriendlies(state, dt){
       a.respawnT-=dt;
       const flag=state.sites.find(s=>s.id===a.siteId);
       if(a.respawnT<=0){
-        if(flag && flag.owner==='player'){
+        // Determine respawn location based on garrison assignment or normal flag
+        let respawnSite = null;
+        if(a.garrisonSiteId){
+          // Garrisoned - respawn at garrison location if still player-owned
+          respawnSite = state.sites.find(s => s.id === a.garrisonSiteId && s.owner === 'player');
+          if(!respawnSite){
+            // Garrison site lost, clear assignment and use normal respawn
+            delete a.garrisonSiteId;
+          }
+        }
+        
+        // If no garrison or garrison lost, use normal flag respawn
+        if(!respawnSite){
+          respawnSite = flag && flag.owner === 'player' ? flag : null;
+        }
+        
+        if(respawnSite){
           a.hp=a.maxHp;
           a.dead=false;
+          a.siteId = respawnSite.id; // Update siteId to respawn location
+          
           // if site defines fixed guard positions, respawn into an available fixed slot
-          if(flag._guardPositions && a.guard){
+          if(respawnSite._guardPositions && a.guard){
             // find an unoccupied position
             let pos=null;
-            for(const p of flag._guardPositions){
-              const occ = state.friendlies.find(f=>f.siteId===flag.id && f.respawnT<=0 && Math.hypot(f.x-p.x,f.y-p.y)<=8);
+            for(const p of respawnSite._guardPositions){
+              const occ = state.friendlies.find(f=>f.siteId===respawnSite.id && f.respawnT<=0 && Math.hypot(f.x-p.x,f.y-p.y)<=8);
               if(!occ){ pos=p; break; }
             }
-            if(!pos) pos = flag._guardPositions[0];
+            if(!pos) pos = respawnSite._guardPositions[0];
             a._spawnX = pos.x; a._spawnY = pos.y; a.x = pos.x; a.y = pos.y;
           } else {
-            a.x = flag.x + rand(-28,28);
-            a.y = flag.y + rand(-28,28);
+            a.x = respawnSite.x + rand(-28,28);
+            a.y = respawnSite.y + rand(-28,28);
           }
           
           // If this is a group member that just respawned, notify
           const isGroupMember = state.group && state.group.members && state.group.members.includes(a.id);
           if(isGroupMember){
-            console.log(`[GROUP] ${a.name} respawned at ${flag.name}`);
+            console.log(`[GROUP] ${a.name} respawned at ${respawnSite.name}`);
             state.ui?.toast(`<b>${a.name}</b> has respawned!`);
           }
         } else {
@@ -1650,30 +1704,32 @@ function updateFriendlies(state, dt){
 
     }
     else if(a.guard){
-      // Guards: ALWAYS AGGRESSIVE - defend their site
+      // Guards: defend their site - chase enemies within range but don't chase beyond leash radius
       const spawnX = (a._spawnX!==undefined)?a._spawnX:a.x;
       const spawnY = (a._spawnY!==undefined)?a._spawnY:a.y;
       const distFromSpawn = Math.hypot(a.x - spawnX, a.y - spawnY);
-      const GUARD_AGGRO_RANGE = 120;
-      const GUARD_CHASE_MAX = 140;
+      const GUARD_AGGRO_RANGE = 150; // Radius to detect and engage enemies
+      const GUARD_LEASH_RADIUS = 180; // Maximum distance from spawn point before returning
       
       if(near.e && near.d <= GUARD_AGGRO_RANGE){
-        // Enemy in range - ALWAYS chase and attack
-        const distToEnemy = Math.hypot(near.e.x - a.x, near.e.y - a.y);
-        if(distFromSpawn < GUARD_CHASE_MAX){
-          // Within chase limit - pursue enemy
+        // Enemy detected - check if chasing would exceed leash radius
+        const distEnemyFromSpawn = Math.hypot(near.e.x - spawnX, near.e.y - spawnY);
+        
+        if(distEnemyFromSpawn <= GUARD_LEASH_RADIUS && distFromSpawn < GUARD_LEASH_RADIUS){
+          // Enemy is within leash radius - pursue and attack
           a.attacked = true;
           a.speed = 120;
           tx = near.e.x;
           ty = near.e.y;
         } else {
-          // Too far from spawn - return
+          // Enemy is beyond leash radius or guard is too far - return to post
+          a.attacked = false;
           a.speed = 120;
           tx = spawnX;
           ty = spawnY;
         }
       } else if(a.attacked || distFromSpawn > 6){
-        // No enemy or returning to spawn
+        // No enemy nearby or returning to spawn
         a.speed = 120;
         tx = spawnX;
         ty = spawnY;
@@ -1691,34 +1747,101 @@ function updateFriendlies(state, dt){
         ty = a.y = spawnY;
       }
     } else {
-      // non-guard friendlies: behavior-aware objective handling
-      const behavior = a.behavior || 'neutral';
-      const AGGRO_RANGE = behavior === 'aggressive' ? 140 : 80;
-      
-      // find nearest enemy-held flag (primary objective)
-      let targetFlag=null, bestD=Infinity;
-      for(const s of state.sites){ 
-        if(s.id.startsWith('site_') && s.owner && s.owner!=='player'){
-          const d=Math.hypot(s.x - a.x, s.y - a.y);
-          if(d<bestD){ bestD=d; targetFlag=s; }
+      // non-guard friendlies: check for garrison assignment first
+      if(a.garrisonSiteId){
+        // Garrisoned friendly - defend assigned flag
+        const garrisonSite = state.sites.find(s => s.id === a.garrisonSiteId);
+        
+        // If garrison site no longer exists or isn't player-owned, clear assignment
+        if(!garrisonSite || garrisonSite.owner !== 'player'){
+          delete a.garrisonSiteId;
+        } else {
+          // Initialize garrison position if not set (spread units around flag)
+          if(!a._garrisonX || !a._garrisonY){
+            // Get all garrisoned units at this site (including this one)
+            const garrisonedUnits = state.friendlies.filter(f => f.garrisonSiteId === a.garrisonSiteId);
+            
+            // Assign slots if not already assigned
+            const unitsWithSlots = garrisonedUnits.filter(f => f._garrisonSlot !== undefined);
+            if(a._garrisonSlot === undefined){
+              // Find first available slot
+              const usedSlots = new Set(unitsWithSlots.map(f => f._garrisonSlot));
+              let slot = 0;
+              while(usedSlots.has(slot)) slot++;
+              a._garrisonSlot = slot;
+            }
+            
+            // Calculate position based on slot number
+            const totalSlots = Math.max(garrisonedUnits.length, 8); // Support up to 8 positions
+            const angle = (a._garrisonSlot / totalSlots) * Math.PI * 2;
+            const spreadRadius = 70; // Fixed radius for consistency
+            a._garrisonX = garrisonSite.x + Math.cos(angle) * spreadRadius;
+            a._garrisonY = garrisonSite.y + Math.sin(angle) * spreadRadius;
+          }
+          
+          const GARRISON_DEFEND_RADIUS = 150; // Detection range for enemies
+          const GARRISON_LEASH_RADIUS = 180; // Maximum chase distance
+          const distToPost = Math.hypot(a.x - a._garrisonX, a.y - a._garrisonY);
+          
+          // Check for enemies near the garrison
+          if(near.e && near.d <= GARRISON_DEFEND_RADIUS){
+            const enemyDistToFlag = Math.hypot(near.e.x - garrisonSite.x, near.e.y - garrisonSite.y);
+            const enemyDistToPost = Math.hypot(near.e.x - a._garrisonX, near.e.y - a._garrisonY);
+            
+            // Only chase if enemy is within leash radius from our post
+            if(enemyDistToPost <= GARRISON_LEASH_RADIUS && distToPost < GARRISON_LEASH_RADIUS){
+              // Enemy is within defensive zone - engage
+              a.speed = 120;
+              tx = near.e.x;
+              ty = near.e.y;
+            } else {
+              // Enemy too far or we're beyond leash - return to post
+              a.speed = 110;
+              tx = a._garrisonX;
+              ty = a._garrisonY;
+            }
+          } else if(distToPost > 8){
+            // No enemy nearby - return to defensive position
+            a.speed = 100;
+            tx = a._garrisonX;
+            ty = a._garrisonY;
+          } else {
+            // Idle at post
+            a.speed = 0;
+            tx = a.x;
+            ty = a.y;
+          }
         }
-      }
-      
-      // Behavior: engage enemies more readily when aggressive
-      if(near.e && near.d <= AGGRO_RANGE && (!targetFlag || near.d < Math.hypot(targetFlag.x-a.x, targetFlag.y-a.y))){
-        tx = near.e.x; ty = near.e.y;
-      } else if(nearCreature && nearCreatureD <= AGGRO_RANGE){
-        tx = nearCreature.x; ty = nearCreature.y;
-      } else if(targetFlag){
-        // prioritize moving to enemy-held flag to capture
-        tx = targetFlag.x; ty = targetFlag.y;
       } else {
-        // no enemy flags found, return to home flag
-        if(flag){ tx = flag.x; ty = flag.y; }
+        // Non-garrisoned friendlies: behavior-aware objective handling
+        const behavior = a.behavior || 'neutral';
+        const AGGRO_RANGE = behavior === 'aggressive' ? 140 : 80;
+        
+        // find nearest enemy-held flag (primary objective)
+        let targetFlag=null, bestD=Infinity;
+        for(const s of state.sites){ 
+          if(s.id.startsWith('site_') && s.owner && s.owner!=='player'){
+            const d=Math.hypot(s.x - a.x, s.y - a.y);
+            if(d<bestD){ bestD=d; targetFlag=s; }
+          }
+        }
+        
+        // Behavior: engage enemies more readily when aggressive
+        if(near.e && near.d <= AGGRO_RANGE && (!targetFlag || near.d < Math.hypot(targetFlag.x-a.x, targetFlag.y-a.y))){
+          tx = near.e.x; ty = near.e.y;
+        } else if(nearCreature && nearCreatureD <= AGGRO_RANGE){
+          tx = nearCreature.x; ty = nearCreature.y;
+        } else if(targetFlag){
+          // prioritize moving to enemy-held flag to capture
+          tx = targetFlag.x; ty = targetFlag.y;
+        } else {
+          // no enemy flags found, return to home flag
+          if(flag){ tx = flag.x; ty = flag.y; }
+        }
+        
+        // set speed for non-guards
+        a.speed = 110;
       }
-      
-      // set speed for non-guards
-      a.speed = 110;
     }
     
     const cc = getCcState(a);
@@ -1931,12 +2054,63 @@ function updateEnemies(state, dt){
       e.homeSiteId = null; e.spawnTargetSiteId = null; e.team = null;
     }
 
-    // guards that haven't been attacked yet stay put
-    if(e.guard && !e.attacked){
-      // small idle wobble could go here
+    // determine goal position
+    let tx, ty;
+    
+    // Guards defend their site
+    if(e.guard){
+      const guardSite = e.homeSiteId ? state.sites.find(s => s.id === e.homeSiteId) : null;
+      if(guardSite){
+        const spawnX = e.x; // Guard spawn position
+        const spawnY = e.y;
+        const distFromSpawn = Math.hypot(e.x - spawnX, e.y - spawnY);
+        const GUARD_AGGRO_RANGE = 150;
+        const GUARD_LEASH_RADIUS = 180;
+        
+        // Check for nearest hostile within aggro range
+        let nearestHost = null, nearestHD = Infinity;
+        if(!state.player.dead){ 
+          const d = Math.hypot(state.player.x - e.x, state.player.y - e.y); 
+          if(d < nearestHD && d <= GUARD_AGGRO_RANGE){ nearestHD = d; nearestHost = state.player; }
+        }
+        for(const f of state.friendlies){ 
+          if(f.respawnT>0) continue; 
+          const d=Math.hypot(f.x - e.x, f.y - e.y); 
+          if(d < nearestHD && d <= GUARD_AGGRO_RANGE){ nearestHD = d; nearestHost = f; }
+        }
+        
+        if(nearestHost){
+          // Check if enemy is within leash radius from guard's spawn
+          const hostDistFromSpawn = Math.hypot(nearestHost.x - spawnX, nearestHost.y - spawnY);
+          if(hostDistFromSpawn <= GUARD_LEASH_RADIUS && distFromSpawn < GUARD_LEASH_RADIUS){
+            // Chase enemy
+            e.attacked = true;
+            e._hostTarget = nearestHost;
+            tx = nearestHost.x;
+            ty = nearestHost.y;
+          } else {
+            // Return to post - enemy too far
+            e.attacked = false;
+            tx = spawnX;
+            ty = spawnY;
+          }
+        } else if(e.attacked || distFromSpawn > 6){
+          // Return to spawn
+          tx = spawnX;
+          ty = spawnY;
+          const dd = Math.hypot(tx - e.x, ty - e.y);
+          if(dd <= 6){
+            e.attacked = false;
+            e.speed = 0;
+            continue; // Guard is idle at spawn
+          }
+        } else {
+          // Idle at spawn
+          e.speed = 0;
+          continue;
+        }
+      }
     } else {
-      // determine goal position
-      let tx, ty;
       const dp = Math.hypot(state.player.x - e.x, state.player.y - e.y);
       const dh = home ? Math.hypot(home.x - e.x, home.y - e.y) : Infinity;
 
@@ -2393,7 +2567,7 @@ function tryCastSlot(state, idx){
 
     // Melee Weapons
     case 'slash':{
-      pushSlashEffect(state, {t:0.12,arc:1.15,range:64,dmg:6+st.atk*0.75});
+      pushSlashEffect(state, {t:0.12,arc:1.15,range:64,dmg:6+st.atk*0.75,dir:a});
       break;
     }
     case 'blade_storm':{
@@ -2403,7 +2577,7 @@ function tryCastSlot(state, idx){
       break;
     }
     case 'cleave':{
-      pushSlashEffect(state, {t:0.18,arc:1.6,range:86,dmg:10+st.atk*1.1, dotId:'bleed'});
+      pushSlashEffect(state, {t:0.18,arc:1.6,range:86,dmg:10+st.atk*1.1, dotId:'bleed',dir:a});
       break;
     }
     case 'leap_strike':{
@@ -2507,7 +2681,7 @@ function tryCastSlot(state, idx){
       break;
     }
     case 'knight_justice_strike':{
-      const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:92,dmg:18+st.atk*1.4, dotId:'bleed'});
+      const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:92,dmg:18+st.atk*1.4, dotId:'bleed',dir:a});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 92, life: 0.5, color: slash.color });
       break;
     }
@@ -2533,7 +2707,7 @@ function tryCastSlot(state, idx){
 
     // Warrior
     case 'warrior_life_leech':{
-      const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:82,dmg:16+st.atk*1.2, leech:true, dotId:'bleed'});
+      const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:82,dmg:16+st.atk*1.2, leech:true, dotId:'bleed',dir:a});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 82, life: 0.5, color: slash.color });
       break;
     }
@@ -2550,7 +2724,7 @@ function tryCastSlot(state, idx){
       break;
     }
     case 'warrior_cleave':{
-      const slash = pushSlashEffect(state, {t:0.20,arc:1.7,range:92,dmg:20+st.atk*1.35, dotId:'bleed', buffId:'weakness'});
+      const slash = pushSlashEffect(state, {t:0.20,arc:1.7,range:92,dmg:20+st.atk*1.35, dotId:'bleed', buffId:'weakness',dir:a});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 92, life: 0.6, color: slash.color });
       break;
     }
@@ -2628,22 +2802,32 @@ function updateSlashes(state, dt){
     const s=state.effects.slashes[i];
     s.t-=dt;
     if(s.t<=0){ state.effects.slashes.splice(i,1); continue; }
-    const ang = (typeof s.dir === 'number') ? s.dir : Math.atan2(wm.y-state.player.y, wm.x-state.player.x);
-    for(let ei=state.enemies.length-1; ei>=0; ei--){
-      const e=state.enemies[ei];
-      if(state.inDungeon && e.dungeonId !== state.inDungeon) continue;
-      const dx=e.x-state.player.x, dy=e.y-state.player.y;
-      const d=Math.hypot(dx,dy);
-      if(d>s.range) continue;
-      const ea=Math.atan2(dy,dx);
-      let diff=Math.abs(ea-ang);
-      diff=Math.min(diff, Math.PI*2-diff);
-      if(diff<=s.arc/2){
-        const res=applyDamageToEnemy(e,s.dmg,st,state,true);
-        lifestealFrom(state,res.dealt,st);
-        if(s.leech){ state.player.hp = clamp(state.player.hp + res.dealt*0.5, 0, st.maxHp); }
-        if(s.dotId) applyDotTo(e, s.dotId);
-        if(e.hp<=0) killEnemy(state, ei, true);
+    
+    // Use slash origin position (x,y) if available, otherwise default to player position
+    const originX = s.x !== undefined ? s.x : state.player.x;
+    const originY = s.y !== undefined ? s.y : state.player.y;
+    const isPlayerSlash = (s.x === undefined || (s.x === state.player.x && s.y === state.player.y));
+    
+    const ang = (typeof s.dir === 'number') ? s.dir : Math.atan2(wm.y-originY, wm.x-originX);
+    
+    // Only apply damage if this is a player slash (team check)
+    if(isPlayerSlash || s.team === 'player'){
+      for(let ei=state.enemies.length-1; ei>=0; ei--){
+        const e=state.enemies[ei];
+        if(state.inDungeon && e.dungeonId !== state.inDungeon) continue;
+        const dx=e.x-originX, dy=e.y-originY;
+        const d=Math.hypot(dx,dy);
+        if(d>s.range) continue;
+        const ea=Math.atan2(dy,dx);
+        let diff=Math.abs(ea-ang);
+        diff=Math.min(diff, Math.PI*2-diff);
+        if(diff<=s.arc/2){
+          const res=applyDamageToEnemy(e,s.dmg,st,state,true);
+          lifestealFrom(state,res.dealt,st);
+          if(s.leech){ state.player.hp = clamp(state.player.hp + res.dealt*0.5, 0, st.maxHp); }
+          if(s.dotId) applyDotTo(e, s.dotId);
+          if(e.hp<=0) killEnemy(state, ei, true);
+        }
       }
     }
   }
@@ -2981,6 +3165,23 @@ function enterDungeon(state, dungeon){
   if(!dungeon || dungeon.cleared) return;
   // save world player/camera position
   state._savedWorld = { px: state.player.x, py: state.player.y, cam: { x: state.camera.x, y: state.camera.y, zoom: state.camera.zoom } };
+  
+  // Save group member positions and bring them into dungeon
+  state._savedGroupPositions = [];
+  if(state.group && state.group.members){
+    for(const memberId of state.group.members){
+      const ally = state.friendlies.find(f => f.id === memberId && f.respawnT <= 0);
+      if(ally){
+        state._savedGroupPositions.push({ id: memberId, x: ally.x, y: ally.y });
+        // Teleport group member to dungeon with player (spread in small circle)
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 40 + Math.random() * 30;
+        ally.x = dungeon.x + Math.cos(ang) * dist;
+        ally.y = dungeon.y + Math.sin(ang) * dist;
+      }
+    }
+  }
+  
   // move player to dungeon center and mark dungeon active
   state.player.x = dungeon.x; state.player.y = dungeon.y;
   state.camera.x = dungeon.x; state.camera.y = dungeon.y;
@@ -2988,7 +3189,8 @@ function enterDungeon(state, dungeon){
   state.mapOpen = false; state.showInventory = false; state.showSkills = false; state.showLevel = false; state.inMenu = false; state.paused = false;
   state.inDungeon = dungeon.id;
   if(state.ui){ state.ui.invOverlay && state.ui.invOverlay.classList && state.ui.invOverlay.classList.remove('show'); state.ui.skillsOverlay && state.ui.skillsOverlay.classList && state.ui.skillsOverlay.classList.remove('show'); state.ui.mapOverlay && state.ui.mapOverlay.classList && state.ui.mapOverlay.classList.remove('show'); }
-  state.ui.toast(`<b>Entered</b> ${dungeon.name}`);
+  const memberCount = state._savedGroupPositions.length;
+  state.ui.toast(`<b>Entered</b> ${dungeon.name}${memberCount > 0 ? ` with ${memberCount} ${memberCount === 1 ? 'ally' : 'allies'}` : ''}`);
   spawnDungeonEnemies(state, dungeon);
 }
 
@@ -3001,6 +3203,19 @@ function exitDungeon(state){
   for(let i=state.enemies.length-1;i>=0;i--){ if(state.enemies[i].dungeonId === id) state.enemies.splice(i,1); }
   // restore player position and camera
   if(state._savedWorld){ state.player.x = state._savedWorld.px; state.player.y = state._savedWorld.py; state.camera.x = state._savedWorld.cam.x; state.camera.y = state._savedWorld.cam.y; state.camera.zoom = state._savedWorld.cam.zoom; }
+  
+  // Restore group member positions
+  if(state._savedGroupPositions){
+    for(const saved of state._savedGroupPositions){
+      const ally = state.friendlies.find(f => f.id === saved.id);
+      if(ally){
+        ally.x = saved.x;
+        ally.y = saved.y;
+      }
+    }
+    state._savedGroupPositions = [];
+  }
+  
   state.inDungeon = false;
   state.ui.toast('Dungeon cleared.');
 }
@@ -3055,6 +3270,8 @@ function fireLightOrHeavy(state, heldMs){
   base.dir = a;
   base.team = 'player';
   base.weapon = state.player.equip?.weapon;
+  base.x = state.player.x;
+  base.y = state.player.y;
   pushSlashEffect(state, base);
 }
 
@@ -3077,7 +3294,7 @@ export function getInteractionPrompt(state){
   if(homeBase){
     const dist = Math.hypot(state.player.x - homeBase.x, state.player.y - homeBase.y);
     if(dist <= 120){
-      return { text: 'Open Marketplace', action: 'marketplace' };
+      return { text: 'Access Base', action: 'base' };
     }
   }
   
@@ -3087,7 +3304,7 @@ export function getInteractionPrompt(state){
       if(s.owner === 'player' && s.id && s.id.startsWith('site_')){
         const dist = Math.hypot(state.player.x - s.x, state.player.y - s.y);
         if(dist <= 80){
-          return { text: 'Open Marketplace', action: 'marketplace' };
+          return { text: 'Access Base', action: 'base' };
         }
       }
     }
@@ -3116,18 +3333,29 @@ export function handleHotkeys(state, dt){
   const escDown = state.input.keysDown.has(state.binds.menu);
   if(escDown && !state._escLatch){
     state._escLatch = true;
-    // if any overlay other than menu is open, close them and DO NOT open menu
-    const anyOverlay = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace;
+    // if any overlay (including menu itself) is open, close them and DO NOT open menu
+    const anyOverlay = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace || state.showBaseActions || state.showGarrison || state.inMenu;
     if(anyOverlay){
-      state.showInventory = false; state.showSkills = false; state.showLevel = false; state.mapOpen = false; state.showMarketplace = false;
+      state.showInventory = false; 
+      state.showSkills = false; 
+      state.showLevel = false; 
+      state.mapOpen = false; 
+      state.showMarketplace = false;
+      state.showBaseActions = false;
+      state.showGarrison = false;
       state.paused = false;
       if(state.ui) { 
         state.ui.invOverlay.classList.remove('show'); 
+        state.ui.escOverlay.classList.remove('show');
         state.ui.mapOverlay && state.ui.mapOverlay.classList && state.ui.mapOverlay.classList.remove('show'); 
         state.ui.marketplaceOverlay && state.ui.marketplaceOverlay.classList && state.ui.marketplaceOverlay.classList.remove('show');
+        state.ui.baseActionsOverlay && state.ui.baseActionsOverlay.classList && state.ui.baseActionsOverlay.classList.remove('show');
+        state.ui.garrisonOverlay && state.ui.garrisonOverlay.classList && state.ui.garrisonOverlay.classList.remove('show');
       }
+      state.inMenu = false;
     } else {
-      state.ui.toggleMenu(!state.inMenu);
+      // Only open menu if nothing is open
+      state.ui.toggleMenu(true);
     }
   }
   if(!escDown) state._escLatch=false;
@@ -3184,7 +3412,7 @@ export function handleHotkeys(state, dt){
       }
       
       if(canAccess){
-        state.ui.toggleMarketplace(true);
+        state.ui.toggleBaseActions(true);
         interacted = true;
       }
     }
@@ -3811,6 +4039,9 @@ function updateCreatures(state, dt){
   }
   for(let i=state.creatures.length-1;i>=0;i--){
     const c = state.creatures[i];
+    // update hit cooldown
+    c.hitCd = Math.max(0, (c.hitCd || 0) - dt);
+    
     // simple wander
     c.wander = c.wander || { t: 1.0, ang: Math.random()*Math.PI*2 };
     c.wander.t -= dt;
@@ -3839,11 +4070,12 @@ function updateCreatures(state, dt){
     const slowFactor = c.inWater ? 0.45 : 1.0;
     moveWithAvoidance(c, tx, ty, state, dt, { slowFactor });
     
-    // contact retaliate if aggroed
-    if(c.attacked && c.target){
+    // contact retaliate if aggroed (with cooldown check)
+    if(c.attacked && c.target && c.hitCd <= 0){
       const d = Math.hypot((c.target.x||0) - c.x, (c.target.y||0) - c.y);
       const hitDist = (c.r||12) + (c.target.r||14) + 4;
       if(d <= hitDist){
+        c.hitCd = 0.65; // Same cooldown as enemies
         if(c.target === state.player){ applyDamageToPlayer(state, c.contactDmg||6, currentStats(state)); }
         // friendlies/enemies take direct damage
         else {

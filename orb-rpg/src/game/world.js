@@ -1,4 +1,5 @@
 import { clamp, rand } from "../engine/util.js";
+import { applyClassToUnit, npcInitAbilities } from "./game.js";
 
 // Expose map loading to global scope for easy access from console
 window.loadCustomMap = function(imageUrl){
@@ -283,18 +284,15 @@ export function spawnGuardsForSite(state, site, count=4){
   const remaining = Math.max(0, 4 - currentGuards);
   if(remaining<=0) return;
   count = Math.min(count, remaining);
-  // ensure fixed guard positions are created for the site
+  // ensure fixed guard positions are created for the site (square formation)
   if(!site._guardPositions){
     site._guardPositions = [];
-    const total = Math.max(4, count);
-    const angStep = (Math.PI*2)/total;
-    for(let i=0;i<total;i++){
-      const ang = i*angStep + (Math.random()*0.18-0.09);
-      const dist = site.r + 28;
-      const gx = site.x + Math.cos(ang)*dist;
-      const gy = site.y + Math.sin(ang)*dist;
-      site._guardPositions.push({x:gx,y:gy});
-    }
+    const offset = site.r + 35; // Distance from flag center
+    // 4 guards in a square formation at the cardinal directions
+    site._guardPositions.push({x: site.x + offset, y: site.y}); // East
+    site._guardPositions.push({x: site.x - offset, y: site.y}); // West
+    site._guardPositions.push({x: site.x, y: site.y + offset}); // South
+    site._guardPositions.push({x: site.x, y: site.y - offset}); // North
   }
 
   // spawn from fixed positions; only spawn into free slots
@@ -311,17 +309,24 @@ export function spawnGuardsForSite(state, site, count=4){
     if(site.owner === 'player'){
       const VARS = ['warrior','mage','knight','tank'];
       const v = VARS[Math.floor(Math.random()*VARS.length)];
-      state.friendlies.push({
+      const friendlyGuard = {
         id: `f_${Date.now()}_${Math.floor(Math.random()*100000)}`,
         name: `${v.charAt(0).toUpperCase()+v.slice(1)} ${Math.floor(Math.random()*999)+1}`,
         x:guardObj.x, y:guardObj.y, r:12, hp:guardObj.hp, maxHp:guardObj.maxHp, speed:0,
         dmg:12, hitCd:0, siteId:site.id, respawnT:0, guard:true, homeSiteId:site.id,
         _spawnX:guardObj.x, _spawnY:guardObj.y, attacked:false, variant: v,
-        behavior: 'neutral', buffs:[], dots:[]
-      });
+        behavior: 'neutral', buffs:[], dots:[], level: 1
+      };
+      // Apply class stats and initialize abilities with weapon
+      applyClassToUnit(friendlyGuard, v);
+      npcInitAbilities(friendlyGuard);
+      state.friendlies.push(friendlyGuard);
     } else {
       // enemy guards use a guard/knight visual
       guardObj.variant = 'knight';
+      guardObj.team = site.owner; // Ensure team is set
+      guardObj.guard = true;
+      guardObj.homeSiteId = site.id;
       state.enemies.push(guardObj);
     }
     spawned++;
@@ -342,98 +347,150 @@ export function friendliesNearSite(state, site, dist){
   return false;
 }
 
+// Count units of each team within a site
+export function countUnitsAtSite(state, site, dist){
+  const counts = { player: 0, teams: {} };
+  
+  // Count player
+  if(!state.player.dead && Math.hypot(state.player.x-site.x, state.player.y-site.y) <= dist){
+    counts.player++;
+  }
+  
+  // Count friendlies (player team)
+  for(const a of state.friendlies){
+    if(a.respawnT>0) continue;
+    if(Math.hypot(a.x-site.x, a.y-site.y) <= dist){
+      counts.player++;
+    }
+  }
+  
+  // Count enemies by team
+  for(const e of state.enemies){
+    if(Math.hypot(e.x-site.x, e.y-site.y) <= dist){
+      const team = e.team || 'teamA';
+      counts.teams[team] = (counts.teams[team] || 0) + 1;
+    }
+  }
+  
+  return counts;
+}
+
+// Determine which team has the most units at a site
+export function getDominantTeam(counts){
+  let maxCount = counts.player;
+  let dominant = maxCount > 0 ? 'player' : null;
+  
+  for(const [team, count] of Object.entries(counts.teams)){
+    if(count > maxCount){
+      maxCount = count;
+      dominant = team;
+    }
+  }
+  
+  return { team: dominant, count: maxCount };
+}
+
 export function updateCapture(state, dt){
-  const { player } = state;
   for(const s of state.sites){
     s.underAttack = s.underAttack || false;
     // Only flags (site_*) are capturable. Bases are safe and cannot be captured.
     if(s.id && s.id.endsWith && s.id.endsWith('_base')){ s.underAttack = false; continue; }
 
-    const playerInside = !player.dead && Math.hypot(player.x-s.x, player.y-s.y) <= s.r;
-    const enemiesClose = enemiesNearSite(state, s, s.r*1.15);
-
-    // If site is not player-owned and player is contesting it
-    if(s.owner!=='player' && playerInside && !enemiesClose){
-      s.prog = clamp(s.prog + dt*0.24, 0, 1);
+    // Count units of each team at this site
+    const counts = countUnitsAtSite(state, s, s.r*0.90);
+    const dominant = getDominantTeam(counts);
+    const contestedByMultipleTeams = (counts.player > 0 ? 1 : 0) + Object.keys(counts.teams).length > 1;
+    
+    // If multiple teams are contesting, no one can capture (stalemate)
+    if(contestedByMultipleTeams){
       s.underAttack = true;
-      if(s.prog >= 1){
-        s.owner='player';
-        s._justCaptured = 'player';
-        state.ui.toast(`<b>${s.name}</b> captured! Friendlies will spawn to defend.`);
-        // spawn friendlies/guards immediately when player captures
-        if(typeof spawnGuardsForSite === 'function') spawnGuardsForSite(state, s);
-        // add defensive walls around captured flag site (smaller than base walls)
-        if(s.id && s.id.startsWith && s.id.startsWith('site_')){
-          const baseR = s.r + 18;
-          const sides = [];
-          for(let i=0;i<4;i++) sides.push({ hp: 60, maxHp: 60, destroyed: false, lastDamaged: -9999 });
-          s.wall = { r: baseR, thickness: 10, gateSide: Math.floor(Math.random()*4), sides: sides, cornerR: 8, repairCooldown: 5.0 };
-          s.wall.gateOpen = false;
-        }
+      // Progress decays slightly during contests
+      s.prog = clamp(s.prog - dt*0.05, 0, 1);
+      if(s._captureTeam && s._captureTeam !== dominant.team){
+        delete s._captureTeam;
       }
-    } else if(s.owner==='player'){
-      s.underAttack = false;
-      const enemyInside = enemiesNearSite(state, s, s.r*0.90);
-      const allyInside = friendliesNearSite(state, s, s.r*0.90);
-      if(enemyInside && !playerInside && !allyInside){
-        s.prog = clamp(s.prog - dt*0.18, 0, 1);
-        if(s.prog <= 0){
-          // determine which enemy team is capturing
-          const team = findNearestEnemyTeamAtSite(state, s, s.r*1.15) || 'teamA';
-          s.owner = team;
-          s._justCaptured = team;
-          state.ui.toast(`<span class="neg"><b>${s.name}</b> was recaptured by ${team}.</span>`);
-          // spawn guards when a site becomes controlled by a team
-          if(typeof spawnGuardsForSite === 'function') spawnGuardsForSite(state, s);
-          // (re)create defensive walls for the new owner when site is recaptured
-          if(s.id && s.id.startsWith && s.id.startsWith('site_')){
-            const baseR = s.r + 18;
-            const sides = [];
-            for(let i=0;i<4;i++) sides.push({ hp: 60, maxHp: 60, destroyed: false, lastDamaged: -9999 });
-            s.wall = { r: baseR, thickness: 10, gateSide: Math.floor(Math.random()*4), sides: sides, cornerR: 8, repairCooldown: 5.0 };
-            s.wall.gateOpen = false;
-          }
-        }
-        } else {
-        if(playerInside || allyInside) s.prog = clamp(s.prog + dt*0.12, 0, 1);
-      }
+      continue;
     }
-
-    // Allow enemy teams to capture neutral (owner === null) sites when uncontested.
-    // Use s.prog as a neutral capture progress and s._captureTeam to track which team is progressing.
-    if(s.owner === null){
-      const allyInside = friendliesNearSite(state, s, s.r*0.90);
-      const enemyTeam = findNearestEnemyTeamAtSite(state, s, s.r*0.90);
-      if(enemyTeam && !playerInside && !allyInside){
-        // if a different team begins capturing, reset progress
-        if(s._captureTeam && s._captureTeam !== enemyTeam) s.prog = 0;
-        s._captureTeam = enemyTeam;
-        s.underAttack = true;
-        s.prog = clamp(s.prog + dt*0.18, 0, 1);
-        if(s.prog >= 1){
-          s.owner = enemyTeam;
-          s._justCaptured = enemyTeam;
-          state.ui.toast(`<span class=\"neg\"><b>${s.name}</b> was captured by ${enemyTeam}.</span>`);
-          if(typeof spawnGuardsForSite === 'function') spawnGuardsForSite(state, s);
-          // create defensive walls for the new owner when a neutral site is captured
-          if(s.id && s.id.startsWith && s.id.startsWith('site_')){
-            const baseR = s.r + 18;
-            const sides = [];
-            for(let i=0;i<4;i++) sides.push({ hp: 60, maxHp: 60, destroyed: false, lastDamaged: -9999 });
-            s.wall = { r: baseR, thickness: 10, gateSide: Math.floor(Math.random()*4), sides: sides, cornerR: 8, repairCooldown: 5.0 };
-            s.wall.gateOpen = false;
-          }
-        }
-      } else {
-        // decay neutral capture progress when uncontested or player nearby
-        s.prog = clamp(s.prog - dt*0.04, 0, 1);
+    
+    // No units contesting
+    if(!dominant.team){
+      s.underAttack = false;
+      // Only decay progress for neutral flags or if currently being captured
+      if(s.owner === null || s._captureTeam){
+        s.prog = clamp(s.prog - dt*0.08, 0, 1);
         if(s.prog <= 0) delete s._captureTeam;
       }
+      // Owned flags stay owned with full progress when uncontested
+      continue;
     }
-
-    if(!playerInside){
-      if(s.owner && s.owner!=='player') s.prog = clamp(s.prog - dt*0.04, 0, 1);
-      if(s.owner==='player') s.prog = clamp(s.prog + dt*0.03, 0, 1);
+    
+    // Single team is contesting the flag
+    const capturingTeam = dominant.team;
+    
+    // If site is already owned by this team, reinforce progress
+    if(s.owner === capturingTeam){
+      s.underAttack = false;
+      s.prog = clamp(s.prog + dt*0.12, 0, 1);
+      delete s._captureTeam;
+      continue;
+    }
+    
+    // Team is capturing enemy or neutral flag
+    s.underAttack = true;
+    
+    // If a different team begins capturing, reset progress
+    if(s._captureTeam && s._captureTeam !== capturingTeam){
+      s.prog = 0;
+    }
+    s._captureTeam = capturingTeam;
+    
+    // Capture speed based on number of units (more units = faster capture)
+    const captureSpeed = 0.15 + (Math.min(dominant.count, 5) * 0.03);
+    
+    if(s.owner === null){
+      // Capturing neutral flag
+      s.prog = clamp(s.prog + dt*captureSpeed, 0, 1);
+    } else {
+      // Capturing enemy flag (reverse progress first)
+      s.prog = clamp(s.prog - dt*captureSpeed, 0, 1);
+    }
+    
+    // Check if capture is complete
+    if(s.prog >= 1 && s.owner === null){
+      // Neutral flag captured
+      s.owner = capturingTeam;
+      s._justCaptured = capturingTeam;
+      const msg = capturingTeam === 'player' 
+        ? `<b>${s.name}</b> captured! Friendlies will spawn to defend.`
+        : `<span class="neg"><b>${s.name}</b> was captured by ${capturingTeam}.</span>`;
+      state.ui.toast(msg);
+      if(typeof spawnGuardsForSite === 'function') spawnGuardsForSite(state, s);
+      if(s.id && s.id.startsWith && s.id.startsWith('site_')){
+        const baseR = s.r + 18;
+        const sides = [];
+        for(let i=0;i<4;i++) sides.push({ hp: 60, maxHp: 60, destroyed: false, lastDamaged: -9999 });
+        s.wall = { r: baseR, thickness: 10, gateSide: Math.floor(Math.random()*4), sides: sides, cornerR: 8, repairCooldown: 5.0 };
+        s.wall.gateOpen = false;
+      }
+      delete s._captureTeam;
+    } else if(s.prog <= 0 && s.owner !== null){
+      // Enemy flag flipped
+      s.owner = capturingTeam;
+      s._justCaptured = capturingTeam;
+      s.prog = 1; // Set to full once captured
+      const msg = capturingTeam === 'player'
+        ? `<b>${s.name}</b> captured! Friendlies will spawn to defend.`
+        : `<span class="neg"><b>${s.name}</b> was recaptured by ${capturingTeam}.</span>`;
+      state.ui.toast(msg);
+      if(typeof spawnGuardsForSite === 'function') spawnGuardsForSite(state, s);
+      if(s.id && s.id.startsWith && s.id.startsWith('site_')){
+        const baseR = s.r + 18;
+        const sides = [];
+        for(let i=0;i<4;i++) sides.push({ hp: 60, maxHp: 60, destroyed: false, lastDamaged: -9999 });
+        s.wall = { r: baseR, thickness: 10, gateSide: Math.floor(Math.random()*4), sides: sides, cornerR: 8, repairCooldown: 5.0 };
+        s.wall.gateOpen = false;
+      }
+      delete s._captureTeam;
     }
   }
 }

@@ -269,25 +269,27 @@ export function render(state){
     }
   }
 
-  // slashes (player melee visuals) - damage area indicators
+  // slashes (melee visuals for all units) - damage area indicators
   if(state.effects && state.effects.slashes){
     for(const s of state.effects.slashes){
+      const originX = s.x !== undefined ? s.x : state.player.x;
+      const originY = s.y !== undefined ? s.y : state.player.y;
       const ang = (typeof s.dir === 'number')
         ? s.dir
         : (()=>{
-            const wm = state.input && state.input.mouse ? state.input.mouse : { x: state.player.x+1, y: state.player.y };
-            return Math.atan2(wm.y-state.player.y, wm.x-state.player.x);
+            const wm = state.input && state.input.mouse ? state.input.mouse : { x: originX+1, y: originY };
+            return Math.atan2(wm.y-originY, wm.x-originX);
           })();
       const t = Math.max(0, Math.min(1, s.t/0.12));
       // Draw filled damage area
       ctx.globalAlpha = 0.25 * t;
       ctx.fillStyle = s.color || 'rgba(155,123,255,0.5)';
-      ctx.beginPath(); ctx.arc(state.player.x, state.player.y, s.range, ang - s.arc/2, ang + s.arc/2); ctx.fill();
+      ctx.beginPath(); ctx.arc(originX, originY, s.range, ang - s.arc/2, ang + s.arc/2); ctx.fill();
       // Draw outline for clarity
       ctx.globalAlpha = 0.7 * t;
       ctx.strokeStyle = s.color || 'rgba(255,255,255,0.9)'; 
       ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(state.player.x, state.player.y, s.range, ang - s.arc/2, ang + s.arc/2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(originX, originY, s.range, ang - s.arc/2, ang + s.arc/2); ctx.stroke();
       ctx.globalAlpha = 1;
     }
   }
@@ -363,6 +365,15 @@ export function render(state){
       ctx.drawImage(img, e.x - size/2, e.y - size/2, size, size);
     }
     drawHpBar(ctx, e.x, e.y-e.r-14, 34, 6, Math.max(0, (e.hp||0)/(e.maxHp||1)));
+    // draw shield indicator (blue shield ring for enemy shields)
+    if(e.shield && e.shield > 0){
+      const shieldRatio = Math.min(1, e.shield / (e.maxShield || 100));
+      ctx.globalAlpha = 0.5 + 0.3*shieldRatio;
+      ctx.strokeStyle = '#6ec0ff';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.r+8, 0, Math.PI*2); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
     drawDebuffBadges(ctx, e.x, e.y - e.r - 28, collectDebuffBadges(e));
   }
 
@@ -506,44 +517,55 @@ export function render(state){
     ctx.restore();
   }
 
-  // Interaction prompt (e.g., "Press F to Open Marketplace")
-  if(!state.uiHidden && !state.inMenu && !state.showInventory && !state.showSkills && !state.showLevel && !state.showMarketplace){
+  // Interaction prompt (e.g., "Press F to Open Marketplace")  
+  if(state.player && !state.player.dead){
     const prompt = getInteractionPrompt(state);
-    if(prompt){
+    
+    // Debug text in bottom-left corner
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.font = '12px monospace';
+    ctx.fillStyle = '#0f0';
+    ctx.textAlign = 'left';
+    const dbgY = canvas.height - 10;
+    ctx.fillText(`Prompt: ${prompt ? prompt.text : 'none'}`, 10, dbgY);
+    ctx.restore();
+    
+    // Main interaction prompt
+    if(prompt && !state.uiHidden && !state.inMenu && !state.showInventory && !state.showSkills && !state.showLevel && !state.showMarketplace && !state.showBaseActions && !state.showGarrison){
       const interactKey = state.binds?.interact || 'KeyF';
-      const keyLabel = ACTION_LABELS.interact || 'Interact';
-      const displayKey = interactKey.replace('Key', '').replace('Digit', '');
+      const displayKey = interactKey.replace('Key', '').replace('Digit', '').replace('Left', '').replace('Right', '');
       
       ctx.save();
       ctx.setTransform(1,0,0,1,0,0); // Reset transform for screen-space rendering
-      ctx.font = 'bold 18px sans-serif';
+      ctx.font = 'bold 40px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
-      const text = `Press [${displayKey}] to ${prompt.text}`;
+      const text = `Press ${displayKey} ${prompt.text}`;
       const x = canvas.width / 2;
-      const y = canvas.height - 80;
+      const y = canvas.height / 2;
       
       // Background box
-      const padding = 12;
+      const padding = 24;
       const metrics = ctx.measureText(text);
       const boxWidth = metrics.width + padding * 2;
-      const boxHeight = 32;
+      const boxHeight = 80;
       
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
       ctx.fillRect(x - boxWidth/2, y - boxHeight/2, boxWidth, boxHeight);
       
       // Border
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(122, 162, 255, 0.8)';
+      ctx.lineWidth = 3;
       ctx.strokeRect(x - boxWidth/2, y - boxHeight/2, boxWidth, boxHeight);
       
       // Text
-      ctx.fillStyle = '#fff';
-      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-      ctx.lineWidth = 3;
-      ctx.strokeText(text, x, y);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.shadowBlur = 4;
       ctx.fillText(text, x, y);
+      ctx.shadowBlur = 0;
       
       ctx.restore();
     }
