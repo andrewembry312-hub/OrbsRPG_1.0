@@ -1269,14 +1269,22 @@ function bindUI(state){
   // Render Campaign tab contents (team gold, points, flags, avg level, armor rarity)
   ui.renderCampaignTab = ()=>{
     const teams = [
-      { key:'player', name:'Player', color:'#6cf' },
-      { key:'teamA', name:'Red Team', color:'#f66' },
-      { key:'teamB', name:'Yellow Team', color:'#fc6' },
-      { key:'teamC', name:'Blue Team', color:'#6af' }
+      { key:'player', name:'Kingdom of Light', color:'#6cf' },
+      { key:'teamA', name:'Crimson Legion', color:'#f66' },
+      { key:'teamB', name:'Golden Covenant', color:'#fc6' },
+      { key:'teamC', name:'Azure Order', color:'#6af' }
     ];
     const toStars=(tier)=>{
       const t = Math.max(1, Math.min(5, tier||1));
       return '★'.repeat(t) + '☆'.repeat(5-t);
+    };
+    const getRarityName = (tier) => {
+      if(tier === 1) return 'Common';
+      if(tier === 2) return 'Uncommon';
+      if(tier === 3) return 'Rare';
+      if(tier === 4) return 'Epic';
+      if(tier === 5) return 'Legendary';
+      return 'Common';
     };
     // compute leader/last and assistance eligibility
     const now = state.campaign?.time || 0;
@@ -1298,6 +1306,7 @@ function bindUI(state){
       const points = Math.floor((state.teamPoints?.[t.key])||0);
       const flags = (t.key==='player') ? state.sites.filter(s=>s.owner==='player' && s.id.startsWith('site_')).length : state.sites.filter(s=>s.owner===t.key && s.id.startsWith('site_')).length;
       const tier = (state.factionTech?.[t.key])||1;
+      const rarityName = getRarityName(tier);
       const enemies = state.enemies.filter(e=>e.team===t.key);
       const avgLevel = enemies.length ? Math.round(enemies.reduce((a,e)=>a+(e.level||1),0)/enemies.length) : 1;
       const gap = (t.key===leaderKey) ? 0 : Math.max(0, leaderPts - (pts[t.key]||0));
@@ -1305,25 +1314,31 @@ function bindUI(state){
       const next = Math.max(0, Math.ceil(((state.rubberbandNext?.[t.key]||0) - now)/60));
       const awarded = Math.floor(state.rubberbandAwarded?.[t.key]||0);
       const assistStr = eligible
-        ? `• Assist: <span style="color:#9f6">eligible</span> • Next: <b>${next}m</b> • Total: <b>${awarded}</b>`
-        : `• Assist: <span style="color:#888">off</span>`;
-      teamLines.push(`<div><span style="color:${t.color}; font-weight:900">${t.name}</span> — Gold: <b>${gold}</b> • Points: <b>${points}</b> • Flags: <b>${flags}</b> • Avg Level: <b>${avgLevel}</b> • Armor: <span style="color:#c9f">${toStars(tier)}</span> (Tier ${tier}) ${assistStr}</div>`);
+        ? `<br><span style="font-size:11px; color:#9f6">↑ Assistance Active</span> • Next Gold Boost: <b>${next}min</b> • Total Assisted: <b>${awarded}g</b>`
+        : `<br><span style="font-size:11px; color:#888">No Assistance (${gap < 60 ? 'too close to leader' : 'is leading'})</span>`;
+      teamLines.push(`<div style="margin-bottom:8px; font-size:13px; line-height:1.6;"><span style="color:${t.color}; font-weight:900; font-size:14px;">${t.name}</span><br>Gold: <b>${gold}</b> • Points: <b>${points}</b> • Flags: <b>${flags}</b> • Avg Lvl: <b>${avgLevel}</b><br>Equipment: <span style="color:#c9f; font-weight:bold;">${rarityName}</span> ${toStars(tier)} (Tier ${tier})${assistStr}</div>`);
     }
     const capLines=[];
+    const getTeamName = (teamKey) => {
+      const team = teams.find(t => t.key === teamKey);
+      return team ? team.name : teamKey;
+    };
     for(const s of state.sites){
       if(!s.id || !s.id.startsWith('site_')) continue;
       if(s._captureTeam){
-        capLines.push(`<div><b>${s.name}</b> capturing by <span style="color:#f66">${s._captureTeam}</span> • Progress: ${(Math.round((s.prog||0)*100))}%</div>`);
+        const teamName = getTeamName(s._captureTeam);
+        capLines.push(`<div style="font-size:12px; margin-bottom:4px;"><b>${s.name}</b> capturing by <span style="color:#f66">${teamName}</span> • Progress: <b>${(Math.round((s.prog||0)*100))}%</b></div>`);
       } else if(s.owner && s.owner!=='player' && s.underAttack){
-        capLines.push(`<div><b>${s.name}</b> under attack • Owner: <span style="color:#f66">${s.owner}</span></div>`);
+        const ownerName = getTeamName(s.owner);
+        capLines.push(`<div style="font-size:12px; margin-bottom:4px;"><b>${s.name}</b> under attack • Owner: <span style="color:#f66">${ownerName}</span></div>`);
       } else if(s.owner==='player' && s.underAttack){
-        capLines.push(`<div><b>${s.name}</b> under attack • Owner: <span style="color:#6cf">player</span></div>`);
+        capLines.push(`<div style="font-size:12px; margin-bottom:4px;"><b>${s.name}</b> under attack • Owner: <span style="color:#6cf">Kingdom of Light</span></div>`);
       }
     }
     const teamsEl = document.getElementById('campaignTeams');
     const capsEl = document.getElementById('campaignCaptures');
     if(teamsEl) teamsEl.innerHTML = teamLines.join('');
-    if(capsEl) capsEl.innerHTML = capLines.length ? capLines.join('') : '<div style="color:#888">No active captures.</div>';
+    if(capsEl) capsEl.innerHTML = capLines.length ? capLines.join('') : '<div style="color:#888; font-size:12px;">No active captures.</div>';
   };
 
   ui.toggleBaseActions = (on)=>{

@@ -2243,8 +2243,10 @@ function updateEnemies(state, dt){
     const targetLevel = Math.max(1, Math.floor(state.campaign.time/60) + 1, (state.factionTech?.[e.team]||1)*3);
     if(e.level < targetLevel){
       const prev = e.level||1;
+      const hpRatio = e.hp / (e.maxHp || 1); // Preserve HP ratio
       e.level = targetLevel;
       applyClassToUnit(e, e.variant);
+      e.hp = Math.max(1, Math.round(e.maxHp * hpRatio)); // Restore HP ratio instead of full heal
       npcInitAbilities(e);
       state.ui.toast?.(`<span class="neg">Enemy (${e.team||'AI'}) leveled up to <b>${e.level}</b>.</span>`);
     }
