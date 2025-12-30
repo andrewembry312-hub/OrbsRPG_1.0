@@ -1268,6 +1268,12 @@ function bindUI(state){
 
   // Render Campaign tab contents (team gold, points, flags, avg level, armor rarity)
   ui.renderCampaignTab = ()=>{
+    // *** CACHE TEST - Version: Dec 30, 2025 - 15:42 ***
+    console.log('%c🔔 CAMPAIGN TAB LOADED - Latest Version! ' + new Date().toLocaleTimeString(), 'background: #0f0; color: #000; font-size: 16px; padding: 5px;');
+    
+    // *** TEST HEADER - IF YOU SEE THIS, CHANGES ARE LOADING ***
+    ui.campaignPanel.innerHTML = '<div style="background:#ff0;color:#000;padding:20px;text-align:center;font-size:24px;font-weight:bold;margin-bottom:20px;border:5px solid red;">🔔 UI CHANGES ARE WORKING! 🔔<br>Campaign Tab Updated Successfully</div>';
+    
     const teams = [
       { key:'player', name:'Kingdom of Light', color:'#6cf' },
       { key:'teamA', name:'Crimson Legion', color:'#f66' },
