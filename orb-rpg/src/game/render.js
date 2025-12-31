@@ -525,24 +525,14 @@ export function render(state){
   if(state.player && !state.player.dead){
     const prompt = getInteractionPrompt(state);
     
-    // Debug text in bottom-left corner
-    ctx.save();
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.font = '12px monospace';
-    ctx.fillStyle = '#0f0';
-    ctx.textAlign = 'left';
-    const dbgY = canvas.height - 10;
-    ctx.fillText(`Prompt: ${prompt ? prompt.text : 'none'}`, 10, dbgY);
-    ctx.restore();
-    
-    // Main interaction prompt
-    if(prompt && !state.uiHidden && !state.inMenu && !state.showInventory && !state.showSkills && !state.showLevel && !state.showMarketplace && !state.showBaseActions && !state.showGarrison){
+    // Main interaction prompt - centered on screen
+    if(prompt && !state.inMenu && !state.showInventory && !state.showSkills && !state.showLevel && !state.showMarketplace && !state.showBaseActions && !state.showGarrison){
       const interactKey = state.binds?.interact || 'KeyF';
       const displayKey = interactKey.replace('Key', '').replace('Digit', '').replace('Left', '').replace('Right', '');
       
       ctx.save();
       ctx.setTransform(1,0,0,1,0,0); // Reset transform for screen-space rendering
-      ctx.font = 'bold 40px sans-serif';
+      ctx.font = 'bold 24px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
@@ -550,26 +540,14 @@ export function render(state){
       const x = canvas.width / 2;
       const y = canvas.height / 2;
       
-      // Background box
-      const padding = 24;
-      const metrics = ctx.measureText(text);
-      const boxWidth = metrics.width + padding * 2;
-      const boxHeight = 80;
-      
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-      ctx.fillRect(x - boxWidth/2, y - boxHeight/2, boxWidth, boxHeight);
-      
-      // Border
-      ctx.strokeStyle = 'rgba(122, 162, 255, 0.8)';
+      // Text with black stroke border
+      ctx.strokeStyle = '#000000';
       ctx.lineWidth = 3;
-      ctx.strokeRect(x - boxWidth/2, y - boxHeight/2, boxWidth, boxHeight);
+      ctx.strokeText(text, x, y);
       
-      // Text
+      // White fill
       ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 4;
       ctx.fillText(text, x, y);
-      ctx.shadowBlur = 0;
       
       ctx.restore();
     }

@@ -48,7 +48,7 @@ canvas{display:block}
 .invFullGrid{ display:grid; grid-template-columns: 1.05fr 0.8fr 0.2fr 1.1fr; gap:16px; height: calc(100vh - 120px); }
 .invLeft, .invRight, .invStats, .invSpacer{ height:100%; background:#0a0a0a; border:1px solid #fff; }
 .invLeft, .invStats{ overflow:hidden; }
-.invRight{ display:flex; flex-direction:column; overflow:auto; }
+.invRight{ position:relative; display:flex; flex-direction:column; overflow:auto; }
 .invRight .invGrid{ flex:1 1 auto; }
 .invRightHeader{ position:sticky; top:0; background:#0a0a0a; border-bottom:1px solid #fff; z-index:2; padding:8px; }
 .invRight.scrolled .invRightHeader{ box-shadow:0 8px 18px rgba(255,255,255,0.18); }
@@ -63,9 +63,9 @@ canvas{display:block}
 .invSpacer{ background:transparent; border-color:transparent; }
 .invStats{ display:flex; flex-direction:column; padding:10px; }
 .invLeft{ display:flex; flex-direction:column; }
-.heroLarge{ width:260px; height:260px; border-radius:12px; outline:2px solid #fff; }
+.heroLarge{ width:200px; height:200px; border-radius:12px; outline:2px solid #fff; }
 .equipCircle{ position:relative; display:flex; align-items:center; justify-content:center; padding:24px; width:420px; height:420px; margin:0 auto; }
-.equipSlot{ position:absolute; width:84px; height:84px; border-radius:12px; border:2px solid #fff; background:#111; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; color:#fff; cursor:pointer; user-select:none; }
+.equipSlot{ position:absolute; width:90px; height:90px; border-radius:10px; border:2px solid #fff; background:#111; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#fff; cursor:pointer; user-select:none; padding:2px; }
 .equipSlot:hover{ outline:2px solid rgba(122,162,255,.5); }
 .equipSlot.active{ outline:2px solid rgba(122,162,255,.8); }
 .equipExtras{ margin-top:16px; display:flex; flex-direction:column; gap:8px; }
@@ -74,9 +74,9 @@ canvas{display:block}
 
 .invGrid{display:grid; grid-template-columns: repeat(6, 1fr); gap:8px}
 .slot{
-  height:56px; border-radius:12px; border:1px solid #fff;
+  height:100px; border-radius:12px; border:1px solid #fff;
   background:#111; display:flex; align-items:center; justify-content:center;
-  cursor:pointer; user-select:none; font-weight:900; font-size:12px; text-align:center; padding:6px; color:#fff;
+  cursor:pointer; user-select:none; font-weight:900; font-size:12px; text-align:center; padding:2px; color:#fff;
 }
 .slot:hover{outline:2px solid rgba(122,162,255,.35)}
 .panel h2{margin:0 0 8px; font-size:18px}
@@ -86,9 +86,9 @@ canvas{display:block}
 
 .invGrid{display:grid; grid-template-columns: repeat(6, 1fr); gap:8px}
 .slot{
-  height:56px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+  height:100px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
   background:rgba(0,0,0,.14); display:flex; align-items:center; justify-content:center;
-  cursor:pointer; user-select:none; font-weight:900; font-size:12px; text-align:center; padding:6px;
+  cursor:pointer; user-select:none; font-weight:900; font-size:12px; text-align:center; padding:2px;
 }
 .slot:hover{outline:2px solid rgba(122,162,255,.35)}
 .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}

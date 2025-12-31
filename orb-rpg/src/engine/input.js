@@ -26,7 +26,11 @@ export function initInput(canvas){
     return false;
   }
 
-  addEventListener('keydown',e=>{ if(isTypingIntoUi(e)) return; keysDown.add(e.code); });
+  addEventListener('keydown',e=>{ 
+    if(isTypingIntoUi(e)) return; 
+    if(e.code === 'F5'){ e.preventDefault(); }
+    keysDown.add(e.code); 
+  });
   addEventListener('keyup',e=>{ if(isTypingIntoUi(e)) return; keysDown.delete(e.code); });
 
   return { keysDown, mouse };

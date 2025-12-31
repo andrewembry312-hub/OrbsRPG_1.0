@@ -18,6 +18,7 @@ const RETURN_THRESHOLD = 260; // if farther than this from home, force return
 
 export async function initGame(state){
   try{ console.log('initGame: starting'); }catch(e){}
+  
   // Reset group and transient collections to avoid carryover from previous runs
   try{
     state.group.members.length = 0;
@@ -44,6 +45,13 @@ export async function initGame(state){
   seedTeamForces(state, 'teamA', 10);
   seedTeamForces(state, 'teamB', 10);
   seedTeamForces(state, 'teamC', 10);
+  
+  // Store utility functions in state to avoid circular imports
+  state._npcUtils = {
+    applyClassToUnit,
+    npcInitAbilities,
+    spawnEnemyAt
+  };
 }
 
 export function currentStats(state){
@@ -656,7 +664,9 @@ function killEnemy(state, index, fromPlayer=true){
 }
 
 function enemyTemplate(t){
-  return { speed:58+t*0.20, maxHp:26+t*0.35, contactDmg:10+t*0.10, xp:8+t*0.06 };
+  // Base stats only - no time scaling to avoid compounding with level/class multipliers
+  // Level scaling is handled in applyClassToUnit
+  return { speed:90, maxHp:50, contactDmg:12, xp:10 };
 }
 
 export function applyClassToUnit(unit, cls){
@@ -1145,7 +1155,7 @@ function spawnEnemyAt(state, x,y, t, opts={}){
   const eT=enemyTemplate(t);
   // boost initial speed for spawned enemies to ensure they move immediately
   const baseSpeed = opts.level ? 90 : eT.speed; // level 1 enemies get faster base speed
-  const e = {x,y,r:13,maxHp:eT.maxHp,hp:eT.maxHp,mana:40,maxMana:40,speed:baseSpeed,contactDmg:eT.contactDmg,hitCd:0, xp:eT.xp, attacked:false, level, buffs:[], dots:[]};
+  const e = {x,y,r:13,maxHp:eT.maxHp,hp:eT.maxHp,mana:40,maxMana:40,speed:baseSpeed,contactDmg:eT.contactDmg,hitCd:0, xp:eT.xp, attacked:false, buffs:[], dots:[]};
   if(opts.homeSiteId) e.homeSiteId = opts.homeSiteId;
   if(opts.spawnTargetSiteId) e.spawnTargetSiteId = opts.spawnTargetSiteId;
   if(opts.team) e.team = opts.team;
@@ -1175,14 +1185,9 @@ function spawnEnemyAt(state, x,y, t, opts={}){
   else if(e.boss) e.variant = 'tank';
   else if(e.knight) e.variant = 'knight';
   else e.variant = VARS[randi(0, VARS.length-1)];
-  // normalize stats to class template for consistency
-  applyClassToUnit(e, e.variant);
+  // Set level FIRST, then apply class - applyClassToUnit scales based on level
   e.level = Math.max(1, level);
-  // scale rarity by faction tech if available
-  if(e.team){
-    const tier = (state.factionTech?.[e.team]||1);
-    e.level = Math.max(e.level, tier*3); // tech loosely maps to level bracket
-  }
+  applyClassToUnit(e, e.variant);
   npcInitAbilities(e);
   state.enemies.push(e);
   return e;
@@ -1704,44 +1709,126 @@ function updateFriendlies(state, dt){
 
     }
     else if(a.guard){
-      // Guards: defend their site - chase enemies within range but don't chase beyond leash radius
+      // COORDINATED GUARD AI - Aggressive flag defense with ball group tactics
+      const guardSite = a.homeSiteId ? state.sites.find(s => s.id === a.homeSiteId) : null;
       const spawnX = (a._spawnX!==undefined)?a._spawnX:a.x;
       const spawnY = (a._spawnY!==undefined)?a._spawnY:a.y;
       const distFromSpawn = Math.hypot(a.x - spawnX, a.y - spawnY);
-      const GUARD_AGGRO_RANGE = 150; // Radius to detect and engage enemies
-      const GUARD_LEASH_RADIUS = 180; // Maximum distance from spawn point before returning
       
-      if(near.e && near.d <= GUARD_AGGRO_RANGE){
-        // Enemy detected - check if chasing would exceed leash radius
-        const distEnemyFromSpawn = Math.hypot(near.e.x - spawnX, near.e.y - spawnY);
+      // Guard ranges for aggressive defense
+      const FLAG_RADIUS = guardSite ? guardSite.r : 50; // Flag capture radius
+      const INNER_DEFENSE = FLAG_RADIUS + 80; // Priority zone around flag
+      const AGGRO_RANGE = 220; // Extended aggro range - very aggressive
+      const LEASH_RADIUS = 280; // Don't chase beyond this
+      
+      // Find all allies (other guards at same site) for coordination
+      const allies = state.friendlies.filter(f => 
+        f.guard && f.homeSiteId === a.homeSiteId && f !== a && f.respawnT <= 0
+      );
+      
+      // PRIORITY TARGET SELECTION
+      // 1st: Enemies inside flag radius (contesting)
+      // 2nd: Enemies in inner defense zone
+      // 3rd: Any enemy in aggro range
+      // 4th: Enemies attacking guards
+      let priorityTarget = null, targetPriority = 0, targetDist = Infinity;
+      
+      for(const e of state.enemies){
+        if(e.dead || e.hp <= 0) continue;
+        const distToEnemy = Math.hypot(e.x - a.x, e.y - a.y);
+        const distEnemyFromFlag = guardSite ? Math.hypot(e.x - guardSite.x, e.y - guardSite.y) : Infinity;
+        const distEnemyFromSpawn = Math.hypot(e.x - spawnX, e.y - spawnY);
         
-        if(distEnemyFromSpawn <= GUARD_LEASH_RADIUS && distFromSpawn < GUARD_LEASH_RADIUS){
-          // Enemy is within leash radius - pursue and attack
-          a.attacked = true;
-          a.speed = 120;
-          tx = near.e.x;
-          ty = near.e.y;
-        } else {
-          // Enemy is beyond leash radius or guard is too far - return to post
-          a.attacked = false;
-          a.speed = 120;
-          tx = spawnX;
-          ty = spawnY;
+        // Skip if enemy is way beyond leash
+        if(distEnemyFromSpawn > LEASH_RADIUS) continue;
+        
+        let priority = 0;
+        // Priority 1: Inside flag radius (HIGHEST - defending capture)
+        if(distEnemyFromFlag <= FLAG_RADIUS) priority = 100;
+        // Priority 2: In inner defense zone
+        else if(distEnemyFromFlag <= INNER_DEFENSE) priority = 80;
+        // Priority 3: In aggro range
+        else if(distToEnemy <= AGGRO_RANGE) priority = 60;
+        // Priority 4: Attacking this guard or allies
+        if(e.attacked && (e._hostTarget === a || allies.some(ally => e._hostTarget === ally))){
+          priority += 50; // Boost priority significantly
         }
-      } else if(a.attacked || distFromSpawn > 6){
-        // No enemy nearby or returning to spawn
+        
+        // Select highest priority, or closest if tied
+        if(priority > targetPriority || (priority === targetPriority && distToEnemy < targetDist)){
+          targetPriority = priority;
+          targetDist = distToEnemy;
+          priorityTarget = e;
+        }
+      }
+      
+      if(priorityTarget){
+        // AGGRESSIVE ENGAGEMENT
+        a.attacked = true;
+        const isHealer = (a.guardRole === 'HEALER');
+        
+        if(isHealer){
+          // Healers: Stay back but support allies
+          const optimalDist = 100; // Stay at range
+          if(targetDist > optimalDist + 20){
+            // Move closer but maintain range
+            a.speed = 110;
+            tx = priorityTarget.x;
+            ty = priorityTarget.y;
+          } else if(targetDist < optimalDist - 20){
+            // Kite back
+            a.speed = 110;
+            const angle = Math.atan2(a.y - priorityTarget.y, a.x - priorityTarget.x);
+            tx = a.x + Math.cos(angle) * 40;
+            ty = a.y + Math.sin(angle) * 40;
+          } else {
+            // At good range, hold position
+            a.speed = 0;
+            tx = a.x;
+            ty = a.y;
+          }
+        } else {
+          // DPS: Aggressive chase, coordinate with allies
+          a.speed = 140; // Fast pursuit
+          
+          // Ball group coordination: move toward ally center of mass while chasing
+          if(a.guardFormation && allies.length > 0){
+            let allyX = 0, allyY = 0, allyCount = 0;
+            for(const ally of allies){
+              allyX += ally.x;
+              allyY += ally.y;
+              allyCount++;
+            }
+            if(allyCount > 0){
+              allyX /= allyCount;
+              allyY /= allyCount;
+              // Blend: 70% chase target, 30% stay with group
+              tx = priorityTarget.x * 0.7 + allyX * 0.3;
+              ty = priorityTarget.y * 0.7 + allyY * 0.3;
+            } else {
+              tx = priorityTarget.x;
+              ty = priorityTarget.y;
+            }
+          } else {
+            tx = priorityTarget.x;
+            ty = priorityTarget.y;
+          }
+        }
+      }
+      else if(a.attacked || distFromSpawn > 12){
+        // NO THREATS: Return to guard position
+        a.attacked = false;
         a.speed = 120;
         tx = spawnX;
         ty = spawnY;
         const dd = Math.hypot(tx - a.x, ty - a.y);
-        if(dd <= 6){
-          a.attacked = false;
+        if(dd <= 12){
           a.speed = 0;
           tx = a.x = spawnX;
           ty = a.y = spawnY;
         }
       } else {
-        // Idle at spawn
+        // IDLE AT POST - Ready to defend
         a.speed = 0;
         tx = a.x = spawnX;
         ty = a.y = spawnY;
@@ -2057,59 +2144,156 @@ function updateEnemies(state, dt){
     // determine goal position
     let tx, ty;
     
-    // Guards defend their site
+    // COORDINATED GUARD AI - Aggressive flag defense with ball group tactics
     if(e.guard){
       const guardSite = e.homeSiteId ? state.sites.find(s => s.id === e.homeSiteId) : null;
-      if(guardSite){
-        const spawnX = e.x; // Guard spawn position
-        const spawnY = e.y;
-        const distFromSpawn = Math.hypot(e.x - spawnX, e.y - spawnY);
-        const GUARD_AGGRO_RANGE = 150;
-        const GUARD_LEASH_RADIUS = 180;
-        
-        // Check for nearest hostile within aggro range
-        let nearestHost = null, nearestHD = Infinity;
-        if(!state.player.dead){ 
-          const d = Math.hypot(state.player.x - e.x, state.player.y - e.y); 
-          if(d < nearestHD && d <= GUARD_AGGRO_RANGE){ nearestHD = d; nearestHost = state.player; }
+      const spawnX = e._spawnX || e.x;
+      const spawnY = e._spawnY || e.y;
+      if(!e._spawnX) { e._spawnX = spawnX; e._spawnY = spawnY; }
+      const distFromSpawn = Math.hypot(e.x - spawnX, e.y - spawnY);
+      
+      // Guard ranges - extended for more aggressive behavior
+      const FLAG_RADIUS = guardSite ? guardSite.r : 50;
+      const INNER_DEFENSE = FLAG_RADIUS + 100;
+      const AGGRO_RANGE = 300; // Increased from 220
+      const LEASH_RADIUS = 350; // Increased from 280
+      
+      // Find allied guards - for ball group coordination
+      const allies = state.enemies.filter(en => 
+        en !== e && en.guard && en.homeSiteId === e.homeSiteId && (!en.dead && en.hp > 0)
+      );
+      
+      // Calculate ball group center (average position of all guards)
+      let ballCenterX = e.x, ballCenterY = e.y;
+      if(allies.length > 0){
+        let totalX = e.x, totalY = e.y;
+        for(const ally of allies){
+          totalX += ally.x;
+          totalY += ally.y;
         }
-        for(const f of state.friendlies){ 
-          if(f.respawnT>0) continue; 
-          const d=Math.hypot(f.x - e.x, f.y - e.y); 
-          if(d < nearestHD && d <= GUARD_AGGRO_RANGE){ nearestHD = d; nearestHost = f; }
-        }
+        ballCenterX = totalX / (allies.length + 1);
+        ballCenterY = totalY / (allies.length + 1);
+      }
+      
+      // PRIORITY TARGET SELECTION
+      let priorityTarget = null, targetPriority = 0, targetDist = Infinity;
+      
+      // Check player
+      if(!state.player.dead && state.player.hp > 0){
+        const distToPlayer = Math.hypot(state.player.x - e.x, state.player.y - e.y);
+        const distPlayerFromFlag = guardSite ? Math.hypot(state.player.x - guardSite.x, state.player.y - guardSite.y) : Infinity;
+        const distPlayerFromSpawn = Math.hypot(state.player.x - spawnX, state.player.y - spawnY);
         
-        if(nearestHost){
-          // Check if enemy is within leash radius from guard's spawn
-          const hostDistFromSpawn = Math.hypot(nearestHost.x - spawnX, nearestHost.y - spawnY);
-          if(hostDistFromSpawn <= GUARD_LEASH_RADIUS && distFromSpawn < GUARD_LEASH_RADIUS){
-            // Chase enemy
-            e.attacked = true;
-            e._hostTarget = nearestHost;
-            tx = nearestHost.x;
-            ty = nearestHost.y;
-          } else {
-            // Return to post - enemy too far
-            e.attacked = false;
-            tx = spawnX;
-            ty = spawnY;
+        if(distPlayerFromSpawn <= LEASH_RADIUS){
+          let priority = 0;
+          if(distPlayerFromFlag <= FLAG_RADIUS) priority = 100; // On flag = highest priority
+          else if(distPlayerFromFlag <= INNER_DEFENSE) priority = 80; // Near flag
+          else if(distToPlayer <= AGGRO_RANGE) priority = 60; // In aggro range
+          
+          if(priority > 0){
+            targetPriority = priority;
+            targetDist = distToPlayer;
+            priorityTarget = state.player;
           }
-        } else if(e.attacked || distFromSpawn > 6){
-          // Return to spawn
-          tx = spawnX;
-          ty = spawnY;
-          const dd = Math.hypot(tx - e.x, ty - e.y);
-          if(dd <= 6){
-            e.attacked = false;
-            e.speed = 0;
-            continue; // Guard is idle at spawn
-          }
-        } else {
-          // Idle at spawn
-          e.speed = 0;
-          continue;
         }
       }
+      
+      // Check friendlies
+      for(const f of state.friendlies){
+        if(f.respawnT > 0) continue;
+        const distToFriendly = Math.hypot(f.x - e.x, f.y - e.y);
+        const distFriendlyFromFlag = guardSite ? Math.hypot(f.x - guardSite.x, f.y - guardSite.y) : Infinity;
+        const distFriendlyFromSpawn = Math.hypot(f.x - spawnX, f.y - spawnY);
+        
+        if(distFriendlyFromSpawn > LEASH_RADIUS) continue;
+        
+        let priority = 0;
+        if(distFriendlyFromFlag <= FLAG_RADIUS) priority = 100;
+        else if(distFriendlyFromFlag <= INNER_DEFENSE) priority = 80;
+        else if(distToFriendly <= AGGRO_RANGE) priority = 60;
+        
+        if(priority > targetPriority || (priority === targetPriority && distToFriendly < targetDist)){
+          targetPriority = priority;
+          targetDist = distToFriendly;
+          priorityTarget = f;
+        }
+      }
+      
+      if(priorityTarget){
+        // AGGRESSIVE COORDINATED ENGAGEMENT
+        e.attacked = true;
+        const isHealer = (e.guardRole === 'HEALER');
+        
+        if(isHealer){
+          // Healers stay mid-range and position near ball group center
+          const optimalDist = 120;
+          e.speed = 100;
+          
+          // Move toward ball group center while maintaining healing range
+          const distToBallCenter = Math.hypot(e.x - ballCenterX, e.y - ballCenterY);
+          if(distToBallCenter > 60){
+            // Too far from group, move toward center
+            tx = ballCenterX;
+            ty = ballCenterY;
+          } else if(targetDist > optimalDist + 30){
+            // Move closer to target while staying near group
+            tx = priorityTarget.x * 0.6 + ballCenterX * 0.4;
+            ty = priorityTarget.y * 0.6 + ballCenterY * 0.4;
+          } else if(targetDist < optimalDist - 30){
+            // Too close, back up toward group center
+            const angle = Math.atan2(e.y - priorityTarget.y, e.x - priorityTarget.x);
+            tx = e.x + Math.cos(angle) * 50;
+            ty = e.y + Math.sin(angle) * 50;
+          } else {
+            // Good position, minimal movement
+            e.speed = 30;
+            tx = e.x;
+            ty = e.y;
+          }
+        } else {
+          // DPS guards: aggressive ball group tactics
+          e.speed = 140; // Fast and aggressive
+          
+          if(e.guardFormation && allies.length > 0){
+            // Ball group: move as a coordinated unit
+            // 70% toward target, 30% toward ball center for cohesion
+            tx = priorityTarget.x * 0.75 + ballCenterX * 0.25;
+            ty = priorityTarget.y * 0.75 + ballCenterY * 0.25;
+          } else {
+            // Solo guard or no allies - direct engagement
+            tx = priorityTarget.x;
+            ty = priorityTarget.y;
+          }
+        }
+      }
+      else if(e.attacked || distFromSpawn > 30){
+        // No targets - return to spawn position
+        e.attacked = false;
+        e.speed = 110;
+        tx = spawnX;
+        ty = spawnY;
+        const dd = Math.hypot(tx - e.x, ty - e.y);
+        if(dd <= 20){
+          e.speed = 0;
+          e.x = spawnX;
+          e.y = spawnY;
+          continue;
+        }
+      } else {
+        // Idle at spawn
+        e.speed = 0;
+        continue;
+      }
+      
+      // Guard movement - apply the target position set above
+      const cc = getCcState(e);
+      if(e.speed > 0){
+        const slowFactor = (e.inWater ? 0.45 : 1.0) * ((cc.rooted||cc.stunned) ? 0 : Math.max(0, 1 + cc.speedMod));
+        if(slowFactor>0) moveWithAvoidance(e, tx, ty, state, dt, { slowFactor });
+      }
+      
+      // Guards handled - skip normal enemy AI
+      // Jump to contact attack
     } else {
       const dp = Math.hypot(state.player.x - e.x, state.player.y - e.y);
       const dh = home ? Math.hypot(home.x - e.x, home.y - e.y) : Infinity;
@@ -2239,14 +2423,22 @@ function updateEnemies(state, dt){
     const cc2 = getCcState(e);
     if(!cc2.stunned && !cc2.silenced) npcUpdateAbilities(state, e, dt, 'enemy');
 
-    // passive auto-level catch-up to player progression over time
-    const targetLevel = Math.max(1, Math.floor(state.campaign.time/60) + 1, (state.factionTech?.[e.team]||1)*3);
+    // passive auto-level catch-up to player progression over time (no faction tech to avoid compounding)
+    const targetLevel = Math.max(1, Math.floor(state.campaign.time/60) + 1);
     if(e.level < targetLevel){
       const prev = e.level||1;
       const hpRatio = e.hp / (e.maxHp || 1); // Preserve HP ratio
+      
+      // Manually scale stats by level increase without re-applying class multipliers
+      const levelDiff = targetLevel - prev;
+      const hpMult = Math.pow(1.12, levelDiff); // 12% per level
+      const dmgMult = Math.pow(1.10, levelDiff); // 10% per level
+      
       e.level = targetLevel;
-      applyClassToUnit(e, e.variant);
-      e.hp = Math.max(1, Math.round(e.maxHp * hpRatio)); // Restore HP ratio instead of full heal
+      e.maxHp = Math.round(e.maxHp * hpMult);
+      e.contactDmg = Math.round(e.contactDmg * dmgMult);
+      e.hp = Math.max(1, Math.round(e.maxHp * hpRatio)); // Restore HP ratio
+      
       npcInitAbilities(e);
       state.ui.toast?.(`<span class="neg">Enemy (${e.team||'AI'}) leveled up to <b>${e.level}</b>.</span>`);
     }
@@ -2489,10 +2681,15 @@ function tryCastSlot(state, idx){
       break;
     }
     case 'meteor_slam':{
-      // Auto-target closest enemy in range
-      const target = findClosestEnemy(400);
-      const x = target ? target.x : wm.x;
-      const y = target ? target.y : wm.y;
+      // Cast at mouse location with max range limit
+      const maxRange = 400;
+      const dx = wm.x - state.player.x;
+      const dy = wm.y - state.player.y;
+      const dist = Math.hypot(dx, dy);
+      const clampedDist = Math.min(dist, maxRange);
+      const angle = Math.atan2(dy, dx);
+      const x = state.player.x + Math.cos(angle) * clampedDist;
+      const y = state.player.y + Math.sin(angle) * clampedDist;
       const radius=115,dmg=24+st.atk*1.15;
       areaDamage(x,y,radius,dmg,'burn','slow');
       state.effects.flashes.push({ x, y, r: radius, life: 0.9, color: '#ff9a3c' });
@@ -2732,13 +2929,25 @@ function tryCastSlot(state, idx){
       break;
     }
     case 'warrior_charge':{
-      const chargeDist = 240;
-      const ax = Math.cos(a), ay = Math.sin(a);
-      state.player.x = clamp(state.player.x + ax*chargeDist, 0, state.engine.canvas.width);
-      state.player.y = clamp(state.player.y + ay*chargeDist, 0, state.engine.canvas.height);
+      // Calculate distance to mouse
+      const dx = wm.x - state.player.x;
+      const dy = wm.y - state.player.y;
+      const distToMouse = Math.hypot(dx, dy);
+      const maxChargeDist = 240;
+      
+      // Charge toward mouse, capped at max distance
+      const actualDist = Math.min(distToMouse, maxChargeDist);
+      const angle = Math.atan2(dy, dx);
+      const newX = state.player.x + Math.cos(angle) * actualDist;
+      const newY = state.player.y + Math.sin(angle) * actualDist;
+      
+      // Clamp to map bounds
+      state.player.x = clamp(newX, 0, state.mapWidth || state.engine.canvas.width);
+      state.player.y = clamp(newY, 0, state.mapHeight || state.engine.canvas.height);
+      
       areaDamage(state.player.x,state.player.y,90,14+st.atk*1.1,'bleed','stun');
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 90, life: 0.7, color: '#9b7bff' });
-      state.effects.slashes.push({ x: state.player.x, y: state.player.y, range: 90, arc: Math.PI*2, dir: a, t: 0, color: '#9b7bff' });
+      state.effects.slashes.push({ x: state.player.x, y: state.player.y, range: 90, arc: Math.PI*2, dir: angle, t: 0, color: '#9b7bff' });
       applyBuffSelf('haste');
       break;
     }
@@ -3298,7 +3507,7 @@ export function getInteractionPrompt(state){
   if(homeBase){
     const dist = Math.hypot(state.player.x - homeBase.x, state.player.y - homeBase.y);
     if(dist <= 120){
-      return { text: 'Access Base', action: 'base' };
+      return { text: 'to Open Base Menu', action: 'base' };
     }
   }
   
@@ -3308,7 +3517,7 @@ export function getInteractionPrompt(state){
       if(s.owner === 'player' && s.id && s.id.startsWith('site_')){
         const dist = Math.hypot(state.player.x - s.x, state.player.y - s.y);
         if(dist <= 80){
-          return { text: 'Access Base', action: 'base' };
+          return { text: 'to Open Base Menu', action: 'base' };
         }
       }
     }
@@ -3337,35 +3546,41 @@ export function handleHotkeys(state, dt){
   const escDown = state.input.keysDown.has(state.binds.menu);
   if(escDown && !state._escLatch){
     state._escLatch = true;
-    // if any overlay (including menu itself) is open, close them and DO NOT open menu
-    const anyOverlay = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace || state.showBaseActions || state.showGarrison || state.inMenu || state.selectedUnit;
-    if(anyOverlay){
-      state.showInventory = false; 
-      state.showSkills = false; 
-      state.showLevel = false; 
-      state.mapOpen = false; 
-      state.showMarketplace = false;
-      state.showBaseActions = false;
-      state.showGarrison = false;
-      state.paused = false;
-      if(state.ui) { 
-        state.ui.invOverlay.classList.remove('show'); 
-        state.ui.escOverlay.classList.remove('show');
-        state.ui.mapOverlay && state.ui.mapOverlay.classList && state.ui.mapOverlay.classList.remove('show'); 
-        state.ui.marketplaceOverlay && state.ui.marketplaceOverlay.classList && state.ui.marketplaceOverlay.classList.remove('show');
-        state.ui.baseActionsOverlay && state.ui.baseActionsOverlay.classList && state.ui.baseActionsOverlay.classList.remove('show');
-        state.ui.garrisonOverlay && state.ui.garrisonOverlay.classList && state.ui.garrisonOverlay.classList.remove('show');
-        // Close unit inspection panel if open
-        if(state.selectedUnit){
-          state.ui.unitInspectionPanel.style.display = 'none';
-          state.ui.unitInspectionContent.style.display = 'none';
-          state.selectedUnit = null;
-        }
-      }
-      state.inMenu = false;
+    // Close weapon preview if open
+    const weaponPreview = document.getElementById('weaponPreview');
+    if(weaponPreview && weaponPreview.style.display === 'flex'){
+      weaponPreview.style.display = 'none';
     } else {
-      // Only open menu if nothing is open
-      state.ui.toggleMenu(true);
+      // if any overlay (including menu itself) is open, close them and DO NOT open menu
+      const anyOverlay = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace || state.showBaseActions || state.showGarrison || state.inMenu || state.selectedUnit;
+      if(anyOverlay){
+        state.showInventory = false; 
+        state.showSkills = false; 
+        state.showLevel = false; 
+        state.mapOpen = false; 
+        state.showMarketplace = false;
+        state.showBaseActions = false;
+        state.showGarrison = false;
+        state.paused = false;
+        if(state.ui) { 
+          state.ui.invOverlay.classList.remove('show'); 
+          state.ui.escOverlay.classList.remove('show');
+          state.ui.mapOverlay && state.ui.mapOverlay.classList && state.ui.mapOverlay.classList.remove('show'); 
+          state.ui.marketplaceOverlay && state.ui.marketplaceOverlay.classList && state.ui.marketplaceOverlay.classList.remove('show');
+          state.ui.baseActionsOverlay && state.ui.baseActionsOverlay.classList && state.ui.baseActionsOverlay.classList.remove('show');
+          state.ui.garrisonOverlay && state.ui.garrisonOverlay.classList && state.ui.garrisonOverlay.classList.remove('show');
+          // Close unit inspection panel if open
+          if(state.selectedUnit){
+            state.ui.unitInspectionPanel.style.display = 'none';
+            state.ui.unitInspectionContent.style.display = 'none';
+            state.selectedUnit = null;
+          }
+        }
+        state.inMenu = false;
+      } else {
+        // Only open menu if nothing is open
+        state.ui.toggleMenu(true);
+      }
     }
   }
   if(!escDown) state._escLatch=false;
@@ -3548,6 +3763,16 @@ export function handleHotkeys(state, dt){
   if(mapKey && !state._mapLatch){ state._mapLatch = true; state.mapOpen = !state.mapOpen; state.paused = state.mapOpen; }
   if(!mapKey) state._mapLatch = false;
 
+  // Save manager (F5 key)
+  const saveKey = state.input.keysDown.has('F5');
+  if(saveKey && !state._saveLatch && !state.inMenu && !state.showInventory){
+    state._saveLatch = true;
+    if(state.ui && state.ui.toggleSaves){
+      state.ui.toggleSaves(true);
+    }
+  }
+  if(!saveKey) state._saveLatch = false;
+
   // Inventory hotkeys when inventory is open: E = equip/use selected, Q = drop selected
   const eKey = state.input.keysDown.has('KeyE');
   if(eKey && !state._equipLatch && state.showInventory && !state.inMenu){
@@ -3567,6 +3792,145 @@ export function handleHotkeys(state, dt){
     }
   }
   if(!qKey) state._dropInvLatch = false;
+
+  // Helper: Calculate item overall rating
+  function calculateItemRating(item){
+    if(!item || !item.buffs) return 0;
+    let rating = 0;
+    const buffs = item.buffs;
+    if(buffs.atk) rating += buffs.atk * 2;
+    if(buffs.def) rating += buffs.def * 2;
+    if(buffs.maxHp) rating += buffs.maxHp * 0.5;
+    if(buffs.maxMana) rating += buffs.maxMana * 0.3;
+    if(buffs.maxStam) rating += buffs.maxStam * 0.3;
+    if(buffs.speed) rating += buffs.speed * 3;
+    if(buffs.hpRegen) rating += buffs.hpRegen * 10;
+    if(buffs.manaRegen) rating += buffs.manaRegen * 10;
+    if(buffs.stamRegen) rating += buffs.stamRegen * 8;
+    if(buffs.cdr) rating += buffs.cdr * 100;
+    if(buffs.critChance) rating += buffs.critChance * 80;
+    if(buffs.critMult) rating += buffs.critMult * 50;
+    const rarityBonus = { common: 0, uncommon: 10, rare: 30, epic: 60, legend: 120 };
+    rating += rarityBonus[item.rarity?.key || 'common'] || 0;
+    return Math.round(rating);
+  }
+
+  // Weapon Preview (P key) when inventory is open
+  const pKey = state.input.keysDown.has('KeyP');
+  if(pKey && !state._previewLatch && state.showInventory && !state.inMenu){
+    state._previewLatch = true;
+    const previewOverlay = document.getElementById('weaponPreview');
+    const previewImage = document.getElementById('weaponPreviewImage');
+    const previewTitle = document.getElementById('weaponPreviewTitle');
+    const previewError = document.getElementById('weaponPreviewError');
+    const previewStats = document.getElementById('weaponPreviewStats');
+    const previewStatsContent = document.getElementById('weaponPreviewStatsContent');
+    
+    if(previewOverlay){
+      // Toggle preview if already open
+      if(previewOverlay.style.display === 'flex'){
+        previewOverlay.style.display = 'none';
+      } else {
+        // Get selected item
+        const selectedItem = (state.selectedIndex>=0 && state.selectedIndex<state.inventory.length)
+          ? state.inventory[state.selectedIndex]
+          : (state.selectedEquipSlot && state.player.equip ? state.player.equip[state.selectedEquipSlot] : null);
+        
+        if(selectedItem && selectedItem.kind === 'weapon'){
+          // Build image path: assets/items/{Rarity} {WeaponType}.png
+          const rarityName = selectedItem.rarity?.name || 'Common';
+          const weaponType = selectedItem.weaponType || 'Sword';
+          const imagePath = `assets/items/${rarityName} ${weaponType}.png`;
+          
+          // Build stats display with full details
+          let statsHtml = '';
+          
+          // Overall rating at the top
+          const rating = calculateItemRating(selectedItem);
+          statsHtml += `<div style="color:#d4af37; font-weight:bold; margin-bottom:12px; font-size:16px; text-align:center; background:rgba(212,175,55,0.15); padding:8px; border-radius:6px;">⭐ Overall Rating: ${rating}</div>`;
+          
+          // Weapon type and slot
+          statsHtml += `<div style="color:#d4af37; margin-bottom:10px; font-size:15px; border-bottom:1px solid rgba(212,175,55,0.3); padding-bottom:6px;">`;
+          statsHtml += `<div><b>Type:</b> ${selectedItem.weaponType || 'Weapon'}</div>`;
+          statsHtml += `<div><b>Slot:</b> ${selectedItem.slot || 'Weapon'}</div>`;
+          statsHtml += `<div><b>Rarity:</b> <span style="color:${selectedItem.rarity?.color || '#fff'}">${selectedItem.rarity?.name || 'Common'}</span></div>`;
+          statsHtml += `</div>`;
+          
+          // Description if available
+          if(selectedItem.desc){
+            statsHtml += `<div style="color:#ccc; font-style:italic; margin-bottom:12px; font-size:13px;">${selectedItem.desc}</div>`;
+          }
+          
+          // Stats section
+          if(selectedItem.buffs && Object.keys(selectedItem.buffs).length > 0){
+            statsHtml += `<div style="color:#4a9eff; font-weight:bold; margin-bottom:8px; font-size:15px;">Bonuses:</div>`;
+            const buffs = selectedItem.buffs;
+            if(buffs.atk) statsHtml += `<div style="margin-bottom:4px;">⚔️ <b>Attack:</b> <span style="color:#6f6">+${Math.round(buffs.atk)}</span></div>`;
+            if(buffs.def) statsHtml += `<div style="margin-bottom:4px;">🛡️ <b>Defense:</b> <span style="color:#6f6">+${Math.round(buffs.def)}</span></div>`;
+            if(buffs.maxHp) statsHtml += `<div style="margin-bottom:4px;">❤️ <b>Max HP:</b> <span style="color:#6f6">+${Math.round(buffs.maxHp)}</span></div>`;
+            if(buffs.maxMana) statsHtml += `<div style="margin-bottom:4px;">💧 <b>Max Mana:</b> <span style="color:#6f6">+${Math.round(buffs.maxMana)}</span></div>`;
+            if(buffs.maxStam) statsHtml += `<div style="margin-bottom:4px;">⚡ <b>Max Stamina:</b> <span style="color:#6f6">+${Math.round(buffs.maxStam)}</span></div>`;
+            if(buffs.speed) statsHtml += `<div style="margin-bottom:4px;">🏃 <b>Speed:</b> <span style="color:#6f6">+${Math.round(buffs.speed)}</span></div>`;
+            if(buffs.hpRegen) statsHtml += `<div style="margin-bottom:4px;">💚 <b>HP Regen:</b> <span style="color:#6f6">+${Math.round(buffs.hpRegen)}/sec</span></div>`;
+            if(buffs.manaRegen) statsHtml += `<div style="margin-bottom:4px;">💙 <b>Mana Regen:</b> <span style="color:#6f6">+${Math.round(buffs.manaRegen)}/sec</span></div>`;
+            if(buffs.stamRegen) statsHtml += `<div style="margin-bottom:4px;">⚡ <b>Stamina Regen:</b> <span style="color:#6f6">+${Math.round(buffs.stamRegen)}/sec</span></div>`;
+            if(buffs.cdr) statsHtml += `<div style="margin-bottom:4px;">⏱️ <b>Cooldown Reduction:</b> <span style="color:#6f6">+${Math.round(buffs.cdr*100)}%</span></div>`;
+            if(buffs.critChance) statsHtml += `<div style="margin-bottom:4px;">💥 <b>Crit Chance:</b> <span style="color:#6f6">+${Math.round(buffs.critChance*100)}%</span></div>`;
+            if(buffs.critMult) statsHtml += `<div style="margin-bottom:4px;">💢 <b>Crit Multiplier:</b> <span style="color:#6f6">×${buffs.critMult.toFixed(1)}</span></div>`;
+          }
+          
+          // Elemental effects if available
+          if(selectedItem.elementalEffects && selectedItem.elementalEffects.length > 0){
+            statsHtml += `<div style="color:#f6a; font-weight:bold; margin-top:12px; margin-bottom:8px; font-size:15px;">Special Effects:</div>`;
+            selectedItem.elementalEffects.forEach(effect => {
+              const chance = ((effect.chance || 0) * 100).toFixed(0);
+              statsHtml += `<div style="margin-bottom:4px; color:#fc6;">✨ ${chance}% chance: <b>${effect.type}</b> on hit</div>`;
+            });
+          }
+          
+          // Try to load the image
+          const testImg = new Image();
+          testImg.onload = () => {
+            previewImage.src = imagePath;
+            previewImage.style.display = 'block';
+            previewError.style.display = 'none';
+            previewTitle.textContent = selectedItem.name;
+            previewTitle.className = rarityClass(selectedItem.rarity.key);
+            if(previewStats && statsHtml){
+              previewStatsContent.innerHTML = statsHtml;
+              previewStats.style.display = 'block';
+            } else if(previewStats){
+              previewStats.style.display = 'none';
+            }
+            previewOverlay.style.display = 'flex';
+          };
+          testImg.onerror = () => {
+            previewImage.style.display = 'none';
+            previewError.style.display = 'block';
+            previewTitle.textContent = selectedItem.name;
+            previewTitle.className = rarityClass(selectedItem.rarity.key);
+            if(previewStats && statsHtml){
+              previewStatsContent.innerHTML = statsHtml;
+              previewStats.style.display = 'block';
+            } else if(previewStats){
+              previewStats.style.display = 'none';
+            }
+            previewOverlay.style.display = 'flex';
+          };
+          testImg.src = imagePath;
+        } else if(selectedItem) {
+          // Not a weapon - show no preview available
+          previewImage.style.display = 'none';
+          previewError.style.display = 'block';
+          previewTitle.textContent = selectedItem.name;
+          previewTitle.className = rarityClass(selectedItem.rarity?.key || 'common');
+          if(previewStats) previewStats.style.display = 'none';
+          previewOverlay.style.display = 'flex';
+        }
+      }
+    }
+  }
+  if(!pKey) state._previewLatch = false;
 
   // Toggle HUD visibility with KeyB
   const bDown = state.input.keysDown.has('KeyB');
@@ -3913,6 +4277,112 @@ export function updateGame(state, dt){
     cam.y = clamp(cam.y, halfH, (state.mapHeight || state.engine.canvas.height) - halfH);
   }
 
+  // Guard Progression System - Time-based upgrades
+  function updateGuardProgression(state, dt){
+    const UPGRADE_INTERVAL = 300; // 5 minutes in seconds
+    const RARITY_PROGRESSION = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+    
+    for(const site of state.sites){
+      // Only track progression for owned flags (not bases)
+      if(!site.owner || (site.id && site.id.endsWith('_base'))) continue;
+      if(!site.guardProgression) continue;
+      
+      const prog = site.guardProgression;
+      
+      // Increment time held
+      prog.timeHeld += dt;
+      
+      // Check for gear upgrade (every 5 minutes)
+      const currentRarityIndex = RARITY_PROGRESSION.indexOf(prog.gearRarity);
+      const nextRarityIndex = currentRarityIndex + 1;
+      
+      if(nextRarityIndex < RARITY_PROGRESSION.length){
+        const timeForNextUpgrade = (currentRarityIndex + 1) * UPGRADE_INTERVAL;
+        
+        if(prog.timeHeld >= timeForNextUpgrade && prog.timeHeld - dt < timeForNextUpgrade){
+          // UPGRADE GEAR RARITY
+          prog.gearRarity = RARITY_PROGRESSION[nextRarityIndex];
+          prog.lastUpgrade = prog.timeHeld;
+          
+          const RARITIES = {
+            common: { key:'common', tier: 1, name: 'Common', color: '#c8c8c8' },
+            uncommon: { key:'uncommon', tier: 2, name: 'Uncommon', color: '#8fd' },
+            rare: { key:'rare', tier: 3, name: 'Rare', color: '#9cf' },
+            epic: { key:'epic', tier: 4, name: 'Epic', color: '#c9f' },
+            legendary: { key:'legendary', tier: 5, name: 'Legendary', color: '#f9c' }
+          };
+          
+          const newRarity = RARITIES[prog.gearRarity];
+          
+          // Apply upgrade to all living guards at this site
+          const guards = site.owner === 'player' 
+            ? state.friendlies.filter(f => f.guard && f.homeSiteId === site.id)
+            : state.enemies.filter(e => e.guard && e.homeSiteId === site.id);
+          
+          for(const guard of guards){
+            // Update guard level tracking in progression
+            if(guard.guardIndex !== undefined){
+              prog.levels[guard.guardIndex] = guard.level || 1;
+            }
+            
+            // REGENERATE ALL EQUIPMENT with new rarity tier
+            // This gives guards properly stat-scaled equipment
+            if(guard.variant){
+              // Use assignNpcEquipment to get full armor set at new rarity
+              const oldHp = guard.hp;
+              const oldMaxHp = guard.maxHp;
+              const hpPct = oldMaxHp > 0 ? (oldHp / oldMaxHp) : 1;
+              
+              // Reassign equipment at new rarity level (tied to guard level for scaling)
+              assignNpcEquipment(guard, guard.variant);
+              
+              // Update weapon rarity specifically
+              if(guard.equipment && guard.equipment.weapon){
+                guard.equipment.weapon.rarity = newRarity;
+              }
+              
+              // Recalculate stats with new equipment
+              applyClassToUnit(guard, guard.variant);
+              
+              // Preserve HP percentage
+              guard.hp = Math.floor(guard.maxHp * hpPct);
+              
+              console.log(`[Guard Upgrade] ${guard.name} equipped with ${newRarity.name} gear (HP: ${guard.hp}/${guard.maxHp})`);
+            }
+          }
+          
+          if(site.owner === 'player'){
+            state.ui.toast(`<b>${site.name}</b> guards upgraded to <span style="color:${getRarityColor(prog.gearRarity)}">${prog.gearRarity.toUpperCase()}</span> gear!`);
+          }
+          
+          console.log(`[Guard Progression] ${site.name} guards upgraded to ${prog.gearRarity} gear after ${Math.floor(prog.timeHeld/60)}m`);
+        }
+      }
+      
+      // UPDATE GUARD LEVELS in progression tracking
+      const guards = site.owner === 'player' 
+        ? state.friendlies.filter(f => f.guard && f.homeSiteId === site.id)
+        : state.enemies.filter(e => e.guard && e.homeSiteId === site.id);
+      
+      for(const guard of guards){
+        if(guard.guardIndex !== undefined && guard.level){
+          prog.levels[guard.guardIndex] = guard.level;
+        }
+      }
+    }
+  }
+  
+  function getRarityColor(rarity){
+    const colors = {
+      common: '#c8c8c8',
+      uncommon: '#8fd',
+      rare: '#9cf',
+      epic: '#c9f',
+      legendary: '#f9c'
+    };
+    return colors[rarity] || '#fff';
+  }
+
   // If player entered a dungeon, run a focused dungeon update loop and skip world spawn/capture logic
   if(state.inDungeon){
     updatePartyCoordinator(state, dt);
@@ -3935,6 +4405,10 @@ export function updateGame(state, dt){
   }
 
   updateCapture(state, dt);
+  
+  // UPDATE GUARD PROGRESSION - Time-based gear upgrades
+  updateGuardProgression(state, dt);
+  
   // handle site capture reactions: if site was just captured, redirect team defenders
   for(const s of state.sites){
     if(s._justCaptured){

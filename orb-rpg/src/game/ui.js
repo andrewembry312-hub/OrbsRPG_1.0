@@ -5,6 +5,7 @@ import { currentStats, exportSave, importSave, applyClassToUnit } from "./game.j
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots } from "./skills.js";
 import { showCharSelect } from "./charselect.js";
+import { spawnGuardsForSite } from "./world.js";
 
 export function buildUI(state){
   const root=document.getElementById('ui-root');
@@ -221,7 +222,25 @@ export function buildUI(state){
                   <button id="dropAllBtn" class="danger">Drop All</button>
                 </div>
               </div>
+              <!-- Inventory Tooltip -->
+              <div id="invTooltip" style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(10,10,20,0.95); border:2px solid rgba(212,175,55,0.6); border-radius:8px; padding:12px 16px; max-width:420px; display:none; z-index:250; pointer-events:none">
+                <div id="invTooltipContent" class="small" style="line-height:1.6; color:#fff"></div>
+              </div>
               <div id="invGrid" class="invGrid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fullscreen Weapon Preview Overlay -->
+        <div id="weaponPreview" class="overlay" style="display:none; background:rgba(0,0,0,0.95); z-index:9999; cursor:pointer;">
+          <div style="position:absolute; top:20px; right:20px; color:#fff; font-size:14px; opacity:0.7;">Press P or ESC to close</div>
+          <div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; flex-direction:column; padding:40px; position:relative;">
+            <div id="weaponPreviewTitle" style="color:#d4af37; font-size:24px; font-weight:bold; margin-bottom:20px; text-align:center;"></div>
+            <img id="weaponPreviewImage" style="max-width:90%; max-height:80vh; object-fit:contain; border-radius:8px; box-shadow:0 0 40px rgba(212,175,55,0.3);" />
+            <div id="weaponPreviewError" style="display:none; color:#ff6666; font-size:18px; margin-top:20px;">No preview available for this item</div>
+            <div id="weaponPreviewStats" style="position:absolute; bottom:60px; right:60px; background:rgba(20,20,20,0.95); border:2px solid rgba(212,175,55,0.6); border-radius:8px; padding:20px; min-width:320px; display:none; max-height:70vh; overflow-y:auto;">
+              <div style="font-size:16px; font-weight:bold; color:#d4af37; margin-bottom:10px; text-align:center;">Item Details</div>
+              <div id="weaponPreviewStatsContent" style="font-size:15px; line-height:2; color:#fff;"></div>
             </div>
           </div>
         </div>
@@ -770,6 +789,117 @@ export function buildUI(state){
               </div>
             </div>
 
+            <!-- Guard Progression System -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #4bf; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#4bf; margin-bottom:8px;">🛡️ Guard Progression System</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Flag Guard Composition:</b><br>
+                • Each flag spawns <b>5 coordinated guards</b> in a pentagon formation (70 units from flag)<br>
+                • <b>2 Mage Healers:</b> Stay at 100-unit range, kite when pressured, prioritize healing<br>
+                • <b>1 Warrior DPS:</b> High damage melee fighter<br>
+                • <b>1 Knight DPS:</b> Balanced melee damage dealer<br>
+                • <b>1 Tank DPS:</b> Defensive bruiser with survivability<br><br>
+                
+                <b>Coordinated Ball Group AI:</b><br>
+                • <b>Priority 100:</b> Enemies within flag radius (highest threat)<br>
+                • <b>Priority 80:</b> Enemies in inner defense zone (flag radius + 80 units)<br>
+                • <b>Priority 60:</b> Enemies in aggro range (220 units from flag)<br>
+                • DPS Guards: 70% chase target, 30% maintain group cohesion<br>
+                • Healers: Optimal positioning at 100 units, defensive kiting behavior<br>
+                • All guards work as coordinated team to defend flag<br><br>
+                
+                <b>Time-Based Gear Progression:</b><br>
+                • Guards upgrade gear every <b>5 minutes</b> of continuous flag ownership<br>
+                • Progression: Common → Uncommon → Rare → Epic → Legendary<br>
+                • Higher rarity = better stats, damage, and survivability<br>
+                • <b>Level progression:</b> Guards gain levels over time and preserve them through upgrades<br>
+                • <b>HP preservation:</b> Guard HP% is maintained during gear upgrades (not full heal)<br>
+                • Track progress in Campaign tab (shows current rarity and countdown to next upgrade)<br><br>
+                
+                <b>Flag Capture Impact:</b><br>
+                • When flag is captured, ALL guards are destroyed instantly<br>
+                • Progression resets: Timer = 0, Rarity = Common, Levels = [1,1,1,1,1]<br>
+                • New owner spawns fresh level 1 guards with common gear<br>
+                • Must rebuild progression from scratch<br><br>
+                
+                <b>Strategic Importance:</b><br>
+                • Long-held flags become extremely difficult to capture (legendary guards)<br>
+                • Early pressure prevents enemy flags from scaling up<br>
+                • View all guard stats in Campaign tab: levels, HP%, gear rarity, time held
+              </div>
+            </div>
+
+            <!-- Inventory & UI Features -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #fb7; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#fb7; margin-bottom:8px;">🎒 Inventory & UI Features</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Inventory Hover Tooltips:</b><br>
+                • Hover mouse over any inventory item to see detailed stats<br>
+                • Displays: Attack, Defense, HP, Mana, Speed, Cooldown Reduction<br>
+                • Shows all buffs/debuffs granted by the item<br>
+                • Shows special effects (healing over time, damage over time, etc.)<br>
+                • Tooltip appears at bottom of inventory panel<br><br>
+                
+                <b>Weapon Preview (P Key):</b><br>
+                • Press <b>P</b> while in inventory to preview the selected weapon in fullscreen<br>
+                • Shows high-resolution weapon image if available<br>
+                • Works for all weapon types and rarities<br>
+                • Press P or ESC to close the preview<br>
+                • Click anywhere on the preview to close it<br>
+                • Non-weapon items will show "No preview available"<br><br>
+                
+                <b>Interaction Prompts:</b><br>
+                • Center-screen prompts show when near interactable objects<br>
+                • <b>"Press F to Open Base Menu":</b> Appears near your base (120 unit range)<br>
+                • <b>Other prompts:</b> Flag captures, gate interactions, etc.<br>
+                • Prompts sync with your keybind settings (shows current key assignment)<br>
+                • White text with black outline for clear visibility<br><br>
+                
+                <b>Base Menu:</b><br>
+                • Press F when near your base to open build/upgrade menu<br>
+                • Purchase squad upgrades, equipment tiers, and more<br>
+                • Access marketplace for buying/selling items<br><br>
+                
+                <b>Ability Bar Tooltips:</b><br>
+                • Hover over ability icons to see skill details<br>
+                • Shows: Cooldown, mana cost, damage/healing, effects<br>
+                • Appears below ability bar for easy reference
+              </div>
+            </div>
+
+            <!-- Campaign Tab Features -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #c6f; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#c6f; margin-bottom:8px;">📊 Campaign Tab Features</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Guard Progression Tracking:</b><br>
+                • Campaign tab shows detailed stats for all player-owned flags<br>
+                • Each flag displays:<br>
+                &nbsp;&nbsp;→ Flag name and time held (minutes:seconds)<br>
+                &nbsp;&nbsp;→ Current gear rarity (color-coded: grey/green/blue/purple/orange)<br>
+                &nbsp;&nbsp;→ Countdown to next upgrade (seconds remaining)<br>
+                &nbsp;&nbsp;→ Full list of all 5 guards with class, level, and HP%<br><br>
+                
+                <b>Guard Status Display:</b><br>
+                • <b>Guard Class/Role:</b> Shows Mage-Healer, Warrior-DPS, Knight-DPS, Tank-DPS<br>
+                • <b>Level:</b> Current guard level (increases over time)<br>
+                • <b>HP%:</b> Color-coded health (green >60%, yellow >30%, red ≤30%)<br>
+                • <b>Defeated:</b> Shows "💀 DEFEATED" if guard is currently dead<br><br>
+                
+                <b>Faction Status:</b><br>
+                • View all faction scores, gold, and equipment tiers<br>
+                • See which faction is winning the campaign<br>
+                • Track active flag captures in real-time<br><br>
+                
+                <b>Strategic Use:</b><br>
+                • Monitor your weakest flags (low guard HP% or low gear)<br>
+                • Identify which flags are close to upgrading<br>
+                • Plan defense priorities based on guard status
+              </div>
+            </div>
+
             <!-- Tips & Tricks -->
             <div style="padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #ff6; border-radius:3px;">
               <div style="font-weight:bold; font-size:14px; color:#ff6; margin-bottom:8px;">💡 Tips & Tricks</div>
@@ -780,10 +910,15 @@ export function buildUI(state){
                 • <b>Neutral Groups:</b> Good for defense - they stay close and guard you<br>
                 • <b>Mixed Behaviors:</b> Set front-line (tanks) to Aggressive, back-line (healers) to Neutral<br>
                 • <b>Flag Capture:</b> Let non-group allies do the work while group protects you<br>
-                • <b>Guard Placement:</b> Guards spawn at sites - capture enemy sites to gain their guards<br>
+                • <b>Guard Defense:</b> 5 coordinated guards defend each flag - legendary guards are extremely powerful<br>
+                • <b>Pressure Enemy Flags:</b> Attack enemy flags early before their guards upgrade to higher rarities<br>
+                • <b>Hold Flags Long:</b> Longer ownership = stronger guards = harder for enemies to recapture<br>
+                • <b>Check Campaign Tab:</b> Monitor guard HP% and gear progression on all your flags<br>
                 • <b>Respawn Strategy:</b> If ally dies, they respawn at home - plan routes accordingly<br>
                 • <b>Equipment:</b> Share best gear with group members for stronger party<br>
                 • <b>Fast Travel:</b> Use Map (M) to teleport between your sites quickly<br>
+                • <b>Hover for Info:</b> Hover over inventory items and abilities to see detailed stats<br>
+                • <b>Weapon Preview:</b> Press P in inventory to view fullscreen weapon images<br>
                 • <b>Emperor Rush:</b> Capture all bases ASAP for massive power spike
               </div>
             </div>
@@ -1157,6 +1292,22 @@ function bindUI(state){
     allyList: $('allyList'), allyDetails: $('allyDetails'), allyTabCount: $('allyTabCount'),
     invRight: $('invRight')
   };
+  // Helper to get item image path
+  const getItemImage = (item) => {
+    if(!item) return null;
+    if(item.kind === 'weapon'){
+      const weaponType = item.weaponType || '';
+      const rarity = item.rarity?.key || 'common';
+      const rarityCapitalized = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+      
+      // Map weapon types to image names
+      if(weaponType === 'Sword') return `assets/items/${rarityCapitalized} Sword.png`;
+      if(weaponType === 'Axe') return `assets/items/${rarityCapitalized} Axe.png`;
+      if(weaponType === 'Healing Staff') return `assets/items/Common Healing Staff.png`;
+    }
+    return null;
+  };
+
   // Sticky header shadow on inventory scroll
   ui._bindInvRightScroll = ()=>{
     if(!ui.invRight || ui._invRightBound) return;
@@ -1172,6 +1323,17 @@ function bindUI(state){
   };
 
   ui.targetPts.textContent = state.campaign.targetPoints;
+
+  // Weapon preview overlay click-to-close
+  const weaponPreview = document.getElementById('weaponPreview');
+  if(weaponPreview){
+    weaponPreview.addEventListener('click', (e) => {
+      // Close preview when clicking the overlay (not the image)
+      if(e.target === weaponPreview || e.target.id === 'weaponPreviewTitle'){
+        weaponPreview.style.display = 'none';
+      }
+    });
+  }
 
   // Debug: Check if market tab elements exist
   console.log('Market tab elements check:', {
@@ -1224,10 +1386,39 @@ function bindUI(state){
 
   // --- Save manager helpers ---
   function listSaves(){ try{ return JSON.parse(localStorage.getItem('orb_rpg_saves_mod')||'[]'); }catch{ return []; } }
-  function writeSaves(arr){ try{ localStorage.setItem('orb_rpg_saves_mod', JSON.stringify(arr)); }catch{} }
-  function saveNew(name){ const id=Date.now(); const data=exportSave(state); const created=new Date().toISOString(); const arr=listSaves(); arr.push({id,name,created,data}); writeSaves(arr); }
-  function overwrite(id){ const arr=listSaves(); const idx=arr.findIndex(s=>s.id===id); if(idx!==-1){ arr[idx].data=exportSave(state); arr[idx].created=new Date().toISOString(); writeSaves(arr); } }
-  function delSave(id){ const arr=listSaves().filter(s=>s.id!==id); writeSaves(arr); }
+  function writeSaves(arr){ try{ localStorage.setItem('orb_rpg_saves_mod', JSON.stringify(arr)); return true; }catch{ return false; } }
+  function saveNew(name){ 
+    try{
+      const data=exportSave(state); 
+      if(!data || !data.player){ console.error('Invalid save data'); return false; }
+      const id=Date.now(); 
+      const created=new Date().toISOString(); 
+      const arr=listSaves(); 
+      arr.push({id,name,created,data}); 
+      return writeSaves(arr);
+    }catch(e){ 
+      console.error('Save failed:', e); 
+      return false; 
+    }
+  }
+  function overwrite(id){ 
+    try{
+      const data=exportSave(state);
+      if(!data || !data.player){ console.error('Invalid save data'); return false; }
+      const arr=listSaves(); 
+      const idx=arr.findIndex(s=>s.id===id); 
+      if(idx!==-1){ 
+        arr[idx].data=data; 
+        arr[idx].created=new Date().toISOString(); 
+        return writeSaves(arr);
+      }
+      return false;
+    }catch(e){ 
+      console.error('Overwrite failed:', e); 
+      return false; 
+    }
+  }
+  function delSave(id){ const arr=listSaves().filter(s=>s.id!==id); return writeSaves(arr); }
   
   // Auto-save functions
   function getAutoSaveId(){ return 'AUTO_SAVE_SLOT'; }
@@ -1235,6 +1426,10 @@ function bindUI(state){
     try{
       const id = getAutoSaveId();
       const data = exportSave(state);
+      if(!data || !data.player){ 
+        console.error('[AUTO-SAVE] Invalid save data');
+        return;
+      }
       const created = new Date().toISOString();
       const name = `Auto Save - ${state.player?.name || 'Hero'}`;
       const arr = listSaves();
@@ -1244,7 +1439,11 @@ function bindUI(state){
       } else {
         arr.push({id, name, created, data});
       }
-      writeSaves(arr);
+      if(writeSaves(arr)){
+        console.log('[AUTO-SAVE] Success at', created);
+      } else {
+        console.error('[AUTO-SAVE] Failed to write');
+      }
     } catch(e){ console.error('Auto save failed:', e); }
   }
   
@@ -1270,8 +1469,25 @@ function bindUI(state){
     }
   };
   ui.saveClose.onclick=()=>ui.toggleSaves(false);
-  ui.btnSaveNew.onclick=()=>{ const nm = ui.saveNameInput.value || state.player.name || 'Hero'; saveNew(nm); renderSaveList(); ui.toast('Saved new.'); };
-  ui.btnOverwriteSelected.onclick=()=>{ const id=ui._selectedSaveId; if(!id){ ui.toast('Select a save.'); return; } overwrite(id); renderSaveList(); ui.toast('Overwritten.'); };
+  ui.btnSaveNew.onclick=()=>{ 
+    const nm = ui.saveNameInput.value || state.player.name || 'Hero'; 
+    if(saveNew(nm)){ 
+      renderSaveList(); 
+      ui.toast('✓ Game saved successfully!');
+    } else {
+      ui.toast('✗ Save failed! Check console.');
+    }
+  };
+  ui.btnOverwriteSelected.onclick=()=>{ 
+    const id=ui._selectedSaveId; 
+    if(!id){ ui.toast('Select a save.'); return; } 
+    if(overwrite(id)){ 
+      renderSaveList(); 
+      ui.toast('✓ Save overwritten!');
+    } else {
+      ui.toast('✗ Overwrite failed!');
+    }
+  };
   ui.btnDeleteSelected.onclick=()=>{ const id=ui._selectedSaveId; if(!id){ ui.toast('Select a save.'); return; } delSave(id); ui._selectedSaveId=null; ui.selSaveMeta.textContent='None'; renderSaveList(); ui.toast('Deleted.'); };
   ui.btnLoadSelected.onclick=()=>{ const id=ui._selectedSaveId; if(!id){ ui.toast('Select a save.'); return; } const s=listSaves().find(x=>x.id===id); if(!s){ ui.toast('Missing save.'); return; } try{ if(typeof ui.onLoadGame==='function'){ ui.onLoadGame(s.data); } }catch(e){ ui.toast('Load failed.'); } };
 
@@ -1483,6 +1699,89 @@ function bindUI(state){
     const capsEl = document.getElementById('campaignCaptures');
     if(teamsEl) teamsEl.innerHTML = teamLines.join('');
     if(capsEl) capsEl.innerHTML = capLines.length ? capLines.join('') : '<div style="color:#888; font-size:12px;">No active captures.</div>';
+    
+    // Helper for rarity colors
+    const getRarityColor = (rarity) => {
+      const colors = {
+        common: '#c8c8c8',
+        uncommon: '#8fd',
+        rare: '#9cf',
+        epic: '#c9f',
+        legendary: '#f9c'
+      };
+      return colors[rarity] || '#fff';
+    };
+    
+    // GUARD STATS DISPLAY
+    const guardStatsLines = [];
+    guardStatsLines.push('<div style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.3);">');
+    guardStatsLines.push('<div style="font-weight:bold; font-size:14px; color:#d4af37; margin-bottom:8px;">⚔️ Guard Progression</div>');
+    
+    const playerFlags = state.sites.filter(s => s.owner === 'player' && s.id && s.id.startsWith('site_'));
+    
+    if(playerFlags.length === 0){
+      guardStatsLines.push('<div style="color:#888; font-size:12px;">No flags captured. Capture a flag to deploy guards.</div>');
+    } else {
+      for(const site of playerFlags){
+        const prog = site.guardProgression || { timeHeld: 0, gearRarity: 'common', levels: [1,1,1,1,1] };
+        const guards = state.friendlies.filter(f => f.guard && f.homeSiteId === site.id && f.respawnT <= 0);
+        const timeHeldMin = Math.floor(prog.timeHeld / 60);
+        const timeHeldSec = Math.floor(prog.timeHeld % 60);
+        
+        // Next upgrade calculation
+        const RARITY_PROGRESSION = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+        const currentIdx = RARITY_PROGRESSION.indexOf(prog.gearRarity);
+        const nextRarity = currentIdx < RARITY_PROGRESSION.length - 1 ? RARITY_PROGRESSION[currentIdx + 1] : null;
+        const timeForNext = (currentIdx + 1) * 300; // 5 min intervals
+        const timeUntilUpgrade = nextRarity ? Math.max(0, timeForNext - prog.timeHeld) : 0;
+        const minUntilUpgrade = Math.floor(timeUntilUpgrade / 60);
+        const secUntilUpgrade = Math.floor(timeUntilUpgrade % 60);
+        
+        const rarityColor = getRarityColor(prog.gearRarity);
+        const composition = ['Mage Healer', 'Mage Healer', 'Warrior DPS', 'Knight DPS', 'Tank DPS'];
+        
+        guardStatsLines.push(`<div style="margin-bottom:12px; padding:8px; background:rgba(0,0,0,0.3); border-left:3px solid #d4af37; font-size:12px; line-height:1.5;">`);
+        guardStatsLines.push(`<div style="font-weight:bold; font-size:13px; color:#fff; margin-bottom:4px;">📍 ${site.name}</div>`);
+        guardStatsLines.push(`<div style="color:#aaa;">⏱️ Time Held: <b>${timeHeldMin}m ${timeHeldSec}s</b></div>`);
+        guardStatsLines.push(`<div style="color:#aaa;">🛡️ Current Gear: <span style="color:${rarityColor}; font-weight:bold;">${prog.gearRarity.toUpperCase()}</span></div>`);
+        
+        if(nextRarity){
+          const nextColor = getRarityColor(nextRarity);
+          guardStatsLines.push(`<div style="color:#9f6; font-size:11px;">⬆️ Next Upgrade: <span style="color:${nextColor}; font-weight:bold;">${nextRarity.toUpperCase()}</span> in <b>${minUntilUpgrade}m ${secUntilUpgrade}s</b></div>`);
+        } else {
+          guardStatsLines.push(`<div style="color:#f9c; font-size:11px;">⭐ MAX GEAR TIER (LEGENDARY)</div>`);
+        }
+        
+        guardStatsLines.push(`<div style="margin-top:6px; color:#aaa; font-weight:bold;">⚔️ Guards (${guards.length}/5):</div>`);
+        
+        if(guards.length === 0){
+          guardStatsLines.push(`<div style="color:#f66; font-size:11px; margin-left:8px;">⚠️ All guards defeated - will respawn</div>`);
+        } else {
+          for(let i = 0; i < 5; i++){
+            const guard = guards.find(g => g.guardIndex === i);
+            const guardClass = composition[i];
+            const level = guard ? guard.level : (prog.levels[i] || 1);
+            
+            if(guard){
+              const hpPct = Math.round((guard.hp / guard.maxHp) * 100);
+              const hpColor = hpPct > 66 ? '#6f6' : hpPct > 33 ? '#fc6' : '#f66';
+              guardStatsLines.push(`<div style="margin-left:8px; font-size:11px;"><span style="color:#6cf;">${guardClass}</span> <b>Level ${level}</b> - HP: <span style="color:${hpColor}; font-weight:bold;">${hpPct}%</span> <span style="color:#888">(${guard.hp}/${guard.maxHp})</span></div>`);
+            } else {
+              guardStatsLines.push(`<div style="margin-left:8px; font-size:11px; color:#888;">${guardClass} <b>Level ${level}</b> - <span style="color:#f66">💀 Defeated</span></div>`);
+            }
+          }
+        }
+        
+        guardStatsLines.push(`</div>`);
+      }
+    }
+    
+    guardStatsLines.push('</div>');
+    
+    // Append guard stats to team display
+    if(teamsEl){
+      teamsEl.innerHTML += guardStatsLines.join('');
+    }
   };
 
   ui.toggleBaseActions = (on)=>{
@@ -1794,8 +2093,11 @@ function bindUI(state){
       div.style.cssText = 'padding:8px; opacity:' + (affordable ? '1' : '0.5');
       
       const stockText = '∞'; // All unlimited
+      const imgPath = getItemImage(it);
+      const imageHtml = imgPath ? `<div style="width:120px; height:120px; margin:0 auto 8px;"><img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain;"/></div>` : '';
       
       div.innerHTML = `
+        ${imageHtml}
         <div class="small" style="font-weight:900; color:var(--common)">${it.name}</div>
         <div class="small" style="margin-top:4px; color:#999">${it.desc}</div>
         <div class="small" style="margin-top:6px; display:flex; justify-content:space-between; align-items:center">
@@ -1895,7 +2197,12 @@ function bindUI(state){
         const item = state.inventory[i];
         const isEquipped = item.slot && state.equipped && state.equipped[item.slot] === item;
         
-        slot.textContent = invSlotLabel(item);
+        const imgPath = getItemImage(item);
+        if(imgPath){
+          slot.innerHTML = `<img src="${imgPath}" alt="${item.name}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;"/>`;
+        } else {
+          slot.textContent = invSlotLabel(item);
+        }
         slot.style.borderColor = item.rarity.color;
         slot.style.color = item.rarity.color;
         slot.style.cursor = 'pointer';
@@ -2216,7 +2523,86 @@ function bindUI(state){
       const starStr = stars>0 ? ('★'.repeat(Math.min(5,stars))) : '—';
       return `<b style="font-size:14px;">${teamNames[k]}</b>: Gold ${goldFor(k)} • Pts ${Math.round(pts[k])} • Flags ${countFlags(k)} • Avg Lv ${avgLevelFor(k)} • Armor ${starStr}`;
     });
-    teamsEl.innerHTML = teamLines.map(l=>`<div style="margin-bottom:6px;">${l}</div>`).join('');
+    
+    // Helper for rarity colors
+    const getRarityColor = (rarity) => {
+      const colors = {
+        common: '#c8c8c8',
+        uncommon: '#8fd',
+        rare: '#9cf',
+        epic: '#c9f',
+        legendary: '#f9c'
+      };
+      return colors[rarity] || '#fff';
+    };
+    
+    // GUARD PROGRESSION STATS
+    const guardStatsLines = [];
+    guardStatsLines.push('<div style="margin-top:16px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.3);">');
+    guardStatsLines.push('<div style="font-weight:bold; font-size:14px; color:#d4af37; margin-bottom:8px;">⚔️ Guard Progression</div>');
+    
+    const playerFlags = sites.filter(s => s.owner === 'player' && s.id && s.id.startsWith('site_'));
+    
+    if(playerFlags.length === 0){
+      guardStatsLines.push('<div style="color:#888; font-size:12px;">No flags captured. Capture a flag to deploy guards.</div>');
+    } else {
+      for(const site of playerFlags){
+        const prog = site.guardProgression || { timeHeld: 0, gearRarity: 'common', levels: [1,1,1,1,1] };
+        const guards = state.friendlies.filter(f => f.guard && f.homeSiteId === site.id && f.respawnT <= 0);
+        const timeHeldMin = Math.floor(prog.timeHeld / 60);
+        const timeHeldSec = Math.floor(prog.timeHeld % 60);
+        
+        // Next upgrade calculation
+        const RARITY_PROGRESSION = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+        const currentIdx = RARITY_PROGRESSION.indexOf(prog.gearRarity);
+        const nextRarity = currentIdx < RARITY_PROGRESSION.length - 1 ? RARITY_PROGRESSION[currentIdx + 1] : null;
+        const timeForNext = (currentIdx + 1) * 300; // 5 min intervals
+        const timeUntilUpgrade = nextRarity ? Math.max(0, timeForNext - prog.timeHeld) : 0;
+        const minUntilUpgrade = Math.floor(timeUntilUpgrade / 60);
+        const secUntilUpgrade = Math.floor(timeUntilUpgrade % 60);
+        
+        const rarityColor = getRarityColor(prog.gearRarity);
+        const composition = ['Mage Healer', 'Mage Healer', 'Warrior DPS', 'Knight DPS', 'Tank DPS'];
+        
+        guardStatsLines.push(`<div style="margin-bottom:12px; padding:8px; background:rgba(0,0,0,0.3); border-left:3px solid #d4af37; font-size:12px; line-height:1.5;">`);
+        guardStatsLines.push(`<div style="font-weight:bold; font-size:13px; color:#fff; margin-bottom:4px;">📍 ${site.name}</div>`);
+        guardStatsLines.push(`<div style="color:#aaa;">⏱️ Time Held: <b>${timeHeldMin}m ${timeHeldSec}s</b></div>`);
+        guardStatsLines.push(`<div style="color:#aaa;">🛡️ Current Gear: <span style="color:${rarityColor}; font-weight:bold;">${prog.gearRarity.toUpperCase()}</span></div>`);
+        
+        if(nextRarity){
+          const nextColor = getRarityColor(nextRarity);
+          guardStatsLines.push(`<div style="color:#9f6; font-size:11px;">⬆️ Next Upgrade: <span style="color:${nextColor}; font-weight:bold;">${nextRarity.toUpperCase()}</span> in <b>${minUntilUpgrade}m ${secUntilUpgrade}s</b></div>`);
+        } else {
+          guardStatsLines.push(`<div style="color:#f9c; font-size:11px;">⭐ MAX GEAR TIER (LEGENDARY)</div>`);
+        }
+        
+        guardStatsLines.push(`<div style="margin-top:6px; color:#aaa; font-weight:bold;">⚔️ Guards (${guards.length}/5):</div>`);
+        
+        if(guards.length === 0){
+          guardStatsLines.push(`<div style="color:#f66; font-size:11px; margin-left:8px;">⚠️ All guards defeated - will respawn</div>`);
+        } else {
+          for(let i = 0; i < 5; i++){
+            const guard = guards.find(g => g.guardIndex === i);
+            const guardClass = composition[i];
+            const level = guard ? guard.level : (prog.levels[i] || 1);
+            
+            if(guard){
+              const hpPct = Math.round((guard.hp / guard.maxHp) * 100);
+              const hpColor = hpPct > 66 ? '#6f6' : hpPct > 33 ? '#fc6' : '#f66';
+              guardStatsLines.push(`<div style="margin-left:8px; font-size:11px;"><span style="color:#6cf;">${guardClass}</span> <b>Level ${level}</b> - HP: <span style="color:${hpColor}; font-weight:bold;">${hpPct}%</span> <span style="color:#888">(${guard.hp}/${guard.maxHp})</span></div>`);
+            } else {
+              guardStatsLines.push(`<div style="margin-left:8px; font-size:11px; color:#888;">${guardClass} <b>Level ${level}</b> - <span style="color:#f66">💀 Defeated</span></div>`);
+            }
+          }
+        }
+        
+        guardStatsLines.push(`</div>`);
+      }
+    }
+    
+    guardStatsLines.push('</div>');
+    
+    teamsEl.innerHTML = teamLines.map(l=>`<div style="margin-bottom:6px;">${l}</div>`).join('') + guardStatsLines.join('');
 
     // Captures summary: show counts per owner
     const owners = ['player','teamA','teamB','teamC','neutral'];
@@ -2473,8 +2859,8 @@ function bindUI(state){
       return `<span class="effect-pill ${cls}"><span class="effect-icon">${icon}</span><span class="effect-text"><span class="effect-label">${label}${stackHtml}</span><span class="effect-sub">${sub}</span></span></span>`;
     };
     const parts = [];
-    for(const h of hotEffects){ parts.push(pill('hot', h.name || 'HoT', `+${h.amt} / ${h.tick}s • ${h.tl.toFixed(1)}s`, h.stacks||1)); }
-    for(const d of dotEffects){ parts.push(pill('dot', d.name || 'DoT', `-${d.dmg} / ${d.tick}s • ${d.tl.toFixed(1)}s`, d.stacks||1)); }
+    for(const h of hotEffects){ parts.push(pill('hot', h.name || 'HoT', `+${Math.round(h.amt)} / ${h.tick.toFixed(1)}s • ${h.tl.toFixed(1)}s`, h.stacks||1)); }
+    for(const d of dotEffects){ parts.push(pill('dot', d.name || 'DoT', `-${Math.round(d.dmg)} / ${d.tick.toFixed(1)}s • ${d.tl.toFixed(1)}s`, d.stacks||1)); }
     for(const b of buffEffects){ parts.push(pill('buff', b.name || 'Buff', `${b.tl.toFixed(1)}s`, b.stacks||1)); }
     ui.unitEffects.innerHTML = parts.length ? parts.join('') : '<span style="color:#888">None</span>';
   };
@@ -2524,7 +2910,8 @@ function bindUI(state){
        | Pick up <span class="kbd">${nice(state.binds.pickup)}</span>
        | Sprint <span class="kbd">${nice(state.binds.sprint)}</span>
        | Inventory <span class="kbd">${nice(state.binds.inventory)}</span>
-       | Menu <span class="kbd">${nice(state.binds.menu)}</span><br/>
+       | Menu <span class="kbd">${nice(state.binds.menu)}</span>
+       | Save <span class="kbd">F5</span><br/>
        Light <span class="kbd">LMB</span> | Heavy <span class="kbd">Hold LMB</span> | Block <span class="kbd">Hold RMB</span>`;
   };
 
@@ -2725,21 +3112,21 @@ function bindUI(state){
     ui.equipExtras.innerHTML = '';
     ui.weaponSlot.innerHTML = '';
 
-    // Circle layout for: helm, chest, belt, feet, legs, shoulders
-    const circleSlots = ['helm','chest','belt','feet','legs','shoulders'];
-    const angles = [-90, -30, 30, 90, 150, -150]; // degrees, clockwise from top
+    // Circle layout for: helm, chest, belt, feet, legs, hands, shoulders
+    const circleSlots = ['helm','chest','belt','feet','legs','hands','shoulders'];
+    const angles = [-90, -30, 30, 90, 135, 180, -135]; // degrees, clockwise from top
     const circleRect = ui.equipCircle.getBoundingClientRect();
-    const radius = Math.max(120, Math.min(circleRect.width, circleRect.height)/2 - 70);
+    const radius = Math.max(160, Math.min(circleRect.width, circleRect.height)/2 - 60);
     const centerX = (ui.equipCircle.clientWidth || 420)/2;
     const centerY = (ui.equipCircle.clientHeight || 420)/2;
     circleSlots.forEach((slot, idx)=>{
       const it = equipTarget[slot];
       const a = angles[idx] * Math.PI/180;
-      let x = centerX + radius * Math.cos(a) - 42; // slot size 84
-      let y = centerY + radius * Math.sin(a) - 42;
+      let x = centerX + radius * Math.cos(a) - 45; // slot size 90
+      let y = centerY + radius * Math.sin(a) - 45;
       // Clamp to container to avoid going off-UI
-      const maxX = (ui.equipCircle.clientWidth || 420) - 84;
-      const maxY = (ui.equipCircle.clientHeight || 420) - 84;
+      const maxX = (ui.equipCircle.clientWidth || 420) - 90;
+      const maxY = (ui.equipCircle.clientHeight || 420) - 90;
       x = Math.max(0, Math.min(x, maxX));
       y = Math.max(0, Math.min(y, maxY));
       const el = document.createElement('div');
@@ -2747,8 +3134,14 @@ function bindUI(state){
       el.style.left = `${Math.round(x)}px`;
       el.style.top = `${Math.round(y)}px`;
       el.title = SLOT_LABEL[slot];
-      el.innerHTML = it ? `<div style="text-align:center"><div style="color:${it.rarity.color}">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:10px">${it.name}</div></div>`
-                       : `<div style="text-align:center"><div>${SLOT_LABEL[slot]}</div><div class="small" style="color:#aaa">None</div></div>`;
+      const imgPath = it ? getItemImage(it) : null;
+      if(it && imgPath){
+        el.innerHTML = `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
+      } else if(it){
+        el.innerHTML = `<div style="text-align:center"><div style="color:${it.rarity.color}">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:10px">${it.name}</div></div>`;
+      } else {
+        el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[slot]}</div><div class="small" style="color:#aaa">None</div></div>`;
+      }
       el.onclick = ()=>{
         const now = performance.now ? performance.now() : Date.now();
         const key = `equip-${slot}`;
@@ -2781,7 +3174,9 @@ function bindUI(state){
     const wIt = equipTarget['weapon'];
     const wRow = document.createElement('div');
     wRow.className = 'equip-row' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
-    wRow.innerHTML = `<span class="label">${SLOT_LABEL['weapon']}</span><span class="value">${wIt ? `<span class=\"${rarityClass(wIt.rarity.key)}\">${wIt.name}</span>` : '<span class=\"small\">None</span>'}</span>`;
+    const imgPath = wIt ? getItemImage(wIt) : null;
+    const imgHtml = imgPath ? `<img src="${imgPath}" alt="${wIt.name}" style="width:70px; height:70px; object-fit:contain; margin-right:8px; vertical-align:middle;"/>` : '';
+    wRow.innerHTML = `<span class="label">${SLOT_LABEL['weapon']}</span><span class="value">${imgHtml}${wIt ? `<span class="${rarityClass(wIt.rarity.key)}">${wIt.name}</span>` : '<span class="small">None</span>'}</span>`;
     wRow.onclick = ()=>{
       const now = performance.now ? performance.now() : Date.now();
       const key = `equip-weapon`;
@@ -2809,6 +3204,42 @@ function bindUI(state){
       if(equip[item.slot] === item) return true; // item is equipped on another hero
     }
     return false;
+  }
+
+  // Calculate item overall rating (no decimals)
+  function calculateItemRating(item){
+    if(!item || !item.buffs) return 0;
+    let rating = 0;
+    const buffs = item.buffs;
+    // Weight different stats
+    if(buffs.atk) rating += buffs.atk * 2;
+    if(buffs.def) rating += buffs.def * 2;
+    if(buffs.maxHp) rating += buffs.maxHp * 0.5;
+    if(buffs.maxMana) rating += buffs.maxMana * 0.3;
+    if(buffs.maxStam) rating += buffs.maxStam * 0.3;
+    if(buffs.speed) rating += buffs.speed * 3;
+    if(buffs.hpRegen) rating += buffs.hpRegen * 10;
+    if(buffs.manaRegen) rating += buffs.manaRegen * 10;
+    if(buffs.stamRegen) rating += buffs.stamRegen * 8;
+    if(buffs.cdr) rating += buffs.cdr * 100;
+    if(buffs.critChance) rating += buffs.critChance * 80;
+    if(buffs.critMult) rating += buffs.critMult * 50;
+    // Add rarity bonus
+    const rarityBonus = { common: 0, uncommon: 10, rare: 30, epic: 60, legend: 120 };
+    rating += rarityBonus[item.rarity?.key || 'common'] || 0;
+    return Math.round(rating);
+  }
+
+  // Compare item to currently equipped item of same slot
+  function compareItemToEquipped(item, equip){
+    if(!item || !item.slot || !equip) return 0;
+    const equipped = equip[item.slot];
+    if(!equipped) return 1; // Better than nothing
+    const itemRating = calculateItemRating(item);
+    const equippedRating = calculateItemRating(equipped);
+    if(itemRating > equippedRating) return 1; // Better
+    if(itemRating < equippedRating) return -1; // Worse
+    return 0; // Same
   }
 
   ui.renderInventory = ()=>{
@@ -2893,6 +3324,18 @@ function bindUI(state){
     
     ui.renderEquippedList();
     ui.invGrid.innerHTML='';
+    
+    const invTooltip = document.getElementById('invTooltip');
+    const showInvTooltip = (html)=>{
+      if(invTooltip){
+        invTooltip.innerHTML = html;
+        invTooltip.style.display = 'block';
+      }
+    };
+    const hideInvTooltip = ()=>{
+      if(invTooltip) invTooltip.style.display = 'none';
+    };
+    
     const maxSlots = Math.max(500, state.inventory.length);
     for(let i=0;i<maxSlots;i++){
       const slot=document.createElement('div');
@@ -2900,15 +3343,103 @@ function bindUI(state){
       if(i<state.inventory.length){
         const it=state.inventory[i];
         const equippedOnOther = isEquippedOnOtherHero(it);
-        slot.textContent=invSlotLabel(it);
+        const imgPath = getItemImage(it);
+        if(imgPath){
+          slot.innerHTML = `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;"/>`;
+        } else {
+          slot.textContent=invSlotLabel(it);
+        }
         slot.style.borderColor=it.rarity.color;
         slot.style.color=it.rarity.color;
+        
+        // Add comparison arrow for equipment items
+        if((it.kind === 'armor' || it.kind === 'weapon') && it.slot && !equippedOnOther){
+          const comparison = compareItemToEquipped(it, equip);
+          if(comparison !== 0){
+            const arrow = document.createElement('div');
+            arrow.style.position = 'absolute';
+            arrow.style.top = '2px';
+            arrow.style.right = '2px';
+            arrow.style.fontSize = '16px';
+            arrow.style.fontWeight = 'bold';
+            arrow.style.pointerEvents = 'none';
+            arrow.style.textShadow = '0 0 3px rgba(0,0,0,0.9)';
+            if(comparison > 0){
+              arrow.textContent = '▲';
+              arrow.style.color = '#0f0';
+            } else {
+              arrow.textContent = '▼';
+              arrow.style.color = '#f00';
+            }
+            slot.style.position = 'relative';
+            slot.appendChild(arrow);
+          }
+        }
+        
         if(equippedOnOther){
           slot.style.opacity = '0.5';
           slot.title = 'Equipped on another hero';
           slot.style.cursor = 'not-allowed';
         }
         if(i===state.selectedIndex && !equippedOnOther) slot.style.outline='2px solid rgba(122,162,255,.55)';
+        
+        // Add hover tooltip
+        slot.addEventListener('mouseenter', ()=>{
+          const color = it.rarity?.color || '#fff';
+          const countText = it.count > 1 ? ` (x${it.count})` : '';
+          let html = `<div style="font-weight:900; color:${color}; margin-bottom:4px">${it.name}${countText}</div>`;
+          html += `<div style="color:#aaa; margin-bottom:8px">${it.desc || ''}</div>`;
+          
+          // Add overall rating for equipment
+          if((it.kind === 'armor' || it.kind === 'weapon') && it.buffs){
+            const rating = calculateItemRating(it);
+            html += `<div style="color:#d4af37; font-weight:bold; margin-bottom:8px">⭐ Overall Rating: ${rating}</div>`;
+          }
+          
+          if(it.buffs && Object.keys(it.buffs).length > 0){
+            const buffsText = Object.entries(it.buffs).map(([k,v])=>{
+              let displayVal;
+              if(typeof v === 'number'){
+                if(Math.abs(v) < 1){
+                  // Percentage stats
+                  displayVal = (v>0?'+':'')+(v*100).toFixed(0)+'%';
+                } else {
+                  // Whole number stats - no decimals
+                  displayVal = (v>0?'+':'')+Math.round(v);
+                }
+              } else {
+                displayVal = v;
+              }
+              return `<span style="color:var(--common)">${displayVal} ${k}</span>`;
+            }).join(' • ');
+            html += `<div style="margin-bottom:8px">${buffsText}</div>`;
+          }
+          
+          if(it.elementalEffects && it.elementalEffects.length > 0){
+            const elemsText = it.elementalEffects.map(e=>`${Math.round((e.chance||0)*100)}% ${e.type} on-hit`).join(' | ');
+            html += `<div style="color:var(--rare); margin-bottom:8px">${elemsText}</div>`;
+          }
+          
+          if(it.slot){
+            html += `<div style="color:#999; margin-top:8px">Slot: ${it.slot}</div>`;
+          }
+          
+          if(it.kind === 'weapon' && it.weaponType){
+            html += `<div style="color:#999">Type: ${it.weaponType}</div>`;
+          }
+          
+          const equippedText = equippedOnOther ? '<br><span style="color:#f66; font-size:11px">⚠️ Equipped on another hero</span>' : '';
+          html += equippedText;
+          
+          // Add preview hint for weapons
+          if(it.kind === 'weapon'){
+            html += '<div style="color:#4a9eff; font-size:11px; margin-top:8px; opacity:0.8">💡 Press P for Item Preview</div>';
+          }
+          
+          showInvTooltip(html);
+        });
+        slot.addEventListener('mouseleave', hideInvTooltip);
+        
         if(!equippedOnOther){
           slot.onclick=()=>{
             const now = performance.now ? performance.now() : Date.now();
@@ -2923,6 +3454,7 @@ function bindUI(state){
         }
       } else {
         slot.onclick=()=>{ state.selectedIndex=-1; state.selectedEquipSlot=null; ui.updateInventorySelection(); };
+        slot.addEventListener('mouseenter', hideInvTooltip);
       }
       ui.invGrid.appendChild(slot);
     }
@@ -3896,13 +4428,113 @@ function bindUI(state){
   const btnNextCampaign = document.getElementById('btnNextCampaign');
   if(btnNextCampaign){
     btnNextCampaign.onclick=()=>{
+      // Reset campaign timer and points
       state.campaign.time = 0;
       state.campaign.playerPoints = 0;
       state.campaign.enemyPoints = 0;
       state.campaignEnded = false;
+      
+      // Respawn player at home base
+      const homeBase = state.sites.find(s => s.id === 'home_player');
+      if(homeBase){
+        state.player.x = homeBase.x;
+        state.player.y = homeBase.y;
+        const st = currentStats(state);
+        state.player.hp = st.maxHp;
+        state.player.mana = st.maxMana;
+        state.player.stam = st.maxStam;
+        state.player.shield = 0;
+        state.player.dead = false;
+      }
+      
+      // Reset all captured flags to neutral and reset guard progression
+      for(const site of state.sites){
+        if(site.id && site.id.startsWith('site_')){
+          site.owner = null;
+          // Reset guard progression for fresh start
+          site.guardProgression = null;
+          site.guardRespawns = [];
+        }
+      }
+      
+      // Clear all enemies and friendlies (including guards)
+      state.enemies.length = 0;
+      state.friendlies.length = 0;
+      
+      // Clear projectiles and temporary effects
+      state.projectiles.length = 0;
+      state.effects.flashes.length = 0;
+      state.effects.slashes.length = 0;
+      state.effects.wells.length = 0;
+      state.effects.heals.length = 0;
+      
+      // Respawn all friendlies at player home base (reuse homeBase variable)
+      if(homeBase && state.group.members.length > 0){
+        for(const memberId of state.group.members){
+          const settings = state.group.settings[memberId];
+          if(settings){
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 60 + Math.random() * 40;
+            const ally = {
+              id: memberId,
+              x: homeBase.x + Math.cos(angle) * dist,
+              y: homeBase.y + Math.sin(angle) * dist,
+              r: 14,
+              variant: settings.class || 'warrior',
+              level: settings.level || 1,
+              maxHp: 100,
+              hp: 100,
+              mana: 80,
+              maxMana: 80,
+              speed: 90,
+              contactDmg: 12,
+              respawnT: 0,
+              buffs: [],
+              dots: [],
+              equip: settings.equipment || {},
+              npcAbilities: []
+            };
+            if(state._npcUtils && state._npcUtils.applyClassToUnit){
+              state._npcUtils.applyClassToUnit(ally, ally.variant);
+            }
+            if(state._npcUtils && state._npcUtils.npcInitAbilities){
+              state._npcUtils.npcInitAbilities(ally);
+            }
+            state.friendlies.push(ally);
+          }
+        }
+      }
+      
+      // Respawn enemies at their home bases (preserve their levels)
+      for(const site of state.sites){
+        if(site.id && site.id.startsWith('home_') && site.id !== 'home_player'){
+          const team = site.owner || 'teamA';
+          const savedLevels = enemyLevelsByHome[site.id] || [];
+          for(let i = 0; i < 5; i++){
+            const angle = (i / 5) * Math.PI * 2;
+            const dist = 80 + Math.random() * 40;
+            // Use saved level if available, otherwise level 1
+            const enemyLevel = savedLevels[i] || 1;
+            if(state._npcUtils && state._npcUtils.spawnEnemyAt){
+              state._npcUtils.spawnEnemyAt(state, 
+                site.x + Math.cos(angle) * dist,
+                site.y + Math.sin(angle) * dist,
+                0, { homeSiteId: site.id, team: team, level: enemyLevel });
+            }
+          }
+        }
+      }
+      
+      // Spawn guards for all flags (both player and AI owned)
+      for(const site of state.sites){
+        if(site.id && site.id.startsWith('site_') && site.owner){
+          spawnGuardsForSite(state, site, 5);
+        }
+      }
+      
       ui.endOverlay.classList.remove('show');
       state.paused = false;
-      ui.toast('Next campaign started. Loot and stats persist.');
+      ui.toast('Next campaign started! Map reset, loot and levels persist.');
     };
   }
 

@@ -1,5 +1,5 @@
 import { clamp, rand } from "../engine/util.js";
-import { applyClassToUnit, npcInitAbilities } from "./game.js";
+// Note: applyClassToUnit and npcInitAbilities are passed as parameters to avoid circular dependencies
 
 // Expose map loading to global scope for easy access from console
 window.loadCustomMap = function(imageUrl){
@@ -276,26 +276,94 @@ export function findNearestEnemyTeamAtSite(state, site, dist){
   return best? best.team : null;
 }
 
+// Destroy all guards at a site (called when flag is captured)
+function destroyAllGuardsAtSite(state, site, previousOwner){
+  // Remove friendly guards
+  const friendlyGuardsToRemove = state.friendlies.filter(f => f.guard && f.homeSiteId === site.id);
+  for(const guard of friendlyGuardsToRemove){
+    const idx = state.friendlies.indexOf(guard);
+    if(idx >= 0) state.friendlies.splice(idx, 1);
+  }
+  
+  // Remove enemy guards
+  const enemyGuardsToRemove = state.enemies.filter(e => e.guard && e.homeSiteId === site.id);
+  for(const guard of enemyGuardsToRemove){
+    const idx = state.enemies.indexOf(guard);
+    if(idx >= 0) state.enemies.splice(idx, 1);
+  }
+  
+  console.log(`[destroyAllGuardsAtSite] Destroyed ${friendlyGuardsToRemove.length + enemyGuardsToRemove.length} guards at ${site.id}`);
+}
+
+// Assign gear to guard based on rarity tier
+function assignGuardGear(guard, rarityKey){
+  const RARITIES = {
+    common: { key:'common', tier: 1, name: 'Common', color: '#c8c8c8' },
+    uncommon: { key:'uncommon', tier: 2, name: 'Uncommon', color: '#8fd' },
+    rare: { key:'rare', tier: 3, name: 'Rare', color: '#9cf' },
+    epic: { key:'epic', tier: 4, name: 'Epic', color: '#c9f' },
+    legendary: { key:'legendary', tier: 5, name: 'Legendary', color: '#f9c' }
+  };
+  
+  const rarity = RARITIES[rarityKey] || RARITIES.common;
+  
+  // Equipment is already assigned by npcInitAbilities, just update rarity
+  if(guard.equipment && guard.equipment.weapon){
+    guard.equipment.weapon.rarity = rarity;
+  }
+  
+  console.log(`[assignGuardGear] Assigned ${rarity.name} gear to ${guard.name}`);
+}
+
 // Spawn simple guard objects around a site. Guards are pushed into state.enemies
 // as static defenders until aggroed. Each guard has `guard:true` and `homeSiteId`.
-export function spawnGuardsForSite(state, site, count=4){
-  // Enforce a hard cap of 4 guards per site
+export function spawnGuardsForSite(state, site, count=5){
+  console.log('[spawnGuardsForSite] Called for site:', site.id, 'owner:', site.owner, 'requestCount:', count);
+  
+  // Get utility functions from state (injected by game.js to avoid circular imports)
+  const applyClassToUnit = state._npcUtils?.applyClassToUnit;
+  const npcInitAbilities = state._npcUtils?.npcInitAbilities;
+  
+  // Enforce a hard cap of 5 guards per site
   const currentGuards = state.friendlies.filter(f=>f.guard && f.siteId===site.id && f.respawnT<=0).length + (site.guardRespawns?.length||0);
-  const remaining = Math.max(0, 4 - currentGuards);
-  if(remaining<=0) return;
+  const remaining = Math.max(0, 5 - currentGuards);
+  console.log('[spawnGuardsForSite] currentGuards:', currentGuards, 'remaining:', remaining);
+  
+  if(remaining<=0) {
+    console.log('[spawnGuardsForSite] No slots remaining, returning');
+    return;
+  }
   count = Math.min(count, remaining);
-  // ensure fixed guard positions are created for the site (square formation)
+  // Initialize site guard progression tracking
+  if(!site.guardProgression){
+    site.guardProgression = {
+      timeHeld: 0, // Total time flag has been held by current owner
+      gearRarity: 'common', // Current gear rarity
+      lastUpgrade: 0, // Time of last gear upgrade
+      levels: [1, 1, 1, 1, 1] // Individual guard levels
+    };
+  }
+  
+  // ensure fixed guard positions are created for the site (star/pentagon formation)
   if(!site._guardPositions){
     site._guardPositions = [];
-    const offset = site.r + 35; // Distance from flag center
-    // 4 guards in a square formation at the cardinal directions
-    site._guardPositions.push({x: site.x + offset, y: site.y}); // East
-    site._guardPositions.push({x: site.x - offset, y: site.y}); // West
-    site._guardPositions.push({x: site.x, y: site.y + offset}); // South
-    site._guardPositions.push({x: site.x, y: site.y - offset}); // North
+    const offset = site.r + 70; // Distance from flag center (increased for better spacing)
+    // 5 guards in a perfect pentagon formation around the flag
+    // Pentagon: 5 points, each separated by 72 degrees (360/5)
+    for(let i = 0; i < 5; i++){
+      // Starting from top (-90 degrees), rotating clockwise
+      const angle = (i * 72 * Math.PI / 180) - (Math.PI / 2);
+      site._guardPositions.push({
+        x: site.x + Math.cos(angle) * offset,
+        y: site.y + Math.sin(angle) * offset
+      });
+    }
   }
 
-  // spawn from fixed positions; only spawn into free slots
+  // Coordinated guard composition: 2 Healers (mage) + 3 DPS (warrior, knight, tank)
+  const GUARD_COMPOSITION = ['mage', 'mage', 'warrior', 'knight', 'tank'];
+  
+  // spawn from fixed positions with defined roles
   let spawned=0;
   for(let pi=0; pi<site._guardPositions.length && spawned<count; pi++){
     const pos = site._guardPositions[pi];
@@ -304,33 +372,67 @@ export function spawnGuardsForSite(state, site, count=4){
     const occFriendly = state.friendlies.find(f=>f.siteId===site.id && Math.hypot(f.x-pos.x,f.y-pos.y)<=8);
     if(occEnemy || occFriendly) continue;
     const x = pos.x, y = pos.y;
-    // basic guard stats (aligned with enemyTemplate scale in game.js)
-    const guardObj = { x,y, r:13, maxHp:36, hp:36, speed:0, contactDmg:12, hitCd:0, xp:6, attacked:false, guard:true, homeSiteId:site.id, team: site.owner };
+    
+    // Get variant from composition
+    const v = GUARD_COMPOSITION[pi] || 'warrior';
+    const isHealer = (v === 'mage');
+    
+    // Get guard level from progression (defaults to 1)
+    const guardLevel = site.guardProgression?.levels?.[pi] || 1;
+    
+    // Base guard stats (level 1 baseline)
+    const guardObj = { 
+      x, y, r:13, maxHp:50, hp:50, speed:0, contactDmg:10, hitCd:0, xp:8, 
+      attacked:false, guard:true, homeSiteId:site.id, team: site.owner,
+      guardRole: isHealer ? 'HEALER' : 'DPS',
+      level: guardLevel,
+      guardIndex: pi // Track which guard this is (0-4)
+    };
+    
     if(site.owner === 'player'){
-      const VARS = ['warrior','mage','knight','tank'];
-      const v = VARS[Math.floor(Math.random()*VARS.length)];
       const friendlyGuard = {
         id: `f_${Date.now()}_${Math.floor(Math.random()*100000)}`,
-        name: `${v.charAt(0).toUpperCase()+v.slice(1)} ${Math.floor(Math.random()*999)+1}`,
+        name: `${v.charAt(0).toUpperCase()+v.slice(1)} Guard ${spawned+1}`,
         x:guardObj.x, y:guardObj.y, r:12, hp:guardObj.hp, maxHp:guardObj.maxHp, speed:0,
-        dmg:12, hitCd:0, siteId:site.id, respawnT:0, guard:true, homeSiteId:site.id,
+        dmg:10, hitCd:0, siteId:site.id, respawnT:0, guard:true, homeSiteId:site.id,
         _spawnX:guardObj.x, _spawnY:guardObj.y, attacked:false, variant: v,
-        behavior: 'neutral', buffs:[], dots:[], level: 1
+        behavior: 'guard', buffs:[], dots:[], level: guardLevel,
+        guardRole: guardObj.guardRole,
+        guardFormation: true, // Enable coordinated group behavior
+        guardIndex: pi
       };
       // Apply class stats and initialize abilities with weapon
-      applyClassToUnit(friendlyGuard, v);
-      npcInitAbilities(friendlyGuard);
+      if(applyClassToUnit) applyClassToUnit(friendlyGuard, v);
+      if(npcInitAbilities) npcInitAbilities(friendlyGuard);
+      
+      // Apply gear based on site progression
+      assignGuardGear(friendlyGuard, site.guardProgression?.gearRarity || 'common');
+      
       state.friendlies.push(friendlyGuard);
+      console.log('[spawnGuardsForSite] Spawned friendly guard:', friendlyGuard.name, `L${guardLevel}`, friendlyGuard.guardRole, 'at', friendlyGuard.x, friendlyGuard.y);
     } else {
-      // enemy guards use a guard/knight visual
-      guardObj.variant = 'knight';
-      guardObj.team = site.owner; // Ensure team is set
+      // Enemy guards with composition and level
+      guardObj.variant = v;
+      guardObj.team = site.owner;
       guardObj.guard = true;
       guardObj.homeSiteId = site.id;
+      guardObj.guardFormation = true;
+      guardObj.guardIndex = pi;
+      guardObj._spawnX = guardObj.x; // Set spawn position for return behavior
+      guardObj._spawnY = guardObj.y; // Set spawn position for return behavior
+      
+      // Apply class stats to enemy guards (this sets proper speed and HP)
+      if(applyClassToUnit) applyClassToUnit(guardObj, v);
+      if(npcInitAbilities) npcInitAbilities(guardObj);
+      // Guards start stationary but AI will set speed when needed
+      guardObj.speed = 0;
+      
       state.enemies.push(guardObj);
+      console.log('[spawnGuardsForSite] Spawned enemy guard:', v, `L${guardLevel}`, guardObj.guardRole, 'HP:', guardObj.maxHp, 'at', guardObj.x, guardObj.y);
     }
     spawned++;
   }
+  console.log('[spawnGuardsForSite] Total spawned:', spawned, 'composition:', GUARD_COMPOSITION.slice(0, spawned));
 }
 
 export function enemiesNearSite(state, site, dist){
@@ -458,8 +560,19 @@ export function updateCapture(state, dt){
     // Check if capture is complete
     if(s.prog >= 1 && s.owner === null){
       // Neutral flag captured
+      const previousOwner = s.owner;
       s.owner = capturingTeam;
       s._justCaptured = capturingTeam;
+      
+      // DESTROY all guards from previous owner and reset progression
+      destroyAllGuardsAtSite(state, s, previousOwner);
+      s.guardProgression = {
+        timeHeld: 0,
+        gearRarity: 'common',
+        lastUpgrade: 0,
+        levels: [1, 1, 1, 1, 1]
+      };
+      
       const msg = capturingTeam === 'player' 
         ? `<b>${s.name}</b> captured! Friendlies will spawn to defend.`
         : `<span class="neg"><b>${s.name}</b> was captured by ${capturingTeam}.</span>`;
@@ -475,9 +588,20 @@ export function updateCapture(state, dt){
       delete s._captureTeam;
     } else if(s.prog <= 0 && s.owner !== null){
       // Enemy flag flipped
+      const previousOwner = s.owner;
       s.owner = capturingTeam;
       s._justCaptured = capturingTeam;
       s.prog = 1; // Set to full once captured
+      
+      // DESTROY all guards from previous owner and reset progression
+      destroyAllGuardsAtSite(state, s, previousOwner);
+      s.guardProgression = {
+        timeHeld: 0,
+        gearRarity: 'common',
+        lastUpgrade: 0,
+        levels: [1, 1, 1, 1, 1]
+      };
+      
       const msg = capturingTeam === 'player'
         ? `<b>${s.name}</b> captured! Friendlies will spawn to defend.`
         : `<span class="neg"><b>${s.name}</b> was recaptured by ${capturingTeam}.</span>`;
