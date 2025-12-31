@@ -1,10 +1,11 @@
-import { clamp, rand, randi, cssVar, saveJson } from "../engine/util.js";
+import { clamp, rand, randi, cssVar, saveJson, loadJson } from "../engine/util.js";
 import { INV_SIZE, LOOT_TTL, ARMOR_SLOTS, SLOT_LABEL, DEFAULT_BINDS } from "./constants.js";
 import { pickRarity, rarityClass, rarityTier } from "./rarity.js";
 import { xpForNext } from "./progression.js";
-import { SKILLS, getSkillById, getAbilityById, DOT_REGISTRY, BUFF_REGISTRY } from "./skills.js";
+import { SKILLS, getSkillById, getAbilityById, DOT_REGISTRY, BUFF_REGISTRY, defaultAbilitySlots, defaultPassives } from "./skills.js";
 import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
 import { META_LOADOUTS } from "./loadouts.js";
+import { LEVEL_CONFIG, getZoneForPosition, scaleAllyToPlayerLevel } from "./leveling.js";
 
 // Enemy / spawn tuning
 const MAX_DEFENDERS_PER_TEAM = 10; // non-guard fighters per team (excludes guards)
@@ -16,8 +17,113 @@ const CHASE_DISTANCE = 160; // how close the player must be for an enemy to chas
 const CHASE_FROM_HOME_MAX = 220; // max distance from home an enemy will pursue before returning
 const RETURN_THRESHOLD = 260; // if farther than this from home, force return
 
+// Hard reset: completely reinitialize all game state properties (called before initGame on new game)
+export function hardResetGameState(state){
+  try{ console.log('[RESET] Hard reset - clearing all game state'); }catch(e){}
+  
+  if(!state || !state.player) return; // Safety check
+  
+  // Reset progression to level 1
+  state.progression = { level:1, xp:0, statPoints:1, spends:{vit:0,int:0,str:0,def:0,agi:0} };
+  
+  // Reset player hp, mana, stamina (position will be set in initGame after sites exist)
+  const baseHp = state.basePlayer?.maxHp || 120;
+  const baseMana = state.basePlayer?.maxMana || 70;
+  const baseStam = state.basePlayer?.maxStam || 100;
+  state.player.hp = baseHp;
+  state.player.mana = baseMana;
+  state.player.stam = baseStam;
+  state.player.shield = 0;
+  state.player.dead = false;
+  state.player.respawnT = 0;
+  state.player.buffs = [];
+  state.player.dots = [];
+  state.player.cd = [0,0,0,0,0];
+  state.player.gold = 500;
+  state.player.passives = defaultPassives(getSkillById);
+  
+  // IMPORTANT: Reset ability slots (loadouts persist in localStorage separately)
+  state.abilitySlots = defaultAbilitySlots(); // Empty slots
+  state.heroAbilitySlots = { 
+    mage:defaultAbilitySlots(), 
+    warrior:defaultAbilitySlots(), 
+    knight:defaultAbilitySlots(), 
+    tank:defaultAbilitySlots() 
+  };
+  
+  // Reset hero equipment
+  state.heroEquip = { 
+    mage: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),
+    warrior: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),
+    knight: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),
+    tank: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null]))
+  };
+  state.player.equip = Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null]));
+  state.player.equipment = { weapon: structuredClone(META_LOADOUTS.HEALER.weapon) };
+  state.player.potion = null;
+  
+  // Reset UI state
+  state.showInventory = false;
+  state.showSkills = false;
+  state.showLevel = false;
+  state.inMenu = false;
+  state.showMarketplace = false;
+  state.paused = false;
+  state.campaignEnded = false;
+  state.selectedIndex = -1;
+  state.selectedEquipSlot = null;
+  state.groupMemberInventoryMode = null;
+  
+  // Reset collections
+  state.sites = [];
+  state.dungeons = [];
+  state.enemies = [];
+  state.friendlies = [];
+  state.creatures = [];
+  state.projectiles = [];
+  state.loot = [];
+  state.inventory = [];
+  state.effects = state.effects || {};
+  state.effects.heals = [];
+  state.effects.wells = [];
+  state.effects.storms = [];
+  state.effects.slashes = [];
+  state.effects.flashes = [];
+  state.effects.leapIndicators = [];
+  state.effects.bolts = [];
+  
+  // Reset group system
+  state.group = {
+    members: [],
+    selectedMemberId: null,
+    settings: {}
+  };
+  
+  // Reset party system
+  state.party = {
+    macroState: 'stack',
+    macroLockUntil: 0,
+    burstUntil: 0,
+    blackboard: {
+      stackPoint: { x: 0, y: 0 },
+      focusTargetId: null,
+      focusTargetUntil: 0,
+      chaseAllowed: false,
+      spreadRadius: 72,
+      leashRadius: 210
+    }
+  };
+  
+  // Reset campaign
+  state.campaign = { playerPoints:0, enemyPoints:0, targetPoints:250, time:0 };
+}
+
 export async function initGame(state){
   try{ console.log('initGame: starting'); }catch(e){}
+  
+  // ALWAYS clear ability slots on new game - simple and explicit
+  state.abilitySlots = [null, null, null, null, null];
+  console.log('[INIT] Ability slots cleared:', state.abilitySlots);
   
   // Reset group and transient collections to avoid carryover from previous runs
   try{
@@ -50,12 +156,34 @@ export async function initGame(state){
   state._npcUtils = {
     applyClassToUnit,
     npcInitAbilities,
-    spawnEnemyAt
+    spawnEnemyAt,
+    spawnFriendlyAt
   };
+  
+  // Initialize UI with current stats
+  if(state.ui && state.ui.renderHud){
+    const stats = currentStats(state);
+    state.ui.renderHud(stats);
+  }
 }
 
 export function currentStats(state){
   const base={...state.basePlayer};
+  
+  // Apply level scaling to base stats (MMO-style progression)
+  const playerLevel = state.progression?.level || 1;
+  if (playerLevel > 1) {
+    const levelMult = 1 + (playerLevel - 1) * 0.08; // 8% growth per level
+    base.maxHp = Math.round(base.maxHp * levelMult);
+    base.maxMana = Math.round(base.maxMana * levelMult);
+    base.maxStam = Math.round(base.maxStam * levelMult);
+    base.hpRegen = Number((base.hpRegen * levelMult).toFixed(2));
+    base.manaRegen = Number((base.manaRegen * levelMult).toFixed(2));
+    base.stamRegen = Math.round(base.stamRegen * levelMult);
+    base.atk = Math.round(base.atk * levelMult);
+    base.def = Math.round(base.def * levelMult);
+  }
+  
   applySpends(state, base);
   applyAllArmor(state, base);
   for(const p of state.player.passives) if(p?.type==='passive') applyBuffs(base, p.buffs);
@@ -207,27 +335,36 @@ function buildElementalEffects(rarity){
   return effects;
 }
 
-function makePotion(type, rarity){
+function makePotion(type, rarity, itemLevel = 1){
   const t=rarityTier(rarity);
   if(type==='hp'){
     const pct=0.28+t*0.05;
     return {id:Math.random().toString(16).slice(2),kind:'potion',type:'hp',rarity,
+      itemLevel,
       name:`${rarity.name} Health Potion`,
-      desc:`Restores <b>${Math.round(pct*100)}%</b> of Max HP.`,
+      desc:`Restores <b>${Math.round(pct*100)}%</b> of Max HP. (Level ${itemLevel})`,
       data:{pct}
     };
   }
   const pct=0.34+t*0.05;
   return {id:Math.random().toString(16).slice(2),kind:'potion',type:'mana',rarity,
+    itemLevel,
     name:`${rarity.name} Mana Potion`,
-    desc:`Restores <b>${Math.round(pct*100)}%</b> of Max Mana.`,
+    desc:`Restores <b>${Math.round(pct*100)}%</b> of Max Mana. (Level ${itemLevel})`,
     data:{pct}
   };
 }
 
 function scaled(v,t,m=1){ return v + t*m; }
 
-function makeArmor(slot, rarity){
+// Scale item stat value by item level and rarity
+function scaleStatForItemLevel(baseStat, itemLevel, rarity) {
+  const levelMult = 1 + (itemLevel - 1) * 0.12; // 12% per level
+  const rarityMult = 1 + rarityTier(rarity) * 0.25; // 25% per rarity tier
+  return baseStat * levelMult * rarityMult;
+}
+
+function makeArmor(slot, rarity, itemLevel = 1){
   const t=rarityTier(rarity);
   const POOLS = {
     helm: [
@@ -290,15 +427,28 @@ function makeArmor(slot, rarity){
   let resistBuffs={};
   const resCount = rollCount(rules.resRange);
   for(let i=0;i<resCount;i++) resistBuffs = mergeBuffSets(resistBuffs, rollResistBuff(Math.max(0.7, rules.statScale||0.0)));
-  const mergedBuffs = mergeBuffSets(pick.buffs, extraBuffs, resistBuffs);
+  let mergedBuffs = mergeBuffSets(pick.buffs, extraBuffs, resistBuffs);
+  
+  // Scale all stats by item level
+  const scaledBuffs = {};
+  for(const [key, value] of Object.entries(mergedBuffs)) {
+    const scaled = scaleStatForItemLevel(value, itemLevel, rarity);
+    scaledBuffs[key] = key.includes('chance') || key.includes('cdr') || key.includes('res_') || key.includes('lifesteal') || key.includes('blockEff') 
+      ? Number(scaled.toFixed(3)) 
+      : key.includes('Regen') || key.includes('Mult') 
+      ? Number(scaled.toFixed(2)) 
+      : Math.round(scaled);
+  }
+  
   return {
     id:Math.random().toString(16).slice(2),
     kind:'armor',
     slot,
     rarity,
+    itemLevel,
     name:`${rarity.name} ${SLOT_LABEL[slot]}: ${pick.name}`,
-    desc:`${SLOT_LABEL[slot]} armor. Buffs: ${describeBuffs(mergedBuffs)}`,
-    buffs:mergedBuffs
+    desc:`Level ${itemLevel} ${SLOT_LABEL[slot]} armor. Buffs: ${describeBuffs(scaledBuffs)}`,
+    buffs:scaledBuffs
   };
 }
 
@@ -307,7 +457,7 @@ function describeElementals(effects){
   return effects.map(e=> `${Math.round(e.chance*100)}% on-hit ${e.type} (${e.dotId})`).join('; ');
 }
 
-function makeWeapon(kind, rarity){
+function makeWeapon(kind, rarity, itemLevel = 1){
   const t = rarityTier(rarity);
   const templates={
     'Destruction Staff': { buffs:{atk:3+t*1.6, maxMana:14+t*6, manaRegen:0.8+t*0.45} },
@@ -322,17 +472,30 @@ function makeWeapon(kind, rarity){
   let extraBuffs={};
   const statCount = rollCount(rules.statRange);
   for(let i=0;i<statCount;i++) extraBuffs = mergeBuffSets(extraBuffs, rollStatBuff(rules.statScale));
-  const buffs = mergeBuffSets(tpl.buffs, extraBuffs);
+  let buffs = mergeBuffSets(tpl.buffs, extraBuffs);
+  
+  // Scale all stats by item level
+  const scaledBuffs = {};
+  for(const [key, value] of Object.entries(buffs)) {
+    const scaled = scaleStatForItemLevel(value, itemLevel, rarity);
+    scaledBuffs[key] = key.includes('chance') || key.includes('cdr') || key.includes('res_') || key.includes('lifesteal') || key.includes('blockEff') 
+      ? Number(scaled.toFixed(3)) 
+      : key.includes('Regen') || key.includes('Mult') 
+      ? Number(scaled.toFixed(2)) 
+      : Math.round(scaled);
+  }
+  
   const elementalEffects = buildElementalEffects(rarity);
   const elemText = elementalEffects.length ? ` Elemental: ${describeElementals(elementalEffects)}` : '';
   return {
     id:Math.random().toString(16).slice(2),
     kind:'weapon', slot:'weapon',
     rarity,
+    itemLevel,
     weaponType: kind,
     name:`${rarity.name} ${kind}`,
-    desc:`${kind} weapon. Buffs: ${describeBuffs(buffs)}${elemText}`,
-    buffs,
+    desc:`Level ${itemLevel} ${kind} weapon. Buffs: ${describeBuffs(scaledBuffs)}${elemText}`,
+    buffs:scaledBuffs,
     elementalEffects
   };
 }
@@ -345,18 +508,21 @@ function spawnLootAt(state, x,y){
   const rarity=pickRarity();
   const roll=Math.random();
   const gold=randi(3,12); // random gold drop
+  const playerLevel = state.progression?.level || 1;
+  const itemLevel = Math.max(1, playerLevel + randi(-2, 2)); // ±2 level variance
+  
   if(roll<0.40){
     const armorSlots = ARMOR_SLOTS.filter(s=>s!=='weapon');
     const slot=armorSlots[randi(0,armorSlots.length-1)];
-    return makeLootDrop(x,y,makeArmor(slot,rarity),gold);
+    return makeLootDrop(x,y,makeArmor(slot,rarity,itemLevel),gold);
   }
   if(roll<0.65){
     const weaponKinds=['Destruction Staff','Healing Staff','Axe','Sword','Dagger','Greatsword'];
     const kind=weaponKinds[randi(0,weaponKinds.length-1)];
-    return makeLootDrop(x,y,makeWeapon(kind, rarity),gold);
+    return makeLootDrop(x,y,makeWeapon(kind, rarity,itemLevel),gold);
   }
-  if(roll<0.82) return makeLootDrop(x,y,makePotion('hp',rarity),gold);
-  return makeLootDrop(x,y,makePotion('mana',rarity),gold);
+  if(roll<0.82) return makeLootDrop(x,y,makePotion('hp',rarity,itemLevel),gold);
+  return makeLootDrop(x,y,makePotion('mana',rarity,itemLevel),gold);
 }
 
 function addToInventory(state, item, gold=0){
@@ -604,15 +770,45 @@ function spawnProjectile(state, x,y,angle,speed,r,dmg,pierce=0, fromPlayer=true,
 
 function awardXP(state, amount){
   state.progression.xp += amount;
+  console.log(`[XP] Awarded ${amount} XP. Total: ${state.progression.xp}/${xpForNext(state.progression.level)}`);
   let leveled=false;
+  let newLevel = state.progression.level;
+  let bonusMsg = ''; // Declare outside the loop
+  
   while(state.progression.xp >= xpForNext(state.progression.level)){
     state.progression.xp -= xpForNext(state.progression.level);
     state.progression.level += 1;
-    state.progression.statPoints += 1;
+    newLevel = state.progression.level;
+    state.progression.statPoints += 2; // Always 2 stat points per level
     leveled=true;
+    
+    // Milestone rewards (ESO/WoW style)
+    
+    // Every 5 levels: bonus gold (working system)
+    if (newLevel % 5 === 0) {
+      const goldBonus = newLevel * 25;
+      state.player.gold += goldBonus;
+      bonusMsg += ` +${goldBonus} gold bonus!`;
+    }
+    
+    // Special milestones
+    if (newLevel === 50) bonusMsg += ' 🏆 MAX LEVEL REACHED! 🏆';
+    // TODO: Future milestones when systems are implemented:
+    // if (newLevel === 10) bonusMsg += ' New zones unlocked!';
+    // if (newLevel === 25) bonusMsg += ' Elite content unlocked!';
   }
+  
   if(leveled){
-    state.ui.toast(`<b>Level up!</b> Level <b>${state.progression.level}</b>. (+2 stat points)`);
+    const msg = `<b>Level up!</b> Level <b>${newLevel}</b> (+2 stat points)${bonusMsg ? '<br>' + bonusMsg : ''}`;
+    state.ui.toast(msg);
+    // Show large level-up animation
+    if (state.ui && state.ui.showLevelUp) {
+      state.ui.showLevelUp(newLevel);
+    }
+    // Update HUD to refresh XP bar
+    if (state.ui && state.ui.renderHud) {
+      state.ui.renderHud(state);
+    }
     saveJson('orb_rpg_mod_prog', state.progression);
   }
 }
@@ -1151,7 +1347,23 @@ function npcUpdateAbilities(state, u, dt, kind){
 }
 
 function spawnEnemyAt(state, x,y, t, opts={}){
-  const level = opts.level || Math.floor(t/60) + 1;
+  // Use zone-based leveling if map dimensions available, otherwise fall back to time-based
+  let level;
+  if (opts.level) {
+    level = opts.level; // Explicitly set level (for respawns, etc.)
+  } else if (state.mapWidth && state.mapHeight) {
+    // Zone-based leveling (ESO/WoW style)
+    const zone = getZoneForPosition(x, y, state.mapWidth, state.mapHeight);
+    const zoneConfig = LEVEL_CONFIG.ZONES[zone] || LEVEL_CONFIG.ZONES.starter;
+    const playerLevel = state.progression?.level || 1;
+    // Enemies spawn at zone average, but scale slightly with player (±3 levels from zone avg)
+    const zoneAvg = Math.floor((zoneConfig.min + zoneConfig.max) / 2);
+    const playerInfluence = Math.floor((playerLevel - zoneAvg) * 0.3); // 30% player influence
+    level = Math.max(zoneConfig.min, Math.min(zoneConfig.max, zoneAvg + playerInfluence));
+  } else {
+    // Fallback to time-based if no map data
+    level = Math.floor(t/60) + 1;
+  }
   const eT=enemyTemplate(t);
   // boost initial speed for spawned enemies to ensure they move immediately
   const baseSpeed = opts.level ? 90 : eT.speed; // level 1 enemies get faster base speed
@@ -1473,6 +1685,10 @@ function spawnFriendlyAt(state, site, forceVariant=null){
   const VARS = ['warrior','mage','knight','tank'];
   const v = forceVariant || VARS[randi(0, VARS.length-1)];
   const nameOptions = { warrior: 'Warrior', mage: 'Mage', knight: 'Knight', tank: 'Tank' };
+  
+  // Get player level for ally scaling
+  const playerLevel = state.progression?.level || 1;
+  
   const f = {
     id: `f_${Date.now()}_${randi(0, 99999)}`, // Unique ID for group tracking
     name: `${nameOptions[v]} ${randi(1, 999)}`, // Generate a name like "Warrior 42"
@@ -1491,19 +1707,32 @@ function spawnFriendlyAt(state, site, forceVariant=null){
     behavior: 'neutral', // default behavior for all friendlies
     buffs: [],
     dots: [],
-    level: Math.max(1, state.progression?.level || 1)
+    level: playerLevel // Allies match player level
   };
-  // apply class template to friendly
-  applyClassToUnit(f, v);
-  // friendlies use 'dmg' for melee; ensure it's aligned
-  f.dmg = f.contactDmg || f.dmg;
+  
+  // Get class modifiers for ally scaling
+  const classModifiers = {
+    hp: v==='mage' ? 0.9 : v==='warrior' ? 1.15 : v==='knight' ? 1.45 : v==='tank' ? 1.85 : 1.0,
+    dmg: v==='mage' ? 0.95 : v==='warrior' ? 1.10 : v==='knight' ? 1.0 : v==='tank' ? 0.85 : 1.0,
+    speed: v==='mage' ? 1.06 : v==='warrior' ? 1.0 : v==='knight' ? 0.86 : v==='tank' ? 0.72 : 1.0
+  };
+  
+  // Apply MMO-style ally scaling based on player level
+  const scaledStats = scaleAllyToPlayerLevel(
+    { maxHp: 55, contactDmg: 8, speed: 110 },
+    playerLevel,
+    classModifiers
+  );
+  
+  f.maxHp = scaledStats.maxHp;
+  f.hp = f.maxHp;
+  f.speed = scaledStats.speed;
+  f.dmg = scaledStats.contactDmg;
+  f.contactDmg = scaledStats.contactDmg;
+  
   npcInitAbilities(f);
-  // boost gear tier to match player tech tier
-  const playerTier = (state.factionTech?.player||1);
-  f.level = Math.max(f.level, playerTier*3);
-  // re-apply class scaling after level bump
-  applyClassToUnit(f, v);
   state.friendlies.push(f);
+  return f;
 }
 
 function ensureBaseFriendlies(state, opts={}){
@@ -3838,7 +4067,9 @@ export function handleHotkeys(state, dt){
         
         if(selectedItem && selectedItem.kind === 'weapon'){
           // Build image path: assets/items/{Rarity} {WeaponType}.png
-          const rarityName = selectedItem.rarity?.name || 'Common';
+          // Map rarity key to display name for file path (legend -> Legendary)
+          let rarityName = selectedItem.rarity?.name || 'Common';
+          if(selectedItem.rarity?.key === 'legend') rarityName = 'Legendary';
           const weaponType = selectedItem.weaponType || 'Sword';
           const imagePath = `assets/items/${rarityName} ${weaponType}.png`;
           

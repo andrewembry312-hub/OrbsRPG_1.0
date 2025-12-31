@@ -162,3 +162,29 @@ export function defaultAbilitySlots(){ return [null, null, null, null, null]; } 
 export function defaultPassives(get){ return [get('bulwark'), get('siphon')]; }
 
 export function clampCdr(cdr){ return clamp(cdr,0,0.45); }
+
+// Loadout management functions
+export function saveLoadout(state, heroClass, slotIndex, name) {
+  if (!state.abilityLoadouts[heroClass]) return false;
+  if (slotIndex < 0 || slotIndex > 2) return false;
+  state.abilityLoadouts[heroClass][slotIndex] = {
+    name: name || `Loadout ${slotIndex + 1}`,
+    slots: [...state.abilitySlots]
+  };
+  try {
+    localStorage.setItem('orb_rpg_mod_loadouts', JSON.stringify(state.abilityLoadouts));
+    return true;
+  } catch(e) {
+    console.warn('[LOADOUT] Save failed:', e.message);
+    return false;
+  }
+}
+
+export function loadLoadout(state, heroClass, slotIndex) {
+  if (!state.abilityLoadouts[heroClass]) return false;
+  if (slotIndex < 0 || slotIndex > 2) return false;
+  const loadout = state.abilityLoadouts[heroClass][slotIndex];
+  if (!loadout || !loadout.slots) return false;
+  state.abilitySlots = [...loadout.slots];
+  return true;
+}

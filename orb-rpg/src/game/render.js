@@ -485,6 +485,14 @@ export function render(state){
     const size = Math.max(20, Math.floor(state.player.r*1.8));
     ctx.drawImage(pImg, state.player.x - size/2, state.player.y - size/2, size, size);
   }
+  // draw gold crown emoji above player orb
+  ctx.save();
+  ctx.font = 'bold 28px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.globalAlpha = 0.95;
+  ctx.fillText('👑', state.player.x, state.player.y - state.player.r - 20);
+  ctx.restore();
   ctx.globalAlpha=1;
 
   // heavy charge ring

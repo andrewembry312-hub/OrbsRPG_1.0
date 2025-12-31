@@ -3,7 +3,7 @@ import { initInput } from "./engine/input.js";
 import { startLoop } from "./engine/loop.js";
 import { createState } from "./game/state.js";
 import { buildUI } from "./game/ui.js";
-import { initGame, handleHotkeys, updateGame, importSave } from "./game/game.js";
+import { initGame, handleHotkeys, updateGame, importSave, hardResetGameState } from "./game/game.js";
 import { showCharSelect } from "./game/charselect.js";
 import { render } from "./game/render.js";
 import "./loadMapInit.js"; // Initialize map loader helper
@@ -57,6 +57,7 @@ function startGameLoop(){
     try{ handleHotkeys(state, dt); }catch(e){ console.error('hotkeys',e); showFatalError('Error in handleHotkeys', e); }
     try{ updateGame(state, dt); }catch(e){ console.error('update',e); showFatalError('Error in updateGame', e); }
     try{ render(state); }catch(e){ console.error('render',e); showFatalError('Error in render', e); }
+    try{ ui.renderHud(state); }catch(e){ console.error('renderHud',e); }
     try{ ui.renderCooldowns(); }catch(e){ console.error('renderCooldowns',e); }
     try{ ui.updateUnitInspection(); }catch(e){ console.error('updateUnitInspection',e); }
     try{ ui.updateBuffIconsHUD(); }catch(e){ console.error('updateBuffIconsHUD', e); }
@@ -73,7 +74,10 @@ function setupEventHandlers(){
       // proceed to character selection, then init game
       showCharSelect(state, async (chosen)=>{
         console.log('main: char selected ->', chosen);
-        try{ await initGame(state); }catch(err){ console.error('initGame error',err); ui.toast(`Error initializing: ${err && err.message?err.message:err}`); showFatalError('initGame failed', err); return; }
+        try{ 
+          hardResetGameState(state); // Hard reset ALL game state first
+          await initGame(state); 
+        }catch(err){ console.error('initGame error',err); ui.toast(`Error initializing: ${err && err.message?err.message:err}`); showFatalError('initGame failed', err); return; }
         state.paused = false;
         ui.setGameUIVisible(true);
         startGameLoop();
@@ -85,7 +89,10 @@ function setupEventHandlers(){
     try{
       // Initialize game first (like New Game), then import the loaded save
       (async ()=>{
-        try{ await initGame(state); }catch(err){ console.error('initGame error',err); ui.toast(`Error initializing: ${err && err.message?err.message:err}`); showFatalError('initGame failed', err); return; }
+        try{ 
+          hardResetGameState(state); // Hard reset ALL game state first
+          await initGame(state); 
+        }catch(err){ console.error('initGame error',err); ui.toast(`Error initializing: ${err && err.message?err.message:err}`); showFatalError('initGame failed', err); return; }
         // Now import the loaded save data to overwrite initialized state
         importSave(state, saveData);
         ui.toggleSaves(false);

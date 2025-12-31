@@ -54,8 +54,20 @@ export function createState(engine, input, ui){
     progression, campaign,
     basePlayer, player,
     currentHero: 'warrior', // track current hero class
-    abilitySlots: META_LOADOUTS.HEALER.abilities.slice(), // Default to HEALER role
-    heroAbilitySlots: { mage:defaultAbilitySlots(), warrior:defaultAbilitySlots(), knight:defaultAbilitySlots(), tank:defaultAbilitySlots() },
+    abilitySlots: defaultAbilitySlots(), // ALWAYS START EMPTY - new game always has empty ability slots
+    heroAbilitySlots: { mage:defaultAbilitySlots(), warrior:defaultAbilitySlots(), knight:defaultAbilitySlots(), tank:defaultAbilitySlots() }, // Per-hero empty slots
+    // ABILITY LOADOUTS: Persists across new games (loaded from localStorage, not reset)
+    abilityLoadouts: (() => {
+      const saved = loadJson('orb_rpg_mod_loadouts');
+      if(saved) return saved; // Keep saved loadouts from previous games
+      // Initialize with empty loadouts only if none exist
+      return {
+        mage: [{name:'Loadout 1', slots:null},{name:'Loadout 2', slots:null},{name:'Loadout 3', slots:null}],
+        warrior: [{name:'Loadout 1', slots:null},{name:'Loadout 2', slots:null},{name:'Loadout 3', slots:null}],
+        knight: [{name:'Loadout 1', slots:null},{name:'Loadout 2', slots:null},{name:'Loadout 3', slots:null}],
+        tank: [{name:'Loadout 1', slots:null},{name:'Loadout 2', slots:null},{name:'Loadout 3', slots:null}]
+      };
+    })(),
     // Per-hero equipment storage (items equipped on each hero)
     heroEquip: { 
       mage: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),

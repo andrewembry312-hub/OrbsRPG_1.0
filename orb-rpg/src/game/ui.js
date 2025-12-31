@@ -2,8 +2,9 @@ import { saveJson, loadJson, clamp } from "../engine/util.js";
 import { DEFAULT_BINDS, ACTION_LABELS, INV_SIZE, ARMOR_SLOTS, SLOT_LABEL } from "./constants.js";
 import { rarityClass } from "./rarity.js";
 import { currentStats, exportSave, importSave, applyClassToUnit } from "./game.js";
+import { LEVEL_CONFIG, getItemLevelColor } from "./leveling.js";
 import { xpForNext } from "./progression.js";
-import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots } from "./skills.js";
+import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
 import { showCharSelect } from "./charselect.js";
 import { spawnGuardsForSite } from "./world.js";
 
@@ -75,7 +76,7 @@ export function buildUI(state){
 
       <div class="row" style="margin-top:8px">
         <div class="pill">Lv <span id="lvl">1</span></div>
-        <div class="pill">XP <span id="xpText">0/20</span></div>
+        <!-- XP pill removed - now using top-left XP UI -->
         <div class="pill">SP <span id="spText">0</span></div>
       </div>
 
@@ -151,6 +152,55 @@ export function buildUI(state){
         <div class="small">Stamina <span id="bs_stamText"></span></div>
         <div class="bar"><div id="bs_stamFill" class="fill" style="background:var(--stam);width:100%"></div></div>
       </div>
+    </div>
+    
+    <!-- High-Quality XP UI with Circular Level (Top-Left Corner of Screen) -->
+    <div id="xpContainer" style="position:fixed; top:10px; left:10px; display:flex; align-items:center; gap:10px; z-index:200;">
+      <!-- Circular Level Badge -->
+      <div id="levelBadge" style="position:relative; width:50px; height:50px;">
+        <svg width="50" height="50" viewBox="0 0 50 50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+          <!-- Outer ring gradient -->
+          <defs>
+            <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#ffed4e;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#d4af37;stop-opacity:1" />
+            </linearGradient>
+            <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+              <stop offset="70%" style="stop-color:#0f0f1e;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+            </radialGradient>
+          </defs>
+          <!-- Outer circle -->
+          <circle cx="25" cy="25" r="23" fill="url(#goldGradient)" stroke="#fff" stroke-width="1" opacity="0.9"/>
+          <!-- Inner dark circle -->
+          <circle cx="25" cy="25" r="19" fill="url(#centerGlow)" stroke="#d4af37" stroke-width="1.5"/>
+        </svg>
+        <!-- Level number -->
+        <div id="levelNumber" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:18px; font-weight:bold; color:#ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.8), 0 2px 4px rgba(0,0,0,0.9); font-family: 'Arial Black', sans-serif;">1</div>
+      </div>
+      
+      <!-- XP Progress Bar -->
+      <div style="position:relative; width:180px; height:50px; display:flex; flex-direction:column; justify-content:center; gap:4px;">
+        <!-- XP Text -->
+        <div style="font-size:11px; color:#d4af37; text-shadow:0 1px 3px rgba(0,0,0,0.8); font-weight:600; letter-spacing:0.5px;">EXPERIENCE</div>
+        <!-- Progress bar container -->
+        <div style="position:relative; width:100%; height:18px; background:linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); border:2px solid #3a3a3a; border-radius:9px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.6), 0 1px 2px rgba(255,215,0,0.2); overflow:hidden;">
+          <!-- Animated glow background -->
+          <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:linear-gradient(90deg, transparent 0%, rgba(255,215,0,0.1) 50%, transparent 100%); animation: shimmer 2s infinite;"></div>
+          <!-- Progress fill -->
+          <div id="xpFill" style="position:relative; height:100%; width:0%; background:linear-gradient(180deg, #ffed4e 0%, #ffd700 30%, #d4af37 70%, #b8941f 100%); box-shadow: 0 0 10px rgba(255,215,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3); transition: width 0.3s ease-out;"></div>
+        </div>
+        <!-- XP Numbers -->
+        <div id="xpText" style="font-size:10px; color:#888; text-shadow:0 1px 2px rgba(0,0,0,0.8); font-weight:500;">0 / 100</div>
+      </div>
+    </div>
+    
+    <!-- Level Up Notification -->
+    <div id="levelUpNotification" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
+      <div id="levelUpText" style="font-size:120px; font-weight:900; color:#d4af37; text-shadow:0 0 40px rgba(212,175,55,0.8); opacity:0;">LEVEL UP!</div>
+      <div id="levelUpNumber" style="font-size:96px; font-weight:bold; color:#4a9eff; text-shadow:0 0 30px rgba(74,158,255,0.8); margin-top:-30px; opacity:0;">50</div>
     </div>
 
     <!-- Inventory / Tabbed UI -->
@@ -236,11 +286,11 @@ export function buildUI(state){
           <div style="position:absolute; top:20px; right:20px; color:#fff; font-size:14px; opacity:0.7;">Press P or ESC to close</div>
           <div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; flex-direction:column; padding:40px; position:relative;">
             <div id="weaponPreviewTitle" style="color:#d4af37; font-size:24px; font-weight:bold; margin-bottom:20px; text-align:center;"></div>
-            <img id="weaponPreviewImage" style="max-width:90%; max-height:80vh; object-fit:contain; border-radius:8px; box-shadow:0 0 40px rgba(212,175,55,0.3);" />
+            <img id="weaponPreviewImage" style="width:600px; height:600px; object-fit:contain; border-radius:8px; box-shadow:0 0 40px rgba(212,175,55,0.3);" />
             <div id="weaponPreviewError" style="display:none; color:#ff6666; font-size:18px; margin-top:20px;">No preview available for this item</div>
-            <div id="weaponPreviewStats" style="position:absolute; bottom:60px; right:60px; background:rgba(20,20,20,0.95); border:2px solid rgba(212,175,55,0.6); border-radius:8px; padding:20px; min-width:320px; display:none; max-height:70vh; overflow-y:auto;">
-              <div style="font-size:16px; font-weight:bold; color:#d4af37; margin-bottom:10px; text-align:center;">Item Details</div>
-              <div id="weaponPreviewStatsContent" style="font-size:15px; line-height:2; color:#fff;"></div>
+            <div id="weaponPreviewStats" style="position:absolute; bottom:40px; right:40px; background:rgba(20,20,20,0.95); border:2px solid rgba(212,175,55,0.6); border-radius:8px; padding:16px; max-width:25%; min-width:260px; display:none; max-height:70vh; overflow-y:auto;">
+              <div style="font-size:14px; font-weight:bold; color:#d4af37; margin-bottom:8px;">Item Details</div>
+              <div id="weaponPreviewStatsContent" style="font-size:13px; line-height:1.8; color:#fff;"></div>
             </div>
           </div>
         </div>
@@ -248,11 +298,19 @@ export function buildUI(state){
         <!-- Tab 1: Skills -->
         <div class="tab-content" data-tab="1" style="margin-top:10px; display:none;">
           <div class="grid2">
-            <!-- Left: Category Navigation -->
+            <!-- Left: Category Navigation & Loadouts -->
             <div class="box" style="padding:0; overflow:hidden; display:flex; flex-direction:column; border-color:#d4af37;">
               <div class="small" style="padding:8px; border-bottom:1px solid #d4af37; background:rgba(0,0,0,0.3); font-weight:bold; color:#d4af37;">Categories</div>
               <div id="skillCategories" class="tab-scroll" style="display:flex; flex-direction:column; flex:1 1 auto;">
                 <!-- Categories will be populated by JS -->
+              </div>
+              
+              <!-- Ability Loadouts Section -->
+              <div style="border-top:1px solid #d4af37; padding:8px; background:rgba(0,0,0,0.2);">
+                <div class="small" style="font-weight:bold; color:#ffd700; margin-bottom:8px;">💾 Ability Loadouts</div>
+                <div id="loadoutsList" style="display:flex; flex-direction:column; gap:4px; font-size:11px;">
+                  <!-- Loadouts will be populated by JS -->
+                </div>
               </div>
             </div>
             
@@ -279,8 +337,70 @@ export function buildUI(state){
         <!-- Tab 2: Level Up -->
         <div class="tab-content" data-tab="2" style="margin-top:10px; display:none;">
           <div style="display:flex; gap:12px; height:calc(100vh - 240px);">
-            <!-- Spacer to push content to the right -->
-            <div style="flex:1;"></div>
+            <!-- Left side: XP Progression Panel -->
+            <div class="box" style="border-color:#d4af37; width:48%; font-size:13px; display:flex; flex-direction:column;">
+              <div style="font-size:16px; font-weight:bold; color:#d4af37; margin-bottom:12px; text-align:center;">⭐ LEVEL PROGRESSION ⭐</div>
+              
+              <!-- Level Display with Circle -->
+              <div style="display:flex; justify-content:center; margin-bottom:16px;">
+                <div style="position:relative; width:80px; height:80px;">
+                  <svg width="80" height="80" viewBox="0 0 80 80">
+                    <defs>
+                      <linearGradient id="levelGoldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#ffed4e;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#d4af37;stop-opacity:1" />
+                      </linearGradient>
+                      <radialGradient id="levelCenterGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" style="stop-color:#2a2a3e;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#1a1a2e;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+                      </radialGradient>
+                    </defs>
+                    <circle cx="40" cy="40" r="37" fill="url(#levelGoldGradient)" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
+                    <circle cx="40" cy="40" r="31" fill="url(#levelCenterGlow)" stroke="#d4af37" stroke-width="2"/>
+                  </svg>
+                  <div id="levelTabLevelNum" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:28px; font-weight:900; color:#ffd700; text-shadow: 0 0 12px rgba(255,215,0,0.8), 0 2px 6px rgba(0,0,0,0.9);">1</div>
+                </div>
+              </div>
+              
+              <!-- XP Progress Bar -->
+              <div style="margin-bottom:20px; padding:0 20px;">
+                <div style="font-size:12px; color:#d4af37; margin-bottom:6px; text-align:center; font-weight:600;">EXPERIENCE TO NEXT LEVEL</div>
+                <div style="position:relative; width:100%; height:24px; background:linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); border:2px solid #3a3a3a; border-radius:12px; box-shadow:inset 0 2px 6px rgba(0,0,0,0.6), 0 1px 3px rgba(255,215,0,0.2); overflow:hidden;">
+                  <div id="levelTabXpFill" style="height:100%; width:0%; background:linear-gradient(180deg, #ffed4e 0%, #ffd700 30%, #d4af37 70%, #b8941f 100%); box-shadow: 0 0 12px rgba(255,215,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3); transition: width 0.4s ease-out;"></div>
+                </div>
+                <div id="levelTabXpText" style="font-size:11px; color:#888; text-align:center; margin-top:4px;">0 / 100 XP</div>
+              </div>
+              
+              <!-- Level Info Grid -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 20px; margin-bottom:16px;">
+                <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; border:1px solid #3a3a3a;">
+                  <div style="font-size:11px; color:#888; margin-bottom:4px;">CURRENT LEVEL</div>
+                  <div id="levelTabCurrentLevel" style="font-size:20px; font-weight:bold; color:#d4af37;">1</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; border:1px solid #3a3a3a;">
+                  <div style="font-size:11px; color:#888; margin-bottom:4px;">STAT POINTS</div>
+                  <div id="levelTabStatPoints" style="font-size:20px; font-weight:bold; color:#4a9eff;">0</div>
+                </div>
+              </div>
+              
+              <!-- Level Milestones -->
+              <div style="flex:1; padding:0 20px; overflow-y:auto;">
+                <div style="font-size:13px; font-weight:bold; color:#d4af37; margin-bottom:8px;">📊 LEVEL MILESTONES</div>
+                <div style="font-size:11px; color:#ccc; line-height:1.6;">
+                  <div style="margin-bottom:8px; padding:8px; background:rgba(255,215,0,0.1); border-left:3px solid #ffd700; border-radius:3px;">
+                    <b style="color:#ffd700;">Every Level:</b> +2 Stat Points
+                  </div>
+                  <div style="margin-bottom:8px; padding:8px; background:rgba(255,215,0,0.1); border-left:3px solid #ffd700; border-radius:3px;">
+                    <b style="color:#ffd700;">Every 5 Levels:</b> Bonus Gold (Level × 25)
+                  </div>
+                  <div style="margin-bottom:8px; padding:8px; background:rgba(181,108,255,0.1); border-left:3px solid #b56cff; border-radius:3px;">
+                    <b style="color:#b56cff;">Level 50:</b> MAX LEVEL REACHED! 🏆
+                  </div>
+                </div>
+              </div>
+            </div>
             
             <!-- Right side: Compact stats panel -->
             <div class="box" style="border-color:#d4af37; width:50%; font-size:13px; display:flex; flex-direction:column;">
@@ -599,6 +719,55 @@ export function buildUI(state){
                 • Peel (assigned only): Apply CC/slow/knockback on healer’s attacker then return to stack.<br>
                 • Override Rules: Stop captures; avoid tunneling unkillable focus target; help if healer is hard-focused.<br>
                 • Avoid: Don’t over-chase far from objective/stack; don’t blow bombs outside burst unless wipe call.
+              </div>
+            </div>
+
+            <!-- Level Progression System -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #ffd700; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#ffd700; margin-bottom:8px;">📊 Level Progression System</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc; margin-bottom:10px;">
+                <b style="color:#ffd700;">XP & Leveling:</b><br>
+                • Max Level: <b>50</b><br>
+                • XP required grows exponentially: <b>Level<sup>1.8</sup> × 100</b><br>
+                • Every level: +2 Stat Points (100 points total at max)<br>
+                • Every 5 levels: Bonus Gold (Level × 25)<br>
+                • Level 50: MAX LEVEL achievement with trophy reward<br><br>
+                
+                <b style="color:#ffd700;">Item Level System:</b><br>
+                • Items scale with your current level (±2 variance)<br>
+                • Rarity affects base stats (1.0x-3.0x multiplier)<br>
+                • Item level = your level ± random 0-2<br>
+                • Stat values scale by rarity: Grey → Green → Blue → Purple → Orange<br><br>
+                
+                <b style="color:#ffd700;">Enemy Scaling:</b><br>
+                • Enemies spawn 5-30% above/below your level based on zone<br>
+                • Stat growth: 15% per level above player baseline<br>
+                • 5 zone tiers: Starter (1-10) → Lowland (8-20) → Midland (18-32) → Highland (30-42) → Endgame (40-50)<br><br>
+                
+                <b style="color:#ffd700;">Ally Scaling:</b><br>
+                • Group members scale to 85% of player power<br>
+                • Non-group allies match player level automatically<br>
+                • Guards scale based on flag progression (every 2-3 captures)<br>
+                • Allies gain stat points every 5 levels (same as player)<br>
+              </div>
+            </div>
+
+            <!-- Future Milestone Ideas -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #9f9; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#9f9; margin-bottom:8px;">💡 Future Milestone Ideas</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Currently Implemented (Working):</b><br>
+                • Every level: +2 Stat Points<br>
+                • Every 5 levels: Bonus Gold<br>
+                • Level 50: MAX LEVEL REACHED<br><br>
+                
+                <b>Suggested Future Milestones:</b><br>
+                • <b>Level 10:</b> New zones unlocked (requires zone unlock system)<br>
+                • <b>Level 25:</b> Elite content unlocked (requires elite tier system)<br>
+                • <b>Level 30:</b> Skill mastery perks unlocked (requires perk system)<br>
+                • <b>Level 40:</b> Endgame dungeons available (requires dungeon system)<br>
               </div>
             </div>
 
@@ -1174,6 +1343,21 @@ export function buildUI(state){
   const ui = bindUI(state);
   state.ui = ui;
   try{ window.ui = ui; }catch{}
+  // Debug: expose XP elements
+  try{ 
+    window.xpDebug = { 
+      xpText: ui.xpText, 
+      xpFill: ui.xpFill, 
+      levelNumber: ui.levelNumber,
+      xpContainer: document.getElementById('xpContainer')
+    };
+    console.log('XP Debug:', {
+      xpText: ui.xpText ? 'Found' : 'NULL',
+      xpFill: ui.xpFill ? 'Found' : 'NULL',
+      levelNumber: ui.levelNumber ? 'Found' : 'NULL',
+      xpContainer: document.getElementById('xpContainer') ? 'Found' : 'NULL'
+    });
+  }catch(e){ console.error('XP debug setup failed', e); }
   ui.renderAbilityBar();
   ui.renderInventory();
   return ui;
@@ -1191,7 +1375,6 @@ function bindUI(state){
     targetPts:$('targetPts'),
     gold:$('gold'),
     lvl:$('lvl'),
-    xpText:$('xpText'),
     spText:$('spText'),
     hpFill:$('hpFill'), manaFill:$('manaFill'), stamFill:$('stamFill'), shieldFill:$('shieldFill'),
     hpText:$('hpText'), manaText:$('manaText'), stamText:$('stamText'), shieldText:$('shieldText'),
@@ -1203,6 +1386,10 @@ function bindUI(state){
     bottomStats:$('bottomStats'), bs_hpFill:$('bs_hpFill'), bs_manaFill:$('bs_manaFill'), bs_stamFill:$('bs_stamFill'),
     bs_hpText:$('bs_hpText'), bs_manaText:$('bs_manaText'), bs_stamText:$('bs_stamText'),
     bs_shieldText:$('bs_shieldText'), bs_shieldFill:$('bs_shieldFill'),
+    xpText:$('xpText'), xpFill:$('xpFill'), levelNumber:$('levelNumber'),
+    levelTabLevelNum:$('levelTabLevelNum'), levelTabXpFill:$('levelTabXpFill'), levelTabXpText:$('levelTabXpText'),
+    levelTabCurrentLevel:$('levelTabCurrentLevel'), levelTabStatPoints:$('levelTabStatPoints'),
+    levelUpNotification:$('levelUpNotification'), levelUpText:$('levelUpText'), levelUpNumber:$('levelUpNumber'),
     toastEl:$('toast'),
     abilBar:$('abilBar'),
     buffIconsHud:$('buffIconsHud'),
@@ -1211,6 +1398,7 @@ function bindUI(state){
     invClose:$('invClose'),
     skillSlots:$('skillSlots'),
     skillCategories:$('skillCategories'),
+    loadoutsList:$('loadoutsList'),
     abilityDetails:$('abilityDetails'),
     passiveList:$('passiveList'),
     combatBuffsList:$('combatBuffsList'),
@@ -1300,10 +1488,11 @@ function bindUI(state){
       const rarity = item.rarity?.key || 'common';
       const rarityCapitalized = rarity.charAt(0).toUpperCase() + rarity.slice(1);
       
-      // Map weapon types to image names
+      // Map weapon types to image names - match exact file names in assets/items/
       if(weaponType === 'Sword') return `assets/items/${rarityCapitalized} Sword.png`;
       if(weaponType === 'Axe') return `assets/items/${rarityCapitalized} Axe.png`;
-      if(weaponType === 'Healing Staff') return `assets/items/Common Healing Staff.png`;
+      if(weaponType === 'Healing Staff') return `assets/items/${rarityCapitalized} Healing Staff.png`;
+      if(weaponType === 'Destruction Staff') return `assets/items/${rarityCapitalized} Destruction Staff.png`;
     }
     return null;
   };
@@ -1386,7 +1575,7 @@ function bindUI(state){
 
   // --- Save manager helpers ---
   function listSaves(){ try{ return JSON.parse(localStorage.getItem('orb_rpg_saves_mod')||'[]'); }catch{ return []; } }
-  function writeSaves(arr){ try{ localStorage.setItem('orb_rpg_saves_mod', JSON.stringify(arr)); return true; }catch{ return false; } }
+  function writeSaves(arr){ try{ localStorage.setItem('orb_rpg_saves_mod', JSON.stringify(arr)); return true; }catch(e){ console.warn('[SAVE] Storage full or unavailable:', e.message); return false; } }
   function saveNew(name){ 
     try{
       const data=exportSave(state); 
@@ -1530,6 +1719,44 @@ function bindUI(state){
     ui.toastEl.classList.add('show');
     clearTimeout(ui.toast._t);
     ui.toast._t = setTimeout(()=>ui.toastEl.classList.remove('show'), ms);
+  };
+  
+  // Level up notification with fade animation
+  ui.showLevelUp = (level)=>{
+    const notification = ui.levelUpNotification;
+    const textEl = ui.levelUpText;
+    const numberEl = ui.levelUpNumber;
+    
+    if(!notification) return;
+    
+    // Reset animation
+    notification.style.display = 'block';
+    textEl.style.opacity = '0';
+    numberEl.style.opacity = '0';
+    textEl.textContent = 'LEVEL UP!';
+    numberEl.textContent = level;
+    
+    // Use requestAnimationFrame for smooth fade in
+    requestAnimationFrame(() => {
+      // Fade in: 0-0.3s
+      textEl.style.transition = 'opacity 0.3s ease-in';
+      numberEl.style.transition = 'opacity 0.3s ease-in';
+      textEl.style.opacity = '1';
+      numberEl.style.opacity = '1';
+      
+      // Fade out: starts at 2.7s, ends at 3s
+      setTimeout(() => {
+        textEl.style.transition = 'opacity 0.3s ease-out';
+        numberEl.style.transition = 'opacity 0.3s ease-out';
+        textEl.style.opacity = '0';
+        numberEl.style.opacity = '0';
+      }, 2700);
+      
+      // Hide after animation
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 3000);
+    });
   };
 
   // Apply Options button: persist toggles (including AI debug)
@@ -2880,8 +3107,25 @@ function bindUI(state){
     ui.pPts.textContent = Math.floor(state.campaign.playerPoints);
     ui.ePts.textContent = Math.floor(state.campaign.enemyPoints);
     ui.lvl.textContent = state.progression.level;
-    ui.xpText.textContent = `${state.progression.xp}/${xpForNext(state.progression.level)}`;
     ui.spText.textContent = state.progression.statPoints;
+    
+    // Update XP progress bar and level badge
+    try {
+      const xpMax = xpForNext(state.progression.level);
+      const xpPercent = xpMax > 0 ? (state.progression.xp / xpMax) * 100 : 0;
+      if(ui.xpFill) {
+        ui.xpFill.style.width = `${Math.min(100, xpPercent)}%`;
+      }
+      if(ui.xpText) {
+        ui.xpText.textContent = `${Math.floor(state.progression.xp)} / ${xpMax}`;
+      }
+      if(ui.levelNumber) {
+        ui.levelNumber.textContent = state.progression.level;
+      }
+    } catch(e) {
+      console.error('XP UI update error:', e);
+    }
+    
     ui.hpText.textContent = `${Math.round(state.player.hp)}/${Math.round(st.maxHp)}`;
     ui.manaText.textContent = `${Math.round(state.player.mana)}/${Math.round(st.maxMana)}`;
     ui.stamText.textContent = `${Math.round(state.player.stam)}/${Math.round(st.maxStam)}`;
@@ -3176,7 +3420,8 @@ function bindUI(state){
     wRow.className = 'equip-row' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
     const imgPath = wIt ? getItemImage(wIt) : null;
     const imgHtml = imgPath ? `<img src="${imgPath}" alt="${wIt.name}" style="width:70px; height:70px; object-fit:contain; margin-right:8px; vertical-align:middle;"/>` : '';
-    wRow.innerHTML = `<span class="label">${SLOT_LABEL['weapon']}</span><span class="value">${imgHtml}${wIt ? `<span class="${rarityClass(wIt.rarity.key)}">${wIt.name}</span>` : '<span class="small">None</span>'}</span>`;
+    const levelDisplay = wIt && wIt.itemLevel ? ` <span class="small" style="color:#6af;">iLvl ${wIt.itemLevel}</span>` : '';
+    wRow.innerHTML = `<span class="label">${SLOT_LABEL['weapon']}</span><span class="value">${imgHtml}${wIt ? `<span class="${rarityClass(wIt.rarity.key)}">${wIt.name}</span>${levelDisplay}` : '<span class="small">None</span>'}</span>`;
     wRow.onclick = ()=>{
       const now = performance.now ? performance.now() : Date.now();
       const key = `equip-weapon`;
@@ -3390,6 +3635,14 @@ function bindUI(state){
           let html = `<div style="font-weight:900; color:${color}; margin-bottom:4px">${it.name}${countText}</div>`;
           html += `<div style="color:#aaa; margin-bottom:8px">${it.desc || ''}</div>`;
           
+          // Add item level and level requirement
+          if(it.itemLevel){
+            const playerLevel = state.progression?.level || 1;
+            const reqMet = playerLevel >= it.itemLevel;
+            const levelColor = reqMet ? '#4a9eff' : '#ff6b6b';
+            html += `<div style="color:${levelColor}; margin-bottom:8px; font-size:11px">📊 Item Level: <b>${it.itemLevel}</b> ${!reqMet ? '(⚠️ Level requirement not met)' : ''}</div>`;
+          }
+          
           // Add overall rating for equipment
           if((it.kind === 'armor' || it.kind === 'weapon') && it.buffs){
             const rating = calculateItemRating(it);
@@ -3498,6 +3751,16 @@ function bindUI(state){
       ['Lifesteal', Math.round((st.lifesteal??0)*100)+'%'],
     ];
     ui.statsTable.innerHTML='';
+    
+    // Show item level if present
+    if(it && it.itemLevel){
+      const levelRow = document.createElement('tr');
+      const td1 = document.createElement('td'); td1.textContent = 'Item Level'; td1.style.fontWeight = 'bold'; td1.style.color = '#6af';
+      const td2 = document.createElement('td'); td2.textContent = it.itemLevel; td2.style.color = '#6af';
+      levelRow.appendChild(td1); levelRow.appendChild(td2);
+      ui.statsTable.appendChild(levelRow);
+    }
+    
     for(const [k,v] of rows){
       const tr=document.createElement('tr');
       const td1=document.createElement('td'); td1.textContent=k;
@@ -3920,6 +4183,153 @@ function bindUI(state){
       };
       ui.passiveList.appendChild(passEl);
     }
+
+    // Render loadouts section
+    if(!isGroupMemberMode && ui.loadoutsList){
+      ui.loadoutsList.innerHTML = '';
+      const heroClass = state.currentHero || 'warrior';
+      const loadouts = state.abilityLoadouts?.[heroClass] || [];
+      
+      for(let i = 0; i < 3; i++){
+        const loadout = loadouts[i] || { name: `Loadout ${i+1}`, slots: null };
+        const hasLoadout = loadout.slots && loadout.slots.length > 0;
+        
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.flexDirection = 'column';
+        div.style.gap = '4px';
+        div.style.padding = '6px';
+        div.style.background = 'rgba(0,0,0,0.3)';
+        div.style.border = '1px solid rgba(255,215,0,0.2)';
+        div.style.borderRadius = '3px';
+        
+        // Editable name input with status indicator
+        const nameRow = document.createElement('div');
+        nameRow.style.display = 'flex';
+        nameRow.style.justifyContent = 'space-between';
+        nameRow.style.alignItems = 'center';
+        nameRow.style.marginBottom = '4px';
+        nameRow.style.gap = '4px';
+        
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = loadout.name;
+        nameInput.style.flex = '1';
+        nameInput.style.fontSize = '10px';
+        nameInput.style.padding = '3px 4px';
+        nameInput.style.background = 'rgba(255,215,0,0.1)';
+        nameInput.style.border = '1px solid rgba(255,215,0,0.3)';
+        nameInput.style.borderRadius = '2px';
+        nameInput.style.color = '#ffd700';
+        nameInput.style.fontWeight = 'bold';
+        nameInput.onchange = (e) => {
+          const newName = e.target.value.trim();
+          if(newName){
+            loadout.name = newName;
+            try {
+              localStorage.setItem('orb_rpg_mod_loadouts', JSON.stringify(state.abilityLoadouts));
+            } catch(err) {
+              console.warn('[LOADOUT] Failed to rename:', err);
+            }
+          } else {
+            e.target.value = loadout.name; // Revert if empty
+          }
+        };
+        
+        const statusIcon = document.createElement('span');
+        statusIcon.textContent = hasLoadout ? '✓' : '○';
+        statusIcon.style.color = '#aaa';
+        statusIcon.style.fontSize = '9px';
+        
+        nameRow.appendChild(nameInput);
+        nameRow.appendChild(statusIcon);
+        div.appendChild(nameRow);
+        
+        // Buttons row
+        const btnRow = document.createElement('div');
+        btnRow.style.display = 'flex';
+        btnRow.style.gap = '3px';
+        btnRow.style.flexWrap = 'wrap';
+        
+        // Save button
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = '💾 Save';
+        saveBtn.style.flex = '1';
+        saveBtn.style.padding = '3px 6px';
+        saveBtn.style.fontSize = '9px';
+        saveBtn.style.background = 'rgba(255,215,0,0.2)';
+        saveBtn.style.border = '1px solid rgba(255,215,0,0.4)';
+        saveBtn.style.color = '#ffd700';
+        saveBtn.style.borderRadius = '2px';
+        saveBtn.style.cursor = 'pointer';
+        saveBtn.onclick = (e) => {
+          e.stopPropagation();
+          if(saveLoadout(state, heroClass, i, loadout.name)){
+            ui.toast(`<b>${loadout.name}</b> saved!`);
+            ui.renderSkills();
+          } else {
+            ui.toast('Failed to save loadout');
+          }
+        };
+        btnRow.appendChild(saveBtn);
+        
+        // Load button
+        const loadBtn = document.createElement('button');
+        loadBtn.textContent = '📂 Load';
+        loadBtn.style.flex = '1';
+        loadBtn.style.padding = '3px 6px';
+        loadBtn.style.fontSize = '9px';
+        loadBtn.style.background = hasLoadout ? 'rgba(122,162,255,0.2)' : 'rgba(100,100,100,0.2)';
+        loadBtn.style.border = hasLoadout ? '1px solid rgba(122,162,255,0.4)' : '1px solid rgba(100,100,100,0.3)';
+        loadBtn.style.color = hasLoadout ? '#7aa2ff' : '#888';
+        loadBtn.style.borderRadius = '2px';
+        loadBtn.style.cursor = hasLoadout ? 'pointer' : 'default';
+        loadBtn.disabled = !hasLoadout;
+        loadBtn.onclick = (e) => {
+          e.stopPropagation();
+          if(hasLoadout){
+            if(loadLoadout(state, heroClass, i)){
+              ui.renderAbilityBar();
+              ui.renderSkills();
+              ui.toast(`<b>${loadout.name}</b> loaded!`);
+            }
+          }
+        };
+        btnRow.appendChild(loadBtn);
+        
+        // Delete button
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '🗑';
+        delBtn.style.flex = '0 0 28px';
+        delBtn.style.padding = '3px 4px';
+        delBtn.style.fontSize = '9px';
+        delBtn.style.background = hasLoadout ? 'rgba(244,67,54,0.2)' : 'rgba(100,100,100,0.2)';
+        delBtn.style.border = hasLoadout ? '1px solid rgba(244,67,54,0.4)' : '1px solid rgba(100,100,100,0.3)';
+        delBtn.style.color = hasLoadout ? '#f44336' : '#888';
+        delBtn.style.borderRadius = '2px';
+        delBtn.style.cursor = hasLoadout ? 'pointer' : 'default';
+        delBtn.disabled = !hasLoadout;
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          if(hasLoadout){
+            if(confirm(`Delete "${loadout.name}"?`)){
+              state.abilityLoadouts[heroClass][i] = { name: `Loadout ${i+1}`, slots: null };
+              try {
+                localStorage.setItem('orb_rpg_mod_loadouts', JSON.stringify(state.abilityLoadouts));
+                ui.toast(`<b>${loadout.name}</b> deleted!`);
+                ui.renderSkills();
+              } catch(err) {
+                console.warn('[LOADOUT] Failed to delete:', err);
+              }
+            }
+          }
+        };
+        btnRow.appendChild(delBtn);
+        
+        div.appendChild(btnRow);
+        ui.loadoutsList.appendChild(div);
+      }
+    }
   };
 
   ui.toggleLevel = (on)=>{
@@ -4038,6 +4448,19 @@ function bindUI(state){
     if(ui.levelCharRole){
       const heroName = hero.charAt(0).toUpperCase() + hero.slice(1);
       ui.levelCharRole.textContent = `${role} • ${heroName} • Lvl ${level}`;
+    }
+    
+    // Update XP progression display (only for player)
+    if(!isGroupMemberMode){
+      const currentXP = state.progression?.xp || 0;
+      const xpMax = xpForNext(level);
+      const xpPercent = xpMax > 0 ? (currentXP / xpMax) * 100 : 0;
+      
+      if(ui.levelTabLevelNum) ui.levelTabLevelNum.textContent = level;
+      if(ui.levelTabXpFill) ui.levelTabXpFill.style.width = `${Math.min(100, xpPercent)}%`;
+      if(ui.levelTabXpText) ui.levelTabXpText.textContent = `${Math.floor(currentXP)} / ${xpMax} XP`;
+      if(ui.levelTabCurrentLevel) ui.levelTabCurrentLevel.textContent = level;
+      if(ui.levelTabStatPoints) ui.levelTabStatPoints.textContent = state.progression?.statPoints || 0;
     }
     
     // Calculate armor star rating (0-5 stars based on def value)
@@ -4284,6 +4707,15 @@ function bindUI(state){
     if(item.kind==='armor' || item.kind==='weapon'){
       const slot = item.slot;
       
+      // Check item level requirement - player must be at least item level to equip
+      const itemLevel = item.itemLevel || 1;
+      const playerLevel = state.progression?.level || 1;
+      
+      if(!isGroupMemberMode && itemLevel > playerLevel){
+        ui.toast(`Cannot equip: <b>${item.name}</b> requires level ${itemLevel} (you are level ${playerLevel})`);
+        return;
+      }
+      
       if(isGroupMemberMode){
         const prev = equipTarget[slot];
         equipTarget[slot] = item;
@@ -4468,58 +4900,37 @@ function bindUI(state){
       state.effects.wells.length = 0;
       state.effects.heals.length = 0;
       
-      // Respawn all friendlies at player home base (reuse homeBase variable)
+      // Respawn all friendlies at player home base using proper spawning function
+      // This ensures they scale correctly with the player's current level
       if(homeBase && state.group.members.length > 0){
         for(const memberId of state.group.members){
           const settings = state.group.settings[memberId];
-          if(settings){
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 60 + Math.random() * 40;
-            const ally = {
-              id: memberId,
-              x: homeBase.x + Math.cos(angle) * dist,
-              y: homeBase.y + Math.sin(angle) * dist,
-              r: 14,
-              variant: settings.class || 'warrior',
-              level: settings.level || 1,
-              maxHp: 100,
-              hp: 100,
-              mana: 80,
-              maxMana: 80,
-              speed: 90,
-              contactDmg: 12,
-              respawnT: 0,
-              buffs: [],
-              dots: [],
-              equip: settings.equipment || {},
-              npcAbilities: []
-            };
-            if(state._npcUtils && state._npcUtils.applyClassToUnit){
-              state._npcUtils.applyClassToUnit(ally, ally.variant);
+          if(settings && state._npcUtils && state._npcUtils.spawnFriendlyAt){
+            // Use spawnFriendlyAt to ensure proper scaling based on player level
+            const ally = state._npcUtils.spawnFriendlyAt(state, homeBase, settings.class || 'warrior');
+            // Override ID and equipment to match saved group member
+            if(ally){
+              ally.id = memberId;
+              ally.equip = settings.equipment || {};
             }
-            if(state._npcUtils && state._npcUtils.npcInitAbilities){
-              state._npcUtils.npcInitAbilities(ally);
-            }
-            state.friendlies.push(ally);
           }
         }
       }
       
-      // Respawn enemies at their home bases (preserve their levels)
+      // Respawn enemies at their home bases (scale with player level for balanced gameplay)
       for(const site of state.sites){
         if(site.id && site.id.startsWith('home_') && site.id !== 'home_player'){
           const team = site.owner || 'teamA';
-          const savedLevels = enemyLevelsByHome[site.id] || [];
+          // Spawn 5 enemies per home base, scaling with player level
           for(let i = 0; i < 5; i++){
             const angle = (i / 5) * Math.PI * 2;
             const dist = 80 + Math.random() * 40;
-            // Use saved level if available, otherwise level 1
-            const enemyLevel = savedLevels[i] || 1;
+            // Use zone-based leveling if available, or fall back to player level
             if(state._npcUtils && state._npcUtils.spawnEnemyAt){
               state._npcUtils.spawnEnemyAt(state, 
                 site.x + Math.cos(angle) * dist,
                 site.y + Math.sin(angle) * dist,
-                0, { homeSiteId: site.id, team: team, level: enemyLevel });
+                0, { homeSiteId: site.id, team: team });
             }
           }
         }
@@ -4547,6 +4958,11 @@ function bindUI(state){
     btnExitToMenu.onclick=()=>{
       // Auto-save before exiting
       try{ autoSave(); }catch(e){ console.error('Exit auto-save failed:', e); }
+      
+      // CLEAR ABILITY SLOTS when exiting to menu - prevents slots from persisting
+      state.abilitySlots = [null, null, null, null, null];
+      console.log('[EXIT] Ability slots cleared on exit to main menu');
+      
       // Hide in-game UI and show main menu
       ui.toggleMenu(false);
       ui.setGameUIVisible(false);
