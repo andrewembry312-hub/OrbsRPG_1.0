@@ -4,44 +4,67 @@ export function showCharSelect(state, onPick, inGame=false){
   const el = document.createElement('div');
   el.id = 'charSelectOverlay';
   el.className = 'overlay show';
-  try{ el.style.zIndex = '1000'; }catch{}
+  el.style.cssText = 'display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.98); z-index:1000;';
   el.innerHTML = `
-    <div class="panel" style="max-width:760px">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="margin:0">Select Your Hero</h2>
-        ${inGame ? '<button id="btnClose" class="secondary" style="padding:8px 12px;">Close</button>' : ''}
+    <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; position:relative;">
+      ${inGame ? '<div style="position:absolute; top:20px; right:20px;"><button id="btnClose" class="secondary" style="padding:8px 16px;">Close</button></div>' : ''}
+      <div style="position:absolute; top:20px; left:20px; color:#fff; font-size:14px; opacity:0.7;">Press ESC to cancel</div>
+      
+      <h1 style="color:#d4af37; font-size:48px; font-weight:bold; margin:0 0 40px 0; text-shadow:0 0 20px rgba(212,175,55,0.5);">Select Your Hero</h1>
+      
+      <div style="display:flex; gap:40px; align-items:flex-start; justify-content:center; max-width:1600px; width:100%;">
+        
+        <!-- MAGE -->
+        <div style="flex:1; max-width:350px; text-align:center; background:rgba(20,20,30,0.6); border:2px solid rgba(212,175,55,0.3); border-radius:12px; padding:24px; transition:all 0.3s; cursor:pointer;" onmouseover="this.style.borderColor='rgba(212,175,55,0.7)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.borderColor='rgba(212,175,55,0.3)'; this.style.transform='translateY(0)';">
+          <img src="assets/char/New Mage.png" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(100,150,255,0.4));"/>
+          <div style="font-size:28px; font-weight:900; color:#d4af37; margin-bottom:8px;">MAGE</div>
+          <div style="font-size:14px; color:#aaa; margin-bottom:16px; line-height:1.6;">High mana, ranged power.<br/>Healing & support specialist.</div>
+          <div id="stats-mage" style="display:none; font-size:13px; color:#8cf; margin-bottom:16px; line-height:1.8; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; border:1px solid rgba(136,204,255,0.3);"></div>
+          <div style="display:flex; gap:8px; justify-content:center;">
+            <button data-id="mage" style="flex:1; padding:12px; font-size:14px; font-weight:bold;">SELECT</button>
+            <button data-view="mage" class="secondary" style="padding:12px; font-size:14px;">STATS</button>
+          </div>
+        </div>
+        
+        <!-- WARRIOR -->
+        <div style="flex:1; max-width:350px; text-align:center; background:rgba(20,20,30,0.6); border:2px solid rgba(212,175,55,0.3); border-radius:12px; padding:24px; transition:all 0.3s; cursor:pointer;" onmouseover="this.style.borderColor='rgba(212,175,55,0.7)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.borderColor='rgba(212,175,55,0.3)'; this.style.transform='translateY(0)';">
+          <img src="assets/char/New Warrior.png" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(255,100,100,0.4));"/>
+          <div style="font-size:28px; font-weight:900; color:#d4af37; margin-bottom:8px;">WARRIOR</div>
+          <div style="font-size:14px; color:#aaa; margin-bottom:16px; line-height:1.6;">Balanced fighter.<br/>Steady damage & versatility.</div>
+          <div id="stats-warrior" style="display:none; font-size:13px; color:#f88; margin-bottom:16px; line-height:1.8; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; border:1px solid rgba(255,136,136,0.3);"></div>
+          <div style="display:flex; gap:8px; justify-content:center;">
+            <button data-id="warrior" style="flex:1; padding:12px; font-size:14px; font-weight:bold;">SELECT</button>
+            <button data-view="warrior" class="secondary" style="padding:12px; font-size:14px;">STATS</button>
+          </div>
+        </div>
+        
+        <!-- NIGHT -->
+        <div style="flex:1; max-width:350px; text-align:center; background:rgba(20,20,30,0.6); border:2px solid rgba(212,175,55,0.3); border-radius:12px; padding:24px; transition:all 0.3s; cursor:pointer;" onmouseover="this.style.borderColor='rgba(212,175,55,0.7)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.borderColor='rgba(212,175,55,0.3)'; this.style.transform='translateY(0)';">
+          <img src="assets/char/New Night.png" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(150,255,150,0.4));"/>
+          <div style="font-size:28px; font-weight:900; color:#d4af37; margin-bottom:8px;">NIGHT</div>
+          <div style="font-size:14px; color:#aaa; margin-bottom:16px; line-height:1.6;">Tough defender.<br/>Good sustain & armor.</div>
+          <div id="stats-knight" style="display:none; font-size:13px; color:#8f8; margin-bottom:16px; line-height:1.8; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; border:1px solid rgba(136,255,136,0.3);"></div>
+          <div style="display:flex; gap:8px; justify-content:center;">
+            <button data-id="knight" style="flex:1; padding:12px; font-size:14px; font-weight:bold;">SELECT</button>
+            <button data-view="knight" class="secondary" style="padding:12px; font-size:14px;">STATS</button>
+          </div>
+        </div>
+        
+        <!-- WARDEN -->
+        <div style="flex:1; max-width:350px; text-align:center; background:rgba(20,20,30,0.6); border:2px solid rgba(212,175,55,0.3); border-radius:12px; padding:24px; transition:all 0.3s; cursor:pointer;" onmouseover="this.style.borderColor='rgba(212,175,55,0.7)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.borderColor='rgba(212,175,55,0.3)'; this.style.transform='translateY(0)';">
+          <img src="assets/char/New Warden.png" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(255,200,100,0.4));"/>
+          <div style="font-size:28px; font-weight:900; color:#d4af37; margin-bottom:8px;">WARDEN</div>
+          <div style="font-size:14px; color:#aaa; margin-bottom:16px; line-height:1.6;">Massive HP.<br/>Ultimate defense & survival.</div>
+          <div id="stats-warden" style="display:none; font-size:13px; color:#fc8; margin-bottom:16px; line-height:1.8; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; border:1px solid rgba(255,204,136,0.3);"></div>
+          <div style="display:flex; gap:8px; justify-content:center;">
+            <button data-id="warden" style="flex:1; padding:12px; font-size:14px; font-weight:bold;">SELECT</button>
+            <button data-view="warden" class="secondary" style="padding:12px; font-size:14px;">STATS</button>
+          </div>
+        </div>
+        
       </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;justify-content:center">
-        <div class="box" style="width:180px;text-align:center">
-          <img src="assets/char/mage.svg" style="width:120px;height:120px"/>
-          <div style="font-weight:900;margin-top:6px">Mage</div>
-          <div class="small">High mana, ranged power.</div>
-          <div class="small" id="stats-mage" style="display:none;margin-top:6px"></div>
-          <div style="margin-top:8px;display:flex;gap:8px;justify-content:center"><button data-id="mage">Select</button><button data-view="mage" class="secondary">View Stats</button></div>
-        </div>
-        <div class="box" style="width:180px;text-align:center">
-          <img src="assets/char/warrior.svg" style="width:120px;height:120px"/>
-          <div style="font-weight:900;margin-top:6px">Warrior</div>
-          <div class="small">Balanced fighter with steady damage.</div>
-          <div class="small" id="stats-warrior" style="display:none;margin-top:6px"></div>
-          <div style="margin-top:8px;display:flex;gap:8px;justify-content:center"><button data-id="warrior">Select</button><button data-view="warrior" class="secondary">View Stats</button></div>
-        </div>
-        <div class="box" style="width:180px;text-align:center">
-          <img src="assets/char/knight.svg" style="width:120px;height:120px"/>
-          <div style="font-weight:900;margin-top:6px">Knight</div>
-          <div class="small">Tough defender, good sustain.</div>
-          <div class="small" id="stats-knight" style="display:none;margin-top:6px"></div>
-          <div style="margin-top:8px;display:flex;gap:8px;justify-content:center"><button data-id="knight">Select</button><button data-view="knight" class="secondary">View Stats</button></div>
-        </div>
-        <div class="box" style="width:180px;text-align:center">
-          <img src="assets/char/tank.svg" style="width:120px;height:120px"/>
-          <div style="font-weight:900;margin-top:6px">Tank</div>
-          <div class="small">Massive HP and defense.</div>
-          <div class="small" id="stats-tank" style="display:none;margin-top:6px"></div>
-          <div style="margin-top:8px;display:flex;gap:8px;justify-content:center"><button data-id="tank">Select</button><button data-view="tank" class="secondary">View Stats</button></div>
-        </div>
-      </div>
-      <div style="margin-top:12px;text-align:center" class="small">You can change equipment and skills later from the menu.</div>
+      
+      <div style="margin-top:40px; text-align:center; font-size:14px; color:#999; max-width:600px;">You can change equipment and skills later from the menu. Each class has unique abilities and playstyle.</div>
     </div>`;
 
   root.appendChild(el);
@@ -52,7 +75,7 @@ export function showCharSelect(state, onPick, inGame=false){
     if(id==='mage') mod = { maxHp: Math.max(60, base.maxHp-20), maxMana: base.maxMana+80, atk: base.atk+2, speed: base.speed-5, manaRegen: base.manaRegen+1.8 };
     else if(id==='warrior') mod = { maxHp: base.maxHp+40, maxMana: base.maxMana, atk: base.atk+4, def: base.def+1, speed: base.speed-5 };
     else if(id==='knight') mod = { maxHp: base.maxHp+80, maxMana: base.maxMana-10, atk: base.atk+2, def: base.def+3, speed: base.speed-20 };
-    else if(id==='tank') mod = { maxHp: base.maxHp+140, maxMana: base.maxMana-20, atk: Math.max(1, base.atk-2), def: base.def+5, speed: base.speed-35 };
+    else if(id==='warden') mod = { maxHp: base.maxHp+140, maxMana: base.maxMana-20, atk: Math.max(1, base.atk-2), def: base.def+5, speed: base.speed-35 };
     const show = {
       'Max HP': mod.maxHp ?? base.maxHp,
       'Max Mana': mod.maxMana ?? base.maxMana,
@@ -72,7 +95,7 @@ export function showCharSelect(state, onPick, inGame=false){
       mod = { maxHp: base.maxHp+40, maxMana: base.maxMana, atk: base.atk+4, def: base.def+1, speed: base.speed-5 };
     }else if(id==='knight'){
       mod = { maxHp: base.maxHp+80, maxMana: base.maxMana-10, atk: base.atk+2, def: base.def+3, speed: base.speed-20 };
-    }else if(id==='tank'){
+    }else if(id==='warden'){
       mod = { maxHp: base.maxHp+140, maxMana: base.maxMana-20, atk: Math.max(1, base.atk-2), def: base.def+5, speed: base.speed-35 };
     }
 

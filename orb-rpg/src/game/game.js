@@ -1060,7 +1060,7 @@ export function applyClassToUnit(unit, cls){
   if(cls==='mage') f = { hp:0.9, spd:1.06, dmg:0.95 };
   else if(cls==='warrior') f = { hp:1.15, spd:1.0, dmg:1.10 };
   else if(cls==='knight') f = { hp:1.45, spd:0.86, dmg:1.0 };
-  else if(cls==='tank') f = { hp:1.85, spd:0.72, dmg:0.85 };
+  else if(cls==='warden') f = { hp:1.85, spd:0.72, dmg:0.85 };
   unit.maxHp = Math.round(base.maxHp * f.hp);
   unit.hp = unit.maxHp;
   unit.speed = Math.round(base.speed * f.spd);
@@ -1349,7 +1349,7 @@ export function npcInitAbilities(u){
   
   // Assign an explicit party role for AI behavior
   if(!u.role){
-    u.role = (variant==='mage') ? 'HEALER' : ((variant==='tank'||variant==='knight') ? 'TANK' : 'DPS');
+    u.role = (variant==='mage') ? 'HEALER' : ((variant==='warden'||variant==='knight') ? 'TANK' : 'DPS');
   }
   
   // Debug log to verify loadouts for all variants
@@ -1400,8 +1400,8 @@ function npcUpdateAbilities(state, u, dt, kind){
   if(!target) return;
 
   const isStaff = (u.weaponType||'').toLowerCase().includes('staff');
-  const roleKey = (u.variant==='mage') ? 'mage' : (u.variant==='tank' ? 'tank' : 'dps');
-  let role = u.role || (u.variant==='mage' ? 'HEALER' : (u.variant==='tank' ? 'TANK' : 'DPS'));
+  const roleKey = (u.variant==='mage') ? 'mage' : (u.variant==='warden' ? 'warden' : 'dps');
+  let role = u.role || (u.variant==='mage' ? 'HEALER' : (u.variant==='warden' ? 'TANK' : 'DPS'));
   if(typeof role === 'string') role = role.toUpperCase();
   const allies = [state.player, ...state.friendlies.filter(f=>f.respawnT<=0), u];
   let lowestAlly = null, lowestAllyHp = 1, lowestDist = Infinity;
@@ -1588,9 +1588,9 @@ function spawnEnemyAt(state, x,y, t, opts={}){
     if(currentDefenders >= MAX_DEFENDERS_PER_TEAM) return null;
   }
   // pick a visual variant for this enemy (knights/bosses get matching look)
-  const VARS = ['warrior','mage','knight','tank'];
+  const VARS = ['warrior','mage','knight','warden'];
   if(opts.variant) e.variant = opts.variant;
-  else if(e.boss) e.variant = 'tank';
+  else if(e.boss) e.variant = 'warden';
   else if(e.knight) e.variant = 'knight';
   else e.variant = VARS[randi(0, VARS.length-1)];
   // Set level FIRST, then apply class - applyClassToUnit scales based on level
@@ -1878,9 +1878,9 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
 }
 
 function spawnFriendlyAt(state, site, forceVariant=null){
-  const VARS = ['warrior','mage','knight','tank'];
+  const VARS = ['warrior','mage','knight','warden'];
   const v = forceVariant || VARS[randi(0, VARS.length-1)];
-  const nameOptions = { warrior: 'Warrior', mage: 'Mage', knight: 'Knight', tank: 'Tank' };
+  const nameOptions = { warrior: 'Warrior', mage: 'Mage', knight: 'Knight', warden: 'Warden' };
   
   // Get player level for ally scaling
   const playerLevel = state.progression?.level || 1;
@@ -1899,7 +1899,7 @@ function spawnFriendlyAt(state, site, forceVariant=null){
     siteId: site.id,
     respawnT: 0,
     variant: v,
-    role: (v==='mage' ? 'HEALER' : (v==='tank' || v==='knight' ? 'TANK' : 'DPS')),
+    role: (v==='mage' ? 'HEALER' : (v==='warden' || v==='knight' ? 'TANK' : 'DPS')),
     behavior: 'neutral', // default behavior for all friendlies
     buffs: [],
     dots: [],
@@ -1908,9 +1908,9 @@ function spawnFriendlyAt(state, site, forceVariant=null){
   
   // Get class modifiers for ally scaling
   const classModifiers = {
-    hp: v==='mage' ? 0.9 : v==='warrior' ? 1.15 : v==='knight' ? 1.45 : v==='tank' ? 1.85 : 1.0,
-    dmg: v==='mage' ? 0.95 : v==='warrior' ? 1.10 : v==='knight' ? 1.0 : v==='tank' ? 0.85 : 1.0,
-    speed: v==='mage' ? 1.06 : v==='warrior' ? 1.0 : v==='knight' ? 0.86 : v==='tank' ? 0.72 : 1.0
+    hp: v==='mage' ? 0.9 : v==='warrior' ? 1.15 : v==='knight' ? 1.45 : v==='warden' ? 1.85 : 1.0,
+    dmg: v==='mage' ? 0.95 : v==='warrior' ? 1.10 : v==='knight' ? 1.0 : v==='warden' ? 0.85 : 1.0,
+    speed: v==='mage' ? 1.06 : v==='warrior' ? 1.0 : v==='knight' ? 0.86 : v==='warden' ? 0.72 : 1.0
   };
   
   // Apply MMO-style ally scaling based on player level
@@ -1942,7 +1942,7 @@ function ensureBaseFriendlies(state, opts={}){
     // Ensure variety: spawn at least one healer mage
     spawnFriendlyAt(state, home, 'mage');
     // Spawn remaining with variety
-    const roles = ['warrior','knight','tank','mage'];
+    const roles = ['warrior','knight','warden','mage'];
     for(let i=1;i<need;i++){
       const role = roles[i % roles.length];
       spawnFriendlyAt(state, home, role);
@@ -2110,7 +2110,7 @@ function updateFriendlies(state, dt){
         const leash = bb.leashRadius || 210;
         const behavior = groupSettings?.behavior || 'group';
         // Determine role (from settings, unit, or variant)
-        let role = (groupSettings && groupSettings.role) || a.role || (a.variant==='mage' ? 'HEALER' : (a.variant==='tank'||a.variant==='knight' ? 'TANK' : 'DPS'));
+        let role = (groupSettings && groupSettings.role) || a.role || (a.variant==='mage' ? 'HEALER' : (a.variant==='warden'||a.variant==='knight' ? 'TANK' : 'DPS'));
         if(typeof role === 'string') role = role.toUpperCase();
         const now = state.campaign.time || 0;
 
@@ -5601,4 +5601,83 @@ window.testEmperorBuff = function(){
   }
 };
 
+// ================== LOGGING SYSTEM ==================
+// Captures game events for debugging
+export function addGameLogEvent(state, eventType, data){
+  if(!state.gameLog) return;
+  if(!state.gameLog.enabled) return;
+  
+  const timestamp = Date.now() - state.gameLog.startTime;
+  const event = { timestamp, type: eventType, data };
+  state.gameLog.events.push(event);
+}
+
+export function initGameLogging(state){
+  if(!state.gameLog) state.gameLog = { enabled: false, events: [], startTime: 0, lastSaveTime: 0 };
+  state.gameLog.startTime = Date.now();
+  state.gameLog.lastSaveTime = Date.now();
+  state.gameLog.events = [];
+}
+
+export function saveGameLogToStorage(state){
+  if(!state.gameLog || !state.gameLog.enabled) return;
+  
+  try{
+    const now = Date.now();
+    const sessionId = state.gameLog.startTime;
+    const log = {
+      sessionId,
+      startTime: state.gameLog.startTime,
+      lastSave: now,
+      eventCount: state.gameLog.events.length,
+      events: state.gameLog.events.slice(-500) // Keep last 500 events to avoid memory bloat
+    };
+    localStorage.setItem(`gameLog_${sessionId}`, JSON.stringify(log));
+    state.gameLog.lastSaveTime = now;
+  }catch(e){
+    console.error('[LOG] Failed to save game log:', e);
+  }
+}
+
+export function downloadGameLog(state){
+  if(!state.gameLog || state.gameLog.events.length === 0){
+    alert('No log data to download');
+    return;
+  }
+  
+  try{
+    const date = new Date().toISOString().split('T')[0];
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false }).replace(/:/g, '-');
+    const filename = `orb-rpg-log_${date}_${time}.json`;
+    
+    const logData = {
+      generatedAt: new Date().toISOString(),
+      sessionStartTime: new Date(state.gameLog.startTime).toISOString(),
+      totalEvents: state.gameLog.events.length,
+      events: state.gameLog.events
+    };
+    
+    const dataStr = JSON.stringify(logData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    console.log(`[LOG] Downloaded log with ${state.gameLog.events.length} events`);
+  }catch(e){
+    console.error('[LOG] Failed to download log:', e);
+    alert('Failed to download log');
+  }
+}
+
+export function clearGameLog(state){
+  if(!state.gameLog) return;
+  state.gameLog.events = [];
+  console.log('[LOG] Game log cleared');
+}
 

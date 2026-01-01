@@ -198,5 +198,46 @@ Or place in `assets/maps/` and it's ready to use!
 
 ---
 
-**Version:** 2.0 with Custom Maps
-**Updated:** December 27, 2025
+## Latest Update: Debug Logging System 📊
+
+### What's New
+Implemented a comprehensive game logging system for debugging critical issues like guard spawning and active effects display problems.
+
+**Location:** ESC → Options → "Auto-save game log (debug)"
+
+### How to Use
+
+1. **Enable Logging**
+   - Open Options menu during gameplay
+   - Check "Auto-save game log (debug)"
+   - Click "Apply Options"
+
+2. **Download Log**
+   - Go back to Options
+   - Click "Download Game Log" button
+   - Browser downloads a JSON file with all events
+
+3. **Analyze**
+   - Open downloaded file in text editor
+   - Review event timeline with timestamps
+   - Share with developers for bug investigation
+
+### Key Features
+- ✅ Auto-saves every 30 seconds to browser storage
+- ✅ Tracks flag captures, guard spawns, emperor changes, group actions
+- ✅ Zero performance impact when disabled
+- ✅ Session IDs for tracking multiple tests
+- ✅ Exports as JSON for easy analysis
+
+### Files Modified
+- `src/game/game.js` - Added logging functions
+- `src/game/ui.js` - Added UI controls
+- `src/game/state.js` - Added logging state
+- `src/main.js` - Added auto-save timer
+
+See [LOGGING_SYSTEM.md](LOGGING_SYSTEM.md) for detailed documentation.
+
+---
+
+**Version:** 2.0 with Custom Maps + Debug Logging
+**Updated:** January 15, 2025

@@ -142,6 +142,13 @@ export function createState(engine, input, ui){
     enemySpawnTimer:0,
     selectedUnit: null, // clicked unit (enemy/friendly/creature) for inspection
     autoSaveTimer: 0, // track time for auto-save every 60 seconds
+    // Logging system
+    gameLog: {
+      enabled: false,
+      events: [],
+      startTime: 0,
+      lastSaveTime: 0
+    }
   };
 
   // Expose state globally for console map loading

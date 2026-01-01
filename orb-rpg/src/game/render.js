@@ -357,8 +357,10 @@ export function render(state){
     ctx.beginPath(); ctx.arc(e.x,e.y,e.r+2,0,Math.PI*2); ctx.fill();
     ctx.globalAlpha = 1;
     // draw variant image on top (smaller than orb)
-    const variant = e.variant || (e.boss ? 'tank' : (e.knight ? 'knight' : null));
-    const path = variant ? `assets/char/${variant}.svg` : null;
+    // Note: warden class uses tank.svg sprite
+    const variantName = e.variant || (e.boss ? 'warden' : (e.knight ? 'knight' : null));
+    const spriteFile = (variantName==='warden') ? 'tank' : variantName;
+    const path = spriteFile ? `assets/char/${spriteFile}.svg` : null;
     const img = path ? loadCachedImage(state, path) : null;
     if(img){
       const size = Math.max(16, Math.floor(e.r*1.6));

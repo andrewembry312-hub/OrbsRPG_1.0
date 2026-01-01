@@ -32,7 +32,7 @@ export const META_LOADOUTS = {
   },
   
   // TANK -> TANK role (can use any weapon)
-  tank: {
+  warden: {
     weapons: [
       { kind:'weapon', slot:'weapon', weaponType:'Axe', rarity:COMMON_RARITY, name:'Common Axe', buffs:{atk:6, def:4, maxHp:20} },
       { kind:'weapon', slot:'weapon', weaponType:'Sword', rarity:COMMON_RARITY, name:'Common Sword', buffs:{atk:5, def:5, maxHp:18} },
@@ -50,7 +50,7 @@ export const META_LOADOUTS = {
     weapon: { kind:'weapon', slot:'weapon', weaponType:'Healing Staff', rarity:COMMON_RARITY, name:'Common Healing Staff', buffs:{atk:2, maxMana:18, manaRegen:1.4} },
     abilities: ['heal_burst','mage_divine_touch','cleanse_wave','mage_sacred_ground','ward_barrier']
   },
-  TANK: {
+  WARDEN: {
     weapon: { kind:'weapon', slot:'weapon', weaponType:'Axe', rarity:COMMON_RARITY, name:'Common Axe', buffs:{atk:6, def:4, maxHp:20} },
     abilities: ['knight_taunt','knight_shield_wall','warcry','cleave','tank_anchor']
   }

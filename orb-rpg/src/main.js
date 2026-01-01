@@ -3,7 +3,7 @@ import { initInput } from "./engine/input.js";
 import { startLoop } from "./engine/loop.js";
 import { createState } from "./game/state.js";
 import { buildUI } from "./game/ui.js";
-import { initGame, handleHotkeys, updateGame, importSave, hardResetGameState } from "./game/game.js";
+import { initGame, handleHotkeys, updateGame, importSave, hardResetGameState, initGameLogging, saveGameLogToStorage, downloadGameLog } from "./game/game.js";
 import { showCharSelect } from "./game/charselect.js";
 import { render } from "./game/render.js";
 import "./loadMapInit.js"; // Initialize map loader helper
@@ -73,6 +73,14 @@ function startGameLoop(){
     return;
   }
   gameLoopRunning = true;
+  
+  // Initialize logging system
+  initGameLogging(state);
+  
+  // Auto-save logs every 30 seconds
+  let logSaveTimer = 0;
+  const logSaveInterval = 30; // seconds
+
   startLoop((dt)=>{
     try{ handleHotkeys(state, dt); }catch(e){ console.error('hotkeys',e); showFatalError('Error in handleHotkeys', e); }
     try{ updateGame(state, dt); }catch(e){ console.error('update',e); showFatalError('Error in updateGame', e); }
@@ -83,6 +91,15 @@ function startGameLoop(){
     try{ ui.updateBuffIconsHUD(); }catch(e){ console.error('updateBuffIconsHUD', e); }
     try{ ui.updateAiFeed && ui.updateAiFeed(); }catch(e){ console.error('updateAiFeed', e); }
     try{ ui.renderGroupPanel(); }catch(e){ console.error('renderGroupPanel', e); }
+    
+    // Auto-save logs every 30 seconds
+    if(state.gameLog?.enabled){
+      logSaveTimer += dt;
+      if(logSaveTimer >= logSaveInterval){
+        try{ saveGameLogToStorage(state); }catch(e){ console.error('saveGameLog', e); }
+        logSaveTimer = 0;
+      }
+    }
   });
 }
 

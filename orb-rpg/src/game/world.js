@@ -360,8 +360,8 @@ export function spawnGuardsForSite(state, site, count=5){
     }
   }
 
-  // Coordinated guard composition: 2 Healers (mage) + 3 DPS (warrior, knight, tank)
-  const GUARD_COMPOSITION = ['mage', 'mage', 'warrior', 'knight', 'tank'];
+  // Coordinated guard composition: 2 Healers (mage) + 3 DPS (warrior, knight, warden)
+  const GUARD_COMPOSITION = ['mage', 'mage', 'warrior', 'knight', 'warden'];
   
   // spawn from fixed positions with defined roles
   let spawned=0;

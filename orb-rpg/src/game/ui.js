@@ -1,7 +1,7 @@
 import { saveJson, loadJson, clamp } from "../engine/util.js";
 import { DEFAULT_BINDS, ACTION_LABELS, INV_SIZE, ARMOR_SLOTS, SLOT_LABEL } from "./constants.js";
 import { rarityClass } from "./rarity.js";
-import { currentStats, exportSave, importSave, applyClassToUnit } from "./game.js";
+import { currentStats, exportSave, importSave, applyClassToUnit, downloadGameLog } from "./game.js";
 import { LEVEL_CONFIG, getItemLevelColor } from "./leveling.js";
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
@@ -1188,6 +1188,9 @@ export function buildUI(state){
               <label class="small"><input id="optAutoPickup" type="checkbox"/> Auto-pickup loot when walked over</label>
             </div>
             <div style="margin-top:10px">
+              <label class="small"><input id="optAutoLog" type="checkbox"/> Auto-save game log (debug)</label>
+            </div>
+            <div style="margin-top:10px">
               <label class="small"><b>Camera Mode:</b></label>
               <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                 <label class="small"><input type="radio" id="optCameraFollowChar" name="cameraMode" value="follow"/> Follow Character</label>
@@ -1216,6 +1219,13 @@ export function buildUI(state){
 
             <div id="rebindHint" class="small" style="margin-top:8px; display:none">
               Press a key now to rebind, or press Esc to cancel.
+            </div>
+          </div>
+
+          <div class="box" style="margin-top:12px">
+            <div class="small" style="font-weight:900">Debug</div>
+            <div class="btnRow">
+              <button id="btnDownloadLog" style="flex:1">Download Game Log</button>
             </div>
           </div>
         </div>
@@ -1460,9 +1470,11 @@ function bindUI(state){
     btnBackToMenu:$('btnBackToMenu'),
     btnApplyOpts:$('btnApplyOpts'),
     btnResetBinds:$('btnResetBinds'),
+    btnDownloadLog:$('btnDownloadLog'),
     optShowAim:$('optShowAim'),
     optShowDebug:$('optShowDebug'),
     optShowDebugAI:$('optShowDebugAI'),
+    optAutoLog:$('optAutoLog'),
       optCameraFreeView:$('optCameraFreeView'),
       optCameraFollowChar:$('optCameraFollowChar'),
       optCameraEdgeStrict:$('optCameraEdgeStrict'),
@@ -1529,6 +1541,16 @@ function bindUI(state){
       if(weaponType === 'Dagger') return `assets/items/${rarityCapitalized} Dagger.png`;
       if(weaponType === 'Healing Staff') return `assets/items/${rarityCapitalized} Healing Staff.png`;
       if(weaponType === 'Destruction Staff') return `assets/items/${rarityCapitalized} Destruction Staff.png`;
+      if(weaponType === 'Greatsword') return `assets/items/${rarityCapitalized} Great Sword.png`;
+    }
+    if(item.kind === 'armor'){
+      const slot = item.slot || '';
+      const rarity = item.rarity?.key || 'common';
+      const rarityCapitalized = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+      
+      // Map armor slots to image names
+      if(slot === 'helm') return `assets/items/${rarityCapitalized} Helm.png`;
+      if(slot === 'chest') return `assets/items/${rarityCapitalized} Chest.png`;
     }
     if(item.kind === 'potion'){
       const potionType = item.type || '';
@@ -1866,6 +1888,8 @@ function bindUI(state){
       state.options.showDebug = !!ui.optShowDebug?.checked;
       if(ui.optShowDebugAI) state.options.showDebugAI = !!ui.optShowDebugAI.checked;
       state.options.autoPickup = !!ui.optAutoPickup?.checked;
+      state.options.autoLog = !!ui.optAutoLog?.checked;
+      state.gameLog.enabled = state.options.autoLog;
       // camera mode
       try{
         if(ui.optCameraFollowChar?.checked) state.options.cameraMode = 'follow';
@@ -2065,7 +2089,7 @@ function bindUI(state){
         const secUntilUpgrade = Math.floor(timeUntilUpgrade % 60);
         
         const rarityColor = getRarityColor(prog.gearRarity);
-        const composition = ['Mage Healer', 'Mage Healer', 'Warrior DPS', 'Knight DPS', 'Tank DPS'];
+        const composition = ['Mage Healer', 'Mage Healer', 'Warrior DPS', 'Knight DPS', 'Warden DPS'];
         
         guardStatsLines.push(`<div style="margin-bottom:12px; padding:8px; background:rgba(0,0,0,0.3); border-left:3px solid #d4af37; font-size:12px; line-height:1.5;">`);
         guardStatsLines.push(`<div style="font-weight:bold; font-size:13px; color:#fff; margin-bottom:4px;">📍 ${site.name}</div>`);
@@ -2423,6 +2447,7 @@ function bindUI(state){
       // Common weapons (unlimited stock)
       {item: {kind:'weapon', slot:'weapon', weaponType:'Sword', rarity:commonRarity, name:'Common Sword', desc:'Basic sword', buffs:{atk:5}}, price:55, stock:'unlimited'},
       {item: {kind:'weapon', slot:'weapon', weaponType:'Axe', rarity:commonRarity, name:'Common Axe', desc:'Basic axe', buffs:{atk:6, speed:-3}}, price:55, stock:'unlimited'},
+      {item: {kind:'weapon', slot:'weapon', weaponType:'Greatsword', rarity:commonRarity, name:'Common Great Sword', desc:'Large two-handed sword', buffs:{atk:8, def:2, speed:-2}}, price:65, stock:'unlimited'},
       {item: {kind:'weapon', slot:'weapon', weaponType:'Dagger', rarity:commonRarity, name:'Common Dagger', desc:'Basic dagger', buffs:{atk:3, speed:8}}, price:50, stock:'unlimited'},
       {item: {kind:'weapon', slot:'weapon', weaponType:'Destruction Staff', rarity:commonRarity, name:'Common Destruction Staff', desc:'Basic caster staff', buffs:{atk:3, maxMana:12, manaRegen:0.8}}, price:70, stock:'unlimited'},
       {item: {kind:'weapon', slot:'weapon', weaponType:'Healing Staff', rarity:commonRarity, name:'Common Healing Staff', desc:'Basic healing staff', buffs:{maxMana:14, manaRegen:1.0, cdr:0.03}}, price:70, stock:'unlimited'},
@@ -2750,6 +2775,7 @@ function bindUI(state){
       ui.optShowDebug.checked=state.options.showDebug;
       if(ui.optShowDebugAI) ui.optShowDebugAI.checked = !!state.options.showDebugAI;
       ui.optAutoPickup.checked=state.options.autoPickup || false;
+      if(ui.optAutoLog) ui.optAutoLog.checked = !!state.options.autoLog;
         const cameraMode = state.options.cameraMode || 'follow';
         ui.optCameraFollowChar.checked = cameraMode === 'follow';
         ui.optCameraFreeView.checked = cameraMode === 'freeview';
@@ -2911,7 +2937,7 @@ function bindUI(state){
         const secUntilUpgrade = Math.floor(timeUntilUpgrade % 60);
         
         const rarityColor = getRarityColor(prog.gearRarity);
-        const composition = ['Mage Healer', 'Mage Healer', 'Warrior DPS', 'Knight DPS', 'Tank DPS'];
+        const composition = ['Mage Healer', 'Mage Healer', 'Warrior DPS', 'Knight DPS', 'Warden DPS'];
         
         guardStatsLines.push(`<div style="margin-bottom:12px; padding:8px; background:rgba(0,0,0,0.3); border-left:3px solid #d4af37; font-size:12px; line-height:1.5;">`);
         guardStatsLines.push(`<div style="font-weight:bold; font-size:13px; color:#fff; margin-bottom:4px;">📍 ${site.name}</div>`);
@@ -3494,25 +3520,27 @@ function bindUI(state){
 
     // Reset containers
     const heroCls = isGroupMemberMode ? (state.friendlies.find(f=>f.id===isGroupMemberMode)?.variant||'warrior') : (state.player.class||'warrior');
-    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="assets/char/${heroCls}.svg" alt="Hero" class="heroLarge"/>`;
+    const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Night.png', warden: 'New Warden.png' };
+    const heroImg = heroImgMap[heroCls] || `${heroCls}.svg`;
+    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="assets/char/${heroImg}" alt="Hero" class="heroLarge"/>`;
     ui.equipExtras.innerHTML = '';
     ui.weaponSlot.innerHTML = '';
 
-    // Circle layout for: helm, chest, belt, feet, legs, hands, shoulders
-    const circleSlots = ['helm','chest','belt','feet','legs','hands','shoulders'];
-    const angles = [-90, -30, 30, 90, 135, 180, -135]; // degrees, clockwise from top
+    // Circle layout: helm at top, 3 slots on left, 3 slots on right
+    const circleSlots = ['helm','chest','belt','legs','shoulders','hands','feet'];
+    const angles = [-90, -150, 180, 150, -30, 0, 30]; // helm top, 3 left, 3 right
     const circleRect = ui.equipCircle.getBoundingClientRect();
-    const radius = Math.max(160, Math.min(circleRect.width, circleRect.height)/2 - 60);
-    const centerX = (ui.equipCircle.clientWidth || 420)/2;
-    const centerY = (ui.equipCircle.clientHeight || 420)/2;
+    const radius = Math.max(200, Math.min(circleRect.width, circleRect.height)/2 - 25); // Increased radius to push slots outward
+    const centerX = (ui.equipCircle.clientWidth || 480)/2;
+    const centerY = (ui.equipCircle.clientHeight || 480)/2;
     circleSlots.forEach((slot, idx)=>{
       const it = equipTarget[slot];
       const a = angles[idx] * Math.PI/180;
-      let x = centerX + radius * Math.cos(a) - 45; // slot size 90
-      let y = centerY + radius * Math.sin(a) - 45;
+      let x = centerX + radius * Math.cos(a) - 35; // slot size 70
+      let y = centerY + radius * Math.sin(a) - 35;
       // Clamp to container to avoid going off-UI
-      const maxX = (ui.equipCircle.clientWidth || 420) - 90;
-      const maxY = (ui.equipCircle.clientHeight || 420) - 90;
+      const maxX = (ui.equipCircle.clientWidth || 480) - 70;
+      const maxY = (ui.equipCircle.clientHeight || 480) - 70;
       x = Math.max(0, Math.min(x, maxX));
       y = Math.max(0, Math.min(y, maxY));
       const el = document.createElement('div');
@@ -3539,13 +3567,21 @@ function bindUI(state){
       ui.equipCircle.appendChild(el);
     });
 
-    // Stack accessories and neck under the circle
-    ['neck','accessory1','accessory2'].forEach(slot=>{
+    // Stack accessories and neck under the circle - 3 items in horizontal row
+    ['accessory1','accessory2','neck'].forEach(slot=>{
       const it = equipTarget[slot];
-      const row = document.createElement('div');
-      row.className = 'equip-row' + (state.selectedEquipSlot === slot ? ' active' : '');
-      row.innerHTML = `<span class="label">${SLOT_LABEL[slot]}</span><span class="value">${it ? `<span class=\"${rarityClass(it.rarity.key)}\">${it.name}</span>` : '<span class=\"small\">None</span>'}</span>`;
-      row.onclick = ()=>{
+      const el = document.createElement('div');
+      el.className = 'equip-row' + (state.selectedEquipSlot === slot ? ' active' : '');
+      el.title = SLOT_LABEL[slot];
+      const imgPath = it ? getItemImage(it) : null;
+      if(it && imgPath){
+        el.innerHTML = `<div class="label">${SLOT_LABEL[slot]}</div><img src="${imgPath}" alt="${it.name}" style="width:45px; height:45px; object-fit:contain;"/>`;
+      } else if(it){
+        el.innerHTML = `<div class="label">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:9px">${it.name}</div>`;
+      } else {
+        el.innerHTML = `<div class="label">${SLOT_LABEL[slot]}</div><div class="small" style="color:#555; font-size:9px">Empty</div>`;
+      }
+      el.onclick = ()=>{
         const now = performance.now ? performance.now() : Date.now();
         const key = `equip-${slot}`;
         const last = ui._lastInvClick;
@@ -3553,17 +3589,23 @@ function bindUI(state){
         ui._lastInvClick = { key, t: now };
         state.selectedEquipSlot = it ? slot : null; state.selectedIndex=-1; ui.updateInventorySelection();
       };
-      ui.equipExtras.appendChild(row);
+      ui.equipExtras.appendChild(el);
     });
 
-    // Weapon row at the very bottom
+    // Weapon row at the very bottom - full width
     const wIt = equipTarget['weapon'];
     const wRow = document.createElement('div');
     wRow.className = 'equip-row' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
+    wRow.title = SLOT_LABEL['weapon'];
     const imgPath = wIt ? getItemImage(wIt) : null;
-    const imgHtml = imgPath ? `<img src="${imgPath}" alt="${wIt.name}" style="width:70px; height:70px; object-fit:contain; margin-right:8px; vertical-align:middle;"/>` : '';
-    const levelDisplay = wIt && wIt.itemLevel ? ` <span class="small" style="color:#6af;">iLvl ${wIt.itemLevel}</span>` : '';
-    wRow.innerHTML = `<span class="label">${SLOT_LABEL['weapon']}</span><span class="value">${imgHtml}${wIt ? `<span class="${rarityClass(wIt.rarity.key)}">${wIt.name}</span>${levelDisplay}` : '<span class="small">None</span>'}</span>`;
+    const levelDisplay = wIt && wIt.itemLevel ? ` <span style="color:#6af; font-size:8px">iLvl ${wIt.itemLevel}</span>` : '';
+    if(imgPath){
+      wRow.innerHTML = `<div class="label">${SLOT_LABEL['weapon']}</div><img src="${imgPath}" alt="${wIt.name}" style="width:50px; height:50px; object-fit:contain;"/>`;
+    } else if(wIt){
+      wRow.innerHTML = `<div class="label">${SLOT_LABEL['weapon']}</div><div class="${rarityClass(wIt.rarity.key)}" style="font-size:10px">${wIt.name}${levelDisplay}</div>`;
+    } else {
+      wRow.innerHTML = `<div class="label">${SLOT_LABEL['weapon']}</div><div class="small" style="color:#555; font-size:9px">Empty</div>`;
+    }
     wRow.onclick = ()=>{
       const now = performance.now ? performance.now() : Date.now();
       const key = `equip-weapon`;
@@ -3698,7 +3740,9 @@ function bindUI(state){
     // hero portrait
     try{
       const cls = isGroupMemberMode ? (targetUnit.variant || 'warrior') : (state.player.class || 'warrior');
-      ui.heroPortrait.src = `assets/char/${cls}.svg`;
+      // Use PNG for all hero classes (newer images)
+      const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Night.png', warden: 'New Warden.png' };
+      ui.heroPortrait.src = `assets/char/${heroImgMap[cls] || cls + '.svg'}`;
       if(!isGroupMemberMode){
         ui.heroClassName.textContent = cls.charAt(0).toUpperCase()+cls.slice(1);
         ui.heroClassName.style.color = '#fff';
@@ -3753,12 +3797,18 @@ function bindUI(state){
     }
     
     // Apply "Best Items Only" filter if enabled
-    if(bestOnlyEnabled && (activeEntity.equip || state.player.equip)){
-      const equip = activeEntity.equip || state.player.equip;
-      filteredInventory = filteredInventory.filter(item => {
-        const comparison = compareItemToEquipped(item, equip);
-        return comparison === 1; // Only show items better than equipped
-      });
+    if(bestOnlyEnabled){
+      if(equip){
+        filteredInventory = filteredInventory.filter(item => {
+          // Only show items that have a slot (weapons/armor) and are better than equipped
+          if(item.kind === 'weapon' || item.kind === 'armor'){
+            const comparison = compareItemToEquipped(item, equip);
+            return comparison === 1; // Only show items better than equipped (green arrow)
+          }
+          // Skip non-equipable items when best-only is enabled
+          return false;
+        });
+      }
     }
     
     const invTooltip = document.getElementById('invTooltip');
@@ -5074,6 +5124,20 @@ function bindUI(state){
     ui.toast('Keybinds reset.');
   };
 
+  ui.btnDownloadLog.onclick=()=>{
+    if(!state.gameLog || state.gameLog.events.length === 0){
+      ui.toast('No log data available');
+      return;
+    }
+    try{
+      downloadGameLog(state);
+      ui.toast(`Exported log with ${state.gameLog.events.length} events`);
+    }catch(e){
+      console.error('Download log failed:', e);
+      ui.toast('Failed to download log');
+    }
+  };
+
   // Open Save Manager from ESC menu Save
   ui.btnSave.onclick=()=>{ ui.toggleMenu(false); ui.toggleSaves(true); ui.saveNameInput.value = defaultSaveName(); };
 
@@ -5295,7 +5359,7 @@ function bindUI(state){
     const baseAbilities = friendlyUnit.npcAbilities ? friendlyUnit.npcAbilities.slice() : defaultAbilitySlots();
     // Default role should reflect the ally's class/role, not always DPS
     const defaultRole = (friendlyUnit.role
-      || (friendlyUnit.variant==='mage' ? 'healer' : ((friendlyUnit.variant==='tank'||friendlyUnit.variant==='knight') ? 'tank' : 'dps')));
+      || (friendlyUnit.variant==='mage' ? 'healer' : ((friendlyUnit.variant==='warden'||friendlyUnit.variant==='knight') ? 'tank' : 'dps')));
     state.group.settings[friendlyUnit.id] = {
       name: friendlyUnit.name || 'Ally',
       behavior: 'neutral', // neutral is default
@@ -5435,7 +5499,7 @@ function bindUI(state){
       <div style="margin-bottom:10px;">
         <div class="small" style="font-weight:bold; margin-bottom:6px;">Class</div>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          ${['warrior','mage','knight','tank'].map(c=>{
+          ${['warrior','mage','knight','warden'].map(c=>{
             const active = cls===c;
             const clsBtn = active ? '' : 'secondary';
             const bg = active ? 'background:rgba(122,162,255,0.3);' : '';
@@ -5614,7 +5678,7 @@ function bindUI(state){
       <div style="margin-bottom:12px;">
         <div class="small" style="font-weight:bold; margin-bottom:6px;">Class</div>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          ${['warrior','mage','knight','tank'].map(c=>{
+          ${['warrior','mage','knight','warden'].map(c=>{
             const active = (friendly.variant||'warrior')===c;
             const cls = active ? '' : 'secondary';
             const bg = active ? 'background:rgba(122,162,255,0.3);' : '';
@@ -5656,7 +5720,7 @@ function bindUI(state){
       <div style="margin-bottom:12px;">
         <div class="small" style="font-weight:bold; margin-bottom:6px;">Load Saved Abilities</div>
         <div style="display:flex; flex-direction:column; gap:4px;">
-          ${['warrior','mage','knight','tank'].map(heroClass => {
+          ${['warrior','mage','knight','warden'].map(heroClass => {
             const loadouts = state.abilityLoadouts[heroClass] || [];
             const saved = loadouts.filter(lo => lo && lo.slots && lo.name).map((lo, idx) => `<div style="font-size:10px; padding:4px 6px; background:rgba(122,162,255,0.2); border:1px solid rgba(122,162,255,0.3); border-radius:3px; cursor:pointer; transition:all 0.15s; font-weight:500;" onmouseover="this.style.background='rgba(122,162,255,0.35)'; this.style.borderColor='rgba(122,162,255,0.5)';" onmouseout="this.style.background='rgba(122,162,255,0.2)'; this.style.borderColor='rgba(122,162,255,0.3)';" onmousedown="this.style.transform='scale(0.96)';" onmouseup="this.style.transform='scale(1)';" onclick="ui._loadGroupMemberLoadout('${memberId}', '${heroClass}', ${idx})">${heroClass}: ${lo.name}</div>`).join('');
             return saved ? saved : '';
