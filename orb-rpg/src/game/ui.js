@@ -203,6 +203,12 @@ export function buildUI(state){
       <div id="levelUpNumber" style="font-size:96px; font-weight:bold; color:#4a9eff; text-shadow:0 0 30px rgba(74,158,255,0.8); margin-top:-30px; opacity:0;">50</div>
     </div>
 
+    <!-- Emperor Notification -->
+    <div id="emperorNotification" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
+      <div id="emperorText" style="font-size:120px; font-weight:900; color:#ffd700; text-shadow:0 0 50px rgba(255,215,0,1); opacity:0; font-style:italic;">EMPEROR!</div>
+      <div id="emperorSubtext" style="font-size:64px; font-weight:bold; color:#b8941f; text-shadow:0 0 30px rgba(184,148,31,0.8); margin-top:-20px; opacity:0;">🔱</div>
+    </div>
+
     <!-- Inventory / Tabbed UI -->
     <div id="invOverlay" class="overlay">
       <div class="panel">
@@ -289,6 +295,10 @@ export function buildUI(state){
                     <option value="accessory">Accessories</option>
                     <option value="potion">Potions</option>
                   </select>
+                  <label style="display:flex; align-items:center; gap:4px; white-space:nowrap; cursor:pointer; font-size:11px; padding:4px 8px; background:rgba(76,175,80,0.15); border:1px solid rgba(76,175,80,0.3); border-radius:4px;">
+                    <input type="checkbox" id="invBestOnlyCheckbox" style="cursor:pointer; width:14px; height:14px;"/>
+                    <span style="color:#4caf50;">↑ Best Only</span>
+                  </label>
                 </div>
                 <div class="btnRow">
                   <button id="useEquipBtn">Equip</button>
@@ -1414,6 +1424,7 @@ function bindUI(state){
     levelTabLevelNum:$('levelTabLevelNum'), levelTabXpFill:$('levelTabXpFill'), levelTabXpText:$('levelTabXpText'),
     levelTabCurrentLevel:$('levelTabCurrentLevel'), levelTabStatPoints:$('levelTabStatPoints'),
     levelUpNotification:$('levelUpNotification'), levelUpText:$('levelUpText'), levelUpNumber:$('levelUpNumber'),
+    emperorNotification:$('emperorNotification'), emperorText:$('emperorText'), emperorSubtext:$('emperorSubtext'),
     toastEl:$('toast'),
     abilBar:$('abilBar'),
     buffIconsHud:$('buffIconsHud'),
@@ -1803,6 +1814,51 @@ function bindUI(state){
     });
   };
 
+  // Emperor notification with fade animation (same as level up)
+  ui.showEmperor = ()=>{
+    const notification = ui.emperorNotification;
+    const textEl = ui.emperorText;
+    const subtextEl = ui.emperorSubtext;
+    
+    if(!notification) return;
+    
+    // Play level up sound (same as level up for consistency)
+    if(state.sounds?.levelUp){
+      const audio = state.sounds.levelUp.cloneNode();
+      audio.volume = 0.7;
+      audio.play().catch(e => {});
+    }
+    
+    // Reset animation
+    notification.style.display = 'block';
+    textEl.style.opacity = '0';
+    subtextEl.style.opacity = '0';
+    textEl.textContent = 'EMPEROR!';
+    subtextEl.textContent = '🔱';
+    
+    // Use requestAnimationFrame for smooth fade in
+    requestAnimationFrame(() => {
+      // Fade in: 0-0.3s
+      textEl.style.transition = 'opacity 0.3s ease-in';
+      subtextEl.style.transition = 'opacity 0.3s ease-in';
+      textEl.style.opacity = '1';
+      subtextEl.style.opacity = '1';
+      
+      // Fade out: starts at 2.7s, ends at 3s
+      setTimeout(() => {
+        textEl.style.transition = 'opacity 0.3s ease-out';
+        subtextEl.style.transition = 'opacity 0.3s ease-out';
+        textEl.style.opacity = '0';
+        subtextEl.style.opacity = '0';
+      }, 2700);
+      
+      // Hide after animation
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 3000);
+    });
+  };
+
   // Apply Options button: persist toggles (including AI debug)
   if(ui.btnApplyOpts){
     ui.btnApplyOpts.onclick = ()=>{
@@ -2048,6 +2104,28 @@ function bindUI(state){
     }
     
     guardStatsLines.push('</div>');
+    
+    // EMPEROR STATUS DISPLAY (only show when player is emperor)
+    if(state.emperorTeam === 'player'){
+      const emperorStatsLines = [];
+      emperorStatsLines.push('<div style="margin-top:16px; padding:12px; border:2px solid #ffd700; border-radius:6px; background:linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,193,7,0.05) 100%); box-shadow: 0 0 20px rgba(255,215,0,0.3), inset 0 0 15px rgba(255,215,0,0.1);">');
+      emperorStatsLines.push('<div style="font-weight:bold; font-size:16px; color:#ffd700; margin-bottom:8px; text-shadow: 0 0 10px rgba(255,215,0,0.6); font-style:italic;">👑 POWER OF THE EMPEROR 👑</div>');
+      emperorStatsLines.push('<div style="font-size:12px; line-height:1.8; color:#f0e68c;">');
+      emperorStatsLines.push('<div style="margin-bottom:6px;"><b style="color:#ffd700;">🔱 Divine Bonuses Applied:</b></div>');
+      emperorStatsLines.push('<div style="margin-left:12px; color:#ffeb3b;">• <b>HP:</b> Tripled (3x multiplier)</div>');
+      emperorStatsLines.push('<div style="margin-left:12px; color:#ffeb3b;">• <b>Mana:</b> Tripled (3x multiplier)</div>');
+      emperorStatsLines.push('<div style="margin-left:12px; color:#ffeb3b;">• <b>Stamina:</b> Tripled (3x multiplier)</div>');
+      emperorStatsLines.push('<div style="margin-left:12px; color:#ffeb3b;">• <b>Ability Cooldowns:</b> 50% Reduction (abilities cast 2x faster)</div>');
+      emperorStatsLines.push('<div style="margin-top:8px; margin-bottom:6px;"><b style="color:#ffd700;">⚔️ Strategic Advantage:</b></div>');
+      emperorStatsLines.push('<div style="margin-left:12px; color:#ffeb3b;">• All enemy teams are now <span style="color:#6cf; font-weight:bold;">ALLIED</span> with each other</div>');
+      emperorStatsLines.push('<div style="margin-left:12px; color:#ffeb3b;">• Enemies only attack YOUR TEAM and your flags</div>');
+      emperorStatsLines.push('<div style="margin-left:12px; color:#ffeb3b;">• Emperor status lost if you lose ALL flags</div>');
+      emperorStatsLines.push('<div style="margin-top:8px;"><b style="color:#ffd700;">🎖️ Victory:</b> Defend your throne!</div>');
+      emperorStatsLines.push('</div></div>');
+      if(teamsEl){
+        teamsEl.innerHTML += emperorStatsLines.join('');
+      }
+    }
     
     // Append guard stats to team display
     if(teamsEl){
@@ -2873,12 +2951,27 @@ function bindUI(state){
     
     guardStatsLines.push('</div>');
     
-    teamsEl.innerHTML = teamLines.map(l=>`<div style="margin-bottom:6px;">${l}</div>`).join('') + guardStatsLines.join('');
-
-    // Captures summary: show counts per owner
+    // Captures summary with Emperor info on right side
     const owners = ['player','teamA','teamB','teamC','neutral'];
     const capLines = owners.map(o=> `${teamNames[o] || o.toUpperCase()}: ${countFlags(o)}`);
-    capsEl.innerHTML = capLines.map(l=>`<div>${l}</div>`).join('');
+    let capsContent = capLines.map(l=>`<div>${l}</div>`).join('');
+    
+    // EMPEROR STATUS DISPLAY on the right side
+    if(state.emperorTeam === 'player'){
+      const emperorStatsLines = [];
+      emperorStatsLines.push('<div style="margin-top:12px; padding:12px; border:2px solid #ffd700; border-radius:6px; background:linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,193,7,0.05) 100%); box-shadow: 0 0 20px rgba(255,215,0,0.3), inset 0 0 15px rgba(255,215,0,0.1);">');
+      emperorStatsLines.push('<div style="font-weight:bold; font-size:14px; color:#ffd700; margin-bottom:6px; text-shadow: 0 0 10px rgba(255,215,0,0.6); font-style:italic;">👑 EMPEROR 👑</div>');
+      emperorStatsLines.push('<div style="font-size:11px; line-height:1.6; color:#f0e68c;">');
+      emperorStatsLines.push('<div style="margin-bottom:4px;"><b style="color:#ffeb3b;">🔱 Bonuses:</b></div>');
+      emperorStatsLines.push('<div style="margin-left:8px; color:#ffeb3b; font-size:10px;">• HP/Mana/Stam x3</div>');
+      emperorStatsLines.push('<div style="margin-left:8px; color:#ffeb3b; font-size:10px;">• Cooldowns -50%</div>');
+      emperorStatsLines.push('<div style="margin-left:8px; color:#ffeb3b; font-size:10px;">• Enemies Allied</div>');
+      emperorStatsLines.push('</div></div>');
+      capsContent += emperorStatsLines.join('');
+    }
+    
+    teamsEl.innerHTML = teamLines.map(l=>`<div style="margin-bottom:6px;">${l}</div>`).join('') + guardStatsLines.join('');
+    capsEl.innerHTML = capsContent;
   };
 
   ui.endCampaign = (winner)=>{
@@ -3193,6 +3286,9 @@ function bindUI(state){
     ui.bs_stamFill.style.width = `${clamp(state.player.stam/st.maxStam,0,1)*100}%`;
     ui.bs_shieldFill.style.width = `${clamp(state.player.shield/320,0,1)*100}%`;
 
+    // Update buff icons HUD (above abilities)
+    try { ui.updateBuffIconsHUD?.(); } catch(e) { console.error('updateBuffIconsHUD error:', e); }
+
     ui.hintText.innerHTML =
       `Move <span class="kbd">${nice(state.binds.moveUp)}</span><span class="kbd">${nice(state.binds.moveLeft)}</span><span class="kbd">${nice(state.binds.moveDown)}</span><span class="kbd">${nice(state.binds.moveRight)}</span>
        | Pick up <span class="kbd">${nice(state.binds.pickup)}</span>
@@ -3212,6 +3308,8 @@ function bindUI(state){
       healing_empowerment:'✚', blessed:'✦', radiance:'☀', temporal_flux:'⏳', berserker_rage:'🗡', iron_will:'🛡', swift_strikes:'➤', arcane_power:'✷', battle_fury:'⚔', guardian_stance:'🛡',
       regeneration:'✚', mana_surge:'💧', vigor:'♥', spirit:'🔮', endurance:'⚡', fortified:'🛡', lifesteal_boost:'🩹',
       haste:'🏃', sprint:'🏃', flight:'🕊', focus:'🎯', clarity:'💡', stealth:'👁', divine_shield:'✨', lucky:'🍀',
+      // Special
+      emperor_power:'🔱',
       // Passives
       bulwark:'🛡', arcane_focus:'🔮', predator:'🐺', vital_soul:'♥', siphon:'🩹'
     };
@@ -3222,7 +3320,7 @@ function bindUI(state){
     }catch{}
     // Buffs
     try{
-      for(const b of state.player.buffs||[]){ const meta=BUFF_REGISTRY[b.id]; const deb=!!meta?.debuff; const icon=ICONS[b.id]|| (deb?'☠':'★'); const title=`${meta?.name||b.id}`; const desc=`${deb?'Debuff':'Buff'} — ${meta?.desc||''}`; const timer=(b.t||0).toFixed(1)+'s'; const stack=(b.stacks||1)>1?`<span class="stack">x${b.stacks||1}</span>`:''; list.push({ html:`<div class="buffIcon ${deb?'debuff':'buff'}" data-title="${title}" data-desc="${desc}"><span>${icon}</span><span class="timer">${timer}</span>${stack}</div>` }); }
+      for(const b of state.player.buffs||[]){ const meta=BUFF_REGISTRY[b.id]; const deb=!!meta?.debuff; const icon=ICONS[b.id]|| (deb?'☠':'★'); const title=`${b.name||meta?.name||b.id}`; const desc=b.id==='emperor_power'?'Permanent: +3x HP, Mana, Stamina, 50% Cooldown Reduction':`${deb?'Debuff':'Buff'} — ${meta?.desc||''}`; const timer=b.duration===Infinity||b.id==='emperor_power'?'∞':(b.t||0).toFixed(1)+'s'; const stack=(b.stacks||1)>1?`<span class="stack">x${b.stacks||1}</span>`:''; list.push({ html:`<div class="buffIcon ${deb?'debuff':'buff'}" data-title="${title}" data-desc="${desc}"><span>${icon}</span><span class="timer">${timer}</span>${stack}</div>` }); }
     }catch{}
     // DoTs (on player)
     try{
@@ -3618,6 +3716,10 @@ function bindUI(state){
     const filterDropdown = document.getElementById('invFilterDropdown');
     const filterValue = filterDropdown ? filterDropdown.value : 'all';
     
+    // Get best-only checkbox
+    const bestOnlyCheckbox = document.getElementById('invBestOnlyCheckbox');
+    const bestOnlyEnabled = bestOnlyCheckbox ? bestOnlyCheckbox.checked : false;
+    
     // Filter inventory based on selection
     let filteredInventory = state.inventory;
     if(filterValue !== 'all'){
@@ -3647,6 +3749,15 @@ function bindUI(state){
         if(filterValue === 'accessory') return item.kind === 'armor' && (item.slot === 'accessory1' || item.slot === 'accessory2');
         
         return true;
+      });
+    }
+    
+    // Apply "Best Items Only" filter if enabled
+    if(bestOnlyEnabled && (activeEntity.equip || state.player.equip)){
+      const equip = activeEntity.equip || state.player.equip;
+      filteredInventory = filteredInventory.filter(item => {
+        const comparison = compareItemToEquipped(item, equip);
+        return comparison === 1; // Only show items better than equipped
       });
     }
     
@@ -4619,8 +4730,8 @@ function bindUI(state){
         healing_empowerment:'✚', blessed:'✦', radiance:'☀', temporal_flux:'⏳', berserker_rage:'🗡', iron_will:'🛡', swift_strikes:'➤', arcane_power:'✷', battle_fury:'⚔', guardian_stance:'🛡',
         regeneration:'✚', mana_surge:'💧', vigor:'♥', spirit:'🔮', endurance:'⚡', fortified:'🛡', lifesteal_boost:'🩹',
         haste:'🏃', sprint:'🏃', flight:'🕊', focus:'🎯', clarity:'💡', stealth:'👁', divine_shield:'✨', lucky:'🍀',
-        // Passives
-        bulwark:'🛡', arcane_focus:'🔮', predator:'🐺', vital_soul:'♥', siphon:'🩹'
+        // Passives & Special
+        bulwark:'🛡', arcane_focus:'🔮', predator:'🐺', vital_soul:'♥', siphon:'🩹', emperor_power:'🔱'
       };
       
       const effectsList = [];
@@ -4652,18 +4763,21 @@ function bindUI(state){
           const meta = BUFF_REGISTRY[b.id]; 
           const deb = !!meta?.debuff; 
           const icon = ICONS[b.id] || (deb?'☠':'★'); 
-          const title = `${meta?.name||b.id}`; 
-          const desc = `${meta?.desc||''}`; 
-          const timer = (b.t||0).toFixed(1)+'s'; 
+          const title = `${b.name||meta?.name||b.id}`; 
+          const desc = `${b.description||meta?.desc||''}`; 
+          // Handle infinity duration (for permanent effects like emperor_power)
+          const timerDisplay = b.duration === Infinity ? '∞' : (b.t||0).toFixed(1)+'s';
           const stack = (b.stacks||1)>1?` x${b.stacks||1}`:''; 
-          const borderColor = deb ? '#c44' : '#4a4';
-          const bgColor = deb ? 'rgba(200,70,70,0.1)' : 'rgba(70,170,70,0.1)';
-          const textColor = deb ? '#c66' : '#6c6';
+          // Use gold colors for emperor_power, otherwise use normal buff/debuff colors
+          const isEmperor = b.id === 'emperor_power';
+          const borderColor = isEmperor ? '#ffd700' : (deb ? '#c44' : '#4a4');
+          const bgColor = isEmperor ? 'rgba(255,215,0,0.1)' : (deb ? 'rgba(200,70,70,0.1)' : 'rgba(70,170,70,0.1)');
+          const textColor = isEmperor ? '#ffd700' : (deb ? '#c66' : '#6c6');
           effectsList.push(`
             <div style="display:flex; gap:8px; align-items:center; padding:4px; background:${bgColor}; border-left:2px solid ${borderColor}; border-radius:2px; margin-bottom:4px;">
               <span style="font-size:20px; flex-shrink:0;">${icon}</span>
               <div style="flex:1;">
-                <div style="font-weight:bold; color:${textColor}; font-size:11px;">${title}${stack} <span style="color:#999; font-size:10px;">(${timer})</span></div>
+                <div style="font-weight:bold; color:${textColor}; font-size:11px;">${title}${stack} <span style="color:#999; font-size:10px;">(${timerDisplay})</span></div>
                 <div style="color:#999; font-size:10px;">${desc}</div>
               </div>
             </div>
@@ -4880,6 +4994,14 @@ function bindUI(state){
   const invFilterDropdown = document.getElementById('invFilterDropdown');
   if(invFilterDropdown){
     invFilterDropdown.addEventListener('change', ()=>{
+      ui.renderInventory();
+    });
+  }
+
+  // Best items only checkbox
+  const invBestOnlyCheckbox = document.getElementById('invBestOnlyCheckbox');
+  if(invBestOnlyCheckbox){
+    invBestOnlyCheckbox.addEventListener('change', ()=>{
       ui.renderInventory();
     });
   }
@@ -5531,6 +5653,18 @@ function bindUI(state){
         </div>
       </div>
       
+      <div style="margin-bottom:12px;">
+        <div class="small" style="font-weight:bold; margin-bottom:6px;">Load Saved Abilities</div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          ${['warrior','mage','knight','tank'].map(heroClass => {
+            const loadouts = state.abilityLoadouts[heroClass] || [];
+            const saved = loadouts.filter(lo => lo && lo.slots && lo.name).map((lo, idx) => `<div style="font-size:10px; padding:4px 6px; background:rgba(122,162,255,0.2); border:1px solid rgba(122,162,255,0.3); border-radius:3px; cursor:pointer; transition:all 0.15s; font-weight:500;" onmouseover="this.style.background='rgba(122,162,255,0.35)'; this.style.borderColor='rgba(122,162,255,0.5)';" onmouseout="this.style.background='rgba(122,162,255,0.2)'; this.style.borderColor='rgba(122,162,255,0.3)';" onmousedown="this.style.transform='scale(0.96)';" onmouseup="this.style.transform='scale(1)';" onclick="ui._loadGroupMemberLoadout('${memberId}', '${heroClass}', ${idx})">${heroClass}: ${lo.name}</div>`).join('');
+            return saved ? saved : '';
+          }).join('')}
+        </div>
+        ${state.abilityLoadouts.warrior?.some(lo => lo?.slots) ? '' : '<div class="small" style="margin-top:4px; color:#999;">No saved loadouts. Create one in Inventory > Skills.</div>'}
+      </div>
+      
       <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
         <button style="width:100%; padding:8px;" onclick="ui._editGroupMemberEquipment('${memberId}');">Edit Equipment & Abilities</button>
       </div>
@@ -5587,6 +5721,29 @@ function bindUI(state){
     if(state.group.settings[memberId]) state.group.settings[memberId].behavior = behavior;
     ui.renderGroupTab();
     ui._selectGroupMember(memberId); // Refresh panel highlighting
+  };
+
+  ui._loadGroupMemberLoadout = (memberId, heroClass, slotIndex)=>{
+    const friendly = state.friendlies.find(f => f.id === memberId);
+    if(!friendly) return;
+    const loadouts = state.abilityLoadouts[heroClass];
+    if(!loadouts || slotIndex < 0 || slotIndex >= loadouts.length) return;
+    const loadout = loadouts[slotIndex];
+    if(!loadout || !loadout.slots) return;
+    
+    // Change their variant to match the loadout class if needed
+    if(friendly.variant !== heroClass){
+      friendly.variant = heroClass;
+      // Apply class stats
+      if(state._npcUtils?.applyClassToUnit) state._npcUtils.applyClassToUnit(friendly, heroClass);
+    }
+    
+    // Load the abilities
+    friendly.npcAbilities = [...loadout.slots];
+    friendly.npcCd = [0, 0, 0, 0, 0];
+    
+    ui.toast(`<b>${friendly.name}</b> loaded <b>${loadout.name}</b> (${heroClass})`);
+    ui._selectGroupMember(memberId); // Refresh the panel
   };
 
   ui._setGroupMemberClass = (memberId, cls)=>{

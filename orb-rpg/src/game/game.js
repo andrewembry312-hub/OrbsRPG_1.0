@@ -1,4 +1,4 @@
-import { clamp, rand, randi, cssVar, saveJson, loadJson } from "../engine/util.js";
+﻿import { clamp, rand, randi, cssVar, saveJson, loadJson } from "../engine/util.js";
 import { INV_SIZE, LOOT_TTL, ARMOR_SLOTS, SLOT_LABEL, DEFAULT_BINDS } from "./constants.js";
 import { pickRarity, rarityClass, rarityTier } from "./rarity.js";
 import { xpForNext } from "./progression.js";
@@ -346,15 +346,12 @@ export function currentStats(state){
   base.blockBase=clamp(base.blockBase,0,base.blockCap);
   base.critChance=clamp(base.critChance,0,0.75);
   base.critMult=Math.max(1.2, base.critMult);
-  // Emperor bonus when player controls all bases
-  if(state.emperor){
-    base.maxHp += 60;
-    base.hpRegen += 1.8;
-    base.maxMana += 30;
-    base.manaRegen += 1.2;
-    base.atk += 6;
-    base.cdr = clamp(base.cdr + 0.08, 0, 0.6);
-    base.speed = Math.round(base.speed * 1.12);
+  // Emperor bonus when player's team is emperor
+  if(state.emperorTeam === 'player'){
+    base.maxHp *= 3;
+    base.maxMana *= 3;
+    base.maxStam *= 3;
+    base.cdr = clamp(base.cdr + 0.5, 0, 0.95); // 50% cooldown reduction (abilities half cooldown)
   }
   return base;
 }
@@ -1142,9 +1139,16 @@ function roleArmorSet(role, rarity){
 function assignNpcEquipment(unit, role){
   const rarity = unit.level>=13 ? LEGENDARY_RARITY : unit.level>=10 ? EPIC_RARITY : unit.level>=7 ? RARE_RARITY : unit.level>=4 ? UNCOMMON_RARITY : COMMON_RARITY;
   unit.equipment = unit.equipment || {};
-  // weapon from class loadout
-  const loadout = CLASS_LOADOUTS[role] || CLASS_LOADOUTS.warrior;
-  unit.equipment.weapon = structuredClone(loadout.weapon);
+  // weapon from class loadout - use the weapon already assigned if available, otherwise get from loadout
+  if(!unit.equipment.weapon){
+    const loadout = CLASS_LOADOUTS[role] || CLASS_LOADOUTS.warrior;
+    if(loadout.weapons && Array.isArray(loadout.weapons)){
+      const weaponChoice = loadout.weapons[randi(0, loadout.weapons.length - 1)];
+      unit.equipment.weapon = structuredClone(weaponChoice);
+    } else if(loadout.weapon){
+      unit.equipment.weapon = structuredClone(loadout.weapon);
+    }
+  }
   // fill armor
   const set = roleArmorSet(role, rarity);
   for(const [slot,item] of Object.entries(set)) unit.equipment[slot] = item;
@@ -2041,25 +2045,74 @@ function updateFriendlies(state, dt){
     let tx=a.x, ty=a.y;
     
     if(isGroupMember){
-      ensurePartyState(state);
-      const party = state.party;
-      const bb = party.blackboard;
-      const macro = party.macroState;
-      const memberIndex = state.group.members.indexOf(a.id);
-      const totalMembers = state.group.members.length;
-      const angle = (memberIndex / Math.max(1, totalMembers)) * Math.PI * 2;
-      const spread = bb.spreadRadius + (memberIndex % 3) * 10;
-      const anchorX = bb.stackPoint.x;
-      const anchorY = bb.stackPoint.y;
-      const desiredX = anchorX + Math.cos(angle) * spread;
-      const desiredY = anchorY + Math.sin(angle) * spread;
-      const distAnchor = Math.hypot(a.x - anchorX, a.y - anchorY);
-      const leash = bb.leashRadius || 210;
-      const behavior = groupSettings?.behavior || 'group';
-      // Determine role (from settings, unit, or variant)
-      let role = (groupSettings && groupSettings.role) || a.role || (a.variant==='mage' ? 'HEALER' : (a.variant==='tank'||a.variant==='knight' ? 'TANK' : 'DPS'));
-      if(typeof role === 'string') role = role.toUpperCase();
-      const now = state.campaign.time || 0;
+      // PRIORITY OVERRIDE: If garrisoned, skip normal group behavior and defend flag
+      if(a.garrisonSiteId){
+        const garrisonSite = state.sites.find(s => s.id === a.garrisonSiteId);
+        if(!garrisonSite || garrisonSite.owner !== 'player'){
+          delete a.garrisonSiteId;
+        } else {
+          // Use garrison defense logic (same as non-group garrison members)
+          if(!a._garrisonX || !a._garrisonY){
+            const garrisonedUnits = state.friendlies.filter(f => f.garrisonSiteId === a.garrisonSiteId);
+            const unitsWithSlots = garrisonedUnits.filter(f => f._garrisonSlot !== undefined);
+            if(a._garrisonSlot === undefined){
+              const usedSlots = new Set(unitsWithSlots.map(f => f._garrisonSlot));
+              let slot = 0;
+              while(usedSlots.has(slot)) slot++;
+              a._garrisonSlot = slot;
+            }
+            const totalSlots = Math.max(garrisonedUnits.length, 8);
+            const angle = (a._garrisonSlot / totalSlots) * Math.PI * 2;
+            const spreadRadius = 70;
+            a._garrisonX = garrisonSite.x + Math.cos(angle) * spreadRadius;
+            a._garrisonY = garrisonSite.y + Math.sin(angle) * spreadRadius;
+          }
+          const GARRISON_DEFEND_RADIUS = 150;
+          const GARRISON_LEASH_RADIUS = 180;
+          const distToPost = Math.hypot(a.x - a._garrisonX, a.y - a._garrisonY);
+          if(near.e && near.d <= GARRISON_DEFEND_RADIUS){
+            const enemyDistToPost = Math.hypot(near.e.x - a._garrisonX, near.e.y - a._garrisonY);
+            if(enemyDistToPost <= GARRISON_LEASH_RADIUS && distToPost < GARRISON_LEASH_RADIUS){
+              a.speed = 120;
+              tx = near.e.x;
+              ty = near.e.y;
+            } else {
+              a.speed = 110;
+              tx = a._garrisonX;
+              ty = a._garrisonY;
+            }
+          } else if(distToPost > 8){
+            a.speed = 100;
+            tx = a._garrisonX;
+            ty = a._garrisonY;
+          } else {
+            a.speed = 0;
+          }
+          // Garrison logic complete - tx, ty, speed are set for movement below
+        } // close else block
+      } // close if(a.garrisonSiteId)
+      
+      // Normal group behavior (only if NOT garrisoned)
+      if(!a.garrisonSiteId){
+        ensurePartyState(state);
+        const party = state.party;
+        const bb = party.blackboard;
+        const macro = party.macroState;
+        const memberIndex = state.group.members.indexOf(a.id);
+        const totalMembers = state.group.members.length;
+        const angle = (memberIndex / Math.max(1, totalMembers)) * Math.PI * 2;
+        const spread = bb.spreadRadius + (memberIndex % 3) * 10;
+        const anchorX = bb.stackPoint.x;
+        const anchorY = bb.stackPoint.y;
+        const desiredX = anchorX + Math.cos(angle) * spread;
+        const desiredY = anchorY + Math.sin(angle) * spread;
+        const distAnchor = Math.hypot(a.x - anchorX, a.y - anchorY);
+        const leash = bb.leashRadius || 210;
+        const behavior = groupSettings?.behavior || 'group';
+        // Determine role (from settings, unit, or variant)
+        let role = (groupSettings && groupSettings.role) || a.role || (a.variant==='mage' ? 'HEALER' : (a.variant==='tank'||a.variant==='knight' ? 'TANK' : 'DPS'));
+        if(typeof role === 'string') role = role.toUpperCase();
+        const now = state.campaign.time || 0;
 
       // Target selection with short hysteresis
       let target = null;
@@ -2127,8 +2180,9 @@ function updateFriendlies(state, dt){
           if(attacker){ tx = attacker.x; ty = attacker.y; a.speed = 135; }
         }
       }
-
-    }
+      
+      } // close if(!a.garrisonSiteId) - normal group behavior block
+    } // close if(isGroupMember)
     else if(a.guard){
       // COORDINATED GUARD AI - Aggressive flag defense with ball group tactics
       const guardSite = a.homeSiteId ? state.sites.find(s => s.id === a.homeSiteId) : null;
@@ -2517,6 +2571,13 @@ function findNearestPlayerFlag(state, x, y){
   return nearest;
 }
 
+// Check if a team should attack another team based on emperor status
+function shouldAttackTeam(attackerTeam, targetTeam, state){
+  if(!state.emperorTeam) return attackerTeam !== targetTeam; // Normal: only attack different teams
+  if(state.emperorTeam === attackerTeam) return targetTeam !== attackerTeam; // Emperor team fights only non-emperor teams
+  return targetTeam === state.emperorTeam; // Non-emperor teams only attack emperor team
+}
+
 function updateEnemies(state, dt){
   const st=currentStats(state);
   const ENEMY_AGGRO_DIST = 90; // distance at which an enemy will engage nearby hostiles before going to flag
@@ -2723,7 +2784,8 @@ function updateEnemies(state, dt){
       let nearestHost = null, nearestHD = Infinity, hostType = null;
       if(!state.player.dead){ const d = Math.hypot(state.player.x - e.x, state.player.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = state.player; hostType='player'; } }
       for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x - e.x, f.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = f; hostType='friendly'; } }
-      for(const other of state.enemies){ if(other===e) continue; if(!other.team || !e.team) continue; if(other.team === e.team) continue; const d = Math.hypot(other.x - e.x, other.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = other; hostType='enemy'; } }
+      // Only attack other teams if emperor logic allows it
+      for(const other of state.enemies){ if(other===e) continue; if(!other.team || !e.team) continue; if(other.team === e.team) continue; if(!shouldAttackTeam(e.team, other.team, state)) continue; const d = Math.hypot(other.x - e.x, other.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = other; hostType='enemy'; } }
 
       const AGGRO_DIST = ENEMY_AGGRO_DIST;
       if(nearestHost && nearestHD <= AGGRO_DIST && !e.inWater){
@@ -2790,8 +2852,8 @@ function updateEnemies(state, dt){
       if(!state.player.dead){ const d=Math.hypot(state.player.x - e.x, state.player.y - e.y); if(d < bestD){ bestD = d; bestTarget = state.player; bestType='player'; } }
       // friendlies
       for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x - e.x, f.y - e.y); if(d < bestD){ bestD = d; bestTarget = f; bestType='friendly'; } }
-      // other-team enemies
-      for(const other of state.enemies){ if(other===e) continue; if(!other.team || !e.team) continue; if(other.team === e.team) continue; const d=Math.hypot(other.x - e.x, other.y - e.y); if(d < bestD){ bestD = d; bestTarget = other; bestType='enemy'; } }
+      // other-team enemies (only if emperor rules allow it)
+      for(const other of state.enemies){ if(other===e) continue; if(!other.team || !e.team) continue; if(other.team === e.team) continue; if(!shouldAttackTeam(e.team, other.team, state)) continue; const d=Math.hypot(other.x - e.x, other.y - e.y); if(d < bestD){ bestD = d; bestTarget = other; bestType='enemy'; } }
       // hostile creatures (attacked and targeting an enemy/friendly/player)
       for(const c of state.creatures){
         if(!c.attacked) continue;
@@ -3793,6 +3855,12 @@ function updateDamageNums(state, dt){
 function makeLegendaryItem(state){
   const rarity = { key:'legend', name:'Legendary', color: cssVar('--legend') };
   const slot = ARMOR_SLOTS[randi(0, ARMOR_SLOTS.length-1)];
+  // If weapon slot selected, create a legendary weapon instead of armor
+  if(slot === 'weapon'){
+    const WEAPON_TYPES = ['Destruction Staff', 'Healing Staff', 'Axe', 'Sword', 'Dagger', 'Greatsword'];
+    const weaponType = WEAPON_TYPES[randi(0, WEAPON_TYPES.length-1)];
+    return makeWeapon(weaponType, rarity);
+  }
   return makeArmor(slot, rarity);
 }
 
@@ -4929,16 +4997,8 @@ export function updateGame(state, dt){
       s._justCaptured = false;
     }
   }
-  // Emperor check: if player controls all base sites, grant emperor powers
-  if(!state.emperor){
-    const bases = state.sites.filter(s=>s.id.endsWith('_base'));
-    if(bases.length>0 && bases.every(b=>b.owner==='player')){
-      state.emperor = true;
-      state.ui.toast('<b>You are the Emperor!</b> The crown grants blessing and power.');
-      // ensure gates open for player's bases
-      for(const b of bases){ if(b.wall) b.wall.gateOpen = true; }
-    }
-  }
+  // Emperor check: if any team controls ALL capture flags, they become emperor
+  checkEmperorStatus(state);
   updateFriendlySpawns(state, dt);
   updatePartyCoordinator(state, dt);
   updateFriendlies(state, dt);
@@ -5099,18 +5159,8 @@ export function updateGame(state, dt){
     }
   }
 
-  // Campaign time limit (10 minutes)
-  const CAMPAIGN_LIMIT = 10*60;
-  if(state.campaign.time >= CAMPAIGN_LIMIT && !state.campaignEnded){
-    // Award end-of-campaign rewards (3 legendaries + 5000 gold) regardless of winner
-    for(let i=0;i<3;i++){ awardCampaignLegendary(state); }
-    state.player.gold += 5000;
-    // determine winner by comparing player flags vs other teams for summary
-    const playerFlags = getFriendlyFlags(state).length;
-    const otherFlags = state.sites.filter(s=>s.owner && s.owner!=='player' && s.id.startsWith('site_')).length;
-    const winner = playerFlags > otherFlags ? 'player' : 'enemy';
-    state.ui.endCampaign(winner);
-  }
+  // Emperor victory check: when a team controls ALL capture flags simultaneously
+  checkEmperorVictory(state);
 
   if(!state.player.dead && state.player.hp<=0){
     state.player.hp=0;
@@ -5301,6 +5351,104 @@ export function importSave(state, s){
   state.ui.renderAbilityBar();
 }
 
+// Check if any team controls ALL capture flags and award Emperor status
+function checkEmperorStatus(state){
+  const flagSites = state.sites.filter(s => s.id && s.id.startsWith('site_'));
+  if(flagSites.length === 0) return; // No flags to control
+  
+  // Count flags owned by each team
+  const playerFlags = flagSites.filter(s => s.owner === 'player').length;
+  const teamAFlags = flagSites.filter(s => s.owner === 'teamA').length;
+  const teamBFlags = flagSites.filter(s => s.owner === 'teamB').length;
+  const teamCFlags = flagSites.filter(s => s.owner === 'teamC').length;
+  
+  const totalFlags = flagSites.length;
+  let newEmperorTeam = null;
+  
+  // Check if any team controls all flags
+  if(playerFlags === totalFlags) newEmperorTeam = 'player';
+  else if(teamAFlags === totalFlags) newEmperorTeam = 'teamA';
+  else if(teamBFlags === totalFlags) newEmperorTeam = 'teamB';
+  else if(teamCFlags === totalFlags) newEmperorTeam = 'teamC';
+  
+  const previousEmperor = state.emperorTeam;
+  state.emperorTeam = newEmperorTeam;
+  
+  // If emperor status changed, handle transitions
+  if(newEmperorTeam && previousEmperor !== newEmperorTeam){
+    // New emperor crowned
+    if(newEmperorTeam === 'player'){
+      state.ui.toast('<b>POWER OF THE EMPEROR!</b> You control all flags! All other teams are now allies.');
+      addEmperorEffect(state); // Add visible effect to player
+    }
+    state.emperorSince = state.campaign.time;
+  } else if(!newEmperorTeam && previousEmperor){
+    // Emperor dethroned
+    if(previousEmperor === 'player'){
+      state.ui.toast('You have lost the Emperor power. An enemy team holds the throne.');
+      removeEmperorEffect(state); // Remove effect from player
+    }
+  }
+}
+
+// Check for victory condition: time-based (10 min) or when emperor team has no flags left
+function checkEmperorVictory(state){
+  // Victory 1: Emperor team lost all flags
+  if(state.emperorTeam && state.emperorTeam === 'player'){
+    const playerFlags = state.sites.filter(s => s.owner === 'player' && s.id.startsWith('site_')).length;
+    if(playerFlags === 0 && !state.campaignEnded){
+      // Player lost emperor status
+      state.ui.toast('<b>You have been dethroned!</b> The enemy is now Emperor.');
+      removeEmperorEffect(state);
+      state.emperorTeam = null;
+    }
+  }
+  
+  // Victory 2: 10-minute time limit (campaign time reaches limit without emperor victory)
+  // For now, we'll let emperor reign indefinitely. Can add a time limit later if needed.
+  // const CAMPAIGN_LIMIT = 10*60;
+  // if(state.campaign.time >= CAMPAIGN_LIMIT && !state.campaignEnded){...}
+}
+
+// Add the Emperor effect to player's active effects
+function addEmperorEffect(state){
+  // Add emperor effect if not already present
+  if(!state.player.buffs) state.player.buffs = [];
+  const hasEmperor = state.player.buffs.some(b => b.id === 'emperor_power');
+  if(!hasEmperor){
+    state.player.buffs.push({
+      id: 'emperor_power',
+      name: 'Power of the Emperor',
+      duration: Infinity,
+      applied: state.campaign.time,
+      icon: '🔱'
+    });
+    // Restore player to full health/mana/stamina when becoming emperor
+    const st = currentStats(state);
+    state.player.hp = st.maxHp;
+    state.player.mana = st.maxMana;
+    state.player.stam = st.maxStam;
+    // Show big screen notification
+    if(state.ui?.showEmperor){
+      state.ui.showEmperor();
+    }
+    // Force UI updates to show the new buff
+    if(state.ui?.renderInventory) state.ui.renderInventory();
+    if(state.ui?.renderLevel) state.ui.renderLevel();
+    if(state.ui?.updateBuffIconsHUD) state.ui.updateBuffIconsHUD();
+  }
+}
+
+// Remove Emperor effect from player's active effects
+function removeEmperorEffect(state){
+  if(!state.player.buffs) return;
+  state.player.buffs = state.player.buffs.filter(b => b.id !== 'emperor_power');
+  // Force UI updates to remove the buff from display
+  if(state.ui?.renderInventory) state.ui.renderInventory();
+  if(state.ui?.renderLevel) state.ui.renderLevel();
+  if(state.ui?.updateBuffIconsHUD) state.ui.updateBuffIconsHUD();
+}
+
 // Global function used by marketplace to upgrade allies
 window.applySquadUpgrade = function(state){
   const tierUp = ()=>{
@@ -5352,3 +5500,105 @@ window.applySquadLevelUpgrade = function(state){
   }
   state.ui.toast(`Squad levels increased by <b>+1</b>.`);
 };
+
+// TEST FUNCTION: Toggle emperor buff directly (for debugging)
+window.testEmperorBuff = function(){
+  // Get state from window._gameState
+  const state = window._gameState;
+  
+  if(!state) {
+    console.error('❌ State not found at window._gameState. Make sure the game is loaded and running.');
+    return;
+  }
+  
+  if(!state.player || !state.ui) {
+    console.error('❌ Player or UI not available');
+    return;
+  }
+  
+  // Check if already has emperor buff
+  if(!state.player.buffs) state.player.buffs = [];
+  const hasEmperor = state.player.buffs.some(b => b.id === 'emperor_power');
+  
+  if(hasEmperor){
+    // Remove it
+    state.player.buffs = state.player.buffs.filter(b => b.id !== 'emperor_power');
+    state.ui.toast('Emperor buff REMOVED');
+    console.log('%c✓ Emperor buff removed', 'color: red; font-size: 14px; font-weight: bold;');
+  } else {
+    // Add it
+    state.player.buffs.push({
+      id: 'emperor_power',
+      name: 'Power of the Emperor',
+      duration: Infinity,
+      applied: state.campaign.time,
+      icon: '🔱'
+    });
+    const st = currentStats(state);
+    state.player.hp = st.maxHp;
+    state.player.mana = st.maxMana;
+    state.player.stam = st.maxStam;
+    state.ui.toast('✅ Emperor buff ADDED - Check all 3 locations!');
+    console.log('%c✓ Emperor buff added to state.player.buffs:', 'color: gold; font-size: 14px; font-weight: bold;', state.player.buffs);
+  }
+  
+  // DEBUG: Test buildActiveEffectIcons directly
+  console.log('%c=== DEBUG ICONS ===', 'color: purple; font-weight: bold;');
+  if(typeof buildActiveEffectIcons === 'function') {
+    const icons = buildActiveEffectIcons(state);
+    console.log('%cbuilldActiveEffectIcons() returned:', 'color: blue;', icons);
+    console.log('%cIcon count:', 'color: blue;', icons.length);
+    if(icons.length > 0) {
+      console.log('%cFirst icon HTML:', 'color: blue;', icons[0].html);
+    }
+  } else {
+    console.error('❌ buildActiveEffectIcons is not a function!');
+  }
+  
+  // DEBUG: Check DOM elements exist
+  console.log('%c=== DEBUG DOM ELEMENTS ===', 'color: purple; font-weight: bold;');
+  const buffHud = document.getElementById('buffIconsHud');
+  console.log('%cbuffIconsHud element exists:', 'color: blue;', !!buffHud);
+  if(buffHud) {
+    console.log('  - Display:', buffHud.style.display);
+    console.log('  - Visibility:', window.getComputedStyle(buffHud).visibility);
+    console.log('  - Current HTML:', buffHud.innerHTML);
+  }
+  
+  const levelEffects = document.getElementById('levelEffectsList');
+  console.log('%clevelEffectsList element exists:', 'color: blue;', !!levelEffects);
+  if(levelEffects) {
+    console.log('  - Display:', levelEffects.style.display);
+    console.log('  - Current HTML:', levelEffects.innerHTML.substring(0, 100));
+  }
+  
+  // Force ALL UI updates
+  console.log('%c=== CALLING UI UPDATES ===', 'color: purple; font-weight: bold;');
+  if(state.ui?.renderInventory) { 
+    console.log('Calling renderInventory()'); 
+    state.ui.renderInventory(); 
+  }
+  if(state.ui?.renderLevel) { 
+    console.log('Calling renderLevel()'); 
+    state.ui.renderLevel(); 
+  }
+  if(state.ui?.updateBuffIconsHUD) { 
+    console.log('Calling updateBuffIconsHUD()'); 
+    state.ui.updateBuffIconsHUD(); 
+  }
+  if(state.ui?.renderHud) { 
+    console.log('Calling renderHud()'); 
+    state.ui.renderHud(currentStats(state)); 
+  }
+  
+  // DEBUG: Check DOM after updates
+  console.log('%c=== AFTER UI UPDATES ===', 'color: purple; font-weight: bold;');
+  if(buffHud) {
+    console.log('%cbuffIconsHud HTML after update:', 'color: green;', buffHud.innerHTML);
+  }
+  if(levelEffects) {
+    console.log('%clevelEffectsList HTML after update:', 'color: green;', levelEffects.innerHTML.substring(0, 200));
+  }
+};
+
+

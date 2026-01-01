@@ -325,7 +325,7 @@ export function spawnGuardsForSite(state, site, count=5){
   const npcInitAbilities = state._npcUtils?.npcInitAbilities;
   
   // Enforce a hard cap of 5 guards per site
-  const currentGuards = state.friendlies.filter(f=>f.guard && f.siteId===site.id && f.respawnT<=0).length + (site.guardRespawns?.length||0);
+  const currentGuards = state.friendlies.filter(f=>f.guard && f.homeSiteId===site.id && f.respawnT<=0).length + (site.guardRespawns?.length||0);
   const remaining = Math.max(0, 5 - currentGuards);
   console.log('[spawnGuardsForSite] currentGuards:', currentGuards, 'remaining:', remaining);
   
@@ -367,9 +367,9 @@ export function spawnGuardsForSite(state, site, count=5){
   let spawned=0;
   for(let pi=0; pi<site._guardPositions.length && spawned<count; pi++){
     const pos = site._guardPositions[pi];
-    // check occupancy by enemy or friendly with same homeSiteId
-    const occEnemy = state.enemies.find(e=>e.homeSiteId===site.id && Math.hypot(e.x-pos.x,e.y-pos.y)<=8);
-    const occFriendly = state.friendlies.find(f=>f.siteId===site.id && Math.hypot(f.x-pos.x,f.y-pos.y)<=8);
+    // check occupancy by guard at this position
+    const occEnemy = state.enemies.find(e=>e.guard && e.homeSiteId===site.id && Math.hypot(e.x-pos.x,e.y-pos.y)<=8);
+    const occFriendly = state.friendlies.find(f=>f.guard && f.homeSiteId===site.id && Math.hypot(f.x-pos.x,f.y-pos.y)<=8);
     if(occEnemy || occFriendly) continue;
     const x = pos.x, y = pos.y;
     

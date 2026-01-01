@@ -132,6 +132,8 @@ export function createState(engine, input, ui){
     waters: [],
     uiHidden: true,
     emperor: false,
+    emperorTeam: null, // 'player', 'teamA', 'teamB', 'teamC', or null if no emperor
+    emperorSince: 0, // timestamp when emperor was crowned
     fastTravelCooldown: 0,
     // effects
     effects:{ wells:[], heals:[], slashes:[], storms:[], bolts:[], flashes:[], damageNums:[] },
