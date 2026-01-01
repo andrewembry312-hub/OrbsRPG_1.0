@@ -20,6 +20,26 @@ async function initializeApp() {
   ui = buildUI(state);
   state.ui = ui;
   setupEventHandlers();
+  
+  // Start main menu music when app loads
+  if(!state.sounds) state.sounds = {};
+  if(!state.sounds.mainMenuMusic){
+    state.sounds.mainMenuMusic = new Audio('assets/sounds/Main Menu Music.mp3');
+    state.sounds.mainMenuMusic.loop = true;
+    state.sounds.mainMenuMusic.volume = 0.4;
+  }
+  // Auto-play main menu music (may fail due to browser autoplay policy)
+  state.sounds.mainMenuMusic.play().catch(e => {
+    console.warn('Main menu music autoplay blocked. Click to start music.');
+    // Add a one-time click listener to start music if autoplay is blocked
+    const startMusic = () => {
+      if(state.sounds.mainMenuMusic.paused){
+        state.sounds.mainMenuMusic.play().catch(err => console.warn('Music play failed:', err));
+      }
+      document.removeEventListener('click', startMusic);
+    };
+    document.addEventListener('click', startMusic);
+  });
 }
 
 // Track if game loop is running to prevent multiple loops
@@ -74,9 +94,26 @@ function setupEventHandlers(){
       // proceed to character selection, then init game
       showCharSelect(state, async (chosen)=>{
         console.log('main: char selected ->', chosen);
+        
+        // Stop main menu music
+        if(state.sounds?.mainMenuMusic && !state.sounds.mainMenuMusic.paused){
+          state.sounds.mainMenuMusic.pause();
+          state.sounds.mainMenuMusic.currentTime = 0;
+        }
+        
         try{ 
           hardResetGameState(state); // Hard reset ALL game state first
-          await initGame(state); 
+          await initGame(state); // This initializes the game music sounds
+          
+          // NOW start game non-combat music after sounds are initialized
+          if(state.sounds?.gameNonCombatMusic){
+            console.log('[MUSIC] Starting non-combat music after initGame');
+            state.sounds.gameNonCombatMusic.currentTime = 0;
+            state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Game music play failed:', e));
+          } else {
+            console.warn('[MUSIC] gameNonCombatMusic not initialized!');
+          }
+          
         }catch(err){ console.error('initGame error',err); ui.toast(`Error initializing: ${err && err.message?err.message:err}`); showFatalError('initGame failed', err); return; }
         state.paused = false;
         ui.setGameUIVisible(true);
@@ -91,11 +128,25 @@ function setupEventHandlers(){
       (async ()=>{
         try{ 
           hardResetGameState(state); // Hard reset ALL game state first
-          await initGame(state); 
+          await initGame(state); // This initializes the game music sounds
         }catch(err){ console.error('initGame error',err); ui.toast(`Error initializing: ${err && err.message?err.message:err}`); showFatalError('initGame failed', err); return; }
         // Now import the loaded save data to overwrite initialized state
         importSave(state, saveData);
         ui.toggleSaves(false);
+        
+        // Stop main menu music and start game non-combat music AFTER initGame
+        if(state.sounds?.mainMenuMusic && !state.sounds.mainMenuMusic.paused){
+          state.sounds.mainMenuMusic.pause();
+          state.sounds.mainMenuMusic.currentTime = 0;
+        }
+        if(state.sounds?.gameNonCombatMusic){
+          console.log('[MUSIC] Starting non-combat music after loading save');
+          state.sounds.gameNonCombatMusic.currentTime = 0;
+          state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Game music play failed:', e));
+        } else {
+          console.warn('[MUSIC] gameNonCombatMusic not initialized after load!');
+        }
+        
         ui.hideMainMenu();
         state.paused = false;
         ui.setGameUIVisible(true);

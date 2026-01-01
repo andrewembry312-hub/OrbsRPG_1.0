@@ -266,6 +266,30 @@ export function buildUI(state){
                   <div class="small">Inventory</div>
                   <div class="small">Click to inspect • Double-click to equip</div>
                 </div>
+                <div class="row" style="margin-top:6px; align-items:center; gap:8px;">
+                  <div class="small" style="white-space:nowrap;">Filter:</div>
+                  <select id="invFilterDropdown" style="flex:1; padding:4px 8px; background:rgba(0,0,0,0.5); border:1px solid #d4af37; color:#d4af37; border-radius:4px; font-size:11px; cursor:pointer;">
+                    <option value="all">Show All</option>
+                    <option value="weapon">All Weapons</option>
+                    <option value="sword">Swords</option>
+                    <option value="axe">Axes</option>
+                    <option value="dagger">Daggers</option>
+                    <option value="greatsword">Greatswords</option>
+                    <option value="healing-staff">Healing Staffs</option>
+                    <option value="destruction-staff">Destruction Staffs</option>
+                    <option value="armor">All Armor</option>
+                    <option value="helm">Helms</option>
+                    <option value="chest">Chest Armor</option>
+                    <option value="legs">Leg Armor</option>
+                    <option value="feet">Boots</option>
+                    <option value="hands">Gloves</option>
+                    <option value="belt">Belts</option>
+                    <option value="shoulders">Shoulders</option>
+                    <option value="neck">Necklaces</option>
+                    <option value="accessory">Accessories</option>
+                    <option value="potion">Potions</option>
+                  </select>
+                </div>
                 <div class="btnRow">
                   <button id="useEquipBtn">Equip</button>
                   <button id="dropBtn" class="secondary">Drop</button>
@@ -1491,8 +1515,14 @@ function bindUI(state){
       // Map weapon types to image names - match exact file names in assets/items/
       if(weaponType === 'Sword') return `assets/items/${rarityCapitalized} Sword.png`;
       if(weaponType === 'Axe') return `assets/items/${rarityCapitalized} Axe.png`;
+      if(weaponType === 'Dagger') return `assets/items/${rarityCapitalized} Dagger.png`;
       if(weaponType === 'Healing Staff') return `assets/items/${rarityCapitalized} Healing Staff.png`;
       if(weaponType === 'Destruction Staff') return `assets/items/${rarityCapitalized} Destruction Staff.png`;
+    }
+    if(item.kind === 'potion'){
+      const potionType = item.type || '';
+      if(potionType === 'hp') return 'assets/items/HP Potion.png';
+      if(potionType === 'mana') return 'assets/items/Mana Potion.png';
     }
     return null;
   };
@@ -1704,6 +1734,11 @@ function bindUI(state){
   ui.btnNewGame.onclick=()=>{
     const nm = ui.heroNameInput.value?.trim() || 'Hero';
     state.player.name = nm;
+    // Stop main menu music
+    if(state.sounds?.mainMenuMusic && !state.sounds.mainMenuMusic.paused){
+      state.sounds.mainMenuMusic.pause();
+      state.sounds.mainMenuMusic.currentTime = 0;
+    }
     ui.hideMainMenu();
     if(typeof ui.onNewGame==='function'){
       ui.onNewGame(nm);
@@ -1711,7 +1746,9 @@ function bindUI(state){
       console.warn('ui.onNewGame not set');
     }
   };
-  ui.btnLoadGame.onclick=()=>{ ui.toggleSaves(true); };
+  ui.btnLoadGame.onclick=()=>{ 
+    ui.toggleSaves(true); 
+  };
 
   // Toast utility
   ui.toast = (msg, ms=1700)=>{
@@ -1728,6 +1765,13 @@ function bindUI(state){
     const numberEl = ui.levelUpNumber;
     
     if(!notification) return;
+    
+    // Play level up sound
+    if(state.sounds?.levelUp){
+      const audio = state.sounds.levelUp.cloneNode();
+      audio.volume = 0.6;
+      audio.play().catch(e => {});
+    }
     
     // Reset animation
     notification.style.display = 'block';
@@ -3570,23 +3614,84 @@ function bindUI(state){
     ui.renderEquippedList();
     ui.invGrid.innerHTML='';
     
+    // Get filter selection
+    const filterDropdown = document.getElementById('invFilterDropdown');
+    const filterValue = filterDropdown ? filterDropdown.value : 'all';
+    
+    // Filter inventory based on selection
+    let filteredInventory = state.inventory;
+    if(filterValue !== 'all'){
+      filteredInventory = state.inventory.filter(item => {
+        // Broad categories
+        if(filterValue === 'weapon') return item.kind === 'weapon';
+        if(filterValue === 'armor') return item.kind === 'armor';
+        if(filterValue === 'potion') return item.kind === 'potion';
+        
+        // Specific weapon types
+        if(filterValue === 'sword') return item.kind === 'weapon' && item.weaponType === 'Sword';
+        if(filterValue === 'axe') return item.kind === 'weapon' && item.weaponType === 'Axe';
+        if(filterValue === 'dagger') return item.kind === 'weapon' && item.weaponType === 'Dagger';
+        if(filterValue === 'greatsword') return item.kind === 'weapon' && item.weaponType === 'Greatsword';
+        if(filterValue === 'healing-staff') return item.kind === 'weapon' && item.weaponType === 'Healing Staff';
+        if(filterValue === 'destruction-staff') return item.kind === 'weapon' && item.weaponType === 'Destruction Staff';
+        
+        // Specific armor slots (matching ARMOR_SLOTS from constants.js)
+        if(filterValue === 'helm') return item.kind === 'armor' && item.slot === 'helm';
+        if(filterValue === 'chest') return item.kind === 'armor' && item.slot === 'chest';
+        if(filterValue === 'legs') return item.kind === 'armor' && item.slot === 'legs';
+        if(filterValue === 'feet') return item.kind === 'armor' && item.slot === 'feet';
+        if(filterValue === 'hands') return item.kind === 'armor' && item.slot === 'hands';
+        if(filterValue === 'belt') return item.kind === 'armor' && item.slot === 'belt';
+        if(filterValue === 'shoulders') return item.kind === 'armor' && item.slot === 'shoulders';
+        if(filterValue === 'neck') return item.kind === 'armor' && item.slot === 'neck';
+        if(filterValue === 'accessory') return item.kind === 'armor' && (item.slot === 'accessory1' || item.slot === 'accessory2');
+        
+        return true;
+      });
+    }
+    
     const invTooltip = document.getElementById('invTooltip');
-    const showInvTooltip = (html)=>{
-      if(invTooltip){
-        invTooltip.innerHTML = html;
-        invTooltip.style.display = 'block';
+    const showInvTooltip = (html, evt)=>{
+      if(!invTooltip || !evt) return;
+      invTooltip.innerHTML = html;
+      invTooltip.style.display = 'block';
+      invTooltip.style.visibility = 'hidden';
+      invTooltip.style.transform = 'none';
+      invTooltip.style.bottom = 'auto';
+      const parentRect = ui.invRight.getBoundingClientRect();
+      const tooltipRect = invTooltip.getBoundingClientRect();
+      const scrollY = ui.invRight.scrollTop || 0;
+      const cursorX = evt.clientX - parentRect.left;
+      const cursorY = evt.clientY - parentRect.top + scrollY;
+      const margin = 14;
+      // Prefer right of cursor; if overflow, flip to left
+      let left = cursorX + margin;
+      if(left + tooltipRect.width > parentRect.width - 4){
+        left = cursorX - tooltipRect.width - margin;
       }
+      // Prefer below cursor; if overflow, flip above
+      let top = cursorY + margin;
+      if(top + tooltipRect.height > parentRect.height + scrollY - 4){
+        top = cursorY - tooltipRect.height - margin;
+      }
+      // Clamp within panel bounds
+      left = Math.max(8, Math.min(left, parentRect.width - tooltipRect.width - 8));
+      top = Math.max(scrollY + 4, Math.min(top, scrollY + parentRect.height - tooltipRect.height - 4));
+      invTooltip.style.top = `${top}px`;
+      invTooltip.style.left = `${left}px`;
+      invTooltip.style.visibility = 'visible';
     };
     const hideInvTooltip = ()=>{
       if(invTooltip) invTooltip.style.display = 'none';
     };
     
-    const maxSlots = Math.max(500, state.inventory.length);
+    const maxSlots = Math.max(500, filteredInventory.length);
     for(let i=0;i<maxSlots;i++){
       const slot=document.createElement('div');
       slot.className='slot';
-      if(i<state.inventory.length){
-        const it=state.inventory[i];
+      if(i<filteredInventory.length){
+        const it=filteredInventory[i];
+        const originalIndex = state.inventory.indexOf(it);
         const equippedOnOther = isEquippedOnOtherHero(it);
         const imgPath = getItemImage(it);
         if(imgPath){
@@ -3626,10 +3731,10 @@ function bindUI(state){
           slot.title = 'Equipped on another hero';
           slot.style.cursor = 'not-allowed';
         }
-        if(i===state.selectedIndex && !equippedOnOther) slot.style.outline='2px solid rgba(122,162,255,.55)';
+        if(originalIndex===state.selectedIndex && !equippedOnOther) slot.style.outline='2px solid rgba(122,162,255,.55)';
         
         // Add hover tooltip
-        slot.addEventListener('mouseenter', ()=>{
+        slot.addEventListener('mouseenter', (evt)=>{
           const color = it.rarity?.color || '#fff';
           const countText = it.count > 1 ? ` (x${it.count})` : '';
           let html = `<div style="font-weight:900; color:${color}; margin-bottom:4px">${it.name}${countText}</div>`;
@@ -3684,25 +3789,28 @@ function bindUI(state){
           const equippedText = equippedOnOther ? '<br><span style="color:#f66; font-size:11px">⚠️ Equipped on another hero</span>' : '';
           html += equippedText;
           
-          // Add preview hint for weapons
-          if(it.kind === 'weapon'){
+          // Add preview hint for weapons and potions
+          if(it.kind === 'weapon' || it.kind === 'potion'){
             html += '<div style="color:#4a9eff; font-size:11px; margin-top:8px; opacity:0.8">💡 Press P for Item Preview</div>';
           }
           
-          showInvTooltip(html);
+          showInvTooltip(html, evt);
+        });
+        slot.addEventListener('mousemove', (evt)=>{
+          showInvTooltip(invTooltip.innerHTML || '', evt);
         });
         slot.addEventListener('mouseleave', hideInvTooltip);
         
         if(!equippedOnOther){
           slot.onclick=()=>{
             const now = performance.now ? performance.now() : Date.now();
-            const key = `inv-${i}`;
+            const key = `inv-${originalIndex}`;
             const last = ui._lastInvClick;
             if(last && last.key === key && now - last.t < 350){
-              state.selectedIndex=i; state.selectedEquipSlot=null; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return;
+              state.selectedIndex=originalIndex; state.selectedEquipSlot=null; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return;
             }
             ui._lastInvClick = { key, t: now };
-            state.selectedIndex=i; state.selectedEquipSlot=null; ui.updateInventorySelection();
+            state.selectedIndex=originalIndex; state.selectedEquipSlot=null; ui.updateInventorySelection();
           };
         }
       } else {
@@ -4768,6 +4876,14 @@ function bindUI(state){
     ui.renderInventory();
   };
 
+  // Inventory filter dropdown
+  const invFilterDropdown = document.getElementById('invFilterDropdown');
+  if(invFilterDropdown){
+    invFilterDropdown.addEventListener('change', ()=>{
+      ui.renderInventory();
+    });
+  }
+
   // Menu buttons
   ui.btnResume.onclick=()=>ui.toggleMenu(false);
   
@@ -4970,6 +5086,18 @@ function bindUI(state){
       try{ ui.saveOverlay.classList.remove('show'); ui.invOverlay.classList.remove('show'); ui.endOverlay.classList.remove('show'); }catch{}
       ui.mainMenu.classList.add('show');
       state.paused=true;
+      
+      // Stop game music and start main menu music
+      if(state.sounds?.gameNonCombatMusic && !state.sounds.gameNonCombatMusic.paused){
+        state.sounds.gameNonCombatMusic.pause();
+      }
+      if(state.sounds?.gameCombatMusic && !state.sounds.gameCombatMusic.paused){
+        state.sounds.gameCombatMusic.pause();
+      }
+      if(state.sounds?.mainMenuMusic && state.sounds.mainMenuMusic.paused){
+        state.sounds.mainMenuMusic.play().catch(e => console.warn('Main menu music play failed:', e));
+      }
+      
       ui.toast('Returned to Main Menu');
     };
   }

@@ -152,6 +152,152 @@ export async function initGame(state){
   seedTeamForces(state, 'teamB', 10);
   seedTeamForces(state, 'teamC', 10);
   
+  // Initialize walking sound
+  if(!state.sounds) state.sounds = {};
+  if(!state.sounds.walking){
+    state.sounds.walking = new Audio('assets/sounds/Walking_in_grass.wav');
+    state.sounds.walking.loop = true;
+    state.sounds.walking.volume = 0.3;
+  }
+  if(!state.sounds.meleeAttack){
+    state.sounds.meleeAttack = new Audio('assets/sounds/melee_sword_attacks.wav');
+    state.sounds.meleeAttack.volume = 0.4;
+  }
+  if(!state.sounds.staffAttack){
+    state.sounds.staffAttack = new Audio('assets/sounds/magic_staffs_attacks.mp3');
+    state.sounds.staffAttack.volume = 0.3;
+  }
+  if(!state.sounds.meteorSlam){
+    state.sounds.meteorSlam = new Audio('assets/sounds/Meteor_Slam.wav');
+    state.sounds.meteorSlam.volume = 0.5;
+  }
+  if(!state.sounds.magicalRockSpell){
+    state.sounds.magicalRockSpell = new Audio('assets/sounds/magical-rock-spell.mp3');
+    state.sounds.magicalRockSpell.volume = 0.45;
+  }
+  if(!state.sounds.elementalImpact){
+    state.sounds.elementalImpact = new Audio('assets/sounds/elemental-magic-spell-impact-outgoing-228342.mp3');
+    state.sounds.elementalImpact.volume = 0.5;
+  }
+  if(!state.sounds.magicalRockSpellAlt){
+    state.sounds.magicalRockSpellAlt = new Audio('assets/sounds/magical-rock-spell-190273.mp3');
+    state.sounds.magicalRockSpellAlt.volume = 0.45;
+  }
+  if(!state.sounds.magicalWhooshFast){
+    state.sounds.magicalWhooshFast = new Audio('assets/sounds/magical-whoosh-355988.mp3');
+    state.sounds.magicalWhooshFast.volume = 0.5;
+  }
+  if(!state.sounds.bufferSpell){
+    state.sounds.bufferSpell = new Audio('assets/sounds/buffer-spell-88994.mp3');
+    state.sounds.bufferSpell.volume = 0.5;
+  }
+  if(!state.sounds.castingMagic1){
+    state.sounds.castingMagic1 = new Audio('assets/sounds/casting-magic-1-382382.mp3');
+    state.sounds.castingMagic1.volume = 0.5;
+  }
+  if(!state.sounds.castingMagic2){
+    state.sounds.castingMagic2 = new Audio('assets/sounds/casting-magic-2-382383.mp3');
+    state.sounds.castingMagic2.volume = 0.5;
+  }
+  if(!state.sounds.castingMagic3){
+    state.sounds.castingMagic3 = new Audio('assets/sounds/casting-magic-3-382381.mp3');
+    state.sounds.castingMagic3.volume = 0.5;
+  }
+  if(!state.sounds.castingMagic4){
+    state.sounds.castingMagic4 = new Audio('assets/sounds/casting-magic-4-382380.mp3');
+    state.sounds.castingMagic4.volume = 0.5;
+  }
+  if(!state.sounds.castingMagic5){
+    state.sounds.castingMagic5 = new Audio('assets/sounds/casting-magic-5-382378.mp3');
+    state.sounds.castingMagic5.volume = 0.5;
+  }
+  if(!state.sounds.enchantedCast){
+    state.sounds.enchantedCast = new Audio('assets/sounds/enchanted-spell-casting-229208.mp3');
+    state.sounds.enchantedCast.volume = 0.5;
+  }
+  if(!state.sounds.magicalSpellCast){
+    state.sounds.magicalSpellCast = new Audio('assets/sounds/magical-spell-cast-190272.mp3');
+    state.sounds.magicalSpellCast.volume = 0.5;
+  }
+  if(!state.sounds.magicalWhooshAlt){
+    state.sounds.magicalWhooshAlt = new Audio('assets/sounds/magical-whoosh-148459.mp3');
+    state.sounds.magicalWhooshAlt.volume = 0.5;
+  }
+  if(!state.sounds.magicSpell353606){
+    state.sounds.magicSpell353606 = new Audio('assets/sounds/magic-spell-353606.mp3');
+    state.sounds.magicSpell353606.volume = 0.5;
+  }
+  if(!state.sounds.treeBurn){
+    state.sounds.treeBurn = new Audio('assets/sounds/tree-falls-and-burns-down-100283.mp3');
+    state.sounds.treeBurn.volume = 0.55;
+  }
+  if(!state.sounds.healingSpell1){
+    state.sounds.healingSpell1 = new Audio('assets/sounds/Healing spell 1.mp3');
+    state.sounds.healingSpell1.volume = 0.5;
+  }
+  if(!state.sounds.magicSpell6005){
+    state.sounds.magicSpell6005 = new Audio('assets/sounds/magic-spell-6005.mp3');
+    state.sounds.magicSpell6005.volume = 0.5;
+  }
+  if(!state.sounds.magicSpell333896){
+    state.sounds.magicSpell333896 = new Audio('assets/sounds/magic-spell-333896.mp3');
+    state.sounds.magicSpell333896.volume = 0.5;
+  }
+  if(!state.sounds.mainMenuMusic){
+    state.sounds.mainMenuMusic = new Audio('assets/sounds/Main Menu Music.mp3');
+    state.sounds.mainMenuMusic.loop = true;
+    state.sounds.mainMenuMusic.volume = 0.4;
+  }
+  if(!state.sounds.goblinAttack){
+    state.sounds.goblinAttack = new Audio('assets/sounds/goblin attack.mp3');
+    state.sounds.goblinAttack.volume = 0.35;
+  }
+  if(!state.sounds.wolfAttack){
+    state.sounds.wolfAttack = new Audio('assets/sounds/Wolf attack.mp3');
+    state.sounds.wolfAttack.volume = 0.35;
+  }
+  if(!state.sounds.potionPickup){
+    state.sounds.potionPickup = new Audio('assets/sounds/Potion Pick up.mp3');
+    state.sounds.potionPickup.volume = 0.5;
+  }
+  if(!state.sounds.lootPickup){
+    state.sounds.lootPickup = new Audio('assets/sounds/Loot pick up sound.mp3');
+    state.sounds.lootPickup.volume = 0.5;
+  }
+  if(!state.sounds.levelUp){
+    state.sounds.levelUp = new Audio('assets/sounds/Level Up Sound.mp3');
+    state.sounds.levelUp.volume = 0.6;
+  }
+  if(!state.sounds.gameNonCombatMusic){
+    state.sounds.gameNonCombatMusic = new Audio('assets/sounds/Main Game non attack music.mp3');
+    state.sounds.gameNonCombatMusic.loop = true;
+    state.sounds.gameNonCombatMusic.volume = 0.35;
+  }
+  if(!state.sounds.gameCombatMusic){
+    state.sounds.gameCombatMusic = new Audio('assets/sounds/Main game Attack Music.mp3');
+    state.sounds.gameCombatMusic.loop = true;
+    state.sounds.gameCombatMusic.volume = 0.4;
+  }
+  
+  // Initialize combat music tracker with timestamp (reset to 0 to start in non-combat)
+  if(typeof state.lastDamageTakenTimestamp === 'undefined'){
+    state.lastDamageTakenTimestamp = 0;
+  }
+  if(typeof state.lastCombatTime === 'undefined'){
+    state.lastCombatTime = 0;
+  }
+  if(typeof state.inCombatMode === 'undefined'){
+    state.inCombatMode = false;
+  }
+  
+  console.log('[MUSIC] Combat music system initialized:', {
+    lastDamage: state.lastDamageTakenTimestamp,
+    lastCombat: state.lastCombatTime,
+    inCombat: state.inCombatMode,
+    combatMusicLoaded: !!state.sounds.gameCombatMusic,
+    nonCombatMusicLoaded: !!state.sounds.gameNonCombatMusic
+  });
+  
   // Store utility functions in state to avoid circular imports
   state._npcUtils = {
     applyClassToUnit,
@@ -550,6 +696,14 @@ function addToInventory(state, item, gold=0){
   state.ui.toast(`<span style="color:${color}"><b>${item.name}</b></span> added to inventory${goldMsg}`);
 }
 
+function playLootPickup(state){
+  if(state.sounds?.lootPickup){
+    const audio = state.sounds.lootPickup.cloneNode();
+    audio.volume = state.sounds.lootPickup.volume;
+    audio.play().catch(() => {});
+  }
+}
+
 function pickupNearestLoot(state){
   let best=-1, bestD=Infinity;
   for(let i=0;i<state.loot.length;i++){
@@ -561,6 +715,7 @@ function pickupNearestLoot(state){
   const l=state.loot[best];
   state.loot.splice(best,1);
   addToInventory(state, l.item, l.gold || 0);
+  playLootPickup(state);
   state.ui.renderInventory?.();
 }
 
@@ -628,17 +783,31 @@ function lifestealFrom(state, dealt, st){
 }
 
 function applyDamageToPlayer(state, raw, st){
+  console.log('[DAMAGE] Raw damage:', raw.toFixed(1), 'Shield:', state.player.shield.toFixed(1));
+  
   let dmg=raw;
   const blocking = state.input.mouse.rDown && state.player.stam>0 && state.player.mana>0;
   if(blocking) dmg*=(1-st.blockBase);
   dmg = dmg*(100/(100+st.def));
   let remain=dmg;
+  
+  const shieldBefore = state.player.shield;
   if(state.player.shield>0){
     const used=Math.min(state.player.shield,remain);
     state.player.shield-=used;
     remain-=used;
+    console.log('[DAMAGE] Shield absorbed:', used.toFixed(1), 'Shield remaining:', state.player.shield.toFixed(1));
   }
-  if(remain>0) state.player.hp-=remain;
+  
+  if(remain>0){
+    const hpBefore = state.player.hp;
+    state.player.hp-=remain;
+    const hpAfter = state.player.hp;
+    console.log('[DAMAGE] HP before:', hpBefore.toFixed(1), 'damage:', remain.toFixed(1), 'HP after:', hpAfter.toFixed(1));
+    
+    // Track damage taken timestamp for combat music (use Date.now() for reliable timing)
+    state.lastDamageTakenTimestamp = Date.now();
+  }
 }
 
 // Generic shield-first damage for any entity (player, friendly, enemy, creature)
@@ -753,7 +922,30 @@ function pushSlashEffect(state, base){
   return slash;
 }
 
+// Play positioned sound with distance-based volume falloff
+function playPositionalSound(state, soundName, x, y, maxHearDistance = 600, baseVolume = 0.4){
+  if(!state.sounds || !state.sounds[soundName]) return;
+  const playerDist = Math.hypot(x - state.player.x, y - state.player.y);
+  if(playerDist > maxHearDistance) return; // Too far, don't play
+  
+  // Calculate volume based on distance (closer = louder)
+  const volumeFactor = 1 - (playerDist / maxHearDistance);
+  const volume = baseVolume * Math.max(0, volumeFactor);
+  
+  if(volume <= 0) return;
+  
+  // Clone the audio to allow overlapping plays
+  const audio = state.sounds[soundName].cloneNode();
+  audio.volume = volume;
+  audio.play().catch(e => {}); // Silently fail if can't play
+}
+
 function spawnProjectile(state, x,y,angle,speed,r,dmg,pierce=0, fromPlayer=true, opts={}){
+  // Play staff attack sound at projectile spawn location
+  if(fromPlayer){
+    playPositionalSound(state, 'staffAttack', x, y, 600, 0.3);
+  }
+  
   const p = {x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,r,dmg,pierce,life:1.35, fromPlayer};
   if(opts.dotId) p.dotId = opts.dotId;
   if(opts.team) p.team = opts.team;
@@ -2879,6 +3071,7 @@ function tryCastSlot(state, idx){
   switch(sk.id){
     // Destruction Staff
     case 'arc_bolt':{
+      playPositionalSound(state, 'castingMagic1', state.player.x, state.player.y, 650, 0.5);
       spawnProjectile(state, state.player.x,state.player.y,a,460,5,14+st.atk*1.0,0,true,{ dotId:'shock', team:'player', element:'shock', maxRange:300 });
       const vx = Math.cos(a)*460, vy = Math.sin(a)*460;
       state.effects.bolts.push({ x: state.player.x + Math.cos(a)*12, y: state.player.y + Math.sin(a)*12, vx, vy, life: 0.9 });
@@ -2886,6 +3079,7 @@ function tryCastSlot(state, idx){
     }
     case 'chain_light':{
       let hits=0, last=null;
+      playPositionalSound(state, 'magicSpell333896', state.player.x, state.player.y, 650, 0.5);
       for(let hop=0; hop<5; hop++){
         let best=-1, bestD=999999;
         const ox=last?last.x:state.player.x;
@@ -2923,10 +3117,12 @@ function tryCastSlot(state, idx){
       areaDamage(x,y,radius,dmg,'burn','slow');
       state.effects.flashes.push({ x, y, r: radius, life: 0.9, color: '#ff9a3c' });
       state.effects.slashes.push({ x, y, range: radius, arc: Math.PI*2, dir: 0, t: 0, color: '#ff4500' });
+      playPositionalSound(state, 'meteorSlam', x, y, 700, 0.5);
       state.ui.toast('Meteor Slam');
       break;
     }
     case 'piercing_lance':{
+      playPositionalSound(state, 'magicSpell6005', state.player.x, state.player.y, 650, 0.45);
       spawnProjectile(state, state.player.x,state.player.y,a,560,6,20+st.atk*1.3,3,true,{ dotId:'bleed', team:'player', element:'arcane', maxRange:350 });
       state.ui.toast('Piercing Lance');
       break;
@@ -2938,6 +3134,7 @@ function tryCastSlot(state, idx){
       const y = target ? target.y : wm.y;
       state.effects.wells.push({x,y,r:150,timeLeft:3.6,tick:0.5,tickLeft:0.5,dmgPerTick:6+st.atk*0.35,pull:98,color:'#9b7bff'});
       state.effects.flashes.push({ x, y, r: 150, life: 0.6, color: '#9b7bff' });
+      playPositionalSound(state, 'magicalRockSpellAlt', x, y, 650, 0.45);
       state.ui.toast('Gravity Well');
       break;
     }
@@ -2949,6 +3146,7 @@ function tryCastSlot(state, idx){
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 120, life: 0.5, color: '#ffd760' });
       state.effects.heals.push({t:4.0,tick:0.5,tl:0.5,amt:(2.0 + st.maxHp*0.012)});
       applyBuffAlliesAround(state.player.x,state.player.y,120,'regeneration');
+      playPositionalSound(state, 'healingSpell1', state.player.x, state.player.y, 600, 0.5);
       state.ui.toast(`Heal Burst: +${Math.round(instant)} HP`);
       break;
     }
@@ -2996,10 +3194,12 @@ function tryCastSlot(state, idx){
 
     // Melee Weapons
     case 'slash':{
-      pushSlashEffect(state, {t:0.12,arc:1.15,range:64,dmg:6+st.atk*0.75,dir:a});
+      const slash = pushSlashEffect(state, {t:0.12,arc:1.15,range:64,dmg:6+st.atk*0.75,dir:a});
+      playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.35);
       break;
     }
     case 'blade_storm':{
+      playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
       state.effects.storms.push({t:2.6, tick:0.25, tl:0.25, r:120, dmg:4+st.atk*0.45, dotId:'bleed'});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 120, life: 0.5, color: '#9b7bff' });
       state.ui.toast('Blade Storm');
@@ -3007,6 +3207,7 @@ function tryCastSlot(state, idx){
     }
     case 'cleave':{
       pushSlashEffect(state, {t:0.18,arc:1.6,range:86,dmg:10+st.atk*1.1, dotId:'bleed',dir:a});
+      playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.35);
       break;
     }
     case 'leap_strike':{
@@ -3070,6 +3271,7 @@ function tryCastSlot(state, idx){
       state.effects.wells.push({x,y,r:radius,timeLeft:6.0,tick:0.8,tickLeft:0.8,dmgPerTick:dmgTick,pull:0,color:'#ffb347'});
       state.effects.flashes.push({ x, y, r: radius, life: 0.6, color: '#ffb347' });
       applyBuffAlliesAround(x, y, radius, 'blessed');
+      playPositionalSound(state, 'elementalImpact', x, y, 700, 0.55);
       state.ui.toast('Sacred Ground sears foes');
       break;
     }
@@ -3080,6 +3282,7 @@ function tryCastSlot(state, idx){
       shieldAlliesAround(state.player.x,state.player.y,radius,shield);
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: radius, life: 0.5, color: '#ffb347' });
       applyBuffAlliesAround(state.player.x, state.player.y, radius, 'radiance');
+      playPositionalSound(state, 'enchantedCast', state.player.x, state.player.y, 650, 0.5);
       state.ui.toast('Radiant Aura shields allies');
       break;
     }
@@ -3090,6 +3293,7 @@ function tryCastSlot(state, idx){
       [-spread,0,spread].forEach(off=>{
         spawnProjectile(state, state.player.x, state.player.y, a+off, 480, 5, baseDmg, 0, true, { dotId: 'arcane_burn', buffId: 'silence', team: 'player', element:'arcane', maxRange:280 });
       });
+      playPositionalSound(state, 'magicalSpellCast', state.player.x, state.player.y, 700, 0.5);
       state.ui.toast('Arcane Missiles');
       break;
     }
@@ -3098,6 +3302,7 @@ function tryCastSlot(state, idx){
       reduceCooldowns(0.45);
       applyBuffSelf('temporal_flux');
       state.player.cd[idx] *= 0.6;
+      playPositionalSound(state, 'castingMagic5', state.player.x, state.player.y, 650, 0.5);
       state.ui.toast('Time Warp');
       break;
     }
@@ -3107,6 +3312,7 @@ function tryCastSlot(state, idx){
       shieldAlliesAround(state.player.x,state.player.y,150,40+st.def*1.2);
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 150, life: 0.6, color: '#ffb347' });
       applyBuffAlliesAround(state.player.x,state.player.y,150,'guardian_stance');
+      playPositionalSound(state, 'bufferSpell', state.player.x, state.player.y, 650, 0.5);
       break;
     }
     case 'knight_justice_strike':{
@@ -3119,6 +3325,7 @@ function tryCastSlot(state, idx){
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 110, life: 0.6, color: '#9b7bff' });
       shieldAlliesAround(state.player.x,state.player.y,110,26+st.def*0.9);
       applyBuffSelf('iron_will');
+      playPositionalSound(state, 'castingMagic3', state.player.x, state.player.y, 650, 0.5);
       break;
     }
     case 'knight_rally':{
@@ -3126,11 +3333,13 @@ function tryCastSlot(state, idx){
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 150, life: 0.6, color: '#ffd760' });
       shieldAlliesAround(state.player.x,state.player.y,150,18+st.def*0.7);
       applyBuffAlliesAround(state.player.x,state.player.y,150,'battle_fury');
+      playPositionalSound(state, 'castingMagic4', state.player.x, state.player.y, 650, 0.5);
       break;
     }
     case 'knight_banner':{
       state.effects.flashes.push({ x: wm.x, y: wm.y, r: 140, life: 0.7, color: '#ffb347' });
       applyBuffAlliesAround(wm.x,wm.y,140,'vigor');
+      playPositionalSound(state, 'magicSpell353606', wm.x, wm.y, 700, 0.5);
       break;
     }
 
@@ -3144,12 +3353,14 @@ function tryCastSlot(state, idx){
       shieldAlliesAround(state.player.x,state.player.y,140,24+st.def*1.0);
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 140, life: 0.5, color: '#ffb347' });
       applyBuffAlliesAround(state.player.x,state.player.y,140,'fortified');
+      playPositionalSound(state, 'castingMagic2', state.player.x, state.player.y, 650, 0.5);
       break;
     }
     case 'warrior_berserk':{
       state.player.stam = clamp(state.player.stam + 35, 0, st.maxStam);
       reduceCooldowns(0.18);
       applyBuffSelf('berserk');
+      playPositionalSound(state, 'magicalWhooshFast', state.player.x, state.player.y, 650, 0.5);
       break;
     }
     case 'warrior_cleave':{
@@ -3178,6 +3389,7 @@ function tryCastSlot(state, idx){
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 90, life: 0.7, color: '#9b7bff' });
       state.effects.slashes.push({ x: state.player.x, y: state.player.y, range: 90, arc: Math.PI*2, dir: angle, t: 0, color: '#9b7bff' });
       applyBuffSelf('haste');
+      playPositionalSound(state, 'magicalWhooshAlt', state.player.x, state.player.y, 700, 0.5);
       break;
     }
 
@@ -3185,6 +3397,7 @@ function tryCastSlot(state, idx){
     case 'tank_ground_slam':{
       areaDamage(state.player.x,state.player.y,120,14+st.atk*1.0,'burn','slow');
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 120, life: 0.7, color: '#ff9a3c' });
+      playPositionalSound(state, 'treeBurn', state.player.x, state.player.y, 750, 0.6);
       break;
     }
     case 'tank_iron_skin':{
@@ -3192,12 +3405,14 @@ function tryCastSlot(state, idx){
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 20, life: 0.5, color: '#ffb347' });
       healSelf(8+st.maxHp*0.02);
       applyBuffSelf('iron_will');
+      playPositionalSound(state, 'castingMagic1', state.player.x, state.player.y, 600, 0.45);
       break;
     }
     case 'tank_bodyguard':{
       shieldAlliesAround(state.player.x,state.player.y,160,28+st.def*1.0);
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.6, color: '#ffb347' });
       applyBuffAlliesAround(state.player.x,state.player.y,160,'guardian_stance');
+      playPositionalSound(state, 'bufferSpell', state.player.x, state.player.y, 650, 0.5);
       break;
     }
     case 'tank_anchor':{
@@ -3205,6 +3420,7 @@ function tryCastSlot(state, idx){
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 90, life: 0.6, color: '#9b7bff' });
       shieldAlliesAround(state.player.x,state.player.y,120,26+st.def*0.9);
       applyBuffAlliesAround(state.player.x,state.player.y,120,'guardian_stance');
+      playPositionalSound(state, 'magicalRockSpell', state.player.x, state.player.y, 650, 0.5);
       break;
     }
     case 'tank_seismic_wave':{
@@ -3929,6 +4145,13 @@ export function handleHotkeys(state, dt){
     const potion = state.player.potion;
     const st = currentStats(state);
     
+    // Play potion pickup sound
+    if(state.sounds?.potionPickup){
+      const audio = state.sounds.potionPickup.cloneNode();
+      audio.volume = 0.5;
+      audio.play().catch(e => {});
+    }
+    
     // Check if potion has data.pct (old format) or buffs (new format)
     if(potion.data && potion.data.pct){
       // Old format with data.pct
@@ -4065,13 +4288,22 @@ export function handleHotkeys(state, dt){
           ? state.inventory[state.selectedIndex]
           : (state.selectedEquipSlot && state.player.equip ? state.player.equip[state.selectedEquipSlot] : null);
         
-        if(selectedItem && selectedItem.kind === 'weapon'){
-          // Build image path: assets/items/{Rarity} {WeaponType}.png
-          // Map rarity key to display name for file path (legend -> Legendary)
-          let rarityName = selectedItem.rarity?.name || 'Common';
-          if(selectedItem.rarity?.key === 'legend') rarityName = 'Legendary';
-          const weaponType = selectedItem.weaponType || 'Sword';
-          const imagePath = `assets/items/${rarityName} ${weaponType}.png`;
+        if(selectedItem && (selectedItem.kind === 'weapon' || selectedItem.kind === 'potion')){
+          let imagePath = '';
+          
+          // Build image path based on item type
+          if(selectedItem.kind === 'weapon'){
+            // Build image path: assets/items/{Rarity} {WeaponType}.png
+            // Map rarity key to display name for file path (legend -> Legendary)
+            let rarityName = selectedItem.rarity?.name || 'Common';
+            if(selectedItem.rarity?.key === 'legend') rarityName = 'Legendary';
+            const weaponType = selectedItem.weaponType || 'Sword';
+            imagePath = `assets/items/${rarityName} ${weaponType}.png`;
+          } else if(selectedItem.kind === 'potion'){
+            // Potion image path
+            if(selectedItem.type === 'hp') imagePath = 'assets/items/HP Potion.png';
+            else if(selectedItem.type === 'mana') imagePath = 'assets/items/Mana Potion.png';
+          }
           
           // Build stats display with full details
           let statsHtml = '';
@@ -4374,7 +4606,18 @@ export function updateGame(state, dt){
   const st=currentStats(state);
 
   if(!state.player.dead){
+    const hpBefore = state.player.hp;
     state.player.hp=clamp(state.player.hp+st.hpRegen*dt,0,st.maxHp);
+    const hpAfter = state.player.hp;
+    
+    // Debug excessive regen
+    if(st.hpRegen > 50){
+      console.warn('[HP REGEN] Unusually high HP regen:', st.hpRegen, 'dt:', dt, 'heal amount:', (st.hpRegen*dt).toFixed(2));
+    }
+    if(hpAfter - hpBefore > 10){
+      console.warn('[HP REGEN] Large HP gain in one frame:', (hpAfter - hpBefore).toFixed(2), 'hpRegen:', st.hpRegen);
+    }
+    
     state.player.mana=clamp(state.player.mana+st.manaRegen*dt,0,st.maxMana);
   }
 
@@ -4386,6 +4629,7 @@ export function updateGame(state, dt){
       if(d <= 36){ // pickup radius
         state.loot.splice(i, 1);
         addToInventory(state, l.item, l.gold || 0);
+        playLootPickup(state);
         state.ui.renderInventory?.();
       }
     }
@@ -4415,6 +4659,22 @@ export function updateGame(state, dt){
     const mv=getMoveVector(state);
     let vx=mv.x, vy=mv.y;
     const mag=Math.hypot(vx,vy);
+    const isMoving = mag > 0;
+    
+    // Handle walking sound
+    if(state.sounds?.walking){
+      if(isMoving && state.sounds.walking.paused){
+        state.sounds.walking.play().catch(e => console.warn('Walking sound play failed:', e));
+      } else if(!isMoving && !state.sounds.walking.paused){
+        state.sounds.walking.pause();
+      }
+      
+      // Speed up sound when sprinting
+      if(isMoving){
+        state.sounds.walking.playbackRate = sprinting ? 1.6 : 1.0;
+      }
+    }
+    
     if(mag>0){ vx/=mag; vy/=mag; }
     let speed=st.speed;
     if(sprinting) speed*=st.sprintMult;
@@ -4787,6 +5047,57 @@ export function updateGame(state, dt){
 
   // update creatures (world only)
   updateCreatures(state, dt);
+  
+  // Music management: detect combat based on nearby enemies, not just damage
+  if(state.sounds?.gameCombatMusic && state.sounds?.gameNonCombatMusic){
+    const COMBAT_DISTANCE = 250; // Enemy within this distance = combat
+    const COMBAT_LINGER_TIME = 15000; // Stay in combat for 15 seconds after last enemy/damage
+    
+    // ALWAYS in combat during dungeons
+    const inDungeon = !!state.inDungeon;
+    
+    // Check if any enemies are nearby (only matters outside dungeons)
+    let enemiesNearby = false;
+    if(!inDungeon){
+      const playerPos = { x: state.player.x, y: state.player.y };
+      for(const e of state.enemies){
+        const dist = Math.hypot(e.x - playerPos.x, e.y - playerPos.y);
+        if(dist < COMBAT_DISTANCE){
+          enemiesNearby = true;
+          break;
+        }
+      }
+    }
+    
+    // Update last combat time if in dungeon, enemies nearby, or damage taken recently
+    if(inDungeon || enemiesNearby || Date.now() - (state.lastDamageTakenTimestamp || 0) < 3000){
+      state.lastCombatTime = Date.now();
+    }
+    
+    const timeSinceLastCombat = Date.now() - (state.lastCombatTime || 0);
+    const shouldBeInCombat = inDungeon || timeSinceLastCombat < COMBAT_LINGER_TIME;
+    
+    // Only switch music mode when state actually changes
+    if(shouldBeInCombat && !state.inCombatMode){
+      // Entering combat: stop non-combat, restart combat music
+      console.log('[COMBAT MUSIC] Entering combat mode - inDungeon:', inDungeon, 'enemies nearby:', enemiesNearby);
+      state.inCombatMode = true;
+      if(!state.sounds.gameNonCombatMusic.paused){
+        state.sounds.gameNonCombatMusic.pause();
+      }
+      state.sounds.gameCombatMusic.currentTime = 0;
+      state.sounds.gameCombatMusic.play().catch(e => console.warn('Combat music play failed:', e));
+    } else if(!shouldBeInCombat && state.inCombatMode){
+      // Exiting combat: stop combat, restart non-combat music
+      console.log('[COMBAT MUSIC] Exiting combat mode, returning to non-combat');
+      state.inCombatMode = false;
+      if(!state.sounds.gameCombatMusic.paused){
+        state.sounds.gameCombatMusic.pause();
+      }
+      state.sounds.gameNonCombatMusic.currentTime = 0;
+      state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Non-combat music play failed:', e));
+    }
+  }
 
   // Campaign time limit (10 minutes)
   const CAMPAIGN_LIMIT = 10*60;
@@ -4856,6 +5167,14 @@ function updateCreatures(state, dt){
       const hitDist = (c.r||12) + (c.target.r||14) + 4;
       if(d <= hitDist){
         c.hitCd = 0.65; // Same cooldown as enemies
+        
+        // Play creature attack sound based on type
+        if(c.key === 'goblin'){
+          playPositionalSound(state, 'goblinAttack', c.x, c.y, 500, 0.35);
+        } else if(c.key === 'wolf'){
+          playPositionalSound(state, 'wolfAttack', c.x, c.y, 500, 0.35);
+        }
+        
         if(c.target === state.player){ applyDamageToPlayer(state, c.contactDmg||6, currentStats(state)); }
         // friendlies/enemies take direct damage
         else {
@@ -4882,6 +5201,22 @@ function updateCreatures(state, dt){
 
 // Minimal save (menu button calls these via ui)
 export function exportSave(state){
+  // Clean enemies - remove circular references like _hostTarget
+  const cleanEnemies = state.enemies.map(e => {
+    const clean = {...e};
+    delete clean._hostTarget; // Remove circular reference
+    delete clean.target; // Remove any object references
+    return clean;
+  });
+  
+  // Clean friendlies - remove circular references
+  const cleanFriendlies = state.friendlies.map(f => {
+    const clean = {...f};
+    delete clean._hostTarget;
+    delete clean.target;
+    return clean;
+  });
+  
   return {
     player:{
       x:state.player.x,y:state.player.y,hp:state.player.hp,mana:state.player.mana,stam:state.player.stam,shield:state.player.shield,gold:state.player.gold,
@@ -4889,7 +5224,7 @@ export function exportSave(state){
       passives:state.player.passives.map(p=>p?.id ?? null),
       cd:state.player.cd
     },
-    sites:state.sites, enemies:state.enemies, friendlies:state.friendlies, loot:state.loot, inventory:state.inventory,
+    sites:state.sites, enemies:cleanEnemies, friendlies:cleanFriendlies, loot:state.loot, inventory:state.inventory,
     abilitySlots:state.abilitySlots, options:state.options, binds:state.binds, progression:state.progression, campaign:state.campaign,
     factionGold: state.factionGold, factionTech: state.factionTech, marketCosts: state.marketCosts,
     teamPoints: state.teamPoints, rubberband: state.rubberband, rubberbandNext: state.rubberbandNext, rubberbandAwarded: state.rubberbandAwarded,
