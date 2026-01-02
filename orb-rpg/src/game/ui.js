@@ -1,7 +1,7 @@
 import { saveJson, loadJson, clamp } from "../engine/util.js";
 import { DEFAULT_BINDS, ACTION_LABELS, INV_SIZE, ARMOR_SLOTS, SLOT_LABEL } from "./constants.js";
 import { rarityClass } from "./rarity.js";
-import { currentStats, exportSave, importSave, applyClassToUnit, downloadGameLog } from "./game.js";
+import { currentStats, exportSave, importSave, applyClassToUnit, downloadGameLog, downloadErrorLog, initConsoleErrorLogger } from "./game.js";
 import { LEVEL_CONFIG, getItemLevelColor } from "./leveling.js";
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
@@ -236,16 +236,18 @@ export function buildUI(state){
             <!-- LEFT: Equipment circle around hero -->
             <div class="box invLeft" style="border-color:#d4af37;">
               <div class="row" style="justify-content:space-between; align-items:center;">
-                <div class="pill">Gold <span id="gold">0</span></div>
+                <div>
+                  <div class="pill">Gold <span id="gold">0</span></div>
+                  <button id="btnSelectHero" style="width:100%; margin-top:6px; padding:6px 10px; font-size:11px; font-weight:900; border-radius:8px">Select Character</button>
+                </div>
                 <div class="small">Hero: <span id="heroClassName">Warrior</span> • Lv <span id="heroLevel">1</span></div>
               </div>
               <div id="equipCircle" class="equipCircle">
                 <img id="heroPortrait" src="assets/char/warrior.svg" alt="Hero" class="heroLarge"/>
               </div>
-              <div id="equipExtras" class="equipExtras"></div>
-              <div id="weaponSlot" class="weaponSlot"></div>
+              <div id="equipExtras" class="equipExtras" style="text-align:center;"></div>
+              <div id="weaponSlot" class="weaponSlot" style="text-align:center;"></div>
               <div class="btnRow" style="margin-top:10px">
-                <button id="btnSelectHero" style="padding:6px 10px; font-size:11px; font-weight:900; border-radius:8px">Select Character</button>
               </div>
             </div>
             <!-- STATS: selected item and stats -->
@@ -1224,8 +1226,9 @@ export function buildUI(state){
 
           <div class="box" style="margin-top:12px">
             <div class="small" style="font-weight:900">Debug</div>
-            <div class="btnRow">
-              <button id="btnDownloadLog" style="flex:1">Download Game Log</button>
+            <div style="padding:8px; background:rgba(0,0,0,0.3); border-radius:4px;">
+              <button id="btnDownloadErrorLog" style="width:100%">Download Console Errors</button>
+              <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Export console errors for debugging.</div>
             </div>
           </div>
         </div>
@@ -1470,7 +1473,7 @@ function bindUI(state){
     btnBackToMenu:$('btnBackToMenu'),
     btnApplyOpts:$('btnApplyOpts'),
     btnResetBinds:$('btnResetBinds'),
-    btnDownloadLog:$('btnDownloadLog'),
+    btnDownloadErrorLog:$('btnDownloadErrorLog'),
     optShowAim:$('optShowAim'),
     optShowDebug:$('optShowDebug'),
     optShowDebugAI:$('optShowDebugAI'),
@@ -1784,7 +1787,7 @@ function bindUI(state){
   };
 
   // Toast utility
-  ui.toast = (msg, ms=1700)=>{
+  ui.toast = (msg, ms=2700)=>{
     ui.toastEl.innerHTML = msg;
     ui.toastEl.classList.add('show');
     clearTimeout(ui.toast._t);
@@ -3567,19 +3570,27 @@ function bindUI(state){
       ui.equipCircle.appendChild(el);
     });
 
-    // Stack accessories and neck under the circle - 3 items in horizontal row
-    ['accessory1','accessory2','neck'].forEach(slot=>{
+    // Stack accessories centered under the hero - 3 slots with no spacing
+    const slotWidth = 70;
+    const totalAccWidth = slotWidth * 3; // 3 accessories
+    const containerWidth = ui.equipExtras.parentElement?.clientWidth || 500;
+    const startX = (containerWidth - totalAccWidth) / 2;
+    
+    ['accessory1','accessory2','neck'].forEach((slot, accIdx)=>{
       const it = equipTarget[slot];
       const el = document.createElement('div');
-      el.className = 'equip-row' + (state.selectedEquipSlot === slot ? ' active' : '');
+      el.className = 'equipSlot' + (state.selectedEquipSlot === slot ? ' active' : '');
+      el.style.position = 'relative';
+      el.style.marginLeft = accIdx === 0 ? `${startX}px` : '0px';
+      el.style.display = 'inline-block';
       el.title = SLOT_LABEL[slot];
       const imgPath = it ? getItemImage(it) : null;
       if(it && imgPath){
-        el.innerHTML = `<div class="label">${SLOT_LABEL[slot]}</div><img src="${imgPath}" alt="${it.name}" style="width:45px; height:45px; object-fit:contain;"/>`;
+        el.innerHTML = `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
       } else if(it){
-        el.innerHTML = `<div class="label">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:9px">${it.name}</div>`;
+        el.innerHTML = `<div style="text-align:center"><div style="color:${it.rarity.color}">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:10px">${it.name}</div></div>`;
       } else {
-        el.innerHTML = `<div class="label">${SLOT_LABEL[slot]}</div><div class="small" style="color:#555; font-size:9px">Empty</div>`;
+        el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[slot]}</div><div class="small" style="color:#aaa">None</div></div>`;
       }
       el.onclick = ()=>{
         const now = performance.now ? performance.now() : Date.now();
@@ -3592,21 +3603,23 @@ function bindUI(state){
       ui.equipExtras.appendChild(el);
     });
 
-    // Weapon row at the very bottom - full width
+    // Weapon slot - centered directly under accessories (naturally under acc2)
     const wIt = equipTarget['weapon'];
-    const wRow = document.createElement('div');
-    wRow.className = 'equip-row' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
-    wRow.title = SLOT_LABEL['weapon'];
+    const wEl = document.createElement('div');
+    wEl.className = 'equipSlot' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
+    wEl.style.display = 'inline-block';
+    wEl.style.marginTop = '0px';
+    wEl.style.marginLeft = `${(containerWidth - slotWidth) / 2}px`; // Center single slot
+    wEl.title = SLOT_LABEL['weapon'];
     const imgPath = wIt ? getItemImage(wIt) : null;
-    const levelDisplay = wIt && wIt.itemLevel ? ` <span style="color:#6af; font-size:8px">iLvl ${wIt.itemLevel}</span>` : '';
     if(imgPath){
-      wRow.innerHTML = `<div class="label">${SLOT_LABEL['weapon']}</div><img src="${imgPath}" alt="${wIt.name}" style="width:50px; height:50px; object-fit:contain;"/>`;
+      wEl.innerHTML = `<img src="${imgPath}" alt="${wIt.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
     } else if(wIt){
-      wRow.innerHTML = `<div class="label">${SLOT_LABEL['weapon']}</div><div class="${rarityClass(wIt.rarity.key)}" style="font-size:10px">${wIt.name}${levelDisplay}</div>`;
+      wEl.innerHTML = `<div style="text-align:center"><div style="color:${wIt.rarity.color}">${SLOT_LABEL['weapon']}</div><div class="${rarityClass(wIt.rarity.key)}" style="font-size:10px">${wIt.name}</div></div>`;
     } else {
-      wRow.innerHTML = `<div class="label">${SLOT_LABEL['weapon']}</div><div class="small" style="color:#555; font-size:9px">Empty</div>`;
+      wEl.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL['weapon']}</div><div class="small" style="color:#aaa">None</div></div>`;
     }
-    wRow.onclick = ()=>{
+    wEl.onclick = ()=>{
       const now = performance.now ? performance.now() : Date.now();
       const key = `equip-weapon`;
       const last = ui._lastInvClick;
@@ -3614,7 +3627,7 @@ function bindUI(state){
       ui._lastInvClick = { key, t: now };
       state.selectedEquipSlot = wIt ? 'weapon' : null; state.selectedIndex=-1; ui.updateInventorySelection();
     };
-    ui.weaponSlot.appendChild(wRow);
+    ui.weaponSlot.appendChild(wEl);
   };
 
   function invSlotLabel(it){
@@ -5124,17 +5137,17 @@ function bindUI(state){
     ui.toast('Keybinds reset.');
   };
 
-  ui.btnDownloadLog.onclick=()=>{
-    if(!state.gameLog || state.gameLog.events.length === 0){
-      ui.toast('No log data available');
+  ui.btnDownloadErrorLog.onclick=()=>{
+    if(!state.consoleErrors || state.consoleErrors.length === 0){
+      ui.toast('No console errors logged');
       return;
     }
     try{
-      downloadGameLog(state);
-      ui.toast(`Exported log with ${state.gameLog.events.length} events`);
+      downloadErrorLog(state);
+      ui.toast(`Downloaded ${state.consoleErrors.length} console errors`);
     }catch(e){
-      console.error('Download log failed:', e);
-      ui.toast('Failed to download log');
+      console.error('Download error log failed:', e);
+      ui.toast('Failed to download error log');
     }
   };
 

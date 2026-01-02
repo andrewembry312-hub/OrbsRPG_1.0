@@ -3,7 +3,7 @@ import { INV_SIZE, LOOT_TTL, ARMOR_SLOTS, SLOT_LABEL, DEFAULT_BINDS } from "./co
 import { pickRarity, rarityClass, rarityTier } from "./rarity.js";
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, getAbilityById, DOT_REGISTRY, BUFF_REGISTRY, defaultAbilitySlots, defaultPassives } from "./skills.js";
-import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
+import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, updateFlagHealth, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
 import { META_LOADOUTS } from "./loadouts.js";
 import { LEVEL_CONFIG, getZoneForPosition, scaleAllyToPlayerLevel } from "./leveling.js";
 
@@ -48,7 +48,7 @@ export function hardResetGameState(state){
     mage:defaultAbilitySlots(), 
     warrior:defaultAbilitySlots(), 
     knight:defaultAbilitySlots(), 
-    tank:defaultAbilitySlots() 
+    warden:defaultAbilitySlots() 
   };
   
   // Reset hero equipment
@@ -56,7 +56,7 @@ export function hardResetGameState(state){
     mage: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),
     warrior: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),
     knight: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),
-    tank: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null]))
+    warden: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null]))
   };
   state.player.equip = Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null]));
   state.player.equipment = { weapon: structuredClone(META_LOADOUTS.HEALER.weapon) };
@@ -305,6 +305,9 @@ export async function initGame(state){
     spawnEnemyAt,
     spawnFriendlyAt
   };
+  
+  // Initialize console error logger for debugging
+  initConsoleErrorLogger(state);
   
   // Initialize UI with current stats
   if(state.ui && state.ui.renderHud){
@@ -734,7 +737,15 @@ function getMoveVector(state){
 }
 
 function siteAllowsPassage(site, entity, state){
-  // No walls - allow all passage
+  // Check if this is a captured flag with health (collision enabled)
+  if(site.id && site.id.startsWith('site_') && site.owner && site.health > 0){
+    const entityTeam = entity === state.player ? 'player' : (entity.team || null);
+    // Allow allies to pass through their own flag
+    if(entityTeam === site.owner) return true;
+    // Block enemies from passing through
+    return false;
+  }
+  // No walls or destroyed flags - allow all passage
   return true;
 }
 
@@ -1788,6 +1799,18 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
           if(!sBlocked) for(const rc of state.rockCircles||[]){ if(Math.hypot(snx - rc.x, sny - rc.y) <= (entity.r + rc.r + 2)) { sBlocked=true; break; } }
           if(!sBlocked) for(const wc of state.waterCircles||[]){ if(Math.hypot(snx - wc.x, sny - wc.y) <= (entity.r + wc.r + 2)) { sBlocked=true; break; } }
           if(!sBlocked){
+            // Check flag collision during slide
+            for(const s of state.sites){
+              if(s.id && s.id.startsWith('site_') && s.owner && s.health > 0){
+                const entityTeam = entity === state.player ? 'player' : (entity.team || null);
+                if(entityTeam !== s.owner){
+                  const dist = Math.hypot(snx - s.x, sny - s.y);
+                  if(dist <= (entity.r + s.r + 2)){ sBlocked=true; break; }
+                }
+              }
+            }
+          }
+          if(!sBlocked){
             for(const s of state.sites){
               if(!s.wall) continue;
               const halfW = s.wall.r;
@@ -1812,6 +1835,22 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
     for(const rc of state.rockCircles||[]){ if(Math.hypot(nx - rc.x, ny - rc.y) <= (entity.r + rc.r + 2)) { blocked=true; blockedBy = {x:rc.x,y:rc.y}; break; } }
     if(blocked) continue;
     for(const wc of state.waterCircles||[]){ if(Math.hypot(nx - wc.x, ny - wc.y) <= (entity.r + wc.r + 2)) { blocked=true; blockedBy = {x:wc.x,y:wc.y}; break; } }
+    if(blocked) continue;
+    // captured flags with health act as collision obstacles for enemies
+    for(const s of state.sites){
+      if(s.id && s.id.startsWith('site_') && s.owner && s.health > 0){
+        const entityTeam = entity === state.player ? 'player' : (entity.team || null);
+        // Only block if entity is not on the same team as flag owner
+        if(entityTeam !== s.owner){
+          const dist = Math.hypot(nx - s.x, ny - s.y);
+          if(dist <= (entity.r + s.r + 2)){
+            blocked = true;
+            blockedBy = {x: s.x, y: s.y};
+            break;
+          }
+        }
+      }
+    }
     if(blocked) continue;
     // walls: don't pass through other's walls unless allowed
     for(const s of state.sites){ 
@@ -1858,6 +1897,18 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
     if(!blocked) for(const mc of state.mountainCircles||[]){ if(Math.hypot(nx - mc.x, ny - mc.y) <= (entity.r + mc.r + 2)) { blocked=true; break; } }
     if(!blocked) for(const rc of state.rockCircles||[]){ if(Math.hypot(nx - rc.x, ny - rc.y) <= (entity.r + rc.r + 2)) { blocked=true; break; } }
     if(!blocked) for(const wc of state.waterCircles||[]){ if(Math.hypot(nx - wc.x, ny - wc.y) <= (entity.r + wc.r + 2)) { blocked=true; break; } }
+    if(!blocked){
+      // Check flag collision during jitter
+      for(const s of state.sites){
+        if(s.id && s.id.startsWith('site_') && s.owner && s.health > 0){
+          const entityTeam = entity === state.player ? 'player' : (entity.team || null);
+          if(entityTeam !== s.owner){
+            const dist = Math.hypot(nx - s.x, ny - s.y);
+            if(dist <= (entity.r + s.r + 2)){ blocked=true; break; }
+          }
+        }
+      }
+    }
     if(!blocked){
       for(const s of state.sites){
         if(!s.wall) continue;
@@ -2138,12 +2189,50 @@ function updateFriendlies(state, dt){
         a._lockId = null;
       }
 
+      // Role-specific target prioritization
+      let roleTarget = target;
+      if(role === 'WARDEN'){
+        // Warden: Prioritize nearby outposts to destroy FIRST, then in-range enemies
+        let nearbyOutpost = null, bestOutpostDist = Infinity;
+        const OUTPOST_RANGE = 200;
+        for(const s of state.sites){
+          if(!s.id || !s.id.startsWith('site_')) continue;
+          if(s.owner === 'player' || !s.owner) continue;
+          const distToOutpost = Math.hypot(s.x - a.x, s.y - a.y);
+          if(distToOutpost <= OUTPOST_RANGE && distToOutpost < bestOutpostDist){
+            bestOutpostDist = distToOutpost;
+            nearbyOutpost = s;
+          }
+        }
+        // If there's a nearby outpost with health, prioritize it over enemies
+        if(nearbyOutpost && nearbyOutpost.health && nearbyOutpost.health > 0){
+          roleTarget = null; // Will target outpost in movement logic below
+        }
+      } else if(role === 'HEALER'){
+        // Healer: Focus on healing group, only light attacks to in-range targets AFTER healing
+        // Don't chase distant targets - use ability system instead
+        if(target && Math.hypot(target.x - anchorX, target.y - anchorY) > 150){
+          roleTarget = null; // Too far, stay with group to heal
+        }
+      } else if(role === 'FIGHTER'){
+        // Fighter: Only attack in-range threats, no chasing beyond range
+        if(target && Math.hypot(target.x - a.x, target.y - a.y) > 130){
+          roleTarget = null; // Target too far, don't chase
+        }
+      }
+      // DPS will attack any in-range target, then outposts - no special logic needed here
+
       // Healer stays anchored: reduce leash; Tank can step forward; DPS follows macro
       const roleLeash = role==='HEALER' ? Math.min(leash, 180) : (role==='TANK' ? leash+30 : leash);
       const chaseAllowed = (role==='HEALER' ? false : bb.chaseAllowed) && distAnchor <= roleLeash * 1.35;
       const macroStack = macro === 'stack' || !chaseAllowed;
 
-      if(macroStack || !target){
+      // HARDCODED PRIORITY #1: ALWAYS follow the player in formation unless far outside leash
+      if(distAnchor > roleLeash * 1.1){
+        // Way too far from player - ALWAYS come back, ignore everything else
+        tx = anchorX; ty = anchorY;
+        a.speed = distAnchor > roleLeash * 1.5 ? 165 : 140;
+      } else if(macroStack || !roleTarget){
         // If very far from leader, ignore formation and go straight to leader to catch up
         if(distAnchor > roleLeash * 0.9){
           tx = anchorX; ty = anchorY;
@@ -2162,22 +2251,48 @@ function updateFriendlies(state, dt){
           else { a.speed = 40; }
         }
       } else {
-        const distTargetAnchor = Math.hypot(target.x - anchorX, target.y - anchorY);
+        const distTargetAnchor = Math.hypot(roleTarget.x - anchorX, roleTarget.y - anchorY);
         const allowFarChase = macro === 'burst';
         if(!allowFarChase && distTargetAnchor > roleLeash * 1.4){
           tx = anchorX; ty = anchorY; a.speed = 140;
         } else {
-          tx = target.x; ty = target.y;
+          tx = roleTarget.x; ty = roleTarget.y;
           a.speed = distAnchor > roleLeash ? 135 : 120;
         }
       }
 
-      // Tank peel: if healer is threatened nearby, override target to attacker
+      // Tank peel: if healer is threatened nearby, override roleTarget to attacker
       if(role==='TANK'){
         const healer = state.friendlies.find(f=>f && f.respawnT<=0 && (state.group?.members||[]).includes(f.id) && (f.role==='HEALER' || f.variant==='mage'));
         if(healer){
           const attacker = state.enemies.find(e=>!e.dead && e.hp>0 && Math.hypot(e.x - healer.x, e.y - healer.y) <= 140);
-          if(attacker){ tx = attacker.x; ty = attacker.y; a.speed = 135; }
+          if(attacker){ roleTarget = attacker; }
+        }
+      }
+      
+      // Group outpost targeting: Only target outposts that are already in range (fallback when no enemies)
+      if(!target && !macroStack){
+        let nearbyOutpost = null, bestOutpostDist = Infinity;
+        const OUTPOST_RANGE = 200; // Only consider outposts already close by
+        for(const s of state.sites){
+          if(!s.id || !s.id.startsWith('site_')) continue;
+          if(s.owner === 'player' || !s.owner) continue; // Skip player/neutral flags
+          const distToOutpost = Math.hypot(s.x - a.x, s.y - a.y);
+          if(distToOutpost <= OUTPOST_RANGE && distToOutpost < bestOutpostDist){
+            bestOutpostDist = distToOutpost;
+            nearbyOutpost = s;
+          }
+        }
+        if(nearbyOutpost){
+          // Only attack if health is 0 (collision destroyed), otherwise maintain formation
+          if(nearbyOutpost.health && nearbyOutpost.health > 0){
+            // Still has collision - don't break formation to attack, stay in formation
+            // tx/ty already set to formation position
+          } else {
+            // Collision destroyed - assist with capture
+            tx = nearbyOutpost.x; ty = nearbyOutpost.y;
+            a.speed = 100;
+          }
         }
       }
       
@@ -2290,20 +2405,9 @@ function updateFriendlies(state, dt){
           }
         }
       }
-      else if(a.attacked || distFromSpawn > 12){
-        // NO THREATS: Return to guard position
+      else {
+        // NO THREATS or IDLE - Always stay at guard post
         a.attacked = false;
-        a.speed = 120;
-        tx = spawnX;
-        ty = spawnY;
-        const dd = Math.hypot(tx - a.x, ty - a.y);
-        if(dd <= 12){
-          a.speed = 0;
-          tx = a.x = spawnX;
-          ty = a.y = spawnY;
-        }
-      } else {
-        // IDLE AT POST - Ready to defend
         a.speed = 0;
         tx = a.x = spawnX;
         ty = a.y = spawnY;
@@ -2379,25 +2483,58 @@ function updateFriendlies(state, dt){
         const behavior = a.behavior || 'neutral';
         const AGGRO_RANGE = behavior === 'aggressive' ? 140 : 80;
         
-        // find nearest enemy-held flag (primary objective)
-        let targetFlag=null, bestD=Infinity;
+        // Find ALL capturable flags and sort by distance
+        let allFlags = [];
         for(const s of state.sites){ 
-          if(s.id.startsWith('site_') && s.owner && s.owner!=='player'){
+          if(s.id.startsWith('site_')){
             const d=Math.hypot(s.x - a.x, s.y - a.y);
-            if(d<bestD){ bestD=d; targetFlag=s; }
+            allFlags.push({site: s, dist: d});
           }
         }
+        allFlags.sort((a, b) => a.dist - b.dist); // Sort by distance
         
         // Behavior: engage enemies more readily when aggressive
-        if(near.e && near.d <= AGGRO_RANGE && (!targetFlag || near.d < Math.hypot(targetFlag.x-a.x, targetFlag.y-a.y))){
+        if(near.e && near.d <= AGGRO_RANGE){
           tx = near.e.x; ty = near.e.y;
         } else if(nearCreature && nearCreatureD <= AGGRO_RANGE){
           tx = nearCreature.x; ty = nearCreature.y;
-        } else if(targetFlag){
-          // prioritize moving to enemy-held flag to capture
-          tx = targetFlag.x; ty = targetFlag.y;
+        } else if(allFlags.length > 0){
+          // Non-grouped allies always move to closest uncapped or enemy-owned flag
+          // Defense of player flags is handled via garrison management
+          let targetFlag = null;
+          
+          if(allFlags.length > 0){
+            // Build list of only non-player flags (uncapped or enemy-owned)
+            let objectiveFlags = [];
+            for(const flagData of allFlags){
+              const s = flagData.site;
+              // Only include uncapped or enemy-owned flags in objective search
+              if(!s.owner || s.owner !== 'player'){
+                objectiveFlags.push(s);
+              }
+            }
+            // Target the closest objective flag if any exist
+            if(objectiveFlags.length > 0){
+              targetFlag = objectiveFlags[0];
+            }
+          }
+          
+          if(targetFlag){
+            // Only move to flag if it's NOT player-owned (should never be in list, but double-check)
+            if(!targetFlag.owner){
+              // Uncaptured flag - go capture it
+              tx = targetFlag.x; ty = targetFlag.y;
+            } else if(targetFlag.owner !== 'player'){
+              // Enemy-owned flag: destroy collision first if still has health, then capture
+              tx = targetFlag.x; ty = targetFlag.y;
+            }
+            // If targetFlag.owner === 'player', do nothing (shouldn't happen after filtering, but safety check)
+          } else if(flag){
+            // no suitable flags found, return to home flag
+            tx = flag.x; ty = flag.y;
+          }
         } else {
-          // no enemy flags found, return to home flag
+          // no flags found, return to home flag
           if(flag){ tx = flag.x; ty = flag.y; }
         }
         
@@ -2794,9 +2931,28 @@ function updateEnemies(state, dt){
         e.attacked = true;
         e._hostTarget = nearestHost;
       } else if(spawnTarget){
-        // If this enemy's spawn target is a site not owned by the enemy's team,
-        // prefer to approach and attack the site's walls (nearest intact side).
-        if(spawnTarget.owner && spawnTarget.owner !== e.team && spawnTarget.wall){
+        // PRIORITY: Attack flag health first if it exists and has health
+        if(spawnTarget.health > 0 && spawnTarget.owner && spawnTarget.owner !== e.team){
+          // Move to the flag to attack it directly
+          const distToFlag = Math.hypot(spawnTarget.x - e.x, spawnTarget.y - e.y);
+          const attackRange = e.r + spawnTarget.r + 80; // Increased range to hit from outside collision
+          
+          if(distToFlag > attackRange){
+            // Move closer to flag
+            const dxs = (spawnTarget.x - e.x); 
+            const dys = (spawnTarget.y - e.y);
+            const dts = Math.hypot(dxs, dys) || 1;
+            const approach = Math.max(spawnTarget.r + 60, 50); // Move closer to collision edge
+            tx = spawnTarget.x - (dxs/dts) * approach;
+            ty = spawnTarget.y - (dys/dts) * approach;
+          } else {
+            // In range - stay put and attack flag (handled in updateFlagHealth)
+            tx = e.x;
+            ty = e.y;
+          }
+        }
+        // If flag has no health or is destroyed, attack walls
+        else if(spawnTarget.owner && spawnTarget.owner !== e.team && spawnTarget.wall){
           // choose the nearest intact wall side and move to a point on the ring there
           let bestIdx = -1, bestD = Infinity;
           for(let si=0; si<4; si++){
@@ -3549,6 +3705,35 @@ function updateSlashes(state, dt){
           if(e.hp<=0) killEnemy(state, ei, true);
         }
       }
+      // player melee can damage enemy-owned sites
+      for(let si=state.sites.length-1; si>=0; si--){
+        const site = state.sites[si];
+        if(!site.id.startsWith('site_')) continue; // only capturable flags
+        if(site.owner === 'player' || !site.owner) continue; // don't damage own or neutral flags
+        const dx=site.x-originX, dy=site.y-originY;
+        const d=Math.hypot(dx,dy);
+        if(d>s.range) continue;
+        const sa=Math.atan2(dy,dx);
+        let diff=Math.abs(sa-ang);
+        diff=Math.min(diff, Math.PI*2-diff);
+        if(diff<=s.arc/2){
+          if(!site.health) site.health = site.maxHealth || 500;
+          site.health = clamp(site.health - s.dmg, 0, site.maxHealth);
+          site._lastDamageTime = Date.now();
+          // Update damage state
+          const healthPct = site.health / site.maxHealth;
+          if(site.health <= 0){
+            site.damageState = 'destroyed';
+            site.owner = null;
+            site.prog = 0;
+            delete site._captureTeam;
+          } else if(healthPct <= 0.70){
+            site.damageState = 'damaged';
+          } else {
+            site.damageState = 'undamaged';
+          }
+        }
+      }
     }
   }
 }
@@ -3644,6 +3829,31 @@ function updateProjectiles(state, dt){
           if(p.pierce>0) p.pierce-=1;
           else state.projectiles.splice(pi,1);
           break;
+        }
+      }
+      // player projectiles can damage enemy-owned sites
+      for(let si=state.sites.length-1; si>=0; si--){
+        const s = state.sites[si];
+        if(!s.id.startsWith('site_')) continue; // only capturable flags
+        if(s.owner === 'player' || !s.owner) continue; // don't damage own or neutral flags
+        if(Math.hypot(p.x-s.x, p.y-s.y) <= s.r + p.r){
+          if(!s.health) s.health = s.maxHealth || 500;
+          s.health = clamp(s.health - p.dmg, 0, s.maxHealth);
+          s._lastDamageTime = Date.now();
+          // Update damage state
+          const healthPct = s.health / s.maxHealth;
+          if(s.health <= 0){
+            s.damageState = 'destroyed';
+            s.owner = null;
+            s.prog = 0;
+            delete s._captureTeam;
+          } else if(healthPct <= 0.70){
+            s.damageState = 'damaged';
+          } else {
+            s.damageState = 'undamaged';
+          }
+          if(p.pierce>0) p.pierce-=1;
+          else { state.projectiles.splice(pi,1); break; }
         }
       }
       // player projectiles can hit creatures (neutral)
@@ -4253,6 +4463,26 @@ export function handleHotkeys(state, dt){
   }
   if(!potionDown) state._potionLatch = false;
 
+  // Group auto-invite all allies (default key 8)
+  const groupInviteAllDown = state.input.keysDown.has(state.binds.groupInviteAll);
+  if(groupInviteAllDown && !state._groupInviteLatch && !state.paused && !state.inMenu){
+    state._groupInviteLatch = true;
+    if(state.ui && typeof state.ui.addAllAlliesToGroup === 'function'){
+      state.ui.addAllAlliesToGroup();
+    }
+  }
+  if(!groupInviteAllDown) state._groupInviteLatch = false;
+
+  // Group auto-disband (default key 9)
+  const groupDisbandDown = state.input.keysDown.has(state.binds.groupDisband);
+  if(groupDisbandDown && !state._groupDisbandLatch && !state.paused && !state.inMenu){
+    state._groupDisbandLatch = true;
+    if(state.ui && typeof state.ui.disbandGroup === 'function'){
+      state.ui.disbandGroup();
+    }
+  }
+  if(!groupDisbandDown) state._groupDisbandLatch = false;
+
   // Inventory Q drop (when in inventory)
   if(potionDown && state.showInventory && !state._invQDropLatch){
     state._invQDropLatch = true;
@@ -4722,6 +4952,50 @@ export function updateGame(state, dt){
     if(state.player.stam<=0 || state.player.mana<=0) state.input.mouse.rDown=false;
   }
 
+  // Garrison assignment hotkeys (1-6 for flags, 7 for unassign all)
+  for(let flagNum = 1; flagNum <= 6; flagNum++){
+    const bindKey = `garrisonFlag${flagNum}`;
+    if(state.input.keysDown.has(state.binds[bindKey])){
+      // Assign all non-grouped allies to this flag
+      const targetSiteIndex = flagNum - 1;
+      if(targetSiteIndex < state.sites.length){
+        const targetSite = state.sites[targetSiteIndex];
+        if(targetSite && targetSite.id.startsWith('site_')){
+          for(const friendly of state.friendlies){
+            if(friendly && !friendly.dead && friendly.respawnT <= 0){
+              // Skip if this friendly is in a group
+              if(state.group && state.group.members && state.group.members.includes(friendly.id)) continue;
+              // Assign to garrison
+              friendly.garrisonSiteId = targetSite.id;
+              // Reset garrison position so it recalculates
+              delete friendly._garrisonX;
+              delete friendly._garrisonY;
+              delete friendly._garrisonSlot;
+            }
+          }
+          state.ui?.toast(`Assigned allies to ${targetSite.name || `Flag ${flagNum}`}`);
+          // Consume the keypress (mark it as used this frame)
+          state.input.keysDown.delete(state.binds[bindKey]);
+        }
+      }
+    }
+  }
+
+  // Unassign all garrison assignments (hotkey 7)
+  if(state.input.keysDown.has(state.binds.garrisonUnassignAll)){
+    for(const friendly of state.friendlies){
+      if(friendly && !friendly.dead && friendly.respawnT <= 0){
+        delete friendly.garrisonSiteId;
+        delete friendly._garrisonX;
+        delete friendly._garrisonY;
+        delete friendly._garrisonSlot;
+      }
+    }
+    state.ui?.toast('All garrison assignments cleared.');
+    // Consume the keypress
+    state.input.keysDown.delete(state.binds.garrisonUnassignAll);
+  }
+
   // move
   if(!state.player.dead){
     const mv=getMoveVector(state);
@@ -4964,6 +5238,9 @@ export function updateGame(state, dt){
   }
 
   updateCapture(state, dt);
+  
+  // UPDATE FLAG HEALTH - Enemies can damage flags
+  updateFlagHealth(state, dt);
   
   // UPDATE GUARD PROGRESSION - Time-based gear upgrades
   updateGuardProgression(state, dt);
@@ -5636,6 +5913,70 @@ export function saveGameLogToStorage(state){
     state.gameLog.lastSaveTime = now;
   }catch(e){
     console.error('[LOG] Failed to save game log:', e);
+  }
+}
+
+// Console Error Logger - captures console errors for debugging
+export function initConsoleErrorLogger(state){
+  if(!state.consoleErrors) state.consoleErrors = [];
+  
+  const originalError = console.error;
+  console.error = function(...args){
+    // Call original console.error
+    originalError.apply(console, args);
+    
+    // Store the error with timestamp
+    state.consoleErrors.push({
+      timestamp: new Date().toISOString(),
+      message: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')
+    });
+    
+    // Keep only last 500 errors to avoid memory bloat
+    if(state.consoleErrors.length > 500){
+      state.consoleErrors.shift();
+    }
+  };
+}
+
+export function downloadErrorLog(state){
+  if(!state.consoleErrors || state.consoleErrors.length === 0){
+    alert('No error logs available');
+    return;
+  }
+  
+  try{
+    const date = new Date().toISOString().split('T')[0];
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false }).replace(/:/g, '-');
+    const filename = `console-errors_${date}_${time}.log`;
+    
+    // Create error log content
+    let logContent = `Console Error Log\n`;
+    logContent += `Generated: ${new Date().toISOString()}\n`;
+    logContent += `Total Errors: ${state.consoleErrors.length}\n`;
+    logContent += `${'='.repeat(80)}\n\n`;
+    
+    // Add each error with timestamp
+    for(const err of state.consoleErrors){
+      logContent += `[${err.timestamp}]\n`;
+      logContent += `${err.message}\n`;
+      logContent += `${'-'.repeat(80)}\n`;
+    }
+    
+    // Create and download the file
+    const dataBlob = new Blob([logContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    console.log(`[LOG] Downloaded ${state.consoleErrors.length} errors to ${filename}`);
+  }catch(e){
+    console.error('[LOG] Failed to download error log:', e);
+    alert('Failed to download error log');
   }
 }
 

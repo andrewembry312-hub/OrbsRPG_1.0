@@ -55,7 +55,7 @@ export function createState(engine, input, ui){
     basePlayer, player,
     currentHero: 'warrior', // track current hero class
     abilitySlots: defaultAbilitySlots(), // ALWAYS START EMPTY - new game always has empty ability slots
-    heroAbilitySlots: { mage:defaultAbilitySlots(), warrior:defaultAbilitySlots(), knight:defaultAbilitySlots(), tank:defaultAbilitySlots() }, // Per-hero empty slots
+    heroAbilitySlots: { mage:defaultAbilitySlots(), warrior:defaultAbilitySlots(), knight:defaultAbilitySlots(), warden:defaultAbilitySlots() }, // Per-hero empty slots
     // ABILITY LOADOUTS: Persists across new games (loaded from localStorage, not reset)
     abilityLoadouts: (() => {
       const saved = loadJson('orb_rpg_mod_loadouts');
@@ -65,7 +65,7 @@ export function createState(engine, input, ui){
         mage: [{name:'Loadout 1', slots:null},{name:'Loadout 2', slots:null},{name:'Loadout 3', slots:null}],
         warrior: [{name:'Loadout 1', slots:null},{name:'Loadout 2', slots:null},{name:'Loadout 3', slots:null}],
         knight: [{name:'Loadout 1', slots:null},{name:'Loadout 2', slots:null},{name:'Loadout 3', slots:null}],
-        tank: [{name:'Loadout 1', slots:null},{name:'Loadout 2', slots:null},{name:'Loadout 3', slots:null}]
+        warden: [{name:'Loadout 1', slots:null},{name:'Loadout 2', slots:null},{name:'Loadout 3', slots:null}]
       };
     })(),
     // Per-hero equipment storage (items equipped on each hero)
@@ -73,7 +73,7 @@ export function createState(engine, input, ui){
       mage: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),
       warrior: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),
       knight: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null])),
-      tank: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null]))
+      warden: Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null]))
     },
     // Group system (friendlies that follow/fight with player)
     group: {

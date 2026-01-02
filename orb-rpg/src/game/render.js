@@ -658,17 +658,31 @@ function drawSite(ctx, s, state){
   const isBase = s.id.endsWith('_base');
   const ownerColor = s.owner ? (teamColor(s.owner) || cssVar('--enemy')) : cssVar('--enemy');
   if(isBase){
-    // draw a colored ring (orb) under the castle
-    ctx.globalAlpha = 0.92;
-    ctx.fillStyle = ownerColor;
-    ctx.beginPath(); ctx.arc(s.x, s.y, s.r+18, 0, Math.PI*2); ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle='rgba(255,255,255,.14)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.stroke();
-    // draw castle image on top when available
+    // Draw home base image in circular crop
     try{
-      const img = loadCachedImage(state, 'assets/structure/castle.svg');
-      if(img){ const sz = Math.min(s.r*1.6, 160); ctx.drawImage(img, s.x - sz/2, s.y - sz/2 - 8, sz, sz); }
+      const homeBaseImg = loadCachedImage(state, 'assets/structure/Home Base.png');
+      if(homeBaseImg){
+        // Save context for circular clipping
+        ctx.save();
+        // Create circular clip path
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r + 18, 0, Math.PI * 2);
+        ctx.clip();
+        // Draw the home base image to fill the circle
+        const imgSize = (s.r + 18) * 2;
+        ctx.drawImage(homeBaseImg, s.x - imgSize/2, s.y - imgSize/2, imgSize, imgSize);
+        ctx.restore();
+      }
     }catch(e){}
+    
+    // draw a colored ring around the base
+    ctx.globalAlpha = 0.92;
+    ctx.strokeStyle = ownerColor;
+    ctx.lineWidth = 5;
+    ctx.beginPath(); 
+    ctx.arc(s.x, s.y, s.r+18, 0, Math.PI*2); 
+    ctx.stroke();
+    ctx.globalAlpha = 1;
   } else {
     ctx.globalAlpha = 0.20;
     ctx.fillStyle = ownerColor;
@@ -686,11 +700,70 @@ function drawSite(ctx, s, state){
 
   if(!isBase){
     const prog=clamp(s.prog,0,1);
+    
+    // Determine which flag image to show based on owner and damage state
+    let flagImage = null;
+    if(!s.owner || (s.health !== undefined && s.health <= 0)){
+      // Uncaptured flag (no owner or destroyed)
+      flagImage = 'assets/structure/Uncaptured Flag.png';
+    } else if(s.damageState === 'damaged'){
+      // Damaged captured flag (70% health or below)
+      flagImage = 'assets/structure/Damaged Outpost.png';
+    } else if(s.owner && prog >= 1){
+      // Fully captured healthy flag (show for all teams, not just player)
+      flagImage = 'assets/structure/Captured Flag Outpost.png';
+    }
+    
+    // Draw the appropriate flag image in circular crop
+    if(flagImage){
+      try{
+        const img = loadCachedImage(state, flagImage);
+        if(img){
+          // Save context for circular clipping
+          ctx.save();
+          // Create circular clip path
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r + 10, 0, Math.PI * 2);
+          ctx.clip();
+          // Draw the flag image to fill the circle
+          const imgSize = (s.r + 10) * 2;
+          ctx.drawImage(img, s.x - imgSize/2, s.y - imgSize/2, imgSize, imgSize);
+          ctx.restore();
+        }
+      }catch(e){}
+    } else {
+      // Fallback rendering for partially captured flags or when image unavailable
+      ctx.globalAlpha = 0.20;
+      ctx.fillStyle = ownerColor;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.strokeStyle='rgba(255,255,255,.14)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.stroke();
+      // draw flag image for flag sites, with a small colored accent behind it
+      try{
+        const img = loadCachedImage(state, 'assets/structure/castle_flag.svg');
+        if(img){ const sz = Math.min(s.r*0.8, 48); ctx.drawImage(img, s.x - sz/2, s.y - sz/2 - 6, sz, sz); }
+        // small colored halo
+        ctx.globalAlpha = 0.9; ctx.fillStyle = ownerColor; ctx.beginPath(); ctx.arc(s.x, s.y + s.r*0.6, 6, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1;
+      }catch(e){}
+    }
+    
+    // Draw progress ring
     ctx.strokeStyle=ownerColor;
     ctx.lineWidth=5;
     ctx.beginPath();
     ctx.arc(s.x,s.y,s.r+10, -Math.PI/2, -Math.PI/2 + Math.PI*2*prog);
     ctx.stroke();
+    
+    // Draw circular health ring for captured flags
+    if(s.owner && s.health >= 0 && s.maxHealth > 0){
+      const healthPct = s.health / s.maxHealth;
+      // Orange ring with lineWidth of 4, slightly larger radius than progress ring
+      ctx.strokeStyle = '#ff9933';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r + 20, -Math.PI/2, -Math.PI/2 + Math.PI*2*healthPct);
+      ctx.stroke();
+    }
   }
 
   ctx.fillStyle='rgba(255,255,255,.85)';

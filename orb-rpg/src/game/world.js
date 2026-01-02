@@ -55,7 +55,20 @@ export function initSites(state){
   }
 
   // per-site guard respawn timers (array of seconds remaining), spawn flags and attack state
-  for(const s of state.sites){ s.guardRespawns = []; s.spawnActive = false; s.underAttack = false; s._justCaptured = false; s._prevOwner = s.owner; }
+  for(const s of state.sites){ 
+    s.guardRespawns = []; 
+    s.spawnActive = false; 
+    s.underAttack = false; 
+    s._justCaptured = false; 
+    s._prevOwner = s.owner;
+    // Add health properties for flags (not bases)
+    if(s.id && s.id.startsWith('site_')){
+      s.maxHealth = 500;
+      s.health = s.maxHealth;
+      s.damageState = 'undamaged'; // 'undamaged', 'damaged', 'destroyed'
+      s._underAttackNotified = false;
+    }
+  }
   // generate simple terrain features: trees and mountains
   state.trees = [];
   state.mountains = [];
@@ -540,6 +553,11 @@ export function updateCapture(state, dt){
     // Team is capturing enemy or neutral flag
     s.underAttack = true;
     
+    // PREVENT CAPTURE: If flag has health > 0, don't allow capture (must destroy collision first)
+    if(s.owner && s.health > 0){
+      continue;
+    }
+    
     // If a different team begins capturing, reset progress
     if(s._captureTeam && s._captureTeam !== capturingTeam){
       s.prog = 0;
@@ -573,6 +591,11 @@ export function updateCapture(state, dt){
         levels: [1, 1, 1, 1, 1]
       };
       
+      // Reset health to full when captured
+      s.health = s.maxHealth || 500;
+      s.damageState = 'undamaged';
+      s._underAttackNotified = false;
+      
       const msg = capturingTeam === 'player' 
         ? `<b>${s.name}</b> captured! Friendlies will spawn to defend.`
         : `<span class="neg"><b>${s.name}</b> was captured by ${capturingTeam}.</span>`;
@@ -602,6 +625,11 @@ export function updateCapture(state, dt){
         levels: [1, 1, 1, 1, 1]
       };
       
+      // Reset health to full when captured
+      s.health = s.maxHealth || 500;
+      s.damageState = 'undamaged';
+      s._underAttackNotified = false;
+      
       const msg = capturingTeam === 'player'
         ? `<b>${s.name}</b> captured! Friendlies will spawn to defend.`
         : `<span class="neg"><b>${s.name}</b> was recaptured by ${capturingTeam}.</span>`;
@@ -618,6 +646,118 @@ export function updateCapture(state, dt){
     }
   }
 }
+
+// Update flag health and damage states
+export function updateFlagHealth(state, dt){
+  for(const s of state.sites){
+    // Only process capturable flags
+    if(!s.id || !s.id.startsWith('site_')) continue;
+    if(!s.owner || !s.health) continue;
+    
+    // Check if enemies are near the flag
+    const nearbyEnemies = [];
+    for(const e of state.enemies){
+      if(!e || e.dead || e.hp <= 0) continue;
+      const dist = Math.hypot(e.x - s.x, e.y - s.y);
+      if(dist <= s.r + 80){ // Increased from +30 to +80 so they can damage from further away
+        // Check if this enemy is hostile to the flag owner
+        const enemyTeam = e.team || 'teamA';
+        if(enemyTeam !== s.owner){
+          nearbyEnemies.push(e);
+        }
+      }
+    }
+    
+    // Check if allies are attacking the flag
+    const nearbyAllies = [];
+    for(const f of state.friendlies){
+      if(!f || f.respawnT > 0 || f.dead || f.hp <= 0) continue;
+      const dist = Math.hypot(f.x - s.x, f.y - s.y);
+      if(dist <= s.r + 80){ // Increased from +30 to +80
+        // Check if this friendly is attacking an enemy flag
+        const friendlyTeam = f.team === 'player' ? 'player' : null;
+        if(friendlyTeam === 'player' && s.owner !== 'player'){
+          nearbyAllies.push(f);
+        }
+      }
+    }
+    
+    // Check if player is attacking the flag (can damage enemy flags)
+    let playerAttacking = false;
+    if(state.player && !state.player.dead && state.player.hp > 0){
+      const playerDist = Math.hypot(state.player.x - s.x, state.player.y - s.y);
+      if(playerDist <= s.r + 80 && s.owner !== 'player'){
+        playerAttacking = true;
+      }
+    }
+    
+    // Total attackers dealing damage to flag health
+    const totalAttackers = nearbyEnemies.length + nearbyAllies.length + (playerAttacking ? 1 : 0);
+    if(totalAttackers > 0){
+      const damagePerSecond = totalAttackers * 8; // 8 damage per attacker per second
+      s.health = clamp(s.health - damagePerSecond * dt, 0, s.maxHealth);
+      s._lastDamageTime = Date.now(); // Track when last damaged
+      
+      // Update damage state based on health percentage
+      const healthPct = s.health / s.maxHealth;
+      const oldState = s.damageState;
+      
+      if(s.health <= 0){
+        s.damageState = 'destroyed';
+        // When destroyed, remove owner and allow capture
+        if(oldState !== 'destroyed'){
+          s.owner = null;
+          s.prog = 0;
+          delete s._captureTeam;
+          const msg = `<span class="neg"><b>${s.name}</b> has been destroyed!</span>`;
+          state.ui?.toast(msg);
+          // Remove collision when destroyed
+          s.health = 0;
+        }
+      } else if(healthPct <= 0.70){
+        if(oldState !== 'damaged'){
+          s.damageState = 'damaged';
+          // Notify once when flag reaches 70% health
+          if(!s._underAttackNotified){
+            s._underAttackNotified = true;
+            const teamName = s.owner === 'player' ? 'Your' : (s.owner === 'teamA' ? 'Red' : (s.owner === 'teamB' ? 'Yellow' : 'Blue'));
+            // Find which flag number this is (1-6)
+            let flagIndex = 1;
+            for(let i = 0; i < state.sites.length; i++){
+              if(state.sites[i] === s) flagIndex = i + 1;
+            }
+            const garrisonKey = `garrisonFlag${Math.min(flagIndex, 6)}`; // Map to 1-6
+            const keyBind = state.binds?.[garrisonKey] || 'unbound';
+            const keyLabel = keyBind !== 'unbound' ? keyBind.replace('Key', '').replace('Digit', '') : 'unbound';
+            const msg = `<span class="neg">⚠️ ${teamName} ${s.name} is under attack!</span><br/><span style="font-size:11px; margin-top:4px;">Press <b>${keyLabel}</b> to assign allies to defend.</span>`;
+            state.ui?.toast(msg);
+          }
+        }
+      } else {
+        s.damageState = 'undamaged';
+      }
+    } else {
+      // No enemies nearby - regenerate health
+      const timeSinceLastDamage = (Date.now() - (s._lastDamageTime || 0)) / 1000;
+      const regenDelay = 5.0; // 5 seconds before regeneration starts
+      
+      if(timeSinceLastDamage >= regenDelay && s.health < s.maxHealth){
+        const regenPerSecond = 10; // Regenerate 10 HP per second
+        s.health = clamp(s.health + regenPerSecond * dt, 0, s.maxHealth);
+        
+        // Update damage state based on current health
+        const healthPct = s.health / s.maxHealth;
+        if(healthPct > 0.70){
+          s.damageState = 'undamaged';
+          s._underAttackNotified = false; // Reset notification flag when healed
+        } else if(healthPct > 0){
+          s.damageState = 'damaged';
+        }
+      }
+    }
+  }
+}
+
 // Load terrain from an image-based map
 // Image color guide:
 // - Black (0,0,0): Mountain
