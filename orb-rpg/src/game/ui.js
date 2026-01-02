@@ -240,10 +240,7 @@ export function buildUI(state){
                 <div class="small">Hero: <span id="heroClassName">Warrior</span> • Lv <span id="heroLevel">1</span></div>
               </div>
               <div id="equipCircle" class="equipCircle">
-                <div id="heroPortraitWrap" class="heroLarge" style="position:relative; width:260px; height:260px; margin:0 auto;">
-                  <canvas id="heroPortrait3d" width="260" height="260" style="width:260px; height:260px; border-radius:50%; background:#112244; border:2px solid #3a4f6a;"></canvas>
-                  <img id="heroPortrait" src="assets/char/warrior.svg" alt="Hero" class="heroLarge" style="display:none;"/>
-                </div>
+                <img id="heroPortrait" src="assets/char/warrior.svg" alt="Hero" class="heroLarge"/>
               </div>
               <div id="equipExtras" class="equipExtras"></div>
               <div id="weaponSlot" class="weaponSlot"></div>
@@ -1519,7 +1516,7 @@ function bindUI(state){
     levelHpBar:$('levelHpBar'), levelManaBar:$('levelManaBar'), levelStamBar:$('levelStamBar'),
     levelStatsList:$('levelStatsList'), levelEffectsList:$('levelEffectsList'),
     levelPointsDisplay:$('levelPointsDisplay'),
-    heroPortrait:$('heroPortrait'), heroPortrait3d:$('heroPortrait3d'), heroClassName:$('heroClassName'), heroLevel:$('heroLevel'),
+    heroPortrait:$('heroPortrait'), heroClassName:$('heroClassName'), heroLevel:$('heroLevel'),
     unitInspectionPanel: $('unitInspectionPanel'), unitInspectionContent: $('unitInspectionContent'), closeUnitPanel: $('closeUnitPanel'),
     unitName: $('unitName'), unitTeam: $('unitTeam'), unitHP: $('unitHP'), unitDMG: $('unitDMG'), unitSpeed: $('unitSpeed'), unitLevel: $('unitLevel'),
     unitEffects: $('unitEffects'),
@@ -1562,116 +1559,6 @@ function bindUI(state){
     }
     return null;
   };
-
-  // 3D hero portrait (mini, no controls)
-  const hero3D = { initPromise:null, ready:false, THREE:null, loader:null, renderer:null, scene:null, camera:null, model:null };
-
-  function resizeHero3D(){
-    const canvas = document.getElementById('heroPortrait3d');
-    if(!canvas || !hero3D.renderer) return;
-    const width = canvas.clientWidth || 260;
-    const height = canvas.clientHeight || 260;
-    hero3D.renderer.setSize(width, height, false);
-    if(hero3D.camera){
-      hero3D.camera.aspect = width / height;
-      hero3D.camera.updateProjectionMatrix();
-    }
-  }
-
-  function animateHero3D(){
-    if(!hero3D.renderer || !hero3D.scene || !hero3D.camera) return;
-    const render = ()=>{
-      hero3D.renderer.render(hero3D.scene, hero3D.camera);
-      requestAnimationFrame(render);
-    };
-    render();
-  }
-
-  async function loadHeroModel(){
-    if(!hero3D.loader) return;
-    const url = 'assets/3d%20assets/Warrior%20Test.glb';
-    return new Promise((resolve, reject)=>{
-      hero3D.loader.load(url, gltf=>{
-        if(hero3D.model) hero3D.scene.remove(hero3D.model);
-        hero3D.model = gltf.scene;
-        hero3D.scene.add(hero3D.model);
-        const box = new hero3D.THREE.Box3().setFromObject(hero3D.model);
-        const size = box.getSize(new hero3D.THREE.Vector3());
-        const center = box.getCenter(new hero3D.THREE.Vector3());
-        hero3D.model.position.sub(center);
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        const scale = 1.5 / maxDim;
-        hero3D.model.scale.setScalar(scale);
-        hero3D.model.rotation.set(0, Math.PI * 0.08, 0);
-        hero3D.model.position.y -= 0.2;
-
-        // Fit camera to model tightly
-        const fov = hero3D.camera ? hero3D.camera.fov * Math.PI/180 : Math.PI/5;
-        const fitHeightDistance = (maxDim * 0.62) / Math.tan(fov / 2);
-        const dist = Math.max(3.2, fitHeightDistance * 1.02);
-        if(hero3D.camera){
-          hero3D.camera.position.set(0, 0, dist);
-          hero3D.camera.lookAt(0, 0, 0);
-        }
-        // Debug helpers
-        console.log('Hero portrait 3D: model size', size, 'center', center, 'scale', scale, 'camZ', hero3D.camera?.position.z);
-        if(hero3D.helper) hero3D.scene.remove(hero3D.helper);
-        hero3D.helper = new hero3D.THREE.Box3Helper(box, 0xff00ff);
-        hero3D.scene.add(hero3D.helper);
-        resolve();
-      }, undefined, (err)=>{ console.error('Hero portrait load failed', err); reject(err); });
-    });
-  }
-
-  async function initHeroPortrait3D(){
-    if(hero3D.initPromise) return hero3D.initPromise;
-    const canvas = document.getElementById('heroPortrait3d');
-    if(!canvas) return Promise.resolve();
-    hero3D.initPromise = (async()=>{
-      console.log('Hero portrait 3D: init starting');
-      if(!document.querySelector('script[type="importmap"][data-hero3d]')){
-        const s = document.createElement('script');
-        s.type = 'importmap';
-        s.dataset.hero3d = 'true';
-        // Absolute path with encoded spaces so import map is valid
-        s.textContent = JSON.stringify({ imports: { three: '/OrbsRPG/orb-rpg/assets/3d%20assets/node_modules/three/build/three.module.js' } });
-        document.head.appendChild(s);
-      }
-      const [THREE, loaders] = await Promise.all([
-        import('/OrbsRPG/orb-rpg/assets/3d%20assets/node_modules/three/build/three.module.js'),
-        import('/OrbsRPG/orb-rpg/assets/3d%20assets/node_modules/three/examples/jsm/loaders/GLTFLoader.js')
-      ]);
-      console.log('Hero portrait 3D: modules imported');
-      hero3D.THREE = THREE;
-      hero3D.loader = new loaders.GLTFLoader();
-      hero3D.renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
-      hero3D.renderer.setPixelRatio(window.devicePixelRatio || 1);
-      hero3D.renderer.setClearColor(0x112244, 1);
-      hero3D.scene = new THREE.Scene();
-      hero3D.scene.background = null;
-      hero3D.camera = new THREE.PerspectiveCamera(35, (canvas.clientWidth||260)/(canvas.clientHeight||260), 0.01, 50);
-      hero3D.camera.position.set(0, 0.8, 6);
-      const amb = new THREE.AmbientLight(0xffffff, 0.8);
-      const dir = new THREE.DirectionalLight(0xffffff, 0.8); dir.position.set(4,6,5);
-      hero3D.scene.add(amb); hero3D.scene.add(dir);
-      // Temporary debug cube if model fails
-      const dbgGeo = new THREE.BoxGeometry(1,1,1);
-      const dbgMat = new THREE.MeshStandardMaterial({ color:0x66ccff, metalness:0.2, roughness:0.6 });
-      const dbgMesh = new THREE.Mesh(dbgGeo, dbgMat);
-      dbgMesh.position.set(0,0,0);
-      hero3D.scene.add(dbgMesh);
-      hero3D._dbgCube = dbgMesh;
-      resizeHero3D();
-      await loadHeroModel();
-      console.log('Hero portrait 3D: model loaded');
-      if(hero3D._dbgCube) hero3D.scene.remove(hero3D._dbgCube);
-      animateHero3D();
-      hero3D.ready = true;
-    })().catch(err=>console.error('Hero portrait 3D init failed', err));
-    return hero3D.initPromise;
-  }
-
-  window.addEventListener('resize', resizeHero3D);
 
   // Sticky header shadow on inventory scroll
   ui._bindInvRightScroll = ()=>{
@@ -3635,8 +3522,7 @@ function bindUI(state){
     const heroCls = isGroupMemberMode ? (state.friendlies.find(f=>f.id===isGroupMemberMode)?.variant||'warrior') : (state.player.class||'warrior');
     const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Night.png', warden: 'New Warden.png' };
     const heroImg = heroImgMap[heroCls] || `${heroCls}.svg`;
-    const portraitImg = document.getElementById('heroPortrait');
-    if(portraitImg) portraitImg.src = `assets/char/${heroImg}`;
+    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="assets/char/${heroImg}" alt="Hero" class="heroLarge"/>`;
     ui.equipExtras.innerHTML = '';
     ui.weaponSlot.innerHTML = '';
 
@@ -3790,10 +3676,6 @@ function bindUI(state){
     const isGroupMemberMode = state.groupMemberInventoryMode;
     let targetUnit = null;
     let targetSettings = null;
-
-    // Kick off 3D portrait (no controls) and ensure sizing
-    initHeroPortrait3D();
-    resizeHero3D();
     
     if(isGroupMemberMode){
       targetUnit = state.friendlies.find(f => f.id === isGroupMemberMode);
