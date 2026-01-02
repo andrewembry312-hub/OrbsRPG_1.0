@@ -739,7 +739,15 @@ function getMoveVector(state){
 function siteAllowsPassage(site, entity, state){
   // Check if this is a captured flag with health (collision enabled)
   if(site.id && site.id.startsWith('site_') && site.owner && site.health > 0){
-    const entityTeam = entity === state.player ? 'player' : (entity.team || null);
+    // Determine entity team: player, friendly allies, or enemy
+    let entityTeam;
+    if(entity === state.player){
+      entityTeam = 'player';
+    } else if(state.friendlies.includes(entity)){
+      entityTeam = 'player'; // Friendlies are on player's team
+    } else {
+      entityTeam = entity.team || null;
+    }
     // Allow allies to pass through their own flag
     if(entityTeam === site.owner) return true;
     // Block enemies from passing through
@@ -1802,7 +1810,15 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
             // Check flag collision during slide
             for(const s of state.sites){
               if(s.id && s.id.startsWith('site_') && s.owner && s.health > 0){
-                const entityTeam = entity === state.player ? 'player' : (entity.team || null);
+                // Determine entity team
+                let entityTeam;
+                if(entity === state.player){
+                  entityTeam = 'player';
+                } else if(state.friendlies.includes(entity)){
+                  entityTeam = 'player'; // Friendlies are on player's team
+                } else {
+                  entityTeam = entity.team || null;
+                }
                 if(entityTeam !== s.owner){
                   const dist = Math.hypot(snx - s.x, sny - s.y);
                   if(dist <= (entity.r + s.r + 2)){ sBlocked=true; break; }
@@ -1839,7 +1855,15 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
     // captured flags with health act as collision obstacles for enemies
     for(const s of state.sites){
       if(s.id && s.id.startsWith('site_') && s.owner && s.health > 0){
-        const entityTeam = entity === state.player ? 'player' : (entity.team || null);
+        // Determine entity team
+        let entityTeam;
+        if(entity === state.player){
+          entityTeam = 'player';
+        } else if(state.friendlies.includes(entity)){
+          entityTeam = 'player'; // Friendlies are on player's team
+        } else {
+          entityTeam = entity.team || null;
+        }
         // Only block if entity is not on the same team as flag owner
         if(entityTeam !== s.owner){
           const dist = Math.hypot(nx - s.x, ny - s.y);
@@ -1947,7 +1971,8 @@ function spawnFriendlyAt(state, site, forceVariant=null){
     speed: 110,
     dmg: 8,
     hitCd: 0,
-    siteId: site.id,
+    // DON'T set siteId for regular allies - they should always seek objectives
+    // Only guards/garrison should have site association
     respawnT: 0,
     variant: v,
     role: (v==='mage' ? 'HEALER' : (v==='warden' || v==='knight' ? 'TANK' : 'DPS')),
@@ -2495,47 +2520,45 @@ function updateFriendlies(state, dt){
         
         // Behavior: engage enemies more readily when aggressive
         if(near.e && near.d <= AGGRO_RANGE){
+          console.log(`%c[ALLY] ${a.name}: TARGET = Enemy (${near.e.name || 'Unknown'}) at distance ${Math.round(near.d)}`, 'color: red; font-weight: bold;');
           tx = near.e.x; ty = near.e.y;
         } else if(nearCreature && nearCreatureD <= AGGRO_RANGE){
+          console.log(`%c[ALLY] ${a.name}: TARGET = Creature at distance ${Math.round(nearCreatureD)}`, 'color: red; font-weight: bold;');
           tx = nearCreature.x; ty = nearCreature.y;
         } else if(allFlags.length > 0){
-          // Non-grouped allies always move to closest uncapped or enemy-owned flag
-          // Defense of player flags is handled via garrison management
-          let targetFlag = null;
-          
-          if(allFlags.length > 0){
-            // Build list of only non-player flags (uncapped or enemy-owned)
-            let objectiveFlags = [];
-            for(const flagData of allFlags){
-              const s = flagData.site;
-              // Only include uncapped or enemy-owned flags in objective search
-              if(!s.owner || s.owner !== 'player'){
-                objectiveFlags.push(s);
-              }
-            }
-            // Target the closest objective flag if any exist
-            if(objectiveFlags.length > 0){
-              targetFlag = objectiveFlags[0];
+          // HARDCODED PRIORITY #1: Non-grouped allies ALWAYS go to closest uncapped/enemy flag
+          // Build list of only non-player flags (uncapped or enemy-owned), preserving distance sorting
+          let objectiveFlags = [];
+          for(const flagData of allFlags){
+            const s = flagData.site;
+            // Only include uncapped or enemy-owned flags - NEVER player-owned
+            if(!s.owner || s.owner !== 'player'){
+              objectiveFlags.push(flagData); // Keep the {site, dist} object for sorting
             }
           }
           
-          if(targetFlag){
-            // Only move to flag if it's NOT player-owned (should never be in list, but double-check)
-            if(!targetFlag.owner){
-              // Uncaptured flag - go capture it
-              tx = targetFlag.x; ty = targetFlag.y;
-            } else if(targetFlag.owner !== 'player'){
-              // Enemy-owned flag: destroy collision first if still has health, then capture
-              tx = targetFlag.x; ty = targetFlag.y;
+          // Target the closest objective flag if any exist (already sorted by distance)
+          if(objectiveFlags.length > 0){
+            const targetFlag = objectiveFlags[0].site;
+            const ownerText = targetFlag.owner ? `Enemy (${targetFlag.owner})` : 'Uncapped';
+            console.log(`%c[ALLY] ${a.name}: TARGET = Flag ${targetFlag.name} (${ownerText}) at distance ${Math.round(objectiveFlags[0].dist)}`, 'color: red; font-weight: bold;');
+            // Move to flag: destroy outposts first, then capture
+            tx = targetFlag.x; ty = targetFlag.y;
+          } else {
+            // All flags are player-owned - return to player base to idle
+            const playerBase = state.sites.find(s => s.id === 'player_base');
+            if(playerBase){
+              console.log(`%c[ALLY] ${a.name}: TARGET = Player Base (all flags captured)`, 'color: red; font-weight: bold;');
+              tx = playerBase.x; ty = playerBase.y;
             }
-            // If targetFlag.owner === 'player', do nothing (shouldn't happen after filtering, but safety check)
-          } else if(flag){
-            // no suitable flags found, return to home flag
-            tx = flag.x; ty = flag.y;
           }
         } else {
-          // no flags found, return to home flag
-          if(flag){ tx = flag.x; ty = flag.y; }
+          // No flags found, return to player base
+          const playerBase = state.sites.find(s => s.id === 'player_base');
+          if(playerBase){
+            console.log(`%c[ALLY] ${a.name}: TARGET = Player Base (no flags found)`, 'color: red; font-weight: bold;');
+            tx = playerBase.x; ty = playerBase.y;
+          }
         }
         
         // set speed for non-guards
@@ -2627,9 +2650,8 @@ function updateFriendlies(state, dt){
         if(dead) killCreature(state, ci);
       }
     }
-    if(flag && flag.owner!=='player' && !isGroupMember){
-      state.friendlies.splice(i,1);
-    }
+    // Note: Removed siteId-based deletion check - non-group allies no longer use siteId
+    // They always seek next objective instead of being tied to one flag
   }
 }
 
@@ -2684,7 +2706,8 @@ function killFriendly(state, idx, scheduleRespawn=true){
       const nearestFlag = findNearestPlayerFlag(state, f.x||state.player.x, f.y||state.player.y);
       if(nearestFlag){
         f.respawnT = 8.0;
-        f.siteId = nearestFlag.id;
+        // DON'T set siteId for non-guard, non-garrison allies - they should always seek next objective
+        // f.siteId = nearestFlag.id; // REMOVED - causes allies to stay at flags
         f.dead = true;
         return;
       }

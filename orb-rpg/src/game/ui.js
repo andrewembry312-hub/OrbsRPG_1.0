@@ -1346,7 +1346,7 @@ export function buildUI(state){
 
     <!-- Unit Inspection Panel (non-blocking, no overlay dim) -->
     <div id="unitInspectionPanel" style="position:fixed; inset:0; pointer-events:none; background:transparent; display:none;">
-      <div class="panel" id="unitInspectionContent" style="position:fixed; width:280px; pointer-events:auto; background:rgba(20,20,20,0.92); border:1px solid rgba(122,162,255,0.4); padding:10px; left:20px; top:20px; z-index:200; display:none;">
+      <div class="panel" id="unitInspectionContent" style="position:fixed; width:280px; pointer-events:auto; background:rgba(20,20,20,0.92); border:1px solid rgba(122,162,255,0.4); padding:10px; left:20px; top:80px; z-index:150; display:none;">
         <div class="row" style="justify-content:space-between; align-items:center">
           <h3 id="unitName" style="margin:0">Unit</h3>
           <button id="closeUnitPanel" style="background:none; border:1px solid rgba(255,255,255,0.2); color:#fff; padding:4px 8px; cursor:pointer; font-size:12px;">Close</button>
@@ -3050,7 +3050,9 @@ function bindUI(state){
       if(ui.allyBehaviorDesc) ui.allyBehaviorDesc.style.display = 'none';
       if(ui.btnEditTarget) ui.btnEditTarget.style.display = 'none';
     } else if(type === 'friendly'){
-      ui.unitTeam.textContent = `Allied Unit`;
+      const heroType = (u.variant || 'warrior').charAt(0).toUpperCase() + (u.variant || 'warrior').slice(1);
+      const role = (u.role || (state.group.settings[u.id]?.role) || 'dps').toUpperCase();
+      ui.unitTeam.textContent = `Allied Unit • Type: ${heroType} • Role: ${role}`;
       ui.unitLevel.textContent = (u.level || 1);
       ui.allyControlPanel.style.display = 'block';
       setAllyBehaviorDesc(u);
@@ -3088,6 +3090,25 @@ function bindUI(state){
     ui.unitHP.textContent = `${Math.round(u.hp || 0)}/${Math.round(u.maxHp || 100)}`;
     ui.unitDMG.textContent = Math.round((u.contactDmg || u.dmg || 0));
     ui.unitSpeed.textContent = Math.round(u.speed || 0);
+    
+    // Auto-close after 5 seconds unless hovering
+    if(ui._unitInspectionTimer) clearTimeout(ui._unitInspectionTimer);
+    ui._unitInspectionTimer = setTimeout(()=>{
+      if(ui.closeUnitPanel && ui.closeUnitPanel.onclick) ui.closeUnitPanel.onclick();
+    }, 5000);
+    
+    // Clear existing hover listeners to avoid duplicates
+    if(!ui._unitInspectionHoverBound){
+      ui._unitInspectionHoverBound = true;
+      ui.unitInspectionContent.addEventListener('mouseenter', ()=>{
+        if(ui._unitInspectionTimer) clearTimeout(ui._unitInspectionTimer);
+      });
+      ui.unitInspectionContent.addEventListener('mouseleave', ()=>{
+        ui._unitInspectionTimer = setTimeout(()=>{
+          if(ui.closeUnitPanel && ui.closeUnitPanel.onclick) ui.closeUnitPanel.onclick();
+        }, 5000);
+      });
+    }
   };
 
   // Ally behavior and group buttons
