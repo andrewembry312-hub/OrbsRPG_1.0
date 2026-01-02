@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>OrbRPG Model Viewer</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+        canvas { flex: 1; display: block; }
+        #controls {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 15px;
+            border-top: 1px solid #666;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        input[type="file"] {
+            padding: 8px;
+            background: #333;
+            border: 1px solid #666;
+            color: #fff;
+            cursor: pointer;
+            flex: 1;
+        }
+        #status {
+            padding: 8px 15px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            font-size: 12px;
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="controls">
+        <input type="file" id="fileInput" accept=".glb,.gltf" placeholder="Select GLB file">
+        <div id="status">Ready for GLB file</div>
+    </div>
+
+    <script>
+        // WAIT for libraries to load before using them
+        let engine, scene, camera;
+        let librariesReady = false;
+
+        // Check if Babylon is loaded
+        function checkLibraries() {
+            if (window.BABYLON && window.BABYLON.Engine) {
+                librariesReady = true;
+                init();
+                document.getElementById('status').textContent = 'Ready - select a GLB file';
+                return;
+            }
+            setTimeout(checkLibraries, 100);
+        }
+
+        function init() {
+            const canvas = document.getElementById('canvas');
+            engine = new BABYLON.Engine(canvas, true);
+            scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+
+            camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 2, 5, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+            camera.wheelPrecision = 50;
+
+            new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.7;
+            new BABYLON.PointLight("light2", new BABYLON.Vector3(5, 10, 5), scene).intensity = 0.8;
+
+            engine.runRenderLoop(() => scene.render());
+            window.addEventListener('resize', () => engine.resize());
+        }
+
+        function loadModel(file) {
+            if (!librariesReady) {
+                document.getElementById('status').textContent = 'Libraries still loading...';
+                setTimeout(() => loadModel(file), 500);
+                return;
+            }
+
+            document.getElementById('status').textContent = 'Loading: ' + file.name;
+            const url = URL.createObjectURL(file);
+
+            BABYLON.SceneLoader.ImportMesh("", "", url, scene, function(meshes) {
+                document.getElementById('status').textContent = '✓ Loaded: ' + file.name + ' (' + meshes.length + ' meshes)';
+                
+                // Auto-frame camera
+                const allMeshes = scene.getMeshes().filter(m => m !== camera);
+                if (allMeshes.length > 0) {
+                    let minX = Infinity, minY = Infinity, minZ = Infinity;
+                    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+                    allMeshes.forEach(m => {
+                        try {
+                            const bb = m.getBoundingInfo().boundingBox;
+                            minX = Math.min(minX, bb.minimumWorld.x);
+                            minY = Math.min(minY, bb.minimumWorld.y);
+                            minZ = Math.min(minZ, bb.minimumWorld.z);
+                            maxX = Math.max(maxX, bb.maximumWorld.x);
+                            maxY = Math.max(maxY, bb.maximumWorld.y);
+                            maxZ = Math.max(maxZ, bb.maximumWorld.z);
+                        } catch(e) {}
+                    });
+
+                    const centerX = (minX + maxX) / 2;
+                    const centerY = (minY + maxY) / 2;
+                    const centerZ = (minZ + maxZ) / 2;
+                    const sizeX = maxX - minX;
+                    const sizeY = maxY - minY;
+                    const sizeZ = maxZ - minZ;
+                    const maxSize = Math.max(sizeX, sizeY, sizeZ);
+
+                    camera.target = new BABYLON.Vector3(centerX, centerY, centerZ);
+                    camera.radius = Math.max(2, maxSize * 2);
+                }
+            }, null, function(scene, msg, exception) {
+                document.getElementById('status').textContent = '✗ Error: ' + (exception?.message || msg);
+            });
+        }
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) loadModel(e.target.files[0]);
+        });
+
+        document.addEventListener('dragover', e => e.preventDefault());
+        document.addEventListener('drop', e => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length > 0) loadModel(e.dataTransfer.files[0]);
+        });
+
+        // Start checking for libraries
+        document.getElementById('status').textContent = 'Loading libraries...';
+        checkLibraries();
+    </script>
+
+    <script src="https://www.babylonjs-playground.com/babylon.js"></script>
+    <script src="https://www.babylonjs-playground.com/babylon.loaders.min.js"></script>
+</body>
+</html>

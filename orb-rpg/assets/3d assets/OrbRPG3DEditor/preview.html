@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrbRPG 3D Model Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #canvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #d4af37;
+            max-width: 300px;
+        }
+        #info h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        #info p {
+            margin: 5px 0;
+        }
+        #error {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(255, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="info">
+        <h3>3D Preview</h3>
+        <p>Model: <span id="modelName">None loaded</span></p>
+        <p>Format: <span id="modelFormat">-</span></p>
+        <p>Meshes: <span id="meshCount">0</span></p>
+        <p>Materials: <span id="materialCount">0</span></p>
+        <p style="margin-top: 10px; font-size: 11px; color: #888;">
+            LMB Drag: Rotate | RMB Drag: Pan | Scroll: Zoom
+        </p>
+    </div>
+    <div id="error"></div>
+    <div id="loading">Loading model...</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script>
+        // Three.js setup
+        let scene, camera, renderer, controls, model;
+        let modelData = {
+            name: 'None',
+            format: '-',
+            meshes: 0,
+            materials: 0
+        };
+
+        // Basic readiness check for libs
+        function checkLibraries() {
+            const error = document.getElementById('error');
+            if (!window.THREE) {
+                error.style.display = 'block';
+                error.textContent = 'THREE.js failed to load';
+                console.error('THREE.js failed to load');
+                return false;
+            }
+            if (!THREE.GLTFLoader) {
+                error.style.display = 'block';
+                error.textContent = 'GLTFLoader failed to load';
+                console.error('GLTFLoader failed to load');
+                return false;
+            }
+            error.style.display = 'none';
+            return true;
+        }
+
+        function initThreeJS() {
+            if (!checkLibraries()) return;
+            const container = document.getElementById('canvas-container');
+            
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+            camera.position.set(0, 0, 3);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            // Simple orbit controls
+            setupControls();
+            
+            // Handle resize
+            window.addEventListener('resize', onWindowResize);
+            
+            // Start animation loop
+            animate();
+        }
+
+        function setupControls() {
+            let isRotating = false;
+            let isPanning = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            
+            document.addEventListener('mousedown', (e) => {
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                if (e.button === 0) isRotating = true;  // LMB
+                if (e.button === 2) isPanning = true;   // RMB
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                if (isRotating && model) {
+                    model.rotation.y += deltaX * 0.01;
+                    model.rotation.x += deltaY * 0.01;
+                }
+                
+                if (isPanning) {
+                    camera.position.x -= deltaX * 0.01;
+                    camera.position.y += deltaY * 0.01;
+                }
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isRotating = false;
+                isPanning = false;
+            });
+            
+            document.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                camera.position.z += e.deltaY * 0.01;
+                camera.position.z = Math.max(0.5, Math.min(20, camera.position.z));
+            }, false);
+            
+            document.addEventListener('contextmenu', (e) => e.preventDefault());
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        function loadModel(url, modelInfo) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+
+            console.log('Preview loading model from URL:', url);
+            console.log('Model info:', modelInfo);
+            document.getElementById('modelName').textContent = 'Loading...';
+            document.getElementById('modelFormat').textContent = '-';
+            document.getElementById('meshCount').textContent = '...';
+            document.getElementById('materialCount').textContent = '...';
+            
+            // Remove old model
+            if (model) {
+                scene.remove(model);
+            }
+            
+            const loader = new THREE.GLTFLoader();
+
+            let timeoutId = setTimeout(() => {
+                error.style.display = 'block';
+                error.textContent = 'Timed out loading model';
+                loading.style.display = 'none';
+                console.error('Timed out loading model');
+            }, 8000);
+            
+            // Check if it's a data URL
+            if (url.startsWith('data:')) {
+                console.log('Data URL detected - decoding directly');
+                try {
+                    // Extract base64 data from data URL
+                    const base64Data = url.split(',')[1];
+                    console.log('Base64 length:', base64Data.length);
+                    
+                    // Decode base64 to binary
+                    const binaryString = atob(base64Data);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    
+                    console.log('Decoded', bytes.length, 'bytes');
+                    document.title = 'Parsing ' + bytes.length + ' bytes...';
+                    
+                    // Parse GLB from ArrayBuffer
+                    loader.parse(bytes.buffer, '', (gltf) => {
+                        clearTimeout(timeoutId);
+                        model = gltf.scene;
+                        scene.add(model);
+                        
+                        // Center and scale model
+                        const box = new THREE.Box3().setFromObject(model);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
+                        
+                        model.position.sub(center);
+                        
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 2 / maxDim;
+                        model.scale.multiplyScalar(scale);
+                        
+                        // Update info
+                        let meshCount = 0;
+                        let materialCount = 0;
+                        model.traverse((child) => {
+                            if (child instanceof THREE.Mesh) {
+                                meshCount++;
+                                if (child.material) {
+                                    if (Array.isArray(child.material)) {
+                                        materialCount += child.material.length;
+                                    } else {
+                                        materialCount++;
+                                    }
+                                }
+                            }
+                        });
+                        
+                        modelData = {
+                            name: modelInfo.name || 'Loaded Model',
+                            format: modelInfo.format || 'glTF Binary',
+                            meshes: modelInfo.meshes || meshCount,
+                            materials: modelInfo.materials || materialCount
+                        };
+                        
+                        updateInfo();
+                        loading.style.display = 'none';
+                        document.title = '✓ Model loaded: ' + modelData.name;
+                        console.log('Model loaded successfully via data URL');
+                    }, undefined, (err) => {
+                        clearTimeout(timeoutId);
+                        error.style.display = 'block';
+                        error.textContent = 'Failed to parse GLB: ' + (err ? (err.message || err.toString()) : 'Unknown error');
+                        loading.style.display = 'none';
+                        document.title = '✗ Parse error: ' + (err ? err.message : 'unknown');
+                        console.error('GLTFLoader parse error:', err);
+                    });
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    error.style.display = 'block';
+                    error.textContent = 'Failed to decode data URL: ' + err.message;
+                    loading.style.display = 'none';
+                    console.error('Data URL decode error:', err);
+                }
+            } else {
+                // Regular URL loading (relative path or file://)
+                console.log('Loading model from:', url);
+                loader.load(url, (gltf) => {
+                    clearTimeout(timeoutId);
+                    model = gltf.scene;
+                    scene.add(model);
+                
+                // Center and scale model
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                model.position.sub(center);
+                
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 2 / maxDim;
+                model.scale.multiplyScalar(scale);
+                
+                // Update info
+                let meshCount = 0;
+                let materialCount = 0;
+                model.traverse((child) => {
+                    if (child instanceof THREE.Mesh) {
+                        meshCount++;
+                        if (child.material) {
+                            if (Array.isArray(child.material)) {
+                                materialCount += child.material.length;
+                            } else {
+                                materialCount++;
+                            }
+                        }
+                    }
+                });
+                
+                modelData = {
+                    name: modelInfo.name || 'Loaded Model',
+                    format: modelInfo.format || 'glTF Binary',
+                    meshes: modelInfo.meshes || meshCount,
+                    materials: modelInfo.materials || materialCount
+                };
+                
+                updateInfo();
+                loading.style.display = 'none';
+            }, undefined, (err) => {
+                clearTimeout(timeoutId);
+                error.style.display = 'block';
+                error.textContent = 'Failed to load model: ' + (err ? (err.message || err.toString() || 'Unknown error') : 'Unknown error');
+                loading.style.display = 'none';
+                console.error('GLTFLoader error:', err);
+                console.error('Model URL:', url);
+            });
+        }
+
+        function updateInfo() {
+            document.getElementById('modelName').textContent = modelData.name;
+            document.getElementById('modelFormat').textContent = modelData.format;
+            document.getElementById('meshCount').textContent = modelData.meshes;
+            document.getElementById('materialCount').textContent = modelData.materials;
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', initThreeJS);
+
+        // Check for URL parameter (model=filename)
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelParam = urlParams.get('model');
+        
+        if (modelParam) {
+            console.log('Loading model from URL parameter:', modelParam);
+            setTimeout(() => {
+                loadModel(modelParam, {
+                    name: modelParam.replace('.glb', ''),
+                    format: 'glTF Binary'
+                });
+            }, 500);
+        }
+    </script>
+</body>
+</html>
