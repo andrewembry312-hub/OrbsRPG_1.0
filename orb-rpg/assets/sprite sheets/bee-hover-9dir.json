@@ -1,0 +1,9 @@
+{
+  "animation": "hover",
+  "frameSize": 224,
+  "fps": 60,
+  "directions": 9,
+  "framesPerDirection": 114,
+  "totalFrames": 1026,
+  "spriteSheet": "bee-hover-9dir.png"
+}

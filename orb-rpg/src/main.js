@@ -3,7 +3,7 @@ import { initInput } from "./engine/input.js";
 import { startLoop } from "./engine/loop.js";
 import { createState } from "./game/state.js";
 import { buildUI } from "./game/ui.js";
-import { initGame, handleHotkeys, updateGame, importSave, hardResetGameState, initGameLogging, saveGameLogToStorage, downloadGameLog } from "./game/game.js";
+import { initGame, handleHotkeys, updateGame, importSave, hardResetGameState, initGameLogging, saveGameLogToStorage, downloadGameLog, updateBeeOverlay, updateCreatures3DOverlay } from "./game/game.js";
 import { showCharSelect } from "./game/charselect.js";
 import { render } from "./game/render.js";
 import "./loadMapInit.js"; // Initialize map loader helper
@@ -74,6 +74,9 @@ function startGameLoop(){
   }
   gameLoopRunning = true;
   
+  // Expose state to console for debugging
+  window.gameState = state;
+  
   // Initialize logging system
   initGameLogging(state);
   
@@ -85,6 +88,8 @@ function startGameLoop(){
     try{ handleHotkeys(state, dt); }catch(e){ console.error('hotkeys',e); showFatalError('Error in handleHotkeys', e); }
     try{ updateGame(state, dt); }catch(e){ console.error('update',e); showFatalError('Error in updateGame', e); }
     try{ render(state); }catch(e){ console.error('render',e); showFatalError('Error in render', e); }
+    try{ updateBeeOverlay(state); }catch(e){ console.error('bee3D',e); }
+    try{ updateCreatures3DOverlay(state, engine); }catch(e){ console.error('creatures3D',e); }
     try{ ui.renderHud(state); }catch(e){ console.error('renderHud',e); }
     try{ ui.renderCooldowns(); }catch(e){ console.error('renderCooldowns',e); }
     try{ ui.updateUnitInspection(); }catch(e){ console.error('updateUnitInspection',e); }

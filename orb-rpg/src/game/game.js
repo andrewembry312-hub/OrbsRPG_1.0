@@ -1606,21 +1606,23 @@ const CREATURE_TYPES = [
   { key:'goblin',  name:'Goblin',  color:'#3d7a2d', r:11, hp:50,  speed:75,  dmg:7,  agro:90,  variant:'goblin' },
   { key:'wolf',    name:'Wolf',    color:'#888',    r:11, hp:55,  speed:95,  dmg:8,  agro:120, variant:'wolf' },
   { key:'bear',    name:'Bear',    color:'#8b5a35', r:16, hp:140, speed:65,  dmg:12, agro:110, variant:'bear' },
+  { key:'bee',     name:'Bee',     color:'#ffaa00', r:8,  hp:30,  speed:110, dmg:4,  agro:80,  variant:'bee',  model:'Flying bee.glb' },
 ];
 
 const CREATURE_NAMES = {
   goblin: ['Grok', 'Zag', 'Blurt', 'Snix', 'Kogg', 'Varg', 'Spitz', 'Norg'],
   wolf: ['Fang', 'Grey', 'Ember', 'Storm', 'Shadow', 'Swift', 'Howler', 'Snarl'],
   bear: ['Granite', 'Claw', 'Grizzly', 'Brutus', 'Forge', 'Oak', 'Thunder', 'Boulder'],
+  bee: ['Buzz', 'Honey', 'Sting', 'Pollinator', 'Wasp', 'Bumble', 'Spark', 'Zip'],
 };
 
 function spawnCreatures(state){
   const worldW = state.mapWidth || state.engine.canvas.width;
   const worldH = state.mapHeight || state.engine.canvas.height;
   
-  // Spawn goblins and bears normally
-  for(const ct of CREATURE_TYPES.filter(c => c.key !== 'wolf')){
-    const count = ct.key === 'bear' ? 4 : 6;
+  // Spawn goblins, bears and bees normally
+  for(const ct of CREATURE_TYPES.filter(c => !['wolf'].includes(c.key))){
+    const count = ct.key === 'bear' ? 4 : (ct.key === 'bee' ? 8 : 6);
     for(let i=0;i<count;i++){
       spawnCreatureAt(state, rand(40, worldW-40), rand(40, worldH-40), ct);
     }
@@ -1647,6 +1649,7 @@ function spawnCreatureAt(state, x, y, type){
   const names = CREATURE_NAMES[type.key] || [];
   const name = names[Math.floor(Math.random() * names.length)];
   const creature = {
+    id: 'creature_' + Math.random().toString(36).substr(2, 9), // Unique ID
     x, y,
     r: type.r,
     maxHp: type.hp,
@@ -1662,7 +1665,8 @@ function spawnCreatureAt(state, x, y, type){
     hitCd: 0,
     wander: { t: rand(0.5, 2.0), ang: Math.random() * Math.PI * 2 },
     target: null,
-    pack_id: undefined
+    pack_id: undefined,
+    model: type.model || null
   };
   state.creatures.push(creature);
   return creature;
@@ -5681,3 +5685,398 @@ export function clearGameLog(state){
   console.log('[LOG] Game log cleared');
 }
 
+// ===== 3D CREATURE SYSTEM =====
+const creatures3D = {
+  initPromise: null,
+  ready: false,
+  spriteSheet: null,
+  spriteData: null,
+  instances: {} // creatureId -> {canvas, ctx, frameIndex, direction}
+};
+
+async function initCreatures3D(){
+  if(creatures3D.initPromise) return creatures3D.initPromise;
+  
+  creatures3D.initPromise = (async()=>{
+    console.log('Creatures 3D: loading sprite sheet...');
+    
+    try {
+      // Load sprite data JSON
+      const response = await fetch('assets/sprite%20sheets/bee-hover-9dir.json');
+      creatures3D.spriteData = await response.json();
+      
+      // Load sprite sheet image
+      const img = new Image();
+      img.src = 'assets/sprite%20sheets/bee-hover-9dir.png';
+      await new Promise((resolve, reject) => {
+        img.onload = () => {
+          creatures3D.spriteSheet = img;
+          resolve();
+        };
+        img.onerror = reject;
+      });
+      
+      creatures3D.ready = true;
+      console.log('Creatures 3D: sprite sheet loaded', creatures3D.spriteData);
+    } catch(err) {
+      console.error('Creatures 3D init failed', err);
+      throw err;
+    }
+  })();
+  
+  return creatures3D.initPromise;
+}
+
+async function loadCreatureModel(modelFile){
+  // Not needed for sprites, but kept for compatibility
+  return null;
+}
+
+function addCreature3D(creature, state){
+  if(!creatures3D.ready || creature.key !== 'bee') return;
+  if(creatures3D.instances[creature.id]) return;
+  
+  const data = creatures3D.spriteData;
+  const frameSize = data.frameSize;
+  
+  // Create canvas for this creature
+  const canvas = document.createElement('canvas');
+  canvas.id = `bee-${creature.id}`;
+  canvas.width = frameSize;
+  canvas.height = frameSize;
+  canvas.style.position = 'absolute';
+  canvas.style.pointerEvents = 'none';
+  canvas.style.zIndex = '5';
+  canvas.style.width = frameSize + 'px';
+  canvas.style.height = frameSize + 'px';
+  document.body.appendChild(canvas);
+  
+  const ctx = canvas.getContext('2d');
+  
+  creatures3D.instances[creature.id] = {
+    canvas,
+    ctx,
+    frameIndex: 0,
+    direction: 0,
+    lastPos: { x: creature.x, y: creature.y }
+  };
+  
+  console.log('Bee sprite added for', creature.id);
+}
+
+function removeCreature3D(creature){
+  const inst = creatures3D.instances[creature.id];
+  if(!inst) return;
+  
+  // Remove canvas from DOM
+  if(inst.canvas && inst.canvas.parentNode){
+    inst.canvas.parentNode.removeChild(inst.canvas);
+  }
+  
+  delete creatures3D.instances[creature.id];
+}
+
+function updateCreatures3D(state, engine){
+  if(!creatures3D.ready || !state.player) return;
+  
+  const camX = state.player.x;
+  const camY = state.player.y;
+  const viewRange = 1400;
+  const data = creatures3D.spriteData;
+  const frameSize = data.frameSize;
+  const framesPerDir = data.framesPerDirection;
+  const fps = data.fps;
+  const numDirections = data.directions;
+  
+  // Check visibility and spawn/remove as needed
+  state.creatures.forEach(c => {
+    if(c.key !== 'bee') return;
+    
+    const dx = c.x - camX;
+    const dy = c.y - camY;
+    const dist = Math.hypot(dx, dy);
+    const inView = dist < viewRange;
+    const hasInstance = creatures3D.instances[c.id];
+    
+    if(inView && !hasInstance) addCreature3D(c, state);
+    else if(!inView && hasInstance) removeCreature3D(c);
+  });
+  
+  // Update visible bee sprites
+  Object.entries(creatures3D.instances).forEach(([creatureId, inst]) => {
+    const creature = state.creatures.find(c => c.id === creatureId);
+    if(!creature){
+      removeCreature3D({id: creatureId});
+      return;
+    }
+    
+    // Position canvas at sprite screen location
+    const gameCanvas = engine.canvas;
+    const rect = gameCanvas.getBoundingClientRect();
+    const screenX = rect.left + (creature.x - (camX - gameCanvas.width / 2));
+    const screenY = rect.top + (creature.y - (camY - gameCanvas.height / 2));
+    
+    inst.canvas.style.left = (screenX - frameSize/2) + 'px';
+    inst.canvas.style.top = (screenY - frameSize/2) + 'px';
+    
+    // Determine direction (0-8 for 9 directions)
+    const dx = creature.x - inst.lastPos.x;
+    const dy = creature.y - inst.lastPos.y;
+    
+    if(Math.hypot(dx, dy) > 0.5){
+      const angle = Math.atan2(-dy, dx);
+      // Map angle to 9 directions (0-8)
+      inst.direction = Math.round(((angle + Math.PI) / (Math.PI * 2)) * numDirections) % numDirections;
+      inst.lastPos = { x: creature.x, y: creature.y };
+    }
+    
+    // Advance animation frame
+    inst.frameIndex = (inst.frameIndex + 1) % framesPerDir;
+    
+    // Draw frame
+    drawBeeFrame(inst.ctx, creature, inst.direction, inst.frameIndex, frameSize, framesPerDir);
+  });
+}
+
+function drawBeeFrame(ctx, creature, direction, frameIndex, frameSize, framesPerDir){
+  if(!creatures3D.spriteSheet) return;
+  
+  const sheet = creatures3D.spriteSheet;
+  const srcX = frameIndex * frameSize;
+  const srcY = direction * frameSize;
+  
+  ctx.clearRect(0, 0, frameSize, frameSize);
+  ctx.drawImage(sheet, srcX, srcY, frameSize, frameSize, 0, 0, frameSize, frameSize);
+}
+
+// Hook into game loop
+export function updateCreatures3DOverlay(state, engine){
+  if(!creatures3D.ready) {
+    initCreatures3D(); // Lazy init
+    return; // Skip update until ready
+  }
+  updateCreatures3D(state, engine);
+}
+
+const bee3D = {
+  initPromise: null,
+  ready: false,
+  THREE: null,
+  loader: null,
+  renderer: null,
+  scene: null,
+  camera: null,
+  model: null,
+  mixer: null,
+  actions: {},
+  currentAnimState: null, // 'idle' or 'hover'
+  lastPlayerPos: { x: 0, y: 0 },
+  screenScale: 1
+};
+
+async function initBee3D(){
+  if(bee3D.initPromise) return bee3D.initPromise;
+  const canvas = document.getElementById('bee3d');
+  if(!canvas) return Promise.resolve();
+  
+  bee3D.initPromise = (async()=>{
+    console.log('Bee 3D: init starting');
+    
+    // Import Three.js from local modules using absolute path
+    const [THREE, loaders] = await Promise.all([
+      import('/OrbsRPG/orb-rpg/assets/3d%20assets/node_modules/three/build/three.module.js'),
+      import('/OrbsRPG/orb-rpg/assets/3d%20assets/node_modules/three/examples/jsm/loaders/GLTFLoader.js')
+    ]);
+    
+    console.log('Bee 3D: modules imported');
+    bee3D.THREE = THREE;
+    bee3D.loader = new loaders.GLTFLoader();
+    
+    // Create renderer
+    bee3D.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    bee3D.renderer.setClearColor(0x000000, 0);
+    bee3D.renderer.setPixelRatio(window.devicePixelRatio || 1);
+    
+    // Create scene
+    bee3D.scene = new THREE.Scene();
+    bee3D.scene.background = null;
+    
+    // Create camera (will be updated on resize)
+    bee3D.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000);
+    bee3D.camera.position.set(0, 0, 2);
+    bee3D.camera.lookAt(0, 0, 0);
+    
+    // Lighting - stronger for bee color visibility
+    const amb = new THREE.AmbientLight(0xffffff, 1.2);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+    dir.position.set(5, 8, 5);
+    const dir2 = new THREE.DirectionalLight(0xccffff, 0.5);
+    dir2.position.set(-5, 3, -5);
+    bee3D.scene.add(amb);
+    bee3D.scene.add(dir);
+    bee3D.scene.add(dir2);
+    
+    resizeBee3D();
+    await loadBeeModel();
+    console.log('Bee 3D: model loaded');
+    animateBee3D();
+    bee3D.ready = true;
+  })().catch(err => console.error('Bee 3D init failed', err));
+  
+  return bee3D.initPromise;
+}
+
+async function loadBeeModel(){
+  if(!bee3D.loader) return;
+  const url = 'assets/3d%20assets/Flying%20bee.glb';
+  
+  return new Promise((resolve, reject) => {
+    bee3D.loader.load(url, gltf => {
+      if(bee3D.model) bee3D.scene.remove(bee3D.model);
+      bee3D.model = gltf.scene;
+      bee3D.scene.add(bee3D.model);
+      
+      // Auto-center and scale
+      const box = new bee3D.THREE.Box3().setFromObject(bee3D.model);
+      const size = box.getSize(new bee3D.THREE.Vector3());
+      const center = box.getCenter(new bee3D.THREE.Vector3());
+      bee3D.model.position.sub(center);
+      
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const scale = 0.2 / maxDim; // Much much smaller
+      bee3D.model.scale.setScalar(scale);
+      bee3D.model.rotation.set(Math.PI * 0.5, Math.PI * 1.5, 0); // Rotated 90deg more for default view
+      bee3D.model.position.set(0, 0, 0);
+      
+      // Fix materials to show colors (traverse all meshes)
+      bee3D.model.traverse(node => {
+        if(node.isMesh && node.material){
+          node.material.side = bee3D.THREE.DoubleSide;
+          if(node.material.map) console.log('Bee: found texture map');
+          if(!node.material.map){
+            // If no texture, use a default color
+            node.material.color.setHex(0xffaa00); // Orange-ish bee color
+            node.material.emissive.setHex(0x442200);
+          }
+        }
+      });
+      
+      console.log('Bee 3D: model size', size, 'scale', scale);
+      if(gltf.animations && gltf.animations.length > 0){
+        bee3D.mixer = new bee3D.THREE.AnimationMixer(bee3D.model);
+        gltf.animations.forEach(clip => {
+          bee3D.actions[clip.name] = bee3D.mixer.clipAction(clip);
+        });
+        console.log('Bee 3D: animations loaded:', Object.keys(bee3D.actions).join(', '));
+        // Start with idle
+        playBeeAnimation('idle');
+      }
+      
+      resolve();
+    }, undefined, (err) => {
+      console.error('Bee model load failed', err);
+      reject(err);
+    });
+  });
+}
+
+function playBeeAnimation(name){
+  if(!bee3D.mixer || !bee3D.actions[name]) return;
+  if(bee3D.currentAnimState === name) return; // Already playing
+  
+  // Stop all other animations
+  Object.values(bee3D.actions).forEach(action => action.stop());
+  
+  // Play target animation
+  const action = bee3D.actions[name];
+  action.reset();
+  action.play();
+  bee3D.currentAnimState = name;
+}
+
+function resizeBee3D(){
+  const canvas = document.getElementById('bee3d');
+  if(!canvas || !bee3D.renderer) return;
+  
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  bee3D.renderer.setSize(width, height, false);
+  console.log('Bee 3D: canvas resized to', width, 'x', height);
+  
+  if(bee3D.camera){
+    bee3D.camera.aspect = width / height;
+    bee3D.camera.updateProjectionMatrix();
+  }
+}
+
+function updateBee3D(state){
+  if(!bee3D.ready || !bee3D.model) return;
+  
+  // Update mixer
+  if(bee3D.mixer){
+    bee3D.mixer.update(1/60); // Assume 60fps
+  }
+  
+  // Detect if player moved
+  const playerX = state.player?.x || 0;
+  const playerY = state.player?.y || 0;
+  const moved = Math.abs(playerX - bee3D.lastPlayerPos.x) > 0.5 || Math.abs(playerY - bee3D.lastPlayerPos.y) > 0.5;
+  
+  // Play appropriate animation
+  const targetAnim = moved ? 'hover' : 'idle';
+  playBeeAnimation(targetAnim);
+  
+  // Rotate bee based on movement direction
+  if(moved){
+    const dx = playerX - bee3D.lastPlayerPos.x;
+    const dy = playerY - bee3D.lastPlayerPos.y;
+    const angle = Math.atan2(-dy, dx) + Math.PI; // Negate dy to fix up/down
+    bee3D.model.rotation.set(Math.PI * 0.5, Math.PI * 1.5 + angle, 0);
+  }
+  
+  bee3D.lastPlayerPos = { x: playerX, y: playerY };
+}
+
+function animateBee3D(){
+  if(!bee3D.renderer || !bee3D.scene || !bee3D.camera) return;
+  
+  const render = () => {
+    bee3D.renderer.render(bee3D.scene, bee3D.camera);
+    requestAnimationFrame(render);
+  };
+  render();
+}
+
+window.addEventListener('resize', resizeBee3D);
+
+// Hook into game loop
+export function updateBeeOverlay(state){
+  if(!bee3D.ready) {
+    initBee3D(); // Lazy init on first update
+  }
+  updateBee3D(state);
+}
+
+// Console command to spawn a bee near player
+window.spawnBee = function() {
+  const state = window.gameState;
+  if (!state || !state.player) {
+    console.log('Game not running or player not found');
+    return;
+  }
+  
+  const beeType = CREATURE_TYPES.find(t => t.key === 'bee');
+  if (!beeType) {
+    console.log('Bee type not found');
+    return;
+  }
+  
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 100;
+  const x = state.player.x + Math.cos(angle) * dist;
+  const y = state.player.y + Math.sin(angle) * dist;
+  
+  const bee = spawnCreatureAt(state, x, y, beeType);
+  console.log('Spawned bee:', bee.name, 'at', x.toFixed(0), y.toFixed(0));
+  return bee;
+};
