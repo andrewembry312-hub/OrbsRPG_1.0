@@ -8,8 +8,6 @@ export function createState(engine, input, ui){
   let options = loadJson('orb_rpg_mod_opts') ?? { showAim:true, showDebug:false, autoPickup:false };
   if(!options.hasOwnProperty('cameraMode')) options.cameraMode = 'follow';
   if(!options.hasOwnProperty('autoPickup')) options.autoPickup = false;
-  // Developer mode (loaded from localStorage, default false)
-  const devMode = localStorage.getItem('devMode') === 'true';
   
   // Load binds with version check - reset if version changed
   let savedBinds = loadJson('orb_rpg_mod_binds');
@@ -53,7 +51,6 @@ export function createState(engine, input, ui){
   const state={
     engine,input,ui,
     options, binds,
-    devMode,
     progression, campaign,
     basePlayer, player,
     currentHero: 'warrior', // track current hero class

@@ -69,9 +69,8 @@ canvas{display:block}
 .equipSlot:hover{ outline:2px solid rgba(122,162,255,.5); }
 .equipSlot.active{ outline:2px solid rgba(122,162,255,.8); }
 .equipExtras{ margin-top:16px; display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; }
-.equipSlot{ position:absolute; width:70px; height:70px; border-radius:8px; border:2px solid #fff; background:#111; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:9px; font-weight:900; color:#fff; cursor:pointer; user-select:none; padding:4px; }
-.equipSlot:hover{ outline:2px solid rgba(122,162,255,.5); }
-.equipSlot.active{ outline:2px solid rgba(122,162,255,.8); }
+.weaponSlot{ margin-top:8px; display:grid; grid-template-columns: 1fr; }
+.weaponSlot .equip-row{ background:#111; border-color:#fff; }
 .equip-row{ width:100%; height:70px; border-radius:8px; border:2px solid #fff; background:#111; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:9px; font-weight:900; color:#fff; cursor:pointer; user-select:none; padding:4px; }
 .equip-row:hover{ outline:2px solid rgba(122,162,255,.5); }
 .equip-row.active{ outline:2px solid rgba(122,162,255,.8); }

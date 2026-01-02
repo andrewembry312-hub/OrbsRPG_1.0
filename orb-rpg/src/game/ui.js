@@ -1226,17 +1226,6 @@ export function buildUI(state){
           </div>
 
           <div class="box" style="margin-top:12px">
-            <div class="small" style="font-weight:900">🔧 Developer Mode</div>
-            <div style="margin-top:8px">
-              <label class="small"><input id="optDevMode" type="checkbox"/> Enable Developer Mode</label>
-              <div class="small" style="color:#aaa; margin-top:6px; line-height:1.4;">Enables experimental features and alternate UI implementations for testing.</div>
-            </div>
-            <div class="btnRow" style="margin-top:10px">
-              <button id="btnDevModeToggle" class="secondary">Toggle Equipment UI</button>
-            </div>
-          </div>
-
-          <div class="box" style="margin-top:12px">
             <div class="small" style="font-weight:900">Debug</div>
             <div class="btnRow">
               <button id="btnDownloadLog" style="flex:1">Download Game Log</button>
@@ -1485,8 +1474,6 @@ function bindUI(state){
     btnApplyOpts:$('btnApplyOpts'),
     btnResetBinds:$('btnResetBinds'),
     btnDownloadLog:$('btnDownloadLog'),
-    btnDevModeToggle:$('btnDevModeToggle'),
-    optDevMode:$('optDevMode'),
     optShowAim:$('optShowAim'),
     optShowDebug:$('optShowDebug'),
     optShowDebugAI:$('optShowDebugAI'),
@@ -3644,51 +3631,28 @@ function bindUI(state){
     const equipTarget = isGroupMemberMode ? state.group.settings[isGroupMemberMode]?.equipment : state.player.equip;
     if(!equipTarget || !ui.equipCircle) return;
 
-    // Determine which layout to use (default: 2D original, devMode: 3D equipCircle)
-    const use3DLayout = state.devMode === true;
-
-    if(use3DLayout){
-      // 3D LAYOUT: Everything in equipCircle (3D canvas + circular armor + accessories + weapon)
-      renderEquipment3D(equipTarget, state, ui);
-    } else {
-      // 2D LAYOUT: Original design - separate containers
-      renderEquipment2D(equipTarget, state, ui);
-    }
-  };
-
-  function renderEquipment2D(equipTarget, state, ui){
-    // Reset 2D layout containers
-    const heroCls = state.groupMemberInventoryMode ? (state.friendlies.find(f=>f.id===state.groupMemberInventoryMode)?.variant||'warrior') : (state.player.class||'warrior');
+    // Reset containers
+    const heroCls = isGroupMemberMode ? (state.friendlies.find(f=>f.id===isGroupMemberMode)?.variant||'warrior') : (state.player.class||'warrior');
     const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Night.png', warden: 'New Warden.png' };
     const heroImg = heroImgMap[heroCls] || `${heroCls}.svg`;
-    
-    // Show 2D hero image
     const portraitImg = document.getElementById('heroPortrait');
     if(portraitImg) portraitImg.src = `assets/char/${heroImg}`;
-    
-    // Hide 3D canvas, show image
-    const portrait3d = document.getElementById('heroPortrait3d');
-    if(portrait3d) portrait3d.style.display = 'none';
-    if(portraitImg) portraitImg.style.display = 'block';
-    
-    // Clear all containers
-    ui.equipCircle.innerHTML = '';
     ui.equipExtras.innerHTML = '';
     ui.weaponSlot.innerHTML = '';
 
-    // Armor circle in equipCircle
+    // Circle layout: helm at top, 3 slots on left, 3 slots on right
     const circleSlots = ['helm','chest','belt','legs','shoulders','hands','feet'];
-    const angles = [-90, -150, 180, 150, -30, 0, 30];
+    const angles = [-90, -150, 180, 150, -30, 0, 30]; // helm top, 3 left, 3 right
     const circleRect = ui.equipCircle.getBoundingClientRect();
-    const radius = Math.max(200, Math.min(circleRect.width, circleRect.height)/2 - 25);
+    const radius = Math.max(200, Math.min(circleRect.width, circleRect.height)/2 - 25); // Increased radius to push slots outward
     const centerX = (ui.equipCircle.clientWidth || 480)/2;
     const centerY = (ui.equipCircle.clientHeight || 480)/2;
-    
     circleSlots.forEach((slot, idx)=>{
       const it = equipTarget[slot];
       const a = angles[idx] * Math.PI/180;
-      let x = centerX + radius * Math.cos(a) - 35;
+      let x = centerX + radius * Math.cos(a) - 35; // slot size 70
       let y = centerY + radius * Math.sin(a) - 35;
+      // Clamp to container to avoid going off-UI
       const maxX = (ui.equipCircle.clientWidth || 480) - 70;
       const maxY = (ui.equipCircle.clientHeight || 480) - 70;
       x = Math.max(0, Math.min(x, maxX));
@@ -3717,24 +3681,19 @@ function bindUI(state){
       ui.equipCircle.appendChild(el);
     });
 
-    // Accessories in equipExtras (horizontal row)
-    ['accessory1','accessory2','neck'].forEach((slot, accIdx)=>{
+    // Stack accessories and neck under the circle - 3 items in horizontal row
+    ['accessory1','accessory2','neck'].forEach(slot=>{
       const it = equipTarget[slot];
       const el = document.createElement('div');
-      el.className = 'equipSlot equip-row' + (state.selectedEquipSlot === slot ? ' active' : '');
-      const slotWidth = 70;
-      const spacing = 8;
-      const totalWidth = (slotWidth + spacing) * 3;
-      const startX = ((ui.equipExtras.parentElement?.clientWidth || 500) - totalWidth) / 2;
-      el.style.left = `${startX + accIdx * (slotWidth + spacing)}px`;
+      el.className = 'equip-row' + (state.selectedEquipSlot === slot ? ' active' : '');
       el.title = SLOT_LABEL[slot];
       const imgPath = it ? getItemImage(it) : null;
       if(it && imgPath){
-        el.innerHTML = `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
+        el.innerHTML = `<div class="label">${SLOT_LABEL[slot]}</div><img src="${imgPath}" alt="${it.name}" style="width:45px; height:45px; object-fit:contain;"/>`;
       } else if(it){
-        el.innerHTML = `<div style="text-align:center"><div style="color:${it.rarity.color}">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:10px">${it.name}</div></div>`;
+        el.innerHTML = `<div class="label">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:9px">${it.name}</div>`;
       } else {
-        el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[slot]}</div><div class="small" style="color:#aaa">None</div></div>`;
+        el.innerHTML = `<div class="label">${SLOT_LABEL[slot]}</div><div class="small" style="color:#555; font-size:9px">Empty</div>`;
       }
       el.onclick = ()=>{
         const now = performance.now ? performance.now() : Date.now();
@@ -3747,20 +3706,21 @@ function bindUI(state){
       ui.equipExtras.appendChild(el);
     });
 
-    // Weapon in weaponSlot
+    // Weapon row at the very bottom - full width
     const wIt = equipTarget['weapon'];
-    const wEl = document.createElement('div');
-    wEl.className = 'equipSlot equip-row' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
-    wEl.title = SLOT_LABEL['weapon'];
+    const wRow = document.createElement('div');
+    wRow.className = 'equip-row' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
+    wRow.title = SLOT_LABEL['weapon'];
     const imgPath = wIt ? getItemImage(wIt) : null;
+    const levelDisplay = wIt && wIt.itemLevel ? ` <span style="color:#6af; font-size:8px">iLvl ${wIt.itemLevel}</span>` : '';
     if(imgPath){
-      wEl.innerHTML = `<img src="${imgPath}" alt="${wIt.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
+      wRow.innerHTML = `<div class="label">${SLOT_LABEL['weapon']}</div><img src="${imgPath}" alt="${wIt.name}" style="width:50px; height:50px; object-fit:contain;"/>`;
     } else if(wIt){
-      wEl.innerHTML = `<div style="text-align:center"><div style="color:${wIt.rarity.color}">${SLOT_LABEL['weapon']}</div><div class="${rarityClass(wIt.rarity.key)}" style="font-size:10px">${wIt.name}</div></div>`;
+      wRow.innerHTML = `<div class="label">${SLOT_LABEL['weapon']}</div><div class="${rarityClass(wIt.rarity.key)}" style="font-size:10px">${wIt.name}${levelDisplay}</div>`;
     } else {
-      wEl.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL['weapon']}</div><div class="small" style="color:#aaa">None</div></div>`;
+      wRow.innerHTML = `<div class="label">${SLOT_LABEL['weapon']}</div><div class="small" style="color:#555; font-size:9px">Empty</div>`;
     }
-    wEl.onclick = ()=>{
+    wRow.onclick = ()=>{
       const now = performance.now ? performance.now() : Date.now();
       const key = `equip-weapon`;
       const last = ui._lastInvClick;
@@ -3768,135 +3728,7 @@ function bindUI(state){
       ui._lastInvClick = { key, t: now };
       state.selectedEquipSlot = wIt ? 'weapon' : null; state.selectedIndex=-1; ui.updateInventorySelection();
     };
-    ui.weaponSlot.appendChild(wEl);
-  }
-
-  function renderEquipment3D(equipTarget, state, ui){
-    // Reset 3D layout container
-    const heroCls = state.groupMemberInventoryMode ? (state.friendlies.find(f=>f.id===state.groupMemberInventoryMode)?.variant||'warrior') : (state.player.class||'warrior');
-    const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Night.png', warden: 'New Warden.png' };
-    const heroImg = heroImgMap[heroCls] || `${heroCls}.svg`;
-    
-    // Show 3D canvas, hide image
-    const portrait3d = document.getElementById('heroPortrait3d');
-    const portraitImg = document.getElementById('heroPortrait');
-    if(portrait3d) portrait3d.style.display = 'block';
-    if(portraitImg) portraitImg.style.display = 'none';
-    if(portraitImg) portraitImg.src = `assets/char/${heroImg}`;
-    
-    // Clear equipCircle but keep the 3D preview
-    const heroPortraitWrap = document.getElementById('heroPortraitWrap');
-    if(heroPortraitWrap && heroPortraitWrap.parentElement === ui.equipCircle){
-      // Keep hero portrait wrap
-      const heroWrap = heroPortraitWrap;
-      ui.equipCircle.innerHTML = '';
-      ui.equipCircle.appendChild(heroWrap);
-    } else {
-      ui.equipCircle.innerHTML = '';
-    }
-    
-    // Clear old containers
-    ui.equipExtras.innerHTML = '';
-    ui.weaponSlot.innerHTML = '';
-
-    // Circle layout: helm at top, 3 slots on left, 3 slots on right
-    const circleSlots = ['helm','chest','belt','legs','shoulders','hands','feet'];
-    const angles = [-90, -150, 180, 150, -30, 0, 30];
-    const circleRect = ui.equipCircle.getBoundingClientRect();
-    const radius = Math.max(200, Math.min(circleRect.width, circleRect.height)/2 - 25);
-    const centerX = (ui.equipCircle.clientWidth || 480)/2;
-    const centerY = (ui.equipCircle.clientHeight || 480)/2;
-    circleSlots.forEach((slot, idx)=>{
-      const it = equipTarget[slot];
-      const a = angles[idx] * Math.PI/180;
-      let x = centerX + radius * Math.cos(a) - 35;
-      let y = centerY + radius * Math.sin(a) - 35;
-      const maxX = (ui.equipCircle.clientWidth || 480) - 70;
-      const maxY = (ui.equipCircle.clientHeight || 480) - 70;
-      x = Math.max(0, Math.min(x, maxX));
-      y = Math.max(0, Math.min(y, maxY));
-      const el = document.createElement('div');
-      el.className = 'equipSlot' + (state.selectedEquipSlot === slot ? ' active' : '');
-      el.style.left = `${Math.round(x)}px`;
-      el.style.top = `${Math.round(y)}px`;
-      el.title = SLOT_LABEL[slot];
-      const imgPath = it ? getItemImage(it) : null;
-      if(it && imgPath){
-        el.innerHTML = `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
-      } else if(it){
-        el.innerHTML = `<div style="text-align:center"><div style="color:${it.rarity.color}">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:10px">${it.name}</div></div>`;
-      } else {
-        el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[slot]}</div><div class="small" style="color:#aaa">None</div></div>`;
-      }
-      el.onclick = ()=>{
-        const now = performance.now ? performance.now() : Date.now();
-        const key = `equip-${slot}`;
-        const last = ui._lastInvClick;
-        if(last && last.key === key && now - last.t < 350){ state.selectedEquipSlot = slot; state.selectedIndex=-1; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return; }
-        ui._lastInvClick = { key, t: now };
-        state.selectedEquipSlot = it ? slot : null; state.selectedIndex=-1; ui.updateInventorySelection();
-      };
-      ui.equipCircle.appendChild(el);
-    });
-
-    // Stack accessories and neck under the circle - use same slot styling as armor
-    ['accessory1','accessory2','neck'].forEach((slot, accIdx)=>{
-      const it = equipTarget[slot];
-      const el = document.createElement('div');
-      el.className = 'equipSlot' + (state.selectedEquipSlot === slot ? ' active' : '');
-      const slotWidth = 70;
-      const spacing = 8;
-      const totalWidth = (slotWidth + spacing) * 3;
-      const startX = (ui.equipCircle.clientWidth || 480 - totalWidth) / 2;
-      el.style.position = 'absolute';
-      el.style.left = `${startX + accIdx * (slotWidth + spacing)}px`;
-      el.style.top = `340px`;
-      el.title = SLOT_LABEL[slot];
-      const imgPath = it ? getItemImage(it) : null;
-      if(it && imgPath){
-        el.innerHTML = `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
-      } else if(it){
-        el.innerHTML = `<div style="text-align:center"><div style="color:${it.rarity.color}">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:10px">${it.name}</div></div>`;
-      } else {
-        el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[slot]}</div><div class="small" style="color:#aaa">None</div></div>`;
-      }
-      el.onclick = ()=>{
-        const now = performance.now ? performance.now() : Date.now();
-        const key = `equip-${slot}`;
-        const last = ui._lastInvClick;
-        if(last && last.key === key && now - last.t < 350){ state.selectedEquipSlot = slot; state.selectedIndex=-1; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return; }
-        ui._lastInvClick = { key, t: now };
-        state.selectedEquipSlot = it ? slot : null; state.selectedIndex=-1; ui.updateInventorySelection();
-      };
-      ui.equipCircle.appendChild(el);
-    });
-
-    // Weapon slot - centered, same size as armor slots
-    const wIt = equipTarget['weapon'];
-    const wEl = document.createElement('div');
-    wEl.className = 'equipSlot' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
-    wEl.style.position = 'absolute';
-    const weaponX = (ui.equipCircle.clientWidth || 480) / 2 - 35;
-    wEl.style.left = `${weaponX}px`;
-    wEl.style.top = `425px`;
-    wEl.title = SLOT_LABEL['weapon'];
-    const imgPath = wIt ? getItemImage(wIt) : null;
-    if(imgPath){
-      wEl.innerHTML = `<img src="${imgPath}" alt="${wIt.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
-    } else if(wIt){
-      wEl.innerHTML = `<div style="text-align:center"><div style="color:${wIt.rarity.color}">${SLOT_LABEL['weapon']}</div><div class="${rarityClass(wIt.rarity.key)}" style="font-size:10px">${wIt.name}</div></div>`;
-    } else {
-      wEl.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL['weapon']}</div><div class="small" style="color:#aaa">None</div></div>`;
-    }
-    wEl.onclick = ()=>{
-      const now = performance.now ? performance.now() : Date.now();
-      const key = `equip-weapon`;
-      const last = ui._lastInvClick;
-      if(last && last.key === key && now - last.t < 350){ state.selectedEquipSlot = 'weapon'; state.selectedIndex=-1; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return; }
-      ui._lastInvClick = { key, t: now };
-      state.selectedEquipSlot = wIt ? 'weapon' : null; state.selectedIndex=-1; ui.updateInventorySelection();
-    };
-    ui.equipCircle.appendChild(wEl);
+    ui.weaponSlot.appendChild(wRow);
   };
 
   function invSlotLabel(it){
@@ -5375,23 +5207,10 @@ function bindUI(state){
     state.options.showAim = !!ui.optShowAim.checked;
     state.options.showDebug = !!ui.optShowDebug.checked;
     state.options.autoPickup = !!ui.optAutoPickup.checked;
-    state.options.cameraMode = document.querySelector('input[name="cameraMode"]:checked')?.value || 'follow';
-    state.devMode = !!ui.optDevMode.checked;
-    localStorage.setItem('devMode', state.devMode);
+      state.options.cameraMode = document.querySelector('input[name="cameraMode"]:checked')?.value || 'follow';
     saveJson('orb_rpg_mod_opts', state.options);
     ui.toast('Options applied.');
   };
-
-  if(ui.btnDevModeToggle){
-    ui.btnDevModeToggle.onclick=()=>{
-      state.devMode = !state.devMode;
-      ui.optDevMode.checked = state.devMode;
-      localStorage.setItem('devMode', state.devMode);
-      if(ui.updateEquipmentSlots) ui.updateEquipmentSlots();
-      ui.toast(`🔧 Equipment UI: ${state.devMode ? '3D (equipCircle)' : '2D (original)'})`);
-      console.log('🔧 Developer Mode Equipment UI:', state.devMode ? '3D (equipCircle)' : '2D (original)');
-    };
-  }
 
   // Apply camera mode instantly on radio change and snap when switching to follow
   if(!ui._cameraModeBound){
