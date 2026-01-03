@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FreePack Sprite Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: monospace;
+        }
+        #container {
+            display: flex;
+            gap: 20px;
+        }
+        #canvasContainer {
+            position: relative;
+            display: inline-block;
+        }
+        canvas {
+            border: 2px solid #444;
+            image-rendering: pixelated;
+            cursor: crosshair;
+        }
+        #info {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        h1 {
+            margin-top: 0;
+            color: #4af;
+        }
+        h3 {
+            color: #4af;
+            margin-top: 0;
+        }
+        .coord {
+            background: #3a3a3a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 3px solid #4af;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .coord-info {
+            flex: 1;
+        }
+        .coord button {
+            background: #f44;
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .coord button:hover {
+            background: #f66;
+        }
+        .preview {
+            margin: 20px 0;
+            padding: 10px;
+            background: #3a3a3a;
+            border-radius: 4px;
+        }
+        .preview canvas {
+            background: #555;
+            border: 1px solid #777;
+        }
+        button {
+            background: #4af;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            background: #6cf;
+        }
+        .tileSize {
+            margin: 10px 0;
+        }
+        .tileSize button {
+            background: #666;
+        }
+        .tileSize button.active {
+            background: #4af;
+        }
+        .selections-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .action-buttons {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+        .action-buttons button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 FreePack 2 Sprite Viewer</h1>
+    <p>Click on any sprite to see its coordinates. Use the buttons to change tile size.</p>
+    
+    <div class="tileSize">
+        <strong>Tile Size:</strong>
+        <button onclick="setTileSize(16)" id="btn16">16x16</button>
+        <button onclick="setTileSize(32)" id="btn32" class="active">32x32</button>
+        <button onclick="setTileSize(48)" id="btn48">48x48</button>
+        <button onclick="setTileSize(64)" id="btn64">64x64</button>
+    </div>
+    
+    <div id="container">
+        <div id="canvasContainer">
+            <canvas id="canvas"></canvas>
+        </div>
+        <div id="info">
+            <h3>Multi-Select Sprite Viewer</h3>
+            <p style="color: #aaa; font-size: 12px;">Click sprites to add to selection. Ctrl+Click to toggle.</p>
+            
+            <h3>Selections (<span id="selectionCount">0</span>)</h3>
+            <div class="action-buttons">
+                <button onclick="clearAllSelections()" style="background: #f66;">Clear All</button>
+                <button onclick="exportSelections()">Export Code</button>
+            </div>
+            
+            <div class="selections-list" id="selectionsList">
+                <div style="color: #888; padding: 10px; text-align: center;">No selections yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let tileSize = 32;
+        let img = new Image();
+        let selections = new Map(); // Map of "x,y" -> {x, y, tileSize}
+        let lastClickedSprite = null;
+        
+        img.src = 'assets/FreeEnvironment/FreeEnvironment/FreePack 2.png';
+        
+        img.onload = () => {
+            drawGrid();
+        };
+        
+        img.onerror = () => {
+            document.getElementById('selectionsList').innerHTML = 
+                '<div style="color: #f44">❌ Error loading FreePack 2.png<br>Make sure the file exists at:<br>assets/FreeEnvironment/FreeEnvironment/FreePack 2.png</div>';
+        };
+        
+        function setTileSize(size) {
+            tileSize = size;
+            ['btn16', 'btn32', 'btn48', 'btn64'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            document.getElementById('btn' + size).classList.add('active');
+            drawGrid();
+        }
+        
+        function drawGrid() {
+            if (!img.complete) return;
+            
+            const scale = 2; // Display scale
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            
+            // Draw the sprite sheet
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+            ctx.lineWidth = 1;
+            
+            for (let x = 0; x < canvas.width; x += tileSize * scale) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y < canvas.height; y += tileSize * scale) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw selected sprites with green highlight
+            selections.forEach((sel, key) => {
+                ctx.strokeStyle = '#0f0';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(sel.x * scale, sel.y * scale, sel.tileSize * scale, sel.tileSize * scale);
+            });
+            
+            // Draw coordinates
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.font = 'bold 10px monospace';
+            
+            for (let y = 0; y < img.height; y += tileSize) {
+                for (let x = 0; x < img.width; x += tileSize) {
+                    const displayX = x * scale + 2;
+                    const displayY = y * scale + 12;
+                    ctx.fillText(`${x},${y}`, displayX, displayY);
+                }
+            }
+        }
+        
+        function addSelection(x, y) {
+            const key = `${x},${y}`;
+            if (!selections.has(key)) {
+                selections.set(key, {x, y, tileSize});
+                lastClickedSprite = key;
+                updateSelectionsList();
+                drawGrid();
+            }
+        }
+        
+        function removeSelection(key) {
+            selections.delete(key);
+            updateSelectionsList();
+            drawGrid();
+        }
+        
+        function toggleSelection(x, y) {
+            const key = `${x},${y}`;
+            if (selections.has(key)) {
+                removeSelection(key);
+            } else {
+                addSelection(x, y);
+            }
+        }
+        
+        function clearAllSelections() {
+            selections.clear();
+            lastClickedSprite = null;
+            updateSelectionsList();
+            drawGrid();
+        }
+        
+        function updateSelectionsList() {
+            const list = document.getElementById('selectionsList');
+            document.getElementById('selectionCount').textContent = selections.size;
+            
+            if (selections.size === 0) {
+                list.innerHTML = '<div style="color: #888; padding: 10px; text-align: center;">No selections yet</div>';
+                return;
+            }
+            
+            let html = '';
+            selections.forEach((sel, key) => {
+                html += `
+                    <div class="coord">
+                        <div class="coord-info">
+                            <strong>X: ${sel.x}, Y: ${sel.y}</strong><br>
+                            <small style="color: #aaa;">${sel.tileSize}x${sel.tileSize}</small>
+                        </div>
+                        <button onclick="removeSelection('${key}')">✕</button>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+        
+        function exportSelections() {
+            if (selections.size === 0) {
+                alert('No selections to export!');
+                return;
+            }
+            
+            let code = '// Selected Sprites from FreePack 2.png:\n\n';
+            let index = 1;
+            
+            selections.forEach((sel, key) => {
+                code += `// Sprite ${index}:\n`;
+                code += `const sprite${index} = {\n`;
+                code += `  x: ${sel.x},\n`;
+                code += `  y: ${sel.y},\n`;
+                code += `  size: ${sel.tileSize}\n`;
+                code += `};\n\n`;
+                index++;
+            });
+            
+            code += '// Usage:\n';
+            code += 'ctx.drawImage(\n';
+            code += '  spriteSheet,\n';
+            code += '  spriteX, spriteY, spriteWidth, spriteHeight,  // Source\n';
+            code += '  posX, posY, width, height  // Destination\n';
+            code += ');\n';
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Code copied to clipboard!');
+            });
+        }
+        
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scale = 2;
+            const x = Math.floor((e.clientX - rect.left) / scale / tileSize) * tileSize;
+            const y = Math.floor((e.clientY - rect.top) / scale / tileSize) * tileSize;
+            
+            if (x < 0 || y < 0 || x >= img.width || y >= img.height) return;
+            
+            if (e.ctrlKey || e.metaKey) {
+                // Ctrl+Click to toggle
+                toggleSelection(x, y);
+            } else {
+                // Regular click to add
+                addSelection(x, y);
+            }
+        });
+        
+        // Initial draw
+        if (img.complete) {
+            drawGrid();
+        }
+    </script>
+</body>
+</html>

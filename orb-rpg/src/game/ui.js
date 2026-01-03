@@ -12,18 +12,18 @@ export function buildUI(state){
   const root=document.getElementById('ui-root');
   root.innerHTML = `
     <!-- Main Menu Overlay -->
-    <div id="mainMenu" class="overlay show" style="background: url('assets/ui/MainMenu.png') center/cover no-repeat;">
-      <div class="panel" style="width:min(560px,92vw); background: rgba(0,0,0,0.55)">
-        <h2 style="margin:0">Orb RPG</h2>
+    <div id="mainMenu" class="overlay show" style="background: url('assets/ui/MainMenu.png') center center/105% auto no-repeat #000;">
+      <div class="panel" style="width:min(560px,92vw); background: rgba(0,0,0,0.65); border:2px solid rgba(212,175,55,0.5); box-shadow:0 0 24px rgba(212,175,55,0.25);">
+        <h2 style="margin:0; color:#e9d27b; letter-spacing:1px; text-shadow:0 0 12px rgba(212,175,55,0.55);">Orb RPG</h2>
         
-        <div class="box">
+        <div class="box" style="background:rgba(5,5,5,0.75); border:2px solid rgba(212,175,55,0.35); box-shadow:0 0 12px rgba(212,175,55,0.18);">
           <div class="row" style="align-items:center; gap:10px">
-            <div class="small" style="width:120px">Hero Name</div>
-            <input id="heroNameInput" type="text" placeholder="Hero" style="flex:1"/>
+            <div class="small" style="width:120px; color:#e3c86c; font-weight:700; letter-spacing:0.3px;">Hero Name</div>
+            <input id="heroNameInput" type="text" placeholder="Hero" style="flex:1; padding:10px 12px; background:#080808; color:#f6dc87; border:1px solid rgba(212,175,55,0.6); border-radius:8px; font-weight:700; letter-spacing:0.4px; box-shadow:inset 0 0 8px rgba(212,175,55,0.15);"/>
           </div>
-          <div class="btnRow" style="margin-top:12px">
-            <button id="btnNewGame">New Game</button>
-            <button id="btnLoadGame" class="secondary">Load Game</button>
+          <div class="btnRow" style="margin-top:12px; background:rgba(0,0,0,0.85); border:2px solid rgba(212,175,55,0.65); border-radius:12px; padding:12px; gap:12px; box-shadow:0 0 18px rgba(212,175,55,0.2);">
+            <button id="btnNewGame" style="flex:1; padding:12px 14px; background:#050505; color:#e7c76c; border:2px solid rgba(212,175,55,0.85); border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">New Game</button>
+            <button id="btnLoadGame" class="secondary" style="flex:1; padding:12px 14px; background:#0a0a0a; color:#f5d878; border:2px solid rgba(212,175,55,0.7); border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Load Game</button>
           </div>
         </div>
       </div>
@@ -31,29 +31,29 @@ export function buildUI(state){
 
     <!-- Save Manager Overlay -->
     <div id="saveOverlay" class="overlay">
-      <div class="panel" style="width:min(760px,92vw)">
+      <div class="panel" style="width:min(760px,92vw); background: rgba(0,0,0,0.65); border:2px solid rgba(212,175,55,0.5); box-shadow:0 0 24px rgba(212,175,55,0.25);">
         <div class="row">
-          <h2 style="margin:0">Save Manager</h2>
-          <div class="btnRow" style="margin:0">
-            <button id="saveClose" class="secondary">Close</button>
+          <h2 style="margin:0; color:#e9d27b; letter-spacing:1px; text-shadow:0 0 12px rgba(212,175,55,0.55);">Save Manager</h2>
+          <div class="btnRow" style="margin:0; background:rgba(0,0,0,0.85); border:2px solid rgba(212,175,55,0.65); border-radius:12px; padding:12px; gap:12px; box-shadow:0 0 18px rgba(212,175,55,0.2);">
+            <button id="saveClose" class="secondary" style="padding:12px 14px; background:#0a0a0a; color:#f5d878; border:2px solid rgba(212,175,55,0.7); border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Close</button>
           </div>
         </div>
         <div class="grid2" style="margin-top:10px">
-          <div class="box">
-            <div class="small">Existing Saves</div>
+          <div class="box" style="background:rgba(5,5,5,0.75); border:2px solid rgba(212,175,55,0.35); box-shadow:0 0 12px rgba(212,175,55,0.18);">
+            <div class="small" style="color:#e3c86c; font-weight:700; letter-spacing:0.3px;">Existing Saves</div>
             <div id="saveList" style="margin-top:8px; max-height:360px; overflow:auto"></div>
           </div>
-          <div class="box">
-            <div class="small">Selected</div>
-            <div id="selSaveMeta" class="small" style="margin-top:6px; line-height:1.5">None</div>
+          <div class="box" style="background:rgba(5,5,5,0.75); border:2px solid rgba(212,175,55,0.35); box-shadow:0 0 12px rgba(212,175,55,0.18);">
+            <div class="small" style="color:#e3c86c; font-weight:700; letter-spacing:0.3px;">Selected</div>
+            <div id="selSaveMeta" class="small" style="margin-top:6px; line-height:1.5; color:#d4b896;">None</div>
             <div style="margin-top:12px" class="row" style="gap:8px">
-              <input id="saveNameInput" type="text" placeholder="Hero" style="flex:1"/>
+              <input id="saveNameInput" type="text" placeholder="Hero" style="flex:1; padding:10px 12px; background:#080808; color:#f6dc87; border:1px solid rgba(212,175,55,0.6); border-radius:8px; font-weight:700; letter-spacing:0.4px; box-shadow:inset 0 0 8px rgba(212,175,55,0.15);"/>
             </div>
-            <div class="btnRow" style="margin-top:12px">
-              <button id="btnLoadSelected">Load Selected</button>
-              <button id="btnOverwriteSelected" class="secondary">Overwrite Selected</button>
-              <button id="btnDeleteSelected" class="danger">Delete Selected</button>
-              <button id="btnSaveNew">Save New</button>
+            <div class="btnRow" style="margin-top:12px; background:rgba(0,0,0,0.85); border:2px solid rgba(212,175,55,0.65); border-radius:12px; padding:12px; gap:12px; box-shadow:0 0 18px rgba(212,175,55,0.2);">
+              <button id="btnLoadSelected" style="flex:1; padding:12px 14px; background:#050505; color:#e7c76c; border:2px solid rgba(212,175,55,0.85); border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Load Selected</button>
+              <button id="btnOverwriteSelected" class="secondary" style="flex:1; padding:12px 14px; background:#0a0a0a; color:#f5d878; border:2px solid rgba(212,175,55,0.7); border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Overwrite Selected</button>
+              <button id="btnDeleteSelected" class="danger" style="flex:1; padding:12px 14px; background:#3d0000; color:#ff6b6b; border:2px solid rgba(255,107,107,0.7); border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Delete Selected</button>
+              <button id="btnSaveNew" style="flex:1; padding:12px 14px; background:#050505; color:#e7c76c; border:2px solid rgba(212,175,55,0.85); border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Save New</button>
             </div>
           </div>
         </div>
@@ -510,9 +510,8 @@ export function buildUI(state){
                   </div>
                 </div>
 
-                <!-- Apply Button Row -->
+                <!-- Switch Button Row -->
                 <div style="display:flex; gap:6px; margin-top:8px; justify-content:center;">
-                  <button id="levelApply" style="border-color:#d4af37; background:rgba(212,175,55,0.3); color:#d4af37; padding:5px 14px; font-size:12px;">Apply</button>
                   <button id="levelSwitchToPlayer" style="border-color:#d4af37; background:rgba(212,175,55,0.1); color:#d4af37; padding:5px 14px; font-size:12px; display:none;">Switch to Player</button>
                 </div>
               </div>
@@ -1511,7 +1510,7 @@ function bindUI(state){
     invArmorStars:$('invArmorStars'), invArmorText:$('invArmorText'),
     lvlPts:$('lvlPts'),
     hpInc:$('hpInc'), hpDec:$('hpDec'), manaInc:$('manaInc'), manaDec:$('manaDec'), stamInc:$('stamInc'), stamDec:$('stamDec'),
-    hpSpend:$('hpSpend'), manaSpend:$('manaSpend'), stamSpend:$('stamSpend'), levelApply:$('levelApply'),
+    hpSpend:$('hpSpend'), manaSpend:$('manaSpend'), stamSpend:$('stamSpend'),
     levelSwitchToPlayer:$('levelSwitchToPlayer'),
     levelCharName:$('levelCharName'), levelCharRole:$('levelCharRole'), levelArmorRating:$('levelArmorRating'),
     levelArmorStars:$('levelArmorStars'),
@@ -1554,6 +1553,11 @@ function bindUI(state){
       // Map armor slots to image names
       if(slot === 'helm') return `assets/items/${rarityCapitalized} Helm.png`;
       if(slot === 'chest') return `assets/items/${rarityCapitalized} Chest.png`;
+      if(slot === 'shoulders') return `assets/items/${rarityCapitalized} shoulders.png`;
+      if(slot === 'belt') return `assets/items/${rarityCapitalized} belt.png`;
+      if(slot === 'feet') return `assets/items/${rarityCapitalized} feet.png`;
+      if(slot === 'hands') return `assets/items/${rarityCapitalized} hands.png`;
+      if(slot === 'legs') return `assets/items/${rarityCapitalized} leggings.png`;
     }
     if(item.kind === 'potion'){
       const potionType = item.type || '';
@@ -1704,7 +1708,6 @@ function bindUI(state){
   
   function renderSaveList(){ const arr=listSaves(); ui.saveList.innerHTML=''; let selectedId = ui._selectedSaveId; for(const s of arr){ const row=document.createElement('div'); row.className='slot'; row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.gap='8px'; row.innerHTML = `<div><b>${s.name||'Unnamed'}</b><div class="small">${s.created}</div></div><div class="small">ID ${s.id}</div>`; row.onclick=()=>{ ui._selectedSaveId=s.id; ui.selSaveMeta.innerHTML = `<b>${s.name||'Unnamed'}</b><br/>${s.created}<br/>ID ${s.id}`; }; if(selectedId===s.id) row.style.outline='2px solid rgba(122,162,255,.7)'; ui.saveList.appendChild(row); } }
 
-  ui.toggleSaves = (on)=>{ ui.saveOverlay.classList.toggle('show', on); if(on){ renderSaveList(); ui.saveNameInput.value = state.player?.name || 'Hero'; } };
   // Helper to make default save name (Hero — local date/time)
   function defaultSaveName(){
     const nm = state.player?.name || 'Hero';
@@ -1712,9 +1715,10 @@ function bindUI(state){
       return `${nm} — ${new Date().toLocaleString()}`;
     }catch{ return `${nm} — ${new Date().toISOString()}`; }
   }
-  // Ensure auto-fill on open
+  // Save overlay toggle: track visibility for ESC handling and pause state
   ui.toggleSaves = (on)=>{
-    ui.saveOverlay.classList.toggle('show', on);
+    state.showSaves = !!on;
+    ui.saveOverlay.classList.toggle('show', !!on);
     if(on){
       renderSaveList();
       ui.saveNameInput.value = defaultSaveName();
@@ -1763,7 +1767,7 @@ function bindUI(state){
   // Main menu background: use default path; you can override via localStorage if needed
   try{
     const initBg = localStorage.getItem('orb_rpg_menu_bg') || 'assets/ui/MainMenu.png';
-    ui.mainMenu.style.background = `url('${initBg}') center/cover no-repeat`;
+    ui.mainMenu.style.background = `url('${initBg}') center center/105% auto no-repeat #000`;
   }catch(e){}
 
   // Start and Load buttons (bind immediately, not inside toast)
@@ -3544,7 +3548,7 @@ function bindUI(state){
 
     // Reset containers
     const heroCls = isGroupMemberMode ? (state.friendlies.find(f=>f.id===isGroupMemberMode)?.variant||'warrior') : (state.player.class||'warrior');
-    const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Night.png', warden: 'New Warden.png' };
+    const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Knight.png', warden: 'New Warden.png' };
     const heroImg = heroImgMap[heroCls] || `${heroCls}.svg`;
     ui.equipCircle.innerHTML = `<img id="heroPortrait" src="assets/char/${heroImg}" alt="Hero" class="heroLarge"/>`;
     ui.equipExtras.innerHTML = '';
@@ -3629,7 +3633,7 @@ function bindUI(state){
     const wEl = document.createElement('div');
     wEl.className = 'equipSlot' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
     wEl.style.display = 'inline-block';
-    wEl.style.marginTop = '0px';
+    wEl.style.marginTop = '8px';
     wEl.style.marginLeft = `${(containerWidth - slotWidth) / 2}px`; // Center single slot
     wEl.title = SLOT_LABEL['weapon'];
     const imgPath = wIt ? getItemImage(wIt) : null;
@@ -3775,7 +3779,7 @@ function bindUI(state){
     try{
       const cls = isGroupMemberMode ? (targetUnit.variant || 'warrior') : (state.player.class || 'warrior');
       // Use PNG for all hero classes (newer images)
-      const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Night.png', warden: 'New Warden.png' };
+      const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Knight.png', warden: 'New Warden.png' };
       ui.heroPortrait.src = `assets/char/${heroImgMap[cls] || cls + '.svg'}`;
       if(!isGroupMemberMode){
         ui.heroClassName.textContent = cls.charAt(0).toUpperCase()+cls.slice(1);
@@ -4702,7 +4706,6 @@ function bindUI(state){
       if(ui.stamInc) ui.stamInc.style.display = 'none';
       if(ui.stamDec) ui.stamDec.style.display = 'none';
       if(ui.stamSpend) ui.stamSpend.style.display = 'none';
-      if(ui.levelApply) ui.levelApply.style.display = 'none';
       if(ui.levelSwitchToPlayer){
         ui.levelSwitchToPlayer.style.display = 'inline-block';
         ui.levelSwitchToPlayer.onclick = ()=>{ state.groupMemberInventoryMode=null; ui.renderLevel(); ui.renderInventory(); ui.renderSkills(); };
@@ -4735,7 +4738,6 @@ function bindUI(state){
       if(ui.stamInc) ui.stamInc.style.display = 'inline-block';
       if(ui.stamDec) ui.stamDec.style.display = 'inline-block';
       if(ui.stamSpend) ui.stamSpend.style.display = 'block';
-      if(ui.levelApply) ui.levelApply.style.display = 'inline-block';
       if(ui.levelSwitchToPlayer) ui.levelSwitchToPlayer.style.display = 'none';
       
       // Update level up point allocations
@@ -4905,6 +4907,12 @@ function bindUI(state){
     const current = spends[key]|0;
     if(delta>0){ if(state.progression.statPoints<=0) return; spends[key]=current+1; state.progression.statPoints-=1; }
     else { if(current<=0) return; spends[key]=current-1; state.progression.statPoints+=1; }
+    // Auto-apply: save immediately and update player stats
+    saveJson('orb_rpg_mod_prog', state.progression);
+    const st = currentStats(state);
+    state.player.hp = clamp(state.player.hp, 0, st.maxHp);
+    state.player.mana = clamp(state.player.mana, 0, st.maxMana);
+    state.player.stam = clamp(state.player.stam, 0, st.maxStam);
     ui.renderLevel(); ui.renderInventory();
   }
   ui.hpInc.onclick=()=>trySpend('vit', +1);
@@ -4913,7 +4921,6 @@ function bindUI(state){
   ui.manaDec.onclick=()=>trySpend('int', -1);
   ui.stamInc.onclick=()=>trySpend('agi', +1);
   ui.stamDec.onclick=()=>trySpend('agi', -1);
-  ui.levelApply.onclick=()=>{ saveJson('orb_rpg_mod_prog', state.progression); ui.toast('Applied level spends.'); ui.toggleLevel(false); };
 
   ui.renderBuffSystem = ()=>{
     // Render Active Effects icons within the Buff/Debuff tab

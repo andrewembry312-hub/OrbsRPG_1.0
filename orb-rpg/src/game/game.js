@@ -138,6 +138,7 @@ export async function initGame(state){
     state.creatures.length = 0;
   }catch{}
   initSites(state);
+  spawnEnvironmentalDecorations(state);
   const hb=playerHome(state);
   state.player.x=hb.x; state.player.y=hb.y;
   const st=currentStats(state);
@@ -278,6 +279,15 @@ export async function initGame(state){
     state.sounds.gameCombatMusic.loop = true;
     state.sounds.gameCombatMusic.volume = 0.4;
   }
+  if(!state.sounds.emperorAttackMusic){
+    state.sounds.emperorAttackMusic = new Audio('assets/sounds/Emporer Attack Music.mp3');
+    state.sounds.emperorAttackMusic.loop = true;
+    state.sounds.emperorAttackMusic.volume = 0.42;
+  }
+  if(!state.sounds.fireDamage){
+    state.sounds.fireDamage = new Audio('assets/sounds/fire-457848.mp3');
+    state.sounds.fireDamage.volume = 0.6;
+  }
   
   // Initialize combat music tracker with timestamp (reset to 0 to start in non-combat)
   if(typeof state.lastDamageTakenTimestamp === 'undefined'){
@@ -288,6 +298,9 @@ export async function initGame(state){
   }
   if(typeof state.inCombatMode === 'undefined'){
     state.inCombatMode = false;
+  }
+  if(typeof state._combatTrack === 'undefined'){
+    state._combatTrack = null;
   }
   
   console.log('[MUSIC] Combat music system initialized:', {
@@ -954,6 +967,31 @@ function playPositionalSound(state, soundName, x, y, maxHearDistance = 600, base
   const audio = state.sounds[soundName].cloneNode();
   audio.volume = volume;
   audio.play().catch(e => {}); // Silently fail if can't play
+}
+
+// Throttled positional fire sound for damaged outposts
+function playOutpostFireSound(state, site){
+  if(!state.sounds?.fireDamage) return;
+  if(!site || !site.maxHealth) return;
+  // Don't play fire sound if site is destroyed
+  if(site.damageState === 'destroyed' || site.health <= 0) return;
+  const pct = site.health / site.maxHealth;
+  if(pct > 0.70) return;
+  const now = Date.now();
+  if(site._lastFireSound && now - site._lastFireSound < 4000) return;
+  playPositionalSound(state, 'fireDamage', site.x, site.y, 900, 0.6);
+  site._lastFireSound = now;
+}
+
+function stopOutpostFireSound(state, site){
+  if(!state.sounds?.fireDamage) return;
+  if(!site) return;
+  // Stop any ongoing fire sound for this site by resetting the timer
+  try{
+    state.sounds.fireDamage.pause?.();
+    state.sounds.fireDamage.currentTime = 0;
+  }catch(e){}
+  site._lastFireSound = 0; // Reset timer to prevent future sounds
 }
 
 function spawnProjectile(state, x,y,angle,speed,r,dmg,pierce=0, fromPlayer=true, opts={}){
@@ -1721,6 +1759,100 @@ function applyDamageToCreature(c, dmg, state){
   return false;
 }
 
+/**
+ * Spawn environmental decorations (trees, rocks, buildings) across the map.
+ * Uses hybrid approach: visual parallax background + environmental props for depth.
+ * Props are decorative (no collision) to allow player movement freedom.
+ */
+function spawnEnvironmentalDecorations(state){
+  state.decorations = state.decorations || [];
+  state.decorations.length = 0; // Clear old decorations
+  
+  // Define decoration types from FreePack 2 tileset
+  // Increased spawn rates for better visibility
+  const decorTypes = [
+    { name: 'tree', chance: 0.12, variants: 3 },     // Increased from 0.04
+    { name: 'rock', chance: 0.08, variants: 2 },     // Increased from 0.03
+    { name: 'bush', chance: 0.15, variants: 2 },     // Increased from 0.05
+    { name: 'building', chance: 0.015, variants: 2 } // Increased from 0.008
+  ];
+  
+  // Spawn props across world terrain (2000x2000 world)
+  const worldW = 2000, worldH = 2000;
+  const gridSize = 100; // Cell size for distribution
+  
+  for(let gx = 0; gx < worldW; gx += gridSize){
+    for(let gy = 0; gy < worldH; gy += gridSize){
+      // Try to place a decoration in this cell
+      for(const type of decorTypes){
+        if(Math.random() < type.chance){
+          const variant = Math.floor(Math.random() * type.variants);
+          const x = gx + Math.random() * gridSize;
+          const y = gy + Math.random() * gridSize;
+          
+          // Skip if too close to player home or key sites
+          const hb = playerHome(state);
+          if(Math.hypot(x - hb.x, y - hb.y) < 100) continue; // Reduced exclusion zone
+          
+          state.decorations.push({
+            type: type.name,
+            variant: variant,
+            x: x,
+            y: y,
+            depth: Math.floor((y / worldH) * 100), // Z-order based on Y position
+            parallaxFactor: 0.7, // Move slower than player for depth
+            spriteIndex: calculateSpriteIndex(type.name, variant) // Position in FreePack 2.png
+          });
+        }
+      }
+    }
+  }
+  
+  console.log(`[ENVIRONMENT] Spawned ${state.decorations.length} environmental decorations`);
+}
+
+/**
+ * Calculate sprite sheet index for a decoration type and variant.
+ * FreePack 2.png tileset - trying multiple common tile sizes
+ * Most nature tilesets use 16x16, 32x32, or 48x48 tiles
+ */
+function calculateSpriteIndex(type, variant){
+  // Try 32x32 tiles first (common for environment packs)
+  const tileSize = 32;
+  
+  // Map to common positions in nature tilesets
+  // Trees usually in top-left, rocks below, plants scattered
+  const spriteMap = {
+    'tree': [
+      { x: 0, y: 0 },       // Tree variant 0
+      { x: 32, y: 0 },      // Tree variant 1  
+      { x: 64, y: 0 }       // Tree variant 2
+    ],
+    'rock': [
+      { x: 0, y: 64 },      // Rock variant 0
+      { x: 32, y: 64 }      // Rock variant 1
+    ],
+    'bush': [
+      { x: 0, y: 32 },      // Bush variant 0
+      { x: 32, y: 32 }      // Bush variant 1
+    ],
+    'building': [
+      { x: 0, y: 96 },      // Building variant 0
+      { x: 32, y: 96 }      // Building variant 1
+    ]
+  };
+  
+  const variants = spriteMap[type] || spriteMap['tree'];
+  const coords = variants[variant % variants.length];
+  
+  return {
+    x: coords.x,
+    y: coords.y,
+    w: tileSize,
+    h: tileSize
+  };
+}
+
 function spawnEnemies(state, dt){
   // Disable continuous spawning; fighters now only respawn from the initial roster.
   return;
@@ -1789,6 +1921,7 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
     // check collisions with trees, mountains, rocks (all use same overlap buffer as trees)
     let blocked=false;
     for(const t of state.trees||[]){ if(Math.hypot(nx - t.x, ny - t.y) <= (entity.r + t.r + 2)) { blocked=true; blockedBy = {x:t.x,y:t.y}; break; } }
+    if(!blocked && state.rocks){ for(const r of state.rocks){ if(Math.hypot(nx - r.x, ny - r.y) <= (entity.r + r.r + 2)) { blocked=true; blockedBy = {x:r.x,y:r.y}; break; } } }
     if(blocked){
       // slide along obstacle tangent to avoid getting pinned
       if(blockedBy){
@@ -1803,6 +1936,7 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
           const sny = entity.y + sy*slideStep;
           let sBlocked=false;
           for(const t of state.trees||[]){ if(Math.hypot(snx - t.x, sny - t.y) <= (entity.r + t.r + 2)) { sBlocked=true; break; } }
+          if(!sBlocked && state.rocks){ for(const r of state.rocks){ if(Math.hypot(snx - r.x, sny - r.y) <= (entity.r + r.r + 2)) { sBlocked=true; break; } } }
           if(!sBlocked) for(const mc of state.mountainCircles||[]){ if(Math.hypot(snx - mc.x, sny - mc.y) <= (entity.r + mc.r + 2)) { sBlocked=true; break; } }
           if(!sBlocked) for(const rc of state.rockCircles||[]){ if(Math.hypot(snx - rc.x, sny - rc.y) <= (entity.r + rc.r + 2)) { sBlocked=true; break; } }
           if(!sBlocked) for(const wc of state.waterCircles||[]){ if(Math.hypot(snx - wc.x, sny - wc.y) <= (entity.r + wc.r + 2)) { sBlocked=true; break; } }
@@ -1918,6 +2052,7 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
     const ny = entity.y + Math.sin(jitterAng)*mv;
     let blocked=false;
     for(const t of state.trees||[]){ if(Math.hypot(nx - t.x, ny - t.y) <= (entity.r + t.r + 2)) { blocked=true; break; } }
+    if(!blocked && state.rocks){ for(const r of state.rocks){ if(Math.hypot(nx - r.x, ny - r.y) <= (entity.r + r.r + 2)) { blocked=true; break; } } }
     if(!blocked) for(const mc of state.mountainCircles||[]){ if(Math.hypot(nx - mc.x, ny - mc.y) <= (entity.r + mc.r + 2)) { blocked=true; break; } }
     if(!blocked) for(const rc of state.rockCircles||[]){ if(Math.hypot(nx - rc.x, ny - rc.y) <= (entity.r + rc.r + 2)) { blocked=true; break; } }
     if(!blocked) for(const wc of state.waterCircles||[]){ if(Math.hypot(nx - wc.x, ny - wc.y) <= (entity.r + wc.r + 2)) { blocked=true; break; } }
@@ -2087,12 +2222,11 @@ function updateFriendlies(state, dt){
             a.y = respawnSite.y + rand(-28,28);
           }
           
-          // If this is a group member that just respawned, notify
+          // Notify respawn for all allies, showing location
           const isGroupMember = state.group && state.group.members && state.group.members.includes(a.id);
-          if(isGroupMember){
-            console.log(`[GROUP] ${a.name} respawned at ${respawnSite.name}`);
-            state.ui?.toast(`<b>${a.name}</b> has respawned!`);
-          }
+          const allyType = a.guard ? 'Guard' : (isGroupMember ? 'Group Member' : 'Ally');
+          console.log(`[${allyType.toUpperCase()}] ${a.name} respawned at ${respawnSite.name}`);
+          state.ui?.toast(`✅ <b>${a.name}</b> respawned at <b>${respawnSite.name}</b>.`);
         } else {
           state.friendlies.splice(i,1);
         }
@@ -2686,12 +2820,13 @@ function killFriendly(state, idx, scheduleRespawn=true){
       f.respawnT = 8.0; // 8 second respawn time for group members
       f.siteId = nearestFlag.id; // Respawn at this flag
       console.log(`[GROUP] ${f.name} will respawn at ${nearestFlag.name} in 8s`);
-      state.ui?.toast(`<b>${f.name}</b> will respawn at ${nearestFlag.name} in 8s.`);
+      state.ui?.toast(`⚠️ <b>${f.name}</b> died. Respawning at <b>${nearestFlag.name}</b> in 8s.`);
       // Don't remove from friendlies array - just set respawn timer
       return;
     } else {
       // No player-owned flag found - remove from group
       console.log(`[GROUP] ${f.name} died with no respawn point. Removing from group.`);
+      state.ui?.toast(`⚠️ <b>${f.name}</b> died. No respawn location available.`);
       state.group.members = state.group.members.filter(id => id !== f.id);
       delete state.group.settings[f.id];
     }
@@ -2700,7 +2835,12 @@ function killFriendly(state, idx, scheduleRespawn=true){
   // Standard friendly respawn logic for non-group members
   if(scheduleRespawn){
     if(f.guard && f.siteId){
-      const site = state.sites.find(s=>s.id===f.siteId); if(site) site.guardRespawns.push(30.0);
+      const site = state.sites.find(s=>s.id===f.siteId);
+      if(site){
+        site.guardRespawns.push(30.0);
+        console.log(`[GUARD] ${f.name} at ${site.name} died. Respawning in 30s.`);
+        state.ui?.toast(`⚠️ Guard <b>${f.name}</b> at <b>${site.name}</b> died. Respawning in 30s.`);
+      }
       state.friendlies.splice(idx,1);
     } else {
       const nearestFlag = findNearestPlayerFlag(state, f.x||state.player.x, f.y||state.player.y);
@@ -2709,11 +2849,14 @@ function killFriendly(state, idx, scheduleRespawn=true){
         // DON'T set siteId for non-guard, non-garrison allies - they should always seek next objective
         // f.siteId = nearestFlag.id; // REMOVED - causes allies to stay at flags
         f.dead = true;
+        console.log(`[ALLY] ${f.name} died. Will respawn at ${nearestFlag.name} in 8s.`);
+        state.ui?.toast(`⚠️ <b>${f.name}</b> fell in battle. Respawning at <b>${nearestFlag.name}</b> in 8s.`);
         return;
       }
       state.friendlies.splice(idx,1);
     }
   } else {
+    state.ui?.toast(`⚠️ <b>${f.name}</b> defeated.`);
     state.friendlies.splice(idx,1);
   }
 }
@@ -2777,6 +2920,21 @@ function updateEnemies(state, dt){
           }
         }
         if(best){ e.spawnTargetSiteId = best.id; spawnTarget = best; }
+      }
+
+      // Hard enforce: always chase the nearest capturable flag/outpost
+      {
+        let best=null, bestD=Infinity;
+        for(const s of state.sites){
+          if(!s.id || !s.id.startsWith || !s.id.startsWith('site_')) continue;
+          if(s.owner === e.team) continue;
+          const d = Math.hypot(s.x - e.x, s.y - e.y);
+          if(d < bestD){ bestD = d; best = s; }
+        }
+        if(best && (!spawnTarget || spawnTarget.id !== best.id)){
+          spawnTarget = best;
+          e.spawnTargetSiteId = best.id;
+        }
       }
     } else {
       // ensure dungeon enemies have no world capture targets
@@ -2947,8 +3105,33 @@ function updateEnemies(state, dt){
       // Only attack other teams if emperor logic allows it
       for(const other of state.enemies){ if(other===e) continue; if(!other.team || !e.team) continue; if(other.team === e.team) continue; if(!shouldAttackTeam(e.team, other.team, state)) continue; const d = Math.hypot(other.x - e.x, other.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = other; hostType='enemy'; } }
 
+      // Outpost focus: if an enemy-controlled outpost is in range, ignore host aggro until it is destroyed
+      const OUTPOST_FOCUS_RANGE = 220;
+      let outpostTx = null, outpostTy = null;
+      let outpostFocus = false;
+      if(spawnTarget && spawnTarget.owner && spawnTarget.owner !== e.team && spawnTarget.health > 0){
+        const distToFlag = Math.hypot(spawnTarget.x - e.x, spawnTarget.y - e.y);
+        const attackRange = e.r + spawnTarget.r + 80;
+        if(distToFlag > attackRange){
+          const dxs = (spawnTarget.x - e.x);
+          const dys = (spawnTarget.y - e.y);
+          const dts = Math.hypot(dxs, dys) || 1;
+          const approach = Math.max(spawnTarget.r + 60, 50);
+          outpostTx = spawnTarget.x - (dxs/dts) * approach;
+          outpostTy = spawnTarget.y - (dys/dts) * approach;
+        } else {
+          outpostTx = e.x;
+          outpostTy = e.y;
+        }
+        if(distToFlag <= OUTPOST_FOCUS_RANGE) outpostFocus = true;
+      }
+
       const AGGRO_DIST = ENEMY_AGGRO_DIST;
-      if(nearestHost && nearestHD <= AGGRO_DIST && !e.inWater){
+      if(outpostFocus){
+        tx = outpostTx;
+        ty = outpostTy;
+        e.attacked = true;
+      } else if(nearestHost && nearestHD <= AGGRO_DIST && !e.inWater){
         // prioritize attacking the nearest hostile
         tx = nearestHost.x; ty = nearestHost.y;
         e.attacked = true;
@@ -2956,23 +3139,8 @@ function updateEnemies(state, dt){
       } else if(spawnTarget){
         // PRIORITY: Attack flag health first if it exists and has health
         if(spawnTarget.health > 0 && spawnTarget.owner && spawnTarget.owner !== e.team){
-          // Move to the flag to attack it directly
-          const distToFlag = Math.hypot(spawnTarget.x - e.x, spawnTarget.y - e.y);
-          const attackRange = e.r + spawnTarget.r + 80; // Increased range to hit from outside collision
-          
-          if(distToFlag > attackRange){
-            // Move closer to flag
-            const dxs = (spawnTarget.x - e.x); 
-            const dys = (spawnTarget.y - e.y);
-            const dts = Math.hypot(dxs, dys) || 1;
-            const approach = Math.max(spawnTarget.r + 60, 50); // Move closer to collision edge
-            tx = spawnTarget.x - (dxs/dts) * approach;
-            ty = spawnTarget.y - (dys/dts) * approach;
-          } else {
-            // In range - stay put and attack flag (handled in updateFlagHealth)
-            tx = e.x;
-            ty = e.y;
-          }
+          tx = outpostTx;
+          ty = outpostTy;
         }
         // If flag has no health or is destroyed, attack walls
         else if(spawnTarget.owner && spawnTarget.owner !== e.team && spawnTarget.wall){
@@ -3396,6 +3564,7 @@ function tryCastSlot(state, idx){
       shieldAlliesAround(state.player.x,state.player.y,140,amount);
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 140, life: 0.6, color: '#ffb347' });
       applyBuffAlliesAround(state.player.x,state.player.y,140,'fortified');
+      playPositionalSound(state, 'bufferSpell', state.player.x, state.player.y, 650, 0.5);
       state.ui.toast(`Ward Barrier: +${Math.round(amount)} shield`);
       break;
     }
@@ -3405,6 +3574,7 @@ function tryCastSlot(state, idx){
       state.effects.heals.push({t:5.0,tick:0.7,tl:0.7,amt:amt, targets:[state.player, ...state.friendlies.filter(f=>f.respawnT<=0)]});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 140, life: 0.6, color: '#ffd760' });
       applyBuffAlliesAround(state.player.x,state.player.y,140,'regeneration');
+      playPositionalSound(state, 'castingMagic4', state.player.x, state.player.y, 650, 0.45);
       state.ui.toast('Renewal Field active');
       break;
     }
@@ -3415,6 +3585,7 @@ function tryCastSlot(state, idx){
       const shield = 18 + st.def*0.8;
       shieldAlliesAround(state.player.x,state.player.y,120,shield);
       applyBuffAlliesAround(state.player.x,state.player.y,120,'clarity');
+      playPositionalSound(state, 'healingSpell1', state.player.x, state.player.y, 600, 0.45);
       state.ui.toast('Cleanse Wave');
       break;
     }
@@ -3429,6 +3600,7 @@ function tryCastSlot(state, idx){
       state.effects.heals.push({t:6.0,tick:1.0,tl:1.0,amt:amt*0.5, beacon:{x:castX,y:castY,r:radius}});
       state.effects.flashes.push({ x: castX, y: castY, r: radius, life: 0.6, color: '#ffd760' });
       applyBuffAlliesAround(castX,castY,radius,'regeneration');
+      playPositionalSound(state, 'enchantedCast', castX, castY, 650, 0.5);
       state.ui.toast('Beacon of Light placed');
       break;
     }
@@ -3466,6 +3638,7 @@ function tryCastSlot(state, idx){
         const dmg = 16+st.atk*1.2;
         applyDamageToEnemy(e, dmg, currentStats(state), state, true);
       }
+      playPositionalSound(state, 'magicalWhooshFast', state.player.x, state.player.y, 650, 0.5);
       state.ui.toast('Leap Strike');
       break;
     }
@@ -3475,6 +3648,7 @@ function tryCastSlot(state, idx){
       shieldAlliesAround(state.player.x,state.player.y,120,20+st.def*0.8);
       state.player.stam = clamp(state.player.stam + 25, 0, st.maxStam);
       applyBuffAlliesAround(state.player.x,state.player.y,120,'swift_strikes');
+      playPositionalSound(state, 'castingMagic2', state.player.x, state.player.y, 650, 0.5);
       break;
     }
 
@@ -3492,11 +3666,13 @@ function tryCastSlot(state, idx){
         // Apply HoT
         state.effects.heals.push({t:4.0,tick:0.8,tl:0.8,amt:3+st.maxHp*0.015, targets:[target]});
         applyBuffSelf('healing_empowerment');
+        playPositionalSound(state, 'healingSpell1', state.player.x, state.player.y, 600, 0.5);
         state.ui.toast(`Divine Touch: +${Math.round(instant)} HP`);
       } else {
         healSelf(instant);
         state.effects.heals.push({t:4.0,tick:0.8,tl:0.8,amt:3+st.maxHp*0.015, targets:[state.player]});
         applyBuffSelf('healing_empowerment');
+        playPositionalSound(state, 'healingSpell1', state.player.x, state.player.y, 600, 0.5);
         state.ui.toast(`Divine Touch (self): +${Math.round(instant)} HP`);
       }
       break;
@@ -3559,6 +3735,7 @@ function tryCastSlot(state, idx){
     case 'knight_justice_strike':{
       const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:92,dmg:18+st.atk*1.4, dotId:'bleed',dir:a});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 92, life: 0.5, color: slash.color });
+      playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
       break;
     }
     case 'knight_taunt':{
@@ -3588,6 +3765,7 @@ function tryCastSlot(state, idx){
     case 'warrior_life_leech':{
       const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:82,dmg:16+st.atk*1.2, leech:true, dotId:'bleed',dir:a});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 82, life: 0.5, color: slash.color });
+      playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
       break;
     }
     case 'warrior_fortitude':{
@@ -3607,6 +3785,7 @@ function tryCastSlot(state, idx){
     case 'warrior_cleave':{
       const slash = pushSlashEffect(state, {t:0.20,arc:1.7,range:92,dmg:20+st.atk*1.35, dotId:'bleed', buffId:'weakness',dir:a});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 92, life: 0.6, color: slash.color });
+      playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
       break;
     }
     case 'warrior_charge':{
@@ -3666,6 +3845,7 @@ function tryCastSlot(state, idx){
     }
     case 'tank_seismic_wave':{
       spawnProjectile(state, state.player.x,state.player.y,a,420,6,18+st.atk*1.05,2,true,{ dotId:'shock', team:'player', element:'shock', maxRange:320 });
+      playPositionalSound(state, 'magicalRockSpell', state.player.x, state.player.y, 650, 0.5);
       break;
     }
 
@@ -3750,11 +3930,13 @@ function updateSlashes(state, dt){
             site.owner = null;
             site.prog = 0;
             delete site._captureTeam;
+            stopOutpostFireSound(state, site);
           } else if(healthPct <= 0.70){
             site.damageState = 'damaged';
           } else {
             site.damageState = 'undamaged';
           }
+          if(healthPct <= 0.70) playOutpostFireSound(state, site);
         }
       }
     }
@@ -3870,11 +4052,13 @@ function updateProjectiles(state, dt){
             s.owner = null;
             s.prog = 0;
             delete s._captureTeam;
+            stopOutpostFireSound(state, s);
           } else if(healthPct <= 0.70){
             s.damageState = 'damaged';
           } else {
             s.damageState = 'undamaged';
           }
+          if(healthPct <= 0.70) playOutpostFireSound(state, s);
           if(p.pierce>0) p.pierce-=1;
           else { state.projectiles.splice(pi,1); break; }
         }
@@ -4298,7 +4482,7 @@ export function handleHotkeys(state, dt){
       weaponPreview.style.display = 'none';
     } else {
       // if any overlay (including menu itself) is open, close them and DO NOT open menu
-      const anyOverlay = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace || state.showBaseActions || state.showGarrison || state.inMenu || state.selectedUnit;
+      const anyOverlay = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace || state.showBaseActions || state.showGarrison || state.showSaves || state.inMenu || state.selectedUnit;
       if(anyOverlay){
         state.showInventory = false; 
         state.showSkills = false; 
@@ -4307,6 +4491,7 @@ export function handleHotkeys(state, dt){
         state.showMarketplace = false;
         state.showBaseActions = false;
         state.showGarrison = false;
+        state.showSaves = false;
         state.paused = false;
         if(state.ui) { 
           state.ui.invOverlay.classList.remove('show'); 
@@ -4315,6 +4500,7 @@ export function handleHotkeys(state, dt){
           state.ui.marketplaceOverlay && state.ui.marketplaceOverlay.classList && state.ui.marketplaceOverlay.classList.remove('show');
           state.ui.baseActionsOverlay && state.ui.baseActionsOverlay.classList && state.ui.baseActionsOverlay.classList.remove('show');
           state.ui.garrisonOverlay && state.ui.garrisonOverlay.classList && state.ui.garrisonOverlay.classList.remove('show');
+          state.ui.saveOverlay && state.ui.saveOverlay.classList && state.ui.saveOverlay.classList.remove('show');
           // Close unit inspection panel if open
           if(state.selectedUnit){
             state.ui.unitInspectionPanel.style.display = 'none';
@@ -4975,15 +5161,18 @@ export function updateGame(state, dt){
     if(state.player.stam<=0 || state.player.mana<=0) state.input.mouse.rDown=false;
   }
 
-  // Garrison assignment hotkeys (1-6 for flags, 7 for unassign all)
+  // Garrison assignment hotkeys (1-6 for flags, 7 for unassign all) - with confirmation prompts
+  const capturableSites = state.sites
+    .filter(s => s && s.id && s.id.startsWith('site_'))
+    .sort((a,b) => a.id.localeCompare(b.id));
   for(let flagNum = 1; flagNum <= 6; flagNum++){
     const bindKey = `garrisonFlag${flagNum}`;
     if(state.input.keysDown.has(state.binds[bindKey])){
-      // Assign all non-grouped allies to this flag
-      const targetSiteIndex = flagNum - 1;
-      if(targetSiteIndex < state.sites.length){
-        const targetSite = state.sites[targetSiteIndex];
-        if(targetSite && targetSite.id.startsWith('site_')){
+      const targetSite = capturableSites[flagNum - 1];
+      if(targetSite && targetSite.owner === 'player'){
+        // Prompt for confirmation
+        const confirmMsg = `Assign all non-grouped allies to ${targetSite.name || `Flag ${flagNum}`}?`;
+        if(confirm(confirmMsg)){
           for(const friendly of state.friendlies){
             if(friendly && !friendly.dead && friendly.respawnT <= 0){
               // Skip if this friendly is in a group
@@ -4997,24 +5186,28 @@ export function updateGame(state, dt){
             }
           }
           state.ui?.toast(`Assigned allies to ${targetSite.name || `Flag ${flagNum}`}`);
-          // Consume the keypress (mark it as used this frame)
-          state.input.keysDown.delete(state.binds[bindKey]);
         }
+      } else {
+        state.ui?.toast(`No captured flag mapped to hotkey ${flagNum}.`);
       }
+      // Consume the keypress (mark it as used this frame)
+      state.input.keysDown.delete(state.binds[bindKey]);
     }
   }
 
-  // Unassign all garrison assignments (hotkey 7)
+  // Unassign all garrison assignments (hotkey 7) - with confirmation prompt
   if(state.input.keysDown.has(state.binds.garrisonUnassignAll)){
-    for(const friendly of state.friendlies){
-      if(friendly && !friendly.dead && friendly.respawnT <= 0){
-        delete friendly.garrisonSiteId;
-        delete friendly._garrisonX;
-        delete friendly._garrisonY;
-        delete friendly._garrisonSlot;
+    if(confirm('Clear all garrison assignments?')){
+      for(const friendly of state.friendlies){
+        if(friendly && !friendly.dead && friendly.respawnT <= 0){
+          delete friendly.garrisonSiteId;
+          delete friendly._garrisonX;
+          delete friendly._garrisonY;
+          delete friendly._garrisonSlot;
+        }
       }
+      state.ui?.toast('All garrison assignments cleared.');
     }
-    state.ui?.toast('All garrison assignments cleared.');
     // Consume the keypress
     state.input.keysDown.delete(state.binds.garrisonUnassignAll);
   }
@@ -5410,6 +5603,8 @@ export function updateGame(state, dt){
   
   // Music management: detect combat based on nearby enemies, not just damage
   if(state.sounds?.gameCombatMusic && state.sounds?.gameNonCombatMusic){
+    const emperorActive = state.emperorTeam === 'player';
+    const combatTrack = (emperorActive && state.sounds.emperorAttackMusic) ? state.sounds.emperorAttackMusic : state.sounds.gameCombatMusic;
     const COMBAT_DISTANCE = 250; // Enemy within this distance = combat
     const COMBAT_LINGER_TIME = 15000; // Stay in combat for 15 seconds after last enemy/damage
     
@@ -5439,20 +5634,45 @@ export function updateGame(state, dt){
     
     // Only switch music mode when state actually changes
     if(shouldBeInCombat && !state.inCombatMode){
-      // Entering combat: stop non-combat, restart combat music
-      console.log('[COMBAT MUSIC] Entering combat mode - inDungeon:', inDungeon, 'enemies nearby:', enemiesNearby);
+      // Entering combat: stop non-combat, restart combat music (emperor overrides track)
+      console.log('[COMBAT MUSIC] Entering combat mode - inDungeon:', inDungeon, 'enemies nearby:', enemiesNearby, 'emperorActive:', emperorActive);
       state.inCombatMode = true;
+      state._combatTrack = emperorActive ? 'emperor' : 'combat';
       if(!state.sounds.gameNonCombatMusic.paused){
         state.sounds.gameNonCombatMusic.pause();
       }
-      state.sounds.gameCombatMusic.currentTime = 0;
-      state.sounds.gameCombatMusic.play().catch(e => console.warn('Combat music play failed:', e));
+      if(state.sounds.gameCombatMusic && !state.sounds.gameCombatMusic.paused){
+        state.sounds.gameCombatMusic.pause();
+      }
+      if(state.sounds.emperorAttackMusic && !state.sounds.emperorAttackMusic.paused){
+        state.sounds.emperorAttackMusic.pause();
+      }
+      combatTrack.currentTime = 0;
+      combatTrack.play().catch(e => console.warn('Combat music play failed:', e));
+    } else if(shouldBeInCombat && state.inCombatMode){
+      // Switch combat track if emperor status changes while still in combat
+      const desired = emperorActive ? 'emperor' : 'combat';
+      if(state._combatTrack !== desired){
+        if(state.sounds.gameCombatMusic && !state.sounds.gameCombatMusic.paused){
+          state.sounds.gameCombatMusic.pause();
+        }
+        if(state.sounds.emperorAttackMusic && !state.sounds.emperorAttackMusic.paused){
+          state.sounds.emperorAttackMusic.pause();
+        }
+        combatTrack.currentTime = 0;
+        combatTrack.play().catch(e => console.warn('Combat music play failed:', e));
+        state._combatTrack = desired;
+      }
     } else if(!shouldBeInCombat && state.inCombatMode){
-      // Exiting combat: stop combat, restart non-combat music
+      // Exiting combat: stop combat tracks, restart non-combat music
       console.log('[COMBAT MUSIC] Exiting combat mode, returning to non-combat');
       state.inCombatMode = false;
-      if(!state.sounds.gameCombatMusic.paused){
+      state._combatTrack = null;
+      if(state.sounds.gameCombatMusic && !state.sounds.gameCombatMusic.paused){
         state.sounds.gameCombatMusic.pause();
+      }
+      if(state.sounds.emperorAttackMusic && !state.sounds.emperorAttackMusic.paused){
+        state.sounds.emperorAttackMusic.pause();
       }
       state.sounds.gameNonCombatMusic.currentTime = 0;
       state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Non-combat music play failed:', e));
@@ -6044,4 +6264,3 @@ export function clearGameLog(state){
   state.gameLog.events = [];
   console.log('[LOG] Game log cleared');
 }
-

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D to 2D Image Converter</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: monospace;
+        }
+        #container {
+            display: flex;
+            gap: 20px;
+        }
+        #canvasContainer {
+            position: relative;
+            background: #2a2a2a;
+            border: 2px solid #444;
+            border-radius: 8px;
+        }
+        canvas {
+            display: block;
+        }
+        #controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        h1 {
+            margin-top: 0;
+            color: #4af;
+        }
+        h3 {
+            color: #4af;
+            margin-top: 20px;
+        }
+        button {
+            background: #4af;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px 0;
+            width: 100%;
+        }
+        button:hover {
+            background: #6cf;
+        }
+        input[type="file"] {
+            background: #3a3a3a;
+            color: #fff;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .control-group {
+            margin: 15px 0;
+            padding: 10px;
+            background: #3a3a3a;
+            border-radius: 4px;
+        }
+        .control-group label {
+            display: block;
+            color: #aaa;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        input[type="number"], input[type="color"] {
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 5px;
+            border-radius: 4px;
+            width: 100%;
+        }
+        .value-display {
+            color: #4af;
+            font-weight: bold;
+        }
+        #status {
+            padding: 10px;
+            background: #3a3a3a;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 3px solid #4af;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 3D to 2D Image Converter</h1>
+    <p>Load a GLB file, position it, and export as PNG</p>
+    
+    <div id="container">
+        <div id="canvasContainer">
+            <canvas id="canvas" width="800" height="800"></canvas>
+        </div>
+        
+        <div id="controls">
+            <h3>Load Model</h3>
+            <input type="file" id="fileInput" accept=".glb,.gltf" />
+            <div id="status">No model loaded</div>
+            
+            <h3>Camera Controls</h3>
+            <div class="control-group">
+                <label>Distance: <span class="value-display" id="distanceValue">5</span></label>
+                <input type="range" id="distance" min="1" max="20" step="0.1" value="5" />
+            </div>
+            
+            <div class="control-group">
+                <label>Rotation X: <span class="value-display" id="rotXValue">0</span>°</label>
+                <input type="range" id="rotX" min="0" max="360" step="1" value="0" />
+            </div>
+            
+            <div class="control-group">
+                <label>Rotation Y: <span class="value-display" id="rotYValue">0</span>°</label>
+                <input type="range" id="rotY" min="0" max="360" step="1" value="0" />
+            </div>
+            
+            <div class="control-group">
+                <label>Rotation Z: <span class="value-display" id="rotZValue">0</span>°</label>
+                <input type="range" id="rotZ" min="0" max="360" step="1" value="0" />
+            </div>
+            
+            <h3>Lighting</h3>
+            <div class="control-group">
+                <label>Light Intensity: <span class="value-display" id="lightIntensityValue">1.0</span></label>
+                <input type="range" id="lightIntensity" min="0" max="3" step="0.1" value="1" />
+            </div>
+            
+            <h3>Background</h3>
+            <div class="control-group">
+                <label>Background Color</label>
+                <input type="color" id="bgColor" value="#2a2a2a" />
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="transparent" /> Transparent Background
+                </label>
+            </div>
+            
+            <h3>Outline</h3>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="enableOutline" checked /> Enable Black Outline
+                </label>
+            </div>
+            <div class="control-group">
+                <label>Outline Thickness: <span class="value-display" id="outlineThicknessValue">2</span>px</label>
+                <input type="range" id="outlineThickness" min="1" max="8" step="1" value="2" />
+            </div>
+            
+            <h3>Export</h3>
+            <div class="control-group">
+                <label>Image Size</label>
+                <input type="number" id="exportSize" value="512" min="64" max="2048" step="64" />
+            </div>
+            
+            <button onclick="exportImage()">📸 Export as PNG</button>
+            <button onclick="resetCamera()">🔄 Reset Camera</button>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        const canvas = document.getElementById('canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ 
+            canvas, 
+            antialias: true,
+            alpha: true,
+            preserveDrawingBuffer: true
+        });
+        
+        renderer.setSize(800, 800);
+        renderer.setClearColor(0x2a2a2a, 1);
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+        
+        const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight2.position.set(-5, -5, -5);
+        scene.add(directionalLight2);
+        
+        camera.position.z = 5;
+        
+        let model = null;
+        let modelGroup = new THREE.Group();
+        scene.add(modelGroup);
+        
+        // Load GLB
+        const loader = new GLTFLoader();
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const url = URL.createObjectURL(file);
+            document.getElementById('status').innerHTML = '⏳ Loading...';
+            
+            loader.load(url, (gltf) => {
+                if (model) {
+                    modelGroup.remove(model);
+                }
+                
+                model = gltf.scene;
+                modelGroup.add(model);
+                
+                // Center and scale model
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 2 / maxDim;
+                model.scale.multiplyScalar(scale);
+                
+                // Recalculate center after scaling
+                const newBox = new THREE.Box3().setFromObject(model);
+                const newCenter = newBox.getCenter(new THREE.Vector3());
+                model.position.sub(newCenter);
+                
+                document.getElementById('status').innerHTML = '✅ Model loaded successfully!';
+                render();
+            }, undefined, (error) => {
+                document.getElementById('status').innerHTML = '❌ Error loading model';
+                console.error(error);
+            });
+        });
+        
+        // Controls
+        document.getElementById('distance').addEventListener('input', (e) => {
+            camera.position.z = parseFloat(e.target.value);
+            document.getElementById('distanceValue').textContent = e.target.value;
+            render();
+        });
+        
+        document.getElementById('rotX').addEventListener('input', (e) => {
+            modelGroup.rotation.x = THREE.MathUtils.degToRad(parseFloat(e.target.value));
+            document.getElementById('rotXValue').textContent = e.target.value;
+            render();
+        });
+        
+        document.getElementById('rotY').addEventListener('input', (e) => {
+            modelGroup.rotation.y = THREE.MathUtils.degToRad(parseFloat(e.target.value));
+            document.getElementById('rotYValue').textContent = e.target.value;
+            render();
+        });
+        
+        document.getElementById('rotZ').addEventListener('input', (e) => {
+            modelGroup.rotation.z = THREE.MathUtils.degToRad(parseFloat(e.target.value));
+            document.getElementById('rotZValue').textContent = e.target.value;
+            render();
+        });
+        
+        document.getElementById('lightIntensity').addEventListener('input', (e) => {
+            directionalLight.intensity = parseFloat(e.target.value);
+            document.getElementById('lightIntensityValue').textContent = e.target.value;
+            render();
+        });
+        
+        document.getElementById('bgColor').addEventListener('input', (e) => {
+            const color = new THREE.Color(e.target.value);
+            renderer.setClearColor(color, document.getElementById('transparent').checked ? 0 : 1);
+            render();
+        });
+        
+        document.getElementById('transparent').addEventListener('change', (e) => {
+            const bgColor = document.getElementById('bgColor').value;
+            renderer.setClearColor(new THREE.Color(bgColor), e.target.checked ? 0 : 1);
+            render();
+        });
+        
+        document.getElementById('outlineThickness').addEventListener('input', (e) => {
+            document.getElementById('outlineThicknessValue').textContent = e.target.value;
+            render();
+        });
+        
+        document.getElementById('enableOutline').addEventListener('change', () => {
+            render();
+        });
+        
+        window.resetCamera = () => {
+            document.getElementById('distance').value = 5;
+            document.getElementById('rotX').value = 0;
+            document.getElementById('rotY').value = 0;
+            document.getElementById('rotZ').value = 0;
+            camera.position.z = 5;
+            modelGroup.rotation.set(0, 0, 0);
+            document.getElementById('distanceValue').textContent = '5';
+            document.getElementById('rotXValue').textContent = '0';
+            document.getElementById('rotYValue').textContent = '0';
+            document.getElementById('rotZValue').textContent = '0';
+            render();
+        };
+        
+        window.exportImage = () => {
+            if (!model) {
+                alert('Please load a model first!');
+                return;
+            }
+            
+            const size = parseInt(document.getElementById('exportSize').value);
+            const oldWidth = renderer.domElement.width;
+            const oldHeight = renderer.domElement.height;
+            
+            // Temporarily resize for export
+            renderer.setSize(size, size);
+            render();
+            
+            // Apply outline if enabled
+            let dataURL;
+            if (document.getElementById('enableOutline').checked) {
+                dataURL = applyOutline(canvas, parseInt(document.getElementById('outlineThickness').value));
+            } else {
+                dataURL = canvas.toDataURL('image/png');
+            }
+            
+            // Export
+            const link = document.createElement('a');
+            link.download = 'model-export.png';
+            link.href = dataURL;
+            link.click();
+            
+            // Restore size
+            renderer.setSize(oldWidth, oldHeight);
+            render();
+        };
+        
+        function applyOutline(sourceCanvas, thickness) {
+            // Create temporary canvas
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = sourceCanvas.width;
+            tempCanvas.height = sourceCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Draw original image
+            tempCtx.drawImage(sourceCanvas, 0, 0);
+            
+            // Get image data
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const data = imageData.data;
+            
+            // Create outline canvas
+            const outlineCanvas = document.createElement('canvas');
+            outlineCanvas.width = tempCanvas.width;
+            outlineCanvas.height = tempCanvas.height;
+            const outlineCtx = outlineCanvas.getContext('2d');
+            const outlineImageData = outlineCtx.createImageData(tempCanvas.width, tempCanvas.height);
+            const outlineData = outlineImageData.data;
+            
+            // Detect edges and create outline
+            for (let y = 0; y < tempCanvas.height; y++) {
+                for (let x = 0; x < tempCanvas.width; x++) {
+                    const idx = (y * tempCanvas.width + x) * 4;
+                    const alpha = data[idx + 3];
+                    
+                    // If pixel is transparent, check if it's near an opaque pixel
+                    if (alpha < 128) {
+                        let nearOpaque = false;
+                        
+                        // Check surrounding pixels within thickness
+                        for (let dy = -thickness; dy <= thickness; dy++) {
+                            for (let dx = -thickness; dx <= thickness; dx++) {
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                
+                                if (nx >= 0 && nx < tempCanvas.width && ny >= 0 && ny < tempCanvas.height) {
+                                    const nIdx = (ny * tempCanvas.width + nx) * 4;
+                                    if (data[nIdx + 3] >= 128) {
+                                        nearOpaque = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (nearOpaque) break;
+                        }
+                        
+                        // Draw black outline
+                        if (nearOpaque) {
+                            outlineData[idx] = 0;     // R
+                            outlineData[idx + 1] = 0; // G
+                            outlineData[idx + 2] = 0; // B
+                            outlineData[idx + 3] = 255; // A
+                        }
+                    }
+                }
+            }
+            
+            // Combine outline and original
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = tempCanvas.width;
+            finalCanvas.height = tempCanvas.height;
+            const finalCtx = finalCanvas.getContext('2d');
+            
+            // Draw outline first
+            outlineCtx.putImageData(outlineImageData, 0, 0);
+            finalCtx.drawImage(outlineCanvas, 0, 0);
+            
+            // Draw original on top
+            finalCtx.drawImage(tempCanvas, 0, 0);
+            
+            return finalCanvas.toDataURL('image/png');
+        }
+        
+        function render() {
+            renderer.render(scene, camera);
+        }
+        
+        render();
+    </script>
+</body>
+</html>

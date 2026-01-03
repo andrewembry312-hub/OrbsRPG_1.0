@@ -7,7 +7,8 @@
 }
 *{box-sizing:border-box}
 body{margin:0; background:radial-gradient(1200px 700px at 30% 0%, #121b3a 0%, var(--bg) 55%, #070a14 100%);
-  color:var(--text); font-family:system-ui,Segoe UI,Arial; overflow:hidden;}
+  color:var(--text); font-family:system-ui,Segoe UI,Arial; overflow:hidden;
+}
 canvas{display:block}
 .hud{
   position:fixed; left:12px; top:12px; width:392px; padding:10px;
@@ -30,7 +31,7 @@ canvas{display:block}
 }
 .toast.show{opacity:1; transform:none}
 
-.overlay{ position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.55); backdrop-filter: blur(4px); z-index:1000; }
+.overlay{ position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.75); backdrop-filter: blur(4px); z-index:1000; }
 .overlay.show{display:grid}
 .hud{ z-index:100 }
 .abilBar, .bottomStats{ z-index:100 }
@@ -42,6 +43,34 @@ canvas{display:block}
   background:rgba(17,26,51,.96); border:1px solid var(--line); border-radius:18px;
   box-shadow:0 20px 70px rgba(0,0,0,.55);
   padding:14px;
+}
+#escOverlay .panel{
+  background:#000000; border:2px solid #d4af37; box-shadow:0 20px 70px rgba(212,175,55,.35);
+}
+#escOverlay h2{
+  color:#d4af37;
+}
+#escOverlay .box{
+  background:#0a0a0a; border:1px solid #d4af37;
+}
+#escOverlay button{
+  border:1px solid #d4af37; background:#1a1a1a; color:#d4af37; font-weight:900;
+}
+#escOverlay button:hover{
+  background:#2a2a2a; outline:2px solid #d4af37;
+}
+#escOverlay .small{
+  color:#b8860b;
+}
+#escOverlay label{
+  color:#d4af37;
+}
+#escOverlay input[type="checkbox"],
+#escOverlay input[type="radio"]{
+  accent-color:#d4af37;
+}
+#escOverlay .bindRow{
+  background:rgba(212,175,55,.08); border:1px solid #d4af37;
 }
 .overlay#invOverlay{ place-items:stretch; }
 #invOverlay .panel{ width:100vw; height:100vh; max-height:none; border:2px solid #fff; border-radius:0; background:#000; padding:16px; overflow:hidden; }
