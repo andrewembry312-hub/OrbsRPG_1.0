@@ -1418,10 +1418,27 @@ function npcUpdateAbilities(state, u, dt, kind){
   for(let i=0;i<u.npcCd.length;i++) u.npcCd[i] = Math.max(0, (u.npcCd[i]||0) - dt);
   const debugAI = state.options?.showDebug || state.options?.showDebugAI;
   const recordAI = (action, extra={})=>{
-    if(!debugAI) return;
-    state.debugAiEvents = state.debugAiEvents || [];
-    state.debugAiEvents.push({ t: state.campaign?.time||0, unit: u.name||u.variant||'npc', id: u.id||u._id, action, ...extra });
-    if(state.debugAiEvents.length > 32) state.debugAiEvents.shift();
+    if(debugAI){
+      state.debugAiEvents = state.debugAiEvents || [];
+      state.debugAiEvents.push({ t: state.campaign?.time||0, unit: u.name||u.variant||'npc', id: u.id||u._id, action, ...extra });
+      if(state.debugAiEvents.length > 32) state.debugAiEvents.shift();
+    }
+    
+    // Track ability usage for logs (when enabled)
+    const shouldTrack = (kind === 'friendly' && state.ui?.trackFriendlyAbilities?.checked) || 
+                       (kind === 'enemy' && state.ui?.trackEnemyAbilities?.checked);
+    if(shouldTrack && (action === 'cast' || action === 'cast-prio') && extra.ability){
+      state.abilityUsageTracking = state.abilityUsageTracking || { friendly: {}, enemy: {} };
+      const category = kind === 'friendly' ? 'friendly' : 'enemy';
+      const role = extra.role || u.role || u.variant || 'unknown';
+      const ability = extra.ability;
+      const key = `${role} - ${ability}`;
+      
+      if(!state.abilityUsageTracking[category][key]){
+        state.abilityUsageTracking[category][key] = { role, ability, count: 0 };
+      }
+      state.abilityUsageTracking[category][key].count++;
+    }
   };
 
   // target selection with short lock stickiness
@@ -4190,7 +4207,26 @@ function updateBuffs(state, dt){
         const hp = meta?.ticks?.hp ?? 0;
         const mana = meta?.ticks?.mana ?? 0;
         const dmg = meta?.ticks?.damage ?? 0;
-        if(hp!==0){ unit.hp = clamp((unit.hp ?? 0) + hp, 0, unit.maxHp ?? 9999); }
+        
+        // HP ticks: positive = healing, negative = damage (treat as damage to respect shields/resistances)
+        if(hp>0){ 
+          unit.hp = clamp((unit.hp ?? 0) + hp, 0, unit.maxHp ?? 9999); 
+        } else if(hp<0){
+          // Negative HP should be treated as damage (go through damage system)
+          const absDmg = Math.abs(hp);
+          if(unit === state.player){
+            const st = currentStats(state);
+            applyDamageToPlayer(state, absDmg, st);
+          } else if(state.enemies.includes(unit)){
+            const st = currentStats(state);
+            const res = applyDamageToEnemy(unit, absDmg, st, state, false);
+            if(unit.hp<=0){ const idx = state.enemies.indexOf(unit); if(idx!==-1) killEnemy(state, idx, true); }
+          } else if(state.friendlies.includes(unit)){
+            applyShieldedDamage(state, unit, absDmg);
+            if(unit.hp<=0){ unit.dead = true; unit.respawnT = 10; }
+          }
+        }
+        
         if(mana!==0){ unit.mana = clamp((unit.mana ?? 0) + mana, 0, unit.maxMana ?? 9999); }
         if(dmg>0){
           if(state.enemies.includes(unit)){

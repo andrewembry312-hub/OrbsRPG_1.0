@@ -1223,8 +1223,22 @@ export function buildUI(state){
           <div class="box" style="margin-top:12px; background:rgba(5,5,5,0.75); border:2px solid rgba(212,175,55,0.35); box-shadow:0 0 12px rgba(212,175,55,0.18);">
             <div class="small" style="font-weight:900; color:#d4af37;">Debug</div>
             <div style="padding:8px; background:rgba(0,0,0,0.3); border-radius:4px;">
-              <button id="btnDownloadErrorLog" style="width:100%">Download Console Errors</button>
-              <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Export console errors for debugging.</div>
+              <button id="btnDownloadErrorLog" style="width:100%; margin-bottom:8px;">Download Console Errors</button>
+              <div class="small" style="margin-bottom:8px; color:#888; font-size:10px;">Export console errors for debugging.</div>
+              
+              <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.2);">
+                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Ability Usage Tracking</div>
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px; cursor:pointer;">
+                  <input type="checkbox" id="trackFriendlyAbilities" style="cursor:pointer;">
+                  <span class="small" style="color:#6cf;">Track Friendly Abilities</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px; cursor:pointer;">
+                  <input type="checkbox" id="trackEnemyAbilities" style="cursor:pointer;">
+                  <span class="small" style="color:#f66;">Track Enemy Abilities</span>
+                </label>
+                <button id="btnDownloadAbilityLog" style="width:100%; margin-top:4px;">Download Ability Usage Log</button>
+                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Track how often each ability is cast by role/class for AI tuning.</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1470,6 +1484,9 @@ function bindUI(state){
     btnApplyOpts:$('btnApplyOpts'),
     btnResetBinds:$('btnResetBinds'),
     btnDownloadErrorLog:$('btnDownloadErrorLog'),
+    trackFriendlyAbilities:$('trackFriendlyAbilities'),
+    trackEnemyAbilities:$('trackEnemyAbilities'),
+    btnDownloadAbilityLog:$('btnDownloadAbilityLog'),
     optShowAim:$('optShowAim'),
     optShowDebug:$('optShowDebug'),
     optShowDebugAI:$('optShowDebugAI'),
@@ -5384,6 +5401,60 @@ function bindUI(state){
     }catch(e){
       console.error('Download error log failed:', e);
       ui.toast('Failed to download error log');
+    }
+  };
+
+  // Initialize ability tracking state
+  state.abilityUsageTracking = state.abilityUsageTracking || { friendly: {}, enemy: {} };
+  
+  ui.btnDownloadAbilityLog.onclick=()=>{
+    const tracking = state.abilityUsageTracking || { friendly: {}, enemy: {} };
+    const friendlyCount = Object.keys(tracking.friendly).length;
+    const enemyCount = Object.keys(tracking.enemy).length;
+    
+    if(friendlyCount === 0 && enemyCount === 0){
+      ui.toast('No ability usage data logged yet');
+      return;
+    }
+    
+    try{
+      let report = 'Ability Usage Report\n';
+      report += '='.repeat(60) + '\n';
+      report += `Generated: ${new Date().toLocaleString()}\n`;
+      report += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
+      
+      if(friendlyCount > 0){
+        report += 'FRIENDLY ABILITIES\n';
+        report += '-'.repeat(60) + '\n';
+        const sorted = Object.entries(tracking.friendly).sort((a,b) => b[1].count - a[1].count);
+        for(const [key, data] of sorted){
+          report += `${key.padEnd(40)} : ${data.count.toString().padStart(5)} casts\n`;
+        }
+        report += '\n';
+      }
+      
+      if(enemyCount > 0){
+        report += 'ENEMY ABILITIES\n';
+        report += '-'.repeat(60) + '\n';
+        const sorted = Object.entries(tracking.enemy).sort((a,b) => b[1].count - a[1].count);
+        for(const [key, data] of sorted){
+          report += `${key.padEnd(40)} : ${data.count.toString().padStart(5)} casts\n`;
+        }
+        report += '\n';
+      }
+      
+      const blob = new Blob([report], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ability-usage-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      ui.toast(`Downloaded ability usage log (${friendlyCount + enemyCount} abilities tracked)`);
+    }catch(e){
+      console.error('Download ability log failed:', e);
+      ui.toast('Failed to download ability log');
     }
   };
 
