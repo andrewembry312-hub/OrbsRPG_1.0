@@ -1,118 +1,4 @@
 import { clamp, cssVar } from "../engine/util.js";
-
-// Pre-load grass textures
-const grassTextures = {
-  grass1: null,
-  grass2: null,
-  winterTree: null,
-  purpleCrystal: null,
-  waterPond: null,
-  pond1: null,
-  pond2: null,
-  pond3: null,
-  rocks1: null,
-  rocks2: null,
-  loaded: false,
-  loading: false,
-  patches: [] // Store static patch positions
-};
-
-function loadGrassTextures(){
-  if(grassTextures.loading || grassTextures.loaded) return;
-  grassTextures.loading = true;
-  
-  const loadImage = (path) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => {
-        console.warn(`Failed to load grass texture: ${path}`);
-        resolve(null);
-      };
-      img.crossOrigin = 'anonymous';
-      img.src = path;
-    });
-  };
-  
-  Promise.all([
-    loadImage('assets/Environment/grass.png'),
-    loadImage('assets/Environment/grass 2.png'),
-    loadImage('assets/Environment/winter tree.png'),
-    loadImage('assets/Environment/purple chrystal.png'),
-    loadImage('assets/Environment/water pond.png'),
-    loadImage('assets/Environment/pond 1.png'),
-    loadImage('assets/Environment/pond 2.png'),
-    loadImage('assets/Environment/pond 3.png'),
-    loadImage('assets/Environment/rocks 1.png'),
-    loadImage('assets/Environment/rocks 2.png')
-  ]).then(([img1, img2, tree, crystal, waterPond, pond1, pond2, pond3, rocks1, rocks2]) => {
-    if(img1) grassTextures.grass1 = img1;
-    if(img2) grassTextures.grass2 = img2;
-    if(tree) grassTextures.winterTree = tree;
-    if(crystal) grassTextures.purpleCrystal = crystal;
-    if(waterPond) grassTextures.waterPond = waterPond;
-    if(pond1) grassTextures.pond1 = pond1;
-    if(pond2) grassTextures.pond2 = pond2;
-    if(pond3) grassTextures.pond3 = pond3;
-    if(rocks1) grassTextures.rocks1 = rocks1;
-    if(rocks2) grassTextures.rocks2 = rocks2;
-    grassTextures.loaded = true;
-    
-    // Generate static patch positions once
-    grassTextures.patches = [];
-    for(let i = 0; i < 150; i++){
-      grassTextures.patches.push({
-        x: Math.random() * 2000,
-        y: Math.random() * 2000,
-        size: 80 + Math.random() * 150,
-        isGrass1: Math.random() > 0.5
-      });
-    }
-    
-    // Add winter trees
-    for(let i = 0; i < 15; i++){
-      grassTextures.patches.push({
-        x: Math.random() * 2000,
-        y: Math.random() * 2000,
-        size: 100 + Math.random() * 80,
-        isTree: true
-      });
-    }
-    
-    // Add one of each special environment decoration
-    const ponds = [grassTextures.waterPond, grassTextures.pond1, grassTextures.pond2, grassTextures.pond3];
-    const rocks = [grassTextures.rocks1, grassTextures.rocks2];
-    
-    ponds.forEach((pond, idx) => {
-      if(pond) {
-        grassTextures.patches.push({
-          x: Math.random() * 2000,
-          y: Math.random() * 2000,
-          size: 150 + Math.random() * 100,
-          isPond: true,
-          pondImg: pond
-        });
-      }
-    });
-    
-    rocks.forEach((rock, idx) => {
-      if(rock) {
-        grassTextures.patches.push({
-          x: Math.random() * 2000,
-          y: Math.random() * 2000,
-          size: 120 + Math.random() * 80,
-          isRocks: true,
-          rocksImg: rock
-        });
-      }
-    });
-    
-    console.log('[Grass Textures] Loaded successfully');
-  });
-}
-
-// Load textures on module import
-loadGrassTextures();
 import { LOOT_TTL, ACTION_LABELS } from "./constants.js";
 import { currentStats, getInteractionPrompt } from "./game.js";
 import { BUFF_REGISTRY, DOT_REGISTRY } from "./skills.js";
@@ -183,103 +69,152 @@ export function render(state){
     for(let i=0;i<18;i++){ const ang=i*(Math.PI*2/18); ctx.beginPath(); ctx.arc(state.player.x + Math.cos(ang)*160 + (Math.random()*24-12), state.player.y + Math.sin(ang)*100 + (Math.random()*18-9), 18 + Math.random()*10, 0, Math.PI*2); ctx.fill(); }
     ctx.globalAlpha=1;
   } else {
-    // Draw grass base color
+    // Main grass layer
     ctx.fillStyle = '#89c97a';
     ctx.fillRect(0,0,state.mapWidth || canvas.width, state.mapHeight || canvas.height);
     
-    // Draw decorative objects using their collision circles for accurate positioning
-    if(grassTextures.loaded && state.decorativeCircles && state.decorativeCircles.length > 0){
-      ctx.globalAlpha = 0.7;
-      
-      for(let dc of state.decorativeCircles){
-        let texture = null;
-        let size = dc.r * 6; // 3x larger than before
-        
-        // Select texture based on type
-        if(dc.type === 'tree' && grassTextures.winterTree){
-          texture = grassTextures.winterTree;
-        } else if(dc.type === 'pond'){
-          const ponds = [grassTextures.waterPond, grassTextures.pond1, grassTextures.pond2, grassTextures.pond3];
-          const variant = dc.textureVariant !== undefined ? dc.textureVariant : 0;
-          texture = ponds[variant % ponds.length];
-          ctx.globalAlpha = 0.65;
-        } else if(dc.type === 'rocks'){
-          const rockTextures = [grassTextures.rocks1, grassTextures.rocks2];
-          const variant = dc.textureVariant !== undefined ? dc.textureVariant : 0;
-          texture = rockTextures[variant % rockTextures.length];
-          ctx.globalAlpha = 0.6;
-        } else if(dc.type === 'crystal' && grassTextures.purpleCrystal){
-          texture = grassTextures.purpleCrystal;
-          ctx.globalAlpha = 0.75;
-        }
-        
-        if(texture){
-          try{
-            ctx.drawImage(texture, dc.x - size/2, dc.y - size/2, size, size);
-          }catch(e){}
-        }
-      }
-      ctx.globalAlpha = 1;
-    }
+    // Parallax background layers for depth effect
+    const parallaxFactor = 0.7; // Background moves slower than camera
+    const bgX = -cam.x * (1 - parallaxFactor);
+    const bgY = -cam.y * (1 - parallaxFactor);
     
-    // Also draw grass patches for ground texture
-    if(grassTextures.loaded && grassTextures.patches.length > 0){
-      ctx.globalAlpha = 0.5;
-      
-      for(let patch of grassTextures.patches){
-        const texture = patch.isGrass1 ? grassTextures.grass1 : grassTextures.grass2;
-        if(texture){
-          try{
-            ctx.drawImage(texture, patch.x, patch.y, patch.size, patch.size);
-          }catch(e){}
-        }
-      }
-      ctx.globalAlpha = 1;
+    // Distant forest treeline (darkest, slowest movement)
+    ctx.fillStyle = 'rgba(60, 120, 50, 0.15)';
+    ctx.fillRect(bgX, bgY, 2000, 2000);
+    
+    // Mid-distance clouds/haze effect
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+    for(let i = 0; i < 3; i++){
+      const cX = (bgX + i * 500) % 2000;
+      const cY = (bgY + i * 300) % 2000;
+      ctx.beginPath();
+      ctx.ellipse(cX + 200, cY + 100, 150, 40, 0.3, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
 
-  // draw mountains (clustered peaks) with simple view culling
+  // draw mountains using FreePack tileset sprites
   const drawMountains = (list) => {
     if(!list) return;
+    const mountainSprite = loadCachedImage(state, 'assets/FreeEnvironment/FreeEnvironment/FreePack 2.png');
     for(const m of list){
       const cx = m.x ?? (m.peaks && m.peaks[0]?.x) ?? 0;
       const cy = m.y ?? (m.peaks && m.peaks[0]?.y) ?? 0;
       if(!inView(cx, cy, 120)) continue;
       for(const p of (m.peaks||[])){
-        ctx.fillStyle='rgba(100,80,60,0.98)';
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y - p.r*0.7);
-        ctx.lineTo(p.x - p.r, p.y + p.r*0.4);
-        ctx.lineTo(p.x + p.r, p.y + p.r*0.4);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle='rgba(255,255,255,0.10)';
-        ctx.beginPath(); ctx.moveTo(p.x, p.y - p.r*0.7); ctx.lineTo(p.x - p.r*0.25, p.y - p.r*0.25); ctx.lineTo(p.x + p.r*0.25, p.y - p.r*0.25); ctx.closePath(); ctx.fill();
+        if(mountainSprite){
+          // Mountains/rocks are usually larger sprites
+          const spriteW = 64;
+          const spriteH = 64;
+          const spriteX = 64;   // Adjust based on sprite-viewer
+          const spriteY = 0;    // Adjust based on sprite-viewer
+          const scale = (p.r / 20) * 1.0;
+          const drawW = spriteW * scale;
+          const drawH = spriteH * scale;
+          ctx.drawImage(mountainSprite, spriteX, spriteY, spriteW, spriteH, p.x - drawW/2, p.y - drawH/2, drawW, drawH);
+        } else {
+          // Fallback
+          ctx.fillStyle='rgba(120,100,80,0.95)';
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y - p.r*0.7);
+          ctx.lineTo(p.x - p.r, p.y + p.r*0.4);
+          ctx.lineTo(p.x + p.r, p.y + p.r*0.4);
+          ctx.closePath(); ctx.fill();
+        }
       }
     }
   };
   drawMountains(state.mountains);
   drawMountains(state.borderMountains);
 
-  // draw rock formations (purple crystals)
+  // draw rock formations using rocks 2.png sprite
   if(state.rocks){
+    const rockSprite = loadCachedImage(state, 'assets/Environment/rocks 2.png');
     for(const r of state.rocks){
       if(!inView(r.x, r.y, r.r + 28)) continue;
-      if(grassTextures.purpleCrystal){
-        try{
-          const size = r.r * 2.2;
-          ctx.drawImage(grassTextures.purpleCrystal, r.x - size/2, r.y - size/2, size, size);
-        }catch(e){}
+      
+      if(rockSprite){
+        const scale = (r.r / 12) * 1.2;
+        const drawW = rockSprite.width * scale;
+        const drawH = rockSprite.height * scale;
+        ctx.drawImage(rockSprite, r.x - drawW/2, r.y - drawH/2, drawW, drawH);
       } else {
-        // fallback to grey circles if image not loaded
+        // Fallback
         ctx.save();
         ctx.translate(r.x, r.y);
-        ctx.scale(r.rx/r.r, r.ry/r.r);
-        ctx.fillStyle='rgba(150,150,150,0.9)';
+        ctx.fillStyle='rgba(130,130,130,0.92)';
         ctx.beginPath(); ctx.arc(0,0,r.r,0,Math.PI*2); ctx.fill();
-        ctx.fillStyle='rgba(255,255,255,0.08)';
-        ctx.beginPath(); ctx.arc(-r.r*0.25, -r.r*0.25, r.r*0.4, 0, Math.PI*2); ctx.fill();
         ctx.restore();
-        ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=1; ctx.beginPath(); ctx.ellipse(r.x, r.y, r.rx, r.ry, 0, 0, Math.PI*2); ctx.stroke();
+      }
+    }
+  }
+  
+  // draw border rocks
+  if(state.borderRocks){
+    const rockSprite = loadCachedImage(state, 'assets/Environment/rocks 2.png');
+    for(const r of state.borderRocks){
+      if(!inView(r.x, r.y, r.r + 28)) continue;
+      
+      if(rockSprite){
+        const scale = (r.r / 12) * 1.2;
+        const drawW = rockSprite.width * scale;
+        const drawH = rockSprite.height * scale;
+        ctx.drawImage(rockSprite, r.x - drawW/2, r.y - drawH/2, drawW, drawH);
+      } else {
+        ctx.save();
+        ctx.translate(r.x, r.y);
+        ctx.fillStyle='rgba(130,130,130,0.92)';
+        ctx.beginPath(); ctx.arc(0,0,r.r,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+
+  // draw grass clusters
+  if(state.grass){
+    const grassSprite1 = loadCachedImage(state, 'assets/Environment/grass.png');
+    const grassSprite2 = loadCachedImage(state, 'assets/Environment/grass 2.png');
+    for(const g of state.grass){
+      if(!inView(g.x, g.y, g.r + 16)) continue;
+      
+      const sprite = g.type === 1 ? grassSprite1 : grassSprite2;
+      if(sprite){
+        const scale = (g.r / 8) * 1.0;
+        const drawW = sprite.width * scale;
+        const drawH = sprite.height * scale;
+        ctx.globalAlpha = 0.85;
+        ctx.drawImage(sprite, g.x - drawW/2, g.y - drawH/2, drawW, drawH);
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+
+  // draw ponds with water effect
+  if(state.ponds){
+    const pondSprites = [
+      loadCachedImage(state, 'assets/Environment/pond 1.png'),
+      loadCachedImage(state, 'assets/Environment/pond 2.png'),
+      loadCachedImage(state, 'assets/Environment/pond 3.png'),
+      loadCachedImage(state, 'assets/Environment/water pond.png')
+    ];
+    
+    for(const p of state.ponds){
+      if(!inView(p.x, p.y, p.r + 30)) continue;
+      
+      const sprite = pondSprites[p.type - 1];
+      if(sprite){
+        const scale = (p.r / 20) * 1.0;
+        const drawW = sprite.width * scale;
+        const drawH = sprite.height * scale;
+        ctx.drawImage(sprite, p.x - drawW/2, p.y - drawH/2, drawW, drawH);
+        
+        // Water shimmer effect
+        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = 'rgba(100,150,255,0.5)';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 0.7, 0, Math.PI*2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
       }
     }
   }
@@ -290,26 +225,41 @@ export function render(state){
       const lx = lake.x ?? (lake.circles && lake.circles[0]?.x) ?? 0;
       const ly = lake.y ?? (lake.circles && lake.circles[0]?.y) ?? 0;
       if(!inView(lx, ly, 220)) continue;
-      ctx.globalAlpha=0.9;
-      ctx.fillStyle='rgba(70,130,200,0.72)';
+      ctx.globalAlpha=0.85;
+      ctx.fillStyle='rgba(50,110,180,0.75)'; // Deeper water color
       for(const c of lake.circles){ ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2); ctx.fill(); }
       ctx.globalAlpha=1;
-      ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=2;
-      for(const c of lake.circles){ ctx.beginPath(); ctx.arc(c.x,c.y,Math.max(6,c.r-6),0,Math.PI*2); ctx.stroke(); }
+      // Water reflection/shimmer effect
+      ctx.strokeStyle='rgba(100,180,255,0.12)'; ctx.lineWidth=3;
+      for(const c of lake.circles){ ctx.beginPath(); ctx.arc(c.x,c.y,Math.max(6,c.r-10),0,Math.PI*2); ctx.stroke(); }
+      // Water edge highlight
+      ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+      for(const c of lake.circles){ ctx.beginPath(); ctx.arc(c.x,c.y,c.r-2,0,Math.PI*2); ctx.stroke(); }
     }
   }
 
   // rivers temporarily disabled
 
-  // draw trees (cull off-screen to reduce draw load)
+  // draw trees using winter tree sprite
   const drawTrees = (list) => {
     if(!list) return;
+    const treeSprite = loadCachedImage(state, 'assets/Environment/winter tree.png');
     for(const t of list){
       if(!inView(t.x, t.y, t.r + 18)) continue;
-      ctx.fillStyle='rgba(88,56,22,1)';
-      ctx.fillRect(t.x-3, t.y, 6, 8);
-      ctx.fillStyle='rgba(28,120,40,0.95)';
-      ctx.beginPath(); ctx.arc(t.x, t.y-6, t.r, 0, Math.PI*2); ctx.fill();
+      
+      if(treeSprite){
+        // Use the full winter tree image
+        const scale = (t.r / 16) * 1.5;
+        const drawW = treeSprite.width * scale;
+        const drawH = treeSprite.height * scale;
+        ctx.drawImage(treeSprite, t.x - drawW/2, t.y - drawH + 10, drawW, drawH);
+      } else {
+        // Fallback
+        ctx.fillStyle='rgba(60,40,20,0.95)';
+        ctx.fillRect(t.x-4, t.y, 8, 10);
+        ctx.fillStyle='rgba(20,100,30,0.96)';
+        ctx.beginPath(); ctx.arc(t.x, t.y-8, t.r, 0, Math.PI*2); ctx.fill();
+      }
     }
   };
   drawTrees(state.trees);
@@ -515,6 +465,14 @@ export function render(state){
     ctx.globalAlpha=alpha;
     drawTriangle(ctx, l.x,l.y,12,l.item.rarity.color||'#fff');
     ctx.globalAlpha=1;
+  }
+
+  // environmental decorations (parallax background props)
+  if(state.decorations){
+    for(const dec of state.decorations){
+      if(!inView(dec.x, dec.y, 50)) continue;
+      drawEnvironmentalDecoration(ctx, dec, state);
+    }
   }
 
   // enemies
@@ -806,6 +764,59 @@ function drawGrid(ctx, canvas){
   for(let x=0;x<canvas.width;x+=step){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
   for(let y=0;y<canvas.height;y+=step){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
   ctx.globalAlpha=1;
+}
+
+/**
+ * Draw an environmental decoration using actual FreePack 2.png sprite sheet.
+ */
+function drawEnvironmentalDecoration(ctx, dec, state){
+  const spriteSheet = loadCachedImage(state, 'assets/FreeEnvironment/FreeEnvironment/FreePack 2.png');
+  
+  if(!spriteSheet){
+    // Log once if sprite not loading
+    if(!state._loggedSpriteWarning){
+      console.warn('[ENVIRONMENT] FreePack 2.png not loaded yet, using fallback shapes');
+      state._loggedSpriteWarning = true;
+    }
+    // Fallback to simple shapes if sprite not loaded yet
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = dec.type === 'tree' ? '#2d5024' : dec.type === 'rock' ? '#8b7d6b' : dec.type === 'building' ? '#8b6f47' : '#6b8e3f';
+    ctx.beginPath();
+    ctx.arc(dec.x, dec.y, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
+  
+  // Log once when sprite loads successfully
+  if(!state._loggedSpriteSuccess){
+    console.log('[ENVIRONMENT] ✓ FreePack 2.png loaded successfully! Drawing sprites...');
+    console.log('Sprite dimensions:', spriteSheet.width, 'x', spriteSheet.height);
+    state._loggedSpriteSuccess = true;
+  }
+  
+  ctx.save();
+  ctx.globalAlpha = 0.95;
+  
+  // Get sprite coordinates from the decoration's spriteIndex
+  const idx = dec.spriteIndex;
+  const scale = 2.0; // Scale up sprites even more for visibility
+  const drawW = idx.w * scale;
+  const drawH = idx.h * scale;
+  
+  // Draw the sprite from the tileset
+  try {
+    ctx.drawImage(
+      spriteSheet,
+      idx.x, idx.y, idx.w, idx.h,  // Source rectangle from sprite sheet
+      dec.x - drawW/2, dec.y - drawH/2, drawW, drawH  // Destination on canvas (centered)
+    );
+  } catch(e) {
+    console.error('[ENVIRONMENT] Error drawing sprite:', e);
+  }
+  
+  ctx.restore();
 }
 
 function drawTriangle(ctx,x,y,size,color){

@@ -142,6 +142,8 @@ export function createState(engine, input, ui){
     enemySpawnTimer:0,
     selectedUnit: null, // clicked unit (enemy/friendly/creature) for inspection
     autoSaveTimer: 0, // track time for auto-save every 60 seconds
+    // Environmental decorations (trees, rocks, buildings)
+    decorations: [], // array of { x, y, r, type ('tree', 'rock', 'building'), width, height, walkable }
     // Logging system
     gameLog: {
       enabled: false,

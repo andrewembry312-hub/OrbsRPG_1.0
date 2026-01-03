@@ -211,11 +211,11 @@ export function buildUI(state){
 
     <!-- Inventory / Tabbed UI -->
     <div id="invOverlay" class="overlay">
-      <div class="panel" style="background: linear-gradient(135deg, #0a0a0a 0%, #151515 100%); border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);">
-        <div class="row" style="border-bottom: 1px solid #d4af37; padding-bottom: 12px;">
-          <h2 style="margin:0; color: #e7c76c; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);">Character Panel</h2>
+      <div class="panel">
+        <div class="row">
+          <h2 style="margin:0">Character Panel</h2>
           <div class="btnRow" style="margin:0">
-            <button id="invClose" class="secondary" style="background: #d4af37; color: #050505; border: none; padding: 6px 16px; font-weight: 900; cursor: pointer; border-radius: 4px;">Close</button>
+            <button id="invClose" class="secondary">Close</button>
           </div>
         </div>
         <!-- Tab buttons -->
@@ -1154,11 +1154,11 @@ export function buildUI(state){
     <!-- Remove old separate overlays: Skills and Level overlays are now tabs -->
 
     <div id="escOverlay" class="overlay">
-      <div class="panel" style="width:min(760px,92vw); background: linear-gradient(135deg, #0a0a0a 0%, #151515 100%); border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);">
+      <div class="panel" style="width:min(760px,92vw)">
         <!-- Main Menu Screen -->
         <div id="escMenuMain">
-          <h2 style="color: #e7c76c; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);">Menu</h2>
-          <div class="box" style="background: rgba(10, 10, 10, 0.6); border: 1px solid #d4af37;">
+          <h2>Menu</h2>
+          <div class="box">
             <div class="btnRow" style="display:flex; flex-direction:column; gap:10px; align-items:stretch;">
               <button id="btnResume" style="font-size:18px; padding:14px;">Resume Game</button>
               <button id="btnSave" style="font-size:18px; padding:14px;">Save Game</button>
@@ -1172,9 +1172,9 @@ export function buildUI(state){
 
         <!-- Options Submenu Screen -->
         <div id="escMenuOptions" style="display:none">
-          <div class="row" style="align-items:center; margin-bottom:12px; border-bottom: 1px solid #d4af37; padding-bottom: 12px;">
-            <button id="btnBackToMenu" class="secondary" style="background: #d4af37; color: #050505; border: none; padding: 6px 16px; font-weight: 900; cursor: pointer; border-radius: 4px;">← Back</button>
-            <h2 style="margin:0; flex:1; text-align:center; color: #e7c76c; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);">Options</h2>
+          <div class="row" style="align-items:center; margin-bottom:12px;">
+            <button id="btnBackToMenu" class="secondary">← Back</button>
+            <h2 style="margin:0; flex:1; text-align:center;">Options</h2>
             <div style="width:80px;"></div> <!-- Spacer for centering -->
           </div>
           
@@ -1236,39 +1236,39 @@ export function buildUI(state){
 
     <!-- Marketplace Overlay -->
     <div id="marketplaceOverlay" class="overlay">
-      <div class="panel" style="width:min(96vw,1400px); height:90vh; display:flex; flex-direction:column; background: linear-gradient(135deg, #0a0a0a 0%, #151515 100%); border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);">
-        <div class="row" style="position:relative; align-items:center; margin-bottom:10px; flex-shrink:0; padding: 10px; border-bottom: 1px solid #d4af37;">
+      <div class="panel" style="width:min(96vw,1400px); height:90vh; display:flex; flex-direction:column">
+        <div class="row" style="position:relative; align-items:center; margin-bottom:10px; flex-shrink:0">
           <div id="marketConfirm" class="small" style="position:absolute; left:0; top:0; min-height:18px; font-weight:900; background:transparent; padding:0; margin:0; pointer-events:none;"></div>
-          <h2 style="margin:0; flex:1; text-align:center; color: #e7c76c; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);">🏪 Marketplace</h2>
-          <button id="btnCloseMarket" class="secondary" style="background: #d4af37; color: #050505; border: none; padding: 6px 16px; font-weight: 900; cursor: pointer; border-radius: 4px;">Close</button>
+          <h2 style="margin:0; flex:1; text-align:center;">🏪 Marketplace</h2>
+          <button id="btnCloseMarket" class="secondary">Close</button>
         </div>
         
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; flex:1; overflow:hidden; padding: 10px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; flex:1; overflow:hidden">
           <!-- Left: Shop (Buy) -->
-          <div class="box" style="display:flex; flex-direction:column; overflow:hidden; background: rgba(10, 10, 10, 0.6); border: 1px solid #d4af37; box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);">
-            <div style="margin-bottom:8px; flex-shrink:0; padding: 8px; border-bottom: 1px solid #d4af37;">
-              <div class="small" style="font-weight:900; margin-bottom:4px; color: #e7c76c;">🛒 Buy Items</div>
-              <div class="small" style="color:#a08a5a;">Unlimited stock available!</div>
+          <div class="box" style="display:flex; flex-direction:column; overflow:hidden">
+            <div style="margin-bottom:8px; flex-shrink:0">
+              <div class="small" style="font-weight:900; margin-bottom:4px">🛒 Buy Items</div>
+              <div class="small" style="color:#aaa">Unlimited stock available!</div>
             </div>
-            <div id="marketInspect" class="small" style="margin:10px; line-height:1.4; min-height:60px; padding:8px; background:rgba(0,0,0,0.4); border: 1px solid #d4af37; border-radius:4px; flex-shrink:0; color: #c9a65b;">
+            <div id="marketInspect" class="small" style="margin-bottom:10px; line-height:1.4; min-height:60px; padding:8px; background:rgba(0,0,0,0.2); border-radius:4px; flex-shrink:0">
               Select an item to view its stats.
             </div>
-            <div id="shopItems" class="grid2" style="flex:1; overflow-y:auto; gap:8px; padding: 0 10px 10px 10px;"></div>
+            <div id="shopItems" class="grid2" style="flex:1; overflow-y:auto; gap:8px"></div>
           </div>
           
           <!-- Right: Player Inventory (Sell) -->
-          <div class="box" style="display:flex; flex-direction:column; overflow:hidden; background: rgba(10, 10, 10, 0.6); border: 1px solid #d4af37; box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);">
-            <div style="margin-bottom:8px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; padding: 8px; border-bottom: 1px solid #d4af37;">
+          <div class="box" style="display:flex; flex-direction:column; overflow:hidden">
+            <div style="margin-bottom:8px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center">
               <div>
-                <div class="small" style="font-weight:900; margin-bottom:4px; color: #e7c76c;">💰 Your Gold: <span id="marketGold" style="color:#e7c76c;">0</span></div>
-                <div class="small" style="color:#a08a5a;">📦 Sell Items (Press E or Double-Click)</div>
+                <div class="small" style="font-weight:900; margin-bottom:4px">💰 Your Gold: <span id="marketGold" style="color:var(--epic)">0</span></div>
+                <div class="small" style="color:#aaa">📦 Sell Items (Press E or Double-Click)</div>
               </div>
-              <button id="btnSellAll" class="secondary" style="background: #d4af37; color: #050505; border: none; padding: 6px 12px; font-size:12px; font-weight: 900; cursor: pointer; border-radius: 4px;">Sell All</button>
+              <button id="btnSellAll" class="secondary" style="height:fit-content; padding:6px 12px; font-size:12px">Sell All</button>
             </div>
-            <div id="sellInspect" class="small" style="margin:10px; line-height:1.4; min-height:60px; padding:8px; background:rgba(0,0,0,0.4); border: 1px solid #d4af37; border-radius:4px; flex-shrink:0; color: #c9a65b;">
+            <div id="sellInspect" class="small" style="margin-bottom:10px; line-height:1.4; min-height:60px; padding:8px; background:rgba(0,0,0,0.2); border-radius:4px; flex-shrink:0">
               Click an item to view stats and sell value.
             </div>
-            <div id="sellItems" class="invGrid" style="flex:1; overflow-y:auto; gap:8px; padding: 0 10px 10px 10px;"></div>
+            <div id="sellItems" class="invGrid" style="flex:1; overflow-y:auto; gap:8px"></div>
           </div>
         </div>
       </div>
@@ -1276,18 +1276,18 @@ export function buildUI(state){
 
     <!-- Base Actions Choice Menu -->
     <div id="baseActionsOverlay" class="overlay">
-      <div class="panel" style="width:min(500px,92vw); background: linear-gradient(135deg, #0a0a0a 0%, #151515 100%); border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);">
-        <h2 style="text-align:center; color: #e7c76c; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);">🏰 Base Actions</h2>
-        <div class="box" style="margin-top:10px; background: rgba(10, 10, 10, 0.6); border: 1px solid #d4af37;">
-          <div class="small" style="margin-bottom:12px; text-align:center; color:#a08a5a">What would you like to do?</div>
+      <div class="panel" style="width:min(500px,92vw)">
+        <h2 style="text-align:center;">🏰 Base Actions</h2>
+        <div class="box" style="margin-top:10px">
+          <div class="small" style="margin-bottom:12px; text-align:center; color:#aaa">What would you like to do?</div>
           <div style="display:flex; flex-direction:column; gap:12px;">
-            <button id="btnOpenMarketplace" style="padding:20px; font-size:18px; background: rgba(212, 175, 55, 0.2); border:2px solid #d4af37; color:#e7c76c; cursor:pointer; border-radius:6px; font-weight:900;">
+            <button id="btnOpenMarketplace" style="padding:20px; font-size:18px; background:rgba(255,215,0,0.2); border:2px solid rgba(255,215,0,0.4); color:#fff; cursor:pointer; border-radius:6px;">
               🏪 Open Marketplace
-              <div style="font-size:12px; color:#a08a5a; margin-top:4px;">Buy weapons, armor, and potions</div>
+              <div style="font-size:12px; color:#aaa; margin-top:4px;">Buy weapons, armor, and potions</div>
             </button>
-            <button id="btnOpenGarrison" style="padding:20px; font-size:18px; background: rgba(212, 175, 55, 0.2); border:2px solid #d4af37; color:#e7c76c; cursor:pointer; border-radius:6px; font-weight:900;">
+            <button id="btnOpenGarrison" style="padding:20px; font-size:18px; background:rgba(75,107,200,0.2); border:2px solid rgba(75,107,200,0.4); color:#fff; cursor:pointer; border-radius:6px;">
               ⚔️ Garrison Management
-              <div style="font-size:12px; color:#a08a5a; margin-top:4px;">Command and assign your allies</div>
+              <div style="font-size:12px; color:#aaa; margin-top:4px;">Command and assign your allies</div>
             </button>
           </div>
           <button id="btnCloseBaseActions" class="secondary" style="margin-top:12px; width:100%;">Cancel</button>
@@ -1297,25 +1297,25 @@ export function buildUI(state){
 
     <!-- Garrison Management Overlay -->
     <div id="garrisonOverlay" class="overlay">
-      <div class="panel" style="width:min(800px,92vw); background: linear-gradient(135deg, #0a0a0a 0%, #151515 100%); border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);">
-        <div class="row" style="align-items:center; border-bottom: 1px solid #d4af37; padding-bottom: 12px;">
-          <h2 style="margin:0; flex:1; text-align:center; color: #e7c76c; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);">⚔️ Garrison Management</h2>
-          <button id="btnCloseGarrison" class="secondary" style="background: #d4af37; color: #050505; border: none; padding: 6px 16px; font-weight: 900; cursor: pointer; border-radius: 4px;">Close</button>
+      <div class="panel" style="width:min(800px,92vw)">
+        <div class="row" style="align-items:center;">
+          <h2 style="margin:0; flex:1; text-align:center;">⚔️ Garrison Management</h2>
+          <button id="btnCloseGarrison" class="secondary">Close</button>
         </div>
-        <div class="box" style="margin-top:10px; background: rgba(10, 10, 10, 0.6); border: 1px solid #d4af37;">
-          <div class="small" style="font-weight:900; margin-bottom:8px; color: #e7c76c;">Base Defense Management</div>
-          <div class="small" style="margin-bottom:12px; color:#a08a5a">Assign allies to defend your bases and captured flags permanently. They will stay there and respawn at the location.</div>
+        <div class="box" style="margin-top:10px">
+          <div class="small" style="font-weight:900; margin-bottom:8px">Base Defense Management</div>
+          <div class="small" style="margin-bottom:12px; color:#aaa">Assign allies to defend your bases and captured flags permanently. They will stay there and respawn at the location.</div>
           
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <div class="small" style="font-weight:900;">Locations</div>
             <button id="btnCancelAllGarrison" style="padding:4px 12px; font-size:11px; background:rgba(255,85,85,0.2); border:1px solid rgba(255,85,85,0.4); color:#f55; cursor:pointer; border-radius:3px;">Cancel All Assignments</button>
           </div>
-          <div id="garrisonLocationList" style="max-height:200px; overflow-y:auto; margin-bottom:16px; border:1px solid #d4af37; padding:8px; background:rgba(0,0,0,0.4);">
+          <div id="garrisonLocationList" style="max-height:200px; overflow-y:auto; margin-bottom:16px; border:1px solid rgba(255,255,255,0.1); padding:8px; background:rgba(0,0,0,0.2);">
             <!-- Locations with garrison counts -->
           </div>
           
-          <div style="border-top:1px solid #d4af37; padding-top:16px;">
-            <div class="small" style="font-weight:900; margin-bottom:8px; color: #e7c76c;">All Allies (<span id="garrisonAllyCount">0</span>)</div>
+          <div style="border-top:2px solid rgba(255,255,255,0.1); padding-top:16px;">
+            <div class="small" style="font-weight:900; margin-bottom:8px;">All Allies (<span id="garrisonAllyCount">0</span>)</div>
             <div id="garrisonDetailList" style="max-height:320px; overflow-y:auto;">
               <!-- Individual ally cards -->
             </div>
@@ -1326,13 +1326,13 @@ export function buildUI(state){
 
     <!-- End -->
     <div id="endOverlay" class="overlay">
-      <div class="panel" style="width:min(560px,92vw); background: linear-gradient(135deg, #0a0a0a 0%, #151515 100%); border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);">
-        <h2 id="endTitle" style="color: #e7c76c; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); text-align:center;">Campaign Complete</h2>
-        <div class="box" style="background: rgba(10, 10, 10, 0.6); border: 1px solid #d4af37;">
-          <div class="small" id="endText" style="color: #c9a65b;">You won.</div>
-          <div class="box" style="margin-top:10px; background: rgba(10, 10, 10, 0.8); border: 1px solid #d4af37;">
-            <div class="small" style="font-weight:900; color: #e7c76c;">Rewards</div>
-            <ul id="endRewards" class="small" style="margin-top:6px; color: #c9a65b;"></ul>
+      <div class="panel" style="width:min(560px,92vw)">
+        <h2 id="endTitle">Campaign Complete</h2>
+        <div class="box">
+          <div class="small" id="endText">You won.</div>
+          <div class="box" style="margin-top:10px">
+            <div class="small" style="font-weight:900">Rewards</div>
+            <ul id="endRewards" class="small" style="margin-top:6px"></ul>
           </div>
           <div class="btnRow" style="margin-top:10px">
             <button id="btnNextCampaign">Start Next Campaign</button>
@@ -1345,24 +1345,24 @@ export function buildUI(state){
 
     <!-- Unit Inspection Panel (non-blocking, no overlay dim) -->
     <div id="unitInspectionPanel" style="position:fixed; inset:0; pointer-events:none; background:transparent; display:none;">
-      <div class="panel" id="unitInspectionContent" style="position:fixed; width:280px; pointer-events:auto; background:linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%); border:2px solid #d4af37; padding:10px; left:20px; top:80px; z-index:150; display:none; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);">
-        <div class="row" style="justify-content:space-between; align-items:center; border-bottom: 1px solid #d4af37; padding-bottom: 8px;">
-          <h3 id="unitName" style="margin:0; color: #e7c76c;">Unit</h3>
-          <button id="closeUnitPanel" style="background:none; border:1px solid #d4af37; color:#d4af37; padding:4px 8px; cursor:pointer; font-size:12px; border-radius:3px; font-weight:900;">Close</button>
+      <div class="panel" id="unitInspectionContent" style="position:fixed; width:280px; pointer-events:auto; background:rgba(20,20,20,0.92); border:1px solid rgba(122,162,255,0.4); padding:10px; left:20px; top:80px; z-index:150; display:none;">
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <h3 id="unitName" style="margin:0">Unit</h3>
+          <button id="closeUnitPanel" style="background:none; border:1px solid rgba(255,255,255,0.2); color:#fff; padding:4px 8px; cursor:pointer; font-size:12px;">Close</button>
         </div>
-        <div class="small" id="unitTeam" style="margin-top:6px; color:#a08a5a;"></div>
-        <div style="margin-top:8px; border-top:1px solid #d4af37; padding-top:8px;">
-          <div class="small" style="font-weight:bold; color: #e7c76c;">Stats</div>
-          <table class="small" style="margin-top:6px; width:100%; color: #c9a65b;">
+        <div class="small" id="unitTeam" style="margin-top:6px; color:#aaa"></div>
+        <div style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+          <div class="small" style="font-weight:bold">Stats</div>
+          <table class="small" style="margin-top:6px; width:100%;">
             <tr><td>HP</td><td id="unitHP" style="text-align:right">0/0</td></tr>
             <tr><td>DMG</td><td id="unitDMG" style="text-align:right">0</td></tr>
             <tr><td>Speed</td><td id="unitSpeed" style="text-align:right">0</td></tr>
             <tr><td>Lvl</td><td id="unitLevel" style="text-align:right">1</td></tr>
           </table>
         </div>
-        <div style="margin-top:8px; border-top:1px solid #d4af37; padding-top:8px;">
-          <div class="small" style="font-weight:bold; color: #e7c76c;">Active Effects</div>
-          <div id="unitEffects" class="small effectPills" style="margin-top:6px; line-height:1.4; color: #c9a65b;">None</div>
+        <div style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+          <div class="small" style="font-weight:bold">Active Effects</div>
+          <div id="unitEffects" class="small effectPills" style="margin-top:6px; line-height:1.4">None</div>
         </div>
         <div id="allyControlPanel" style="display:none; margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
           <div class="small" style="font-weight:bold">Behavior</div>
@@ -1380,9 +1380,9 @@ export function buildUI(state){
     </div>
 
     <!-- Group Display Panel (top-right under minimap, shows group member health) -->
-    <div id="groupPanel" style="position:fixed; right:10px; top:140px; background:linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%); border:2px solid #d4af37; border-radius:4px; padding:8px; z-index:150; display:none; pointer-events:auto; min-width:200px; max-width:220px; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);">
-      <div class="small" style="font-weight:bold; color:#e7c76c; margin-bottom:6px;">Group (<span id="groupPanelCount">0</span>)</div>
-      <div id="groupPanelList" style="display:flex; flex-direction:column; gap:6px; font-size:11px; color: #c9a65b;"></div>
+    <div id="groupPanel" style="position:fixed; right:10px; top:140px; background:rgba(20,20,20,0.8); border:1px solid rgba(122,162,255,0.3); border-radius:4px; padding:8px; z-index:150; display:none; pointer-events:auto; min-width:200px; max-width:220px;">
+      <div class="small" style="font-weight:bold; color:rgba(255,255,255,0.8); margin-bottom:6px;">Group (<span id="groupPanelCount">0</span>)</div>
+      <div id="groupPanelList" style="display:flex; flex-direction:column; gap:6px; font-size:11px;"></div>
     </div>
   `;
 
