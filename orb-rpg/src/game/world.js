@@ -69,12 +69,9 @@ export function initSites(state){
       s._underAttackNotified = false;
     }
   }
-  // generate simple terrain features: trees, mountains, grass, and ponds
+  // generate simple terrain features: trees and mountains
   state.trees = [];
   state.mountains = [];
-  state.rocks = [];
-  state.grass = [];
-  state.ponds = [];
   state.waters = [];
   state.lakes = [];
   state.rivers = [];
@@ -83,27 +80,32 @@ export function initSites(state){
   // border-only visuals kept out of collision checks for perf
   state.borderTrees = [];
   state.borderMountains = [];
-  state.borderRocks = [];
 
-  // Fill out-of-bounds border with dense rocks and trees
+  // Fill out-of-bounds border with dense trees and mountains
   const BORDER_DENSITY = 25; // spacing between obstacles
 
   // Top and bottom borders
   for(let x = 0; x < state.mapWidth; x += BORDER_DENSITY){
     // Top border
     for(let y = 0; y < state.playableBounds.minY; y += BORDER_DENSITY){
-      if(Math.random() > 0.4){
-        state.borderRocks.push({x: x + Math.random()*BORDER_DENSITY, y: y + Math.random()*BORDER_DENSITY, r:14});
-      } else {
+      if(Math.random() > 0.5){
         state.borderTrees.push({x: x + Math.random()*BORDER_DENSITY, y: y + Math.random()*BORDER_DENSITY, r:12});
+      } else {
+        const mx = x + Math.random()*BORDER_DENSITY;
+        const my = y + Math.random()*BORDER_DENSITY;
+        const peaks = [{x:mx, y:my, r:35}];
+        state.borderMountains.push({x:mx, y:my, peaks});
       }
     }
     // Bottom border
     for(let y = state.playableBounds.maxY; y < state.mapHeight; y += BORDER_DENSITY){
-      if(Math.random() > 0.4){
-        state.borderRocks.push({x: x + Math.random()*BORDER_DENSITY, y: y + Math.random()*BORDER_DENSITY, r:14});
-      } else {
+      if(Math.random() > 0.5){
         state.borderTrees.push({x: x + Math.random()*BORDER_DENSITY, y: y + Math.random()*BORDER_DENSITY, r:12});
+      } else {
+        const mx = x + Math.random()*BORDER_DENSITY;
+        const my = y + Math.random()*BORDER_DENSITY;
+        const peaks = [{x:mx, y:my, r:35}];
+        state.borderMountains.push({x:mx, y:my, peaks});
       }
     }
   }
@@ -112,87 +114,88 @@ export function initSites(state){
   for(let y = 0; y < state.mapHeight; y += BORDER_DENSITY){
     // Left border
     for(let x = 0; x < state.playableBounds.minX; x += BORDER_DENSITY){
-      if(Math.random() > 0.4){
-        state.borderRocks.push({x: x + Math.random()*BORDER_DENSITY, y: y + Math.random()*BORDER_DENSITY, r:14});
-      } else {
+      if(Math.random() > 0.5){
         state.borderTrees.push({x: x + Math.random()*BORDER_DENSITY, y: y + Math.random()*BORDER_DENSITY, r:12});
+      } else {
+        const mx = x + Math.random()*BORDER_DENSITY;
+        const my = y + Math.random()*BORDER_DENSITY;
+        const peaks = [{x:mx, y:my, r:35}];
+        state.borderMountains.push({x:mx, y:my, peaks});
       }
     }
     // Right border
     for(let x = state.playableBounds.maxX; x < state.mapWidth; x += BORDER_DENSITY){
-      if(Math.random() > 0.4){
-        state.borderRocks.push({x: x + Math.random()*BORDER_DENSITY, y: y + Math.random()*BORDER_DENSITY, r:14});
-      } else {
+      if(Math.random() > 0.5){
         state.borderTrees.push({x: x + Math.random()*BORDER_DENSITY, y: y + Math.random()*BORDER_DENSITY, r:12});
+      } else {
+        const mx = x + Math.random()*BORDER_DENSITY;
+        const my = y + Math.random()*BORDER_DENSITY;
+        const peaks = [{x:mx, y:my, r:35}];
+        state.borderMountains.push({x:mx, y:my, peaks});
       }
     }
   }
 
-  // Tight tree clusters - fewer overall clusters but denser
-  const TREE_CLUSTERS = 8;
-  for(let c=0;c<TREE_CLUSTERS;c++){
-    const cx = offsetX + Math.random()*(playWidth-400)+200;
-    const cy = offsetY + Math.random()*(playHeight-400)+200;
+  // base scatter (only in playable area)
+  const TREE_COUNT = Math.floor((playWidth*playHeight)/(60000));
+  for(let i=0;i<TREE_COUNT;i++){
+    let ok=false, tx,ty,tries=0;
+    while(!ok && tries<200){
+      tx = offsetX + Math.random()*(playWidth-80)+40;
+      ty = offsetY + Math.random()*(playHeight-80)+40;
+      ok=true;
+      for(const b of state.sites){ if(Math.hypot(b.x-tx,b.y-ty) < 120) { ok=false; break; } }
+      tries++;
+    }
+    if(ok) state.trees.push({x:tx,y:ty,r:12});
+  }
+  // clustered groves for denser forests
+  const CLUSTERS = 16;
+  for(let c=0;c<CLUSTERS;c++){
+    const cx = offsetX + Math.random()*(playWidth-200)+100;
+    const cy = offsetY + Math.random()*(playHeight-200)+100;
     let nearBase=false;
-    for(const b of state.sites){ if(Math.hypot(b.x-cx,b.y-cy) < 250){ nearBase=true; break; } }
+    for(const b of state.sites){ if(Math.hypot(b.x-cx,b.y-cy) < 200){ nearBase=true; break; } }
     if(nearBase) continue;
-    // Create very tight clusters with many trees
-    const treesInCluster = 20 + Math.floor(Math.random()*25);
+    const treesInCluster = 8 + Math.floor(Math.random()*10);
     for(let t=0;t<treesInCluster;t++){
       const ang = Math.random()*Math.PI*2;
-      const dist = 8 + Math.random()*35;  // Tighter clustering
+      const dist = 18 + Math.random()*42;
       const tx = cx + Math.cos(ang)*dist;
       const ty = cy + Math.sin(ang)*dist;
       if(tx<offsetX+30 || ty<offsetY+30 || tx>offsetX+playWidth-30 || ty>offsetY+playHeight-30) continue;
-      state.trees.push({x:tx,y:ty,r:12, collision: true});
+      state.trees.push({x:tx,y:ty,r:12});
     }
   }
-  // Rocks: sparse on map, collision enabled
-  const ROCK_COUNT = 6;
-  for(let i=0;i<ROCK_COUNT;i++){
-    let ok=false, rx,ry,tries=0;
+  // mountains: clustered brown triangles + collision circles
+  state.mountains = [];
+  state.mountainCircles = [];
+  const MOUNT_COUNT = 8;
+  for(let i=0;i<MOUNT_COUNT;i++){
+    let ok=false, mx,my,tries=0;
     while(!ok && tries<220){
-      rx = offsetX + Math.random()*(playWidth-240) + 120;
-      ry = offsetY + Math.random()*(playHeight-240) + 120;
+      mx = offsetX + Math.random()*(playWidth-240) + 120;
+      my = offsetY + Math.random()*(playHeight-240) + 120;
       ok=true;
-      for(const b of state.sites){ if(Math.hypot(b.x-rx,b.y-ry) < 180) { ok=false; break; } }
+      for(const b of state.sites){ if(Math.hypot(b.x-mx,b.y-my) < 180) { ok=false; break; } }
       tries++;
     }
     if(!ok) continue;
-    const rockSize = 8 + Math.floor(Math.random()*6);
-    state.rocks.push({x:rx,y:ry,r:rockSize, collision: true});
-  }
-  
-  // Ponds: sparse water features
-  const POND_COUNT = 4;
-  for(let i=0;i<POND_COUNT;i++){
-    let ok=false, px,py,tries=0;
-    while(!ok && tries<200){
-      px = offsetX + Math.random()*(playWidth-200) + 100;
-      py = offsetY + Math.random()*(playHeight-200) + 100;
-      ok=true;
-      for(const b of state.sites){ if(Math.hypot(b.x-px,b.y-py) < 150) { ok=false; break; } }
-      for(const t of state.trees){ if(Math.hypot(t.x-px,t.y-py) < 80) { ok=false; break; } }
-      tries++;
+    const peaks = [];
+    const clusterSize = 3 + Math.floor(Math.random()*4);
+    for(let p=0;p<clusterSize;p++){
+      const ang = Math.random()*Math.PI*2;
+      const dist = 20 + Math.random()*60;
+      const px = mx + Math.cos(ang)*dist;
+      const py = my + Math.sin(ang)*dist;
+      const pr = 28 + Math.random()*36;
+      peaks.push({x:px,y:py,r:pr});
+      state.mountainCircles.push({x:px,y:py,r:pr});
     }
-    if(ok) state.ponds.push({x:px,y:py,r:40, type: Math.floor(Math.random()*3)+1});
-  }
-  
-  // Grass coverage - scatter across whole map for visual variety
-  const GRASS_DENSITY = 40; // spacing for grass clusters
-  for(let x = offsetX; x < offsetX + playWidth; x += GRASS_DENSITY){
-    for(let y = offsetY; y < offsetY + playHeight; y += GRASS_DENSITY){
-      if(Math.random() < 0.7){ // 70% chance of grass cluster
-        const gx = x + Math.random()*GRASS_DENSITY;
-        const gy = y + Math.random()*GRASS_DENSITY;
-        // Check not too close to sites
-        let tooClose = false;
-        for(const b of state.sites){ if(Math.hypot(b.x-gx,b.y-gy) < 80) { tooClose=true; break; } }
-        if(!tooClose){
-          state.grass.push({x:gx,y:gy,r:8, type: Math.random() < 0.5 ? 1 : 2});
-        }
-      }
-    }
+    // add a central blocker to close gaps between peaks
+    const clusterR = 65 + Math.random()*25;
+    state.mountainCircles.push({x:mx,y:my,r:clusterR});
+    state.mountains.push({x:mx,y:my,peaks});
   }
 
   // rock formations: grey ovals with subtle shading
@@ -247,6 +250,72 @@ export function initSites(state){
 
   // rivers temporarily disabled
   state.rivers = [];
+
+  // decorative objects with collision (winter trees, ponds, rock formations, crystals)
+  state.decorativeCircles = [];
+  
+  // Winter trees - solid collision
+  const DECO_TREE_COUNT = 15;
+  for(let i = 0; i < DECO_TREE_COUNT; i++){
+    let tx, ty, ok = false, tries = 0;
+    while(!ok && tries < 160){
+      tx = offsetX + Math.random() * (playWidth - 240) + 120;
+      ty = offsetY + Math.random() * (playHeight - 240) + 120;
+      ok = true;
+      for(const b of state.sites){ if(Math.hypot(b.x - tx, b.y - ty) < 200) { ok = false; break; } }
+      for(const rc of state.rockCircles){ if(Math.hypot(rc.x - tx, rc.y - ty) < 120) { ok = false; break; } }
+      tries++;
+    }
+    if(ok) state.decorativeCircles.push({x: tx, y: ty, r: 24, type: 'tree'});
+  }
+  
+  // Ponds - solid collision
+  const DECO_POND_COUNT = 4;
+  for(let i = 0; i < DECO_POND_COUNT; i++){
+    let px, py, ok = false, tries = 0;
+    while(!ok && tries < 160){
+      px = offsetX + Math.random() * (playWidth - 280) + 140;
+      py = offsetY + Math.random() * (playHeight - 280) + 140;
+      ok = true;
+      for(const b of state.sites){ if(Math.hypot(b.x - px, b.y - py) < 220) { ok = false; break; } }
+      for(const rc of state.rockCircles){ if(Math.hypot(rc.x - px, rc.y - py) < 140) { ok = false; break; } }
+      for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - px, dc.y - py) < 140) { ok = false; break; } }
+      tries++;
+    }
+    if(ok) state.decorativeCircles.push({x: px, y: py, r: 48, type: 'pond', textureVariant: Math.floor(Math.random() * 4)});
+  }
+  
+  // Additional rock formations - solid collision
+  const DECO_ROCK_COUNT = 2;
+  for(let i = 0; i < DECO_ROCK_COUNT; i++){
+    let rockx, rocky, ok = false, tries = 0;
+    while(!ok && tries < 160){
+      rockx = offsetX + Math.random() * (playWidth - 240) + 120;
+      rocky = offsetY + Math.random() * (playHeight - 240) + 120;
+      ok = true;
+      for(const b of state.sites){ if(Math.hypot(b.x - rockx, b.y - rocky) < 200) { ok = false; break; } }
+      for(const rc of state.rockCircles){ if(Math.hypot(rc.x - rockx, rc.y - rocky) < 140) { ok = false; break; } }
+      for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - rockx, dc.y - rocky) < 140) { ok = false; break; } }
+      tries++;
+    }
+    if(ok) state.decorativeCircles.push({x: rockx, y: rocky, r: 40, type: 'rocks', textureVariant: Math.floor(Math.random() * 2)});
+  }
+  
+  // Crystals - solid collision
+  const DECO_CRYSTAL_COUNT = 14;
+  for(let i = 0; i < DECO_CRYSTAL_COUNT; i++){
+    let cx, cy, ok = false, tries = 0;
+    while(!ok && tries < 160){
+      cx = offsetX + Math.random() * (playWidth - 240) + 120;
+      cy = offsetY + Math.random() * (playHeight - 240) + 120;
+      ok = true;
+      for(const b of state.sites){ if(Math.hypot(b.x - cx, b.y - cy) < 200) { ok = false; break; } }
+      for(const rc of state.rockCircles){ if(Math.hypot(rc.x - cx, rc.y - cy) < 120) { ok = false; break; } }
+      for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - cx, dc.y - cy) < 120) { ok = false; break; } }
+      tries++;
+    }
+    if(ok) state.decorativeCircles.push({x: cx, y: cy, r: 22, type: 'crystal'});
+  }
 
   // small dungeon entrances scattered around the map (click/press F to enter)
   state.dungeons = [];
