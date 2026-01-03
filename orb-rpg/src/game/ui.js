@@ -1239,6 +1239,12 @@ export function buildUI(state){
                 <button id="btnDownloadAbilityLog" style="width:100%; margin-top:4px;">Download Ability Usage Log</button>
                 <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Track how often each ability is cast by role/class for AI tuning.</div>
               </div>
+              
+              <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.3);">
+                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Damage & Healing Tracking</div>
+                <button id="btnDownloadDamageLog" style="width:100%; margin-top:4px;">Download Damage/Healing Report</button>
+                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Shows damage dealt, damage received, healing done, and shields provided by each fighter.</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1372,6 +1378,10 @@ export function buildUI(state){
           </table>
         </div>
         <div style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+          <div class="small" style="font-weight:bold">Active Abilities</div>
+          <div id="unitAbilities" class="small effectPills" style="margin-top:6px; line-height:1.4">None</div>
+        </div>
+        <div style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
           <div class="small" style="font-weight:bold">Active Effects</div>
           <div id="unitEffects" class="small effectPills" style="margin-top:6px; line-height:1.4">None</div>
         </div>
@@ -1487,6 +1497,7 @@ function bindUI(state){
     trackFriendlyAbilities:$('trackFriendlyAbilities'),
     trackEnemyAbilities:$('trackEnemyAbilities'),
     btnDownloadAbilityLog:$('btnDownloadAbilityLog'),
+    btnDownloadDamageLog:$('btnDownloadDamageLog'),
     optShowAim:$('optShowAim'),
     optShowDebug:$('optShowDebug'),
     optShowDebugAI:$('optShowDebugAI'),
@@ -1535,6 +1546,7 @@ function bindUI(state){
     heroPortrait:$('heroPortrait'), heroClassName:$('heroClassName'), heroLevel:$('heroLevel'),
     unitInspectionPanel: $('unitInspectionPanel'), unitInspectionContent: $('unitInspectionContent'), closeUnitPanel: $('closeUnitPanel'),
     unitName: $('unitName'), unitTeam: $('unitTeam'), unitHP: $('unitHP'), unitDMG: $('unitDMG'), unitSpeed: $('unitSpeed'), unitLevel: $('unitLevel'),
+    unitAbilities: $('unitAbilities'),
     unitEffects: $('unitEffects'),
     allyControlPanel: $('allyControlPanel'), btnAllyAggressive: $('btnAllyAggressive'), btnAllyNeutral: $('btnAllyNeutral'), allyBehaviorDesc: $('allyBehaviorDesc'), btnEditTarget: $('btnEditTarget'), btnInviteToGroup: $('btnInviteToGroup'),
     // Group UI elements
@@ -2556,58 +2568,79 @@ function bindUI(state){
         const color = it.rarity?.color || '#fff';
         const buffsText = formatBuffs(it.buffs);
         const elems = formatElementals(it);
-        ui.marketInspect.innerHTML = `<span style="color:${color}; font-weight:900">${it.name}</span><br>${it.desc || ''}<br>${buffsText}${elems? '<br>'+elems : ''}`;
+        const affordableMsg = affordable ? '<br><span style="color:#4a9eff; font-size:11px; margin-top:4px; display:inline-block">Press E or Double-Click to Purchase</span>' : '<div style="color:#f66; margin-top:4px; font-size:11px">⚠️ Not enough gold</div>';
+        ui.marketInspect.innerHTML = `<span style="color:${color}; font-weight:900">${it.name}</span><br>${it.desc || ''}<br>${buffsText}${elems? '<br>'+elems : ''}${affordableMsg}`;
       };
       
-      div.onmouseenter = () => updateInspect();
+      div.onmouseenter = () => {
+        updateInspect();
+        // Track this as the selected shop item for E key purchase
+        state._marketSelectedShopItem = shopItem;
+        state._marketSelectedShopIndex = idx;
+      };
       
       div.onclick = ()=>{
-        if(!affordable){
-          ui.toast('Not enough gold!');
-          return;
-        }
+        // Select item and update inspect panel
+        state._marketSelectedShopItem = shopItem;
+        state._marketSelectedShopIndex = idx;
+        updateInspect();
         
-        // Purchase item
-        state.player.gold -= shopItem.price;
-        
-        // Services apply immediately
-        if(it.kind === 'service'){
-          if(it.serviceId === 'squad_armor' && typeof window.applySquadArmorUpgrade === 'function'){
-            window.applySquadArmorUpgrade(state);
-            // increase future cost
-            state.marketCosts.squadArmor = Math.round((state.marketCosts.squadArmor||1000) * 1.3);
-          } else if(it.serviceId === 'squad_level' && typeof window.applySquadLevelUpgrade === 'function'){
-            window.applySquadLevelUpgrade(state);
-            state.marketCosts.squadLevel = Math.round((state.marketCosts.squadLevel||800) * 1.25);
+        // Double-click detection
+        const now = Date.now();
+        const clickKey = `shop-${idx}`;
+        if(state._lastShopClick && state._lastShopClick.key === clickKey && now - state._lastShopClick.time < 300){
+          // Double-clicked - purchase the item
+          if(!affordable){
+            ui.toast('Not enough gold!');
+            return;
           }
-        } else {
-          // Add to inventory
-          const itemCopy = JSON.parse(JSON.stringify(it));
-          itemCopy.count = itemCopy.count || 1;
-          if(itemCopy.kind === 'potion'){
-            const existing = state.inventory.find(i => i.kind === 'potion' && i.type === itemCopy.type && i.rarity.key === itemCopy.rarity.key);
-            if(existing){
-              existing.count = (existing.count || 1) + 1;
+          
+          // Purchase item
+          state.player.gold -= shopItem.price;
+          
+          // Services apply immediately
+          if(it.kind === 'service'){
+            if(it.serviceId === 'squad_armor' && typeof window.applySquadArmorUpgrade === 'function'){
+              window.applySquadArmorUpgrade(state);
+              // increase future cost
+              state.marketCosts.squadArmor = Math.round((state.marketCosts.squadArmor||1000) * 1.3);
+            } else if(it.serviceId === 'squad_level' && typeof window.applySquadLevelUpgrade === 'function'){
+              window.applySquadLevelUpgrade(state);
+              state.marketCosts.squadLevel = Math.round((state.marketCosts.squadLevel||800) * 1.25);
+            }
+          } else {
+            // Add to inventory
+            const itemCopy = JSON.parse(JSON.stringify(it));
+            itemCopy.count = itemCopy.count || 1;
+            if(itemCopy.kind === 'potion'){
+              const existing = state.inventory.find(i => i.kind === 'potion' && i.type === itemCopy.type && i.rarity.key === itemCopy.rarity.key);
+              if(existing){
+                existing.count = (existing.count || 1) + 1;
+              } else {
+                state.inventory.push(itemCopy);
+              }
             } else {
               state.inventory.push(itemCopy);
             }
-          } else {
-            state.inventory.push(itemCopy);
           }
+          
+          const color = it.rarity?.color || '#fff';
+          ui.toast(`<span style="color:${color}"><b>${it.name}</b></span> added to inventory for ${formatGold(shopItem.price)}`);
+          if(ui.marketConfirm){
+            ui.marketConfirm.innerHTML = `<span style="color:${color}"><b>${it.name}</b></span> purchased`;
+            clearTimeout(ui.marketConfirm._t);
+            ui.marketConfirm._t = setTimeout(()=>{ if(ui.marketConfirm) ui.marketConfirm.innerHTML=''; }, 2600);
+          }
+          updateInspect();
+          ui.updateGoldDisplay();
+          ui.renderShop();
+          ui.renderSellItems();
+          ui.renderInventory?.();
+          state._lastShopClick = null; // Reset double-click
+        } else {
+          // Single click - just track it for double-click detection
+          state._lastShopClick = { key: clickKey, time: now };
         }
-        
-        const color = it.rarity?.color || '#fff';
-        ui.toast(`<span style="color:${color}"><b>${it.name}</b></span> added to inventory for ${formatGold(shopItem.price)}`);
-        if(ui.marketConfirm){
-          ui.marketConfirm.innerHTML = `<span style="color:${color}"><b>${it.name}</b></span> purchased`;
-          clearTimeout(ui.marketConfirm._t);
-          ui.marketConfirm._t = setTimeout(()=>{ if(ui.marketConfirm) ui.marketConfirm.innerHTML=''; }, 2600);
-        }
-        updateInspect();
-        ui.updateGoldDisplay();
-        ui.renderShop();
-        ui.renderSellItems();
-        ui.renderInventory?.();
       };
       ui.shopItems.appendChild(div);
     });
@@ -3281,6 +3314,36 @@ function bindUI(state){
       }
     }
 
+    // Update active abilities (from npcAbilities)
+    const abilityList = [];
+    try{
+      if(unit.npcAbilities && unit.npcAbilities.length){
+        for(const ab of unit.npcAbilities){
+          if(!ab || !ab.id) continue;
+          const meta = ABILITY_META?.[ab.id];
+          if(!meta) continue;
+          
+          const name = (ab.id||'').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          const cooldownRemaining = Math.max(0, (ab.usedAt || 0) + (meta.cd || 0) - (state.campaign?.time || 0));
+          const cdText = cooldownRemaining > 0 ? `${cooldownRemaining.toFixed(1)}s CD` : 'Ready';
+          const cdClass = cooldownRemaining > 0 ? 'ability-cooldown' : 'ability-ready';
+          
+          abilityList.push({ name, cdText, cdClass, cd: meta.cd || 0 });
+        }
+      }
+    }catch(e){
+      console.error('Failed to build ability list:', e);
+    }
+    
+    // Render abilities
+    const abilityPill = (name, cdText, cdClass)=>{
+      return `<span class="ability-pill ${cdClass}"><span class="ability-icon">⚔</span><span class="ability-text"><span class="ability-label">${name}</span><span class="ability-sub">${cdText}</span></span></span>`;
+    };
+    const abilityHtml = abilityList.map(a => abilityPill(a.name, a.cdText, a.cdClass)).join('');
+    if(ui.unitAbilities){
+      ui.unitAbilities.innerHTML = abilityHtml || '<span style="color:#888">None</span>';
+    }
+
     // Update active effects (HoTs detected from global heals + unit dots/buffs)
     const hotEffects = [];
     const dotEffects = [];
@@ -3419,6 +3482,7 @@ function bindUI(state){
     arcane_power: 'assets/Buff%20icons/Arcane%20Power.PNG',
     battle_fury: 'assets/Buff%20icons/Battle%20Fury.PNG',
     berserker_rage: 'assets/Buff%20icons/Berserker%20Rage.PNG',
+    berserk: 'assets/Buff%20icons/Berserker%20Rage.PNG',
     blessed: 'assets/Buff%20icons/Blessed.PNG',
     guardian_stance: 'assets/Buff%20icons/Guardian%20Stance.PNG',
     healing_empowerment: 'assets/Buff%20icons/Healing%20Empowerment.PNG',
@@ -3426,12 +3490,26 @@ function bindUI(state){
     radiance: 'assets/Buff%20icons/Radiance.PNG',
     regeneration: 'assets/Buff%20icons/Regeneration.PNG',
     swift_strikes: 'assets/Buff%20icons/Swift%20Strikes.PNG',
+    haste: 'assets/Buff%20icons/haste.PNG',
+    fortified: 'assets/Buff%20icons/fortified.PNG',
+    vigor: 'assets/Buff%20icons/vigor.PNG',
+    mana_surge: 'assets/Buff%20icons/mana%20surge.PNG',
+    slow: 'assets/Buff%20icons/slow.PNG',
+    root: 'assets/Buff%20icons/root.PNG',
     // Skill icons
     arc_bolt: 'assets/skill%20icons/Arc%20Bolt.png',
     chain_light: 'assets/skill%20icons/Chain%20Zap.png',
     meteor_slam: 'assets/skill%20icons/Meteor%20Slam.png',
     piercing_lance: 'assets/skill%20icons/Piercing%20Lance.png',
-    gravity_well: 'assets/skill%20icons/Gravity%20Well.png'
+    gravity_well: 'assets/skill%20icons/Gravity%20Well.png',
+    warrior_cleave: 'assets/skill%20icons/Rending%20Cleave.png',
+    warrior_life_leech: 'assets/skill%20icons/Life%20Leech.png',
+    warrior_charge: 'assets/skill%20icons/shoulder%20charge.png',
+    warrior_fortitude: 'assets/skill%20icons/Fortitude.png',
+    warrior_berserk: 'assets/skill%20icons/Berserk.png',
+    renewal_field: 'assets/skill%20icons/Renewal%20Field.png',
+    endurance: 'assets/skill%20icons/Endurance.png',
+    spirit: 'assets/skill%20icons/Spirit.png'
   };
 
   // Item icon mapping - maps rarity + item type to PNG
@@ -3447,7 +3525,7 @@ function bindUI(state){
     'uncommon_sword': 'assets/items/Uncommon%20Sword.png',
     'rare_sword': 'assets/items/Rare%20Sword.png',
     'epic_sword': 'assets/items/Epic%20Sword.png',
-    'legendary_sword': 'assets/items/Legendary%20Sword.png',
+    'legendary_sword': 'assets/items/Legendary%20sword.png',
     // Weapons - Daggers
     'common_dagger': 'assets/items/Common%20Dagger.png',
     'uncommon_dagger': 'assets/items/Uncommon%20Dagger.png',
@@ -3482,50 +3560,51 @@ function bindUI(state){
     'common_chest': 'assets/items/Common%20Chest.png',
     'uncommon_chest': 'assets/items/Uncommon%20Chest.png',
     'rare_chest': 'assets/items/Rare%20Chest.png',
-    'epic_chest': 'assets/items/Epic%20Chest.png',
-    'legendary_chest': 'assets/items/Legendary%20Chest.png',
+    // NOTE: epic_chest and legendary_chest files are missing from assets/items
+    // 'epic_chest': 'assets/items/Epic%20Chest.png',
+    // 'legendary_chest': 'assets/items/Legendary%20Chest.png',
     // Armor - Shoulders
-    'common_shoulders': 'assets/items/Common%20Shoulders.png',
-    'uncommon_shoulders': 'assets/items/Uncommon%20Shoulders.png',
+    'common_shoulders': 'assets/items/common%20shoulders.png',
+    'uncommon_shoulders': 'assets/items/uncommon%20shoulders.png',
     'rare_shoulders': 'assets/items/Rare%20Shoulders.png',
-    'epic_shoulders': 'assets/items/Epic%20Shoulders.png',
-    'legendary_shoulders': 'assets/items/Legendary%20Shoulders.png',
+    'epic_shoulders': 'assets/items/epic%20shoulders.png',
+    'legendary_shoulders': 'assets/items/legendary%20shoulders.png',
     // Armor - Hands
-    'common_hands': 'assets/items/Common%20Hands.png',
-    'uncommon_hands': 'assets/items/Uncommon%20Hands.png',
-    'rare_hands': 'assets/items/Rare%20Hands.png',
-    'epic_hands': 'assets/items/Epic%20Hands.png',
-    'legendary_hands': 'assets/items/Legendary%20Hands.png',
+    'common_hands': 'assets/items/common%20hands.png',
+    'uncommon_hands': 'assets/items/uncommon%20hands.png',
+    'rare_hands': 'assets/items/rare%20hands.png',
+    'epic_hands': 'assets/items/epic%20hands.png',
+    'legendary_hands': 'assets/items/legendary%20hands.png',
     // Armor - Leggings
-    'common_legs': 'assets/items/Common%20Leggings.png',
-    'uncommon_legs': 'assets/items/Uncommon%20Leggings.png',
-    'rare_legs': 'assets/items/Rare%20Leggings.png',
-    'epic_legs': 'assets/items/Epic%20Leggings.png',
-    'legendary_legs': 'assets/items/Legendary%20Leggings.png',
+    'common_legs': 'assets/items/common%20leggings.png',
+    'uncommon_legs': 'assets/items/uncommon%20leggings.png',
+    'rare_legs': 'assets/items/rare%20leggings.png',
+    'epic_legs': 'assets/items/epic%20leggings.png',
+    'legendary_legs': 'assets/items/legendary%20leggings.png',
     // Armor - Feet
-    'common_feet': 'assets/items/Common%20Feet.png',
-    'uncommon_feet': 'assets/items/Uncommon%20Feet.png',
-    'rare_feet': 'assets/items/Rare%20Feet.png',
-    'epic_feet': 'assets/items/Epic%20Feet.png',
-    'legendary_feet': 'assets/items/Legendary%20Feet.png',
+    'common_feet': 'assets/items/common%20feet.png',
+    'uncommon_feet': 'assets/items/uncommon%20feet.png',
+    'rare_feet': 'assets/items/rare%20feet.png',
+    'epic_feet': 'assets/items/epic%20feet.png',
+    'legendary_feet': 'assets/items/legendary%20feet.png',
     // Armor - Belts
-    'common_belt': 'assets/items/Common%20Belt.png',
-    'uncommon_belt': 'assets/items/Uncommon%20Belt.png',
-    'rare_belt': 'assets/items/Rare%20Belt.png',
-    'epic_belt': 'assets/items/Epic%20Belt.png',
-    'legendary_belt': 'assets/items/Legendary%20Belt.png',
+    'common_belt': 'assets/items/common%20belt.png',
+    'uncommon_belt': 'assets/items/uncommon%20belt.png',
+    'rare_belt': 'assets/items/rare%20belt.png',
+    'epic_belt': 'assets/items/epic%20belt.png',
+    'legendary_belt': 'assets/items/legendary%20belt.png',
     // Armor - Bracelets
-    'common_bracelet': 'assets/items/Common%20Bracelet.png',
-    'uncommon_bracelet': 'assets/items/Uncommon%20Bracelet.png',
-    'rare_bracelet': 'assets/items/Rare%20Bracelet.png',
-    'epic_bracelet': 'assets/items/Epic%20Bracelet.png',
-    'legendary_bracelet': 'assets/items/Legendary%20Bracelet.png',
+    'common_bracelet': 'assets/items/common%20bracelet.png',
+    'uncommon_bracelet': 'assets/items/uncommon%20bracelet.png',
+    'rare_bracelet': 'assets/items/rare%20bracelet.png',
+    'epic_bracelet': 'assets/items/epic%20bracelet.png',
+    'legendary_bracelet': 'assets/items/legendary%20bracelet.png',
     // Armor - Rings
-    'common_ring': 'assets/items/Common%20Ring.png',
-    'uncommon_ring': 'assets/items/Uncommon%20Ring.png',
-    'rare_ring': 'assets/items/Rare%20Ring.png',
-    'epic_ring': 'assets/items/Epic%20Ring.png',
-    'legendary_ring': 'assets/items/Legendary%20Ring.png',
+    'common_ring': 'assets/items/common%20ring.png',
+    'uncommon_ring': 'assets/items/uncommon%20ring.png',
+    'rare_ring': 'assets/items/rare%20ring.png',
+    'epic_ring': 'assets/items/epic%20ring.png',
+    'legendary_ring': 'assets/items/legendary%20ring.png',
     // Potions
     'hp_potion': 'assets/items/HP%20Potion.png',
     'mana_potion': 'assets/items/Mana%20Potion.png'
@@ -5455,6 +5534,136 @@ function bindUI(state){
     }catch(e){
       console.error('Download ability log failed:', e);
       ui.toast('Failed to download ability log');
+    }
+  };
+  
+  ui.btnDownloadDamageLog.onclick=()=>{
+    try{
+      let report = 'Damage & Healing Report\n';
+      report += '='.repeat(70) + '\n';
+      report += `Generated: ${new Date().toLocaleString()}\n`;
+      report += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
+      
+      // Collect all fighters (player + friendlies + enemies)
+      const fighters = [];
+      
+      // Player
+      fighters.push({
+        name: 'Player',
+        role: state.player.heroClass || 'Unknown',
+        team: 'Player',
+        damageDealt: state.player._damageDealt || 0,
+        damageReceived: state.player._damageReceived || 0,
+        healingDone: state.player._healingDone || 0,
+        shieldProvided: state.player._shieldProvided || 0,
+        hp: state.player.hp || 0,
+        maxHp: currentStats(state).maxHp
+      });
+      
+      // Friendlies
+      for(const f of state.friendlies){
+        if(!f) continue;
+        fighters.push({
+          name: f.name || f.variant || 'Ally',
+          role: f.role || f.variant || 'Unknown',
+          team: 'Friendly',
+          damageDealt: f._damageDealt || 0,
+          damageReceived: f._damageReceived || 0,
+          healingDone: f._healingDone || 0,
+          shieldProvided: f._shieldProvided || 0,
+          hp: f.hp || 0,
+          maxHp: f.maxHp || 100
+        });
+      }
+      
+      // Enemies
+      for(const e of state.enemies){
+        if(!e || e.dead) continue;
+        fighters.push({
+          name: e.name || e.variant || 'Enemy',
+          role: e.role || e.variant || 'Unknown',
+          team: e.team || 'Enemy',
+          damageDealt: e._damageDealt || 0,
+          damageReceived: e._damageReceived || 0,
+          healingDone: e._healingDone || 0,
+          shieldProvided: e._shieldProvided || 0,
+          hp: e.hp || 0,
+          maxHp: e.maxHp || 100
+        });
+      }
+      
+      // Group by role for analysis
+      const byRole = {};
+      for(const f of fighters){
+        const role = f.role.toUpperCase();
+        if(!byRole[role]) byRole[role] = { count: 0, damageDealt: 0, damageReceived: 0, healingDone: 0, shieldProvided: 0 };
+        byRole[role].count++;
+        byRole[role].damageDealt += f.damageDealt;
+        byRole[role].damageReceived += f.damageReceived;
+        byRole[role].healingDone += f.healingDone;
+        byRole[role].shieldProvided += f.shieldProvided;
+      }
+      
+      report += 'ROLE SUMMARY\n';
+      report += '-'.repeat(70) + '\n';
+      report += 'Role'.padEnd(15) + 'Count'.padStart(7) + 'Dmg Out'.padStart(12) + 'Dmg In'.padStart(12) + 'Healing'.padStart(12) + 'Shields'.padStart(12) + '\n';
+      for(const [role, data] of Object.entries(byRole).sort((a,b) => b[1].damageDealt - a[1].damageDealt)){
+        report += role.padEnd(15) + data.count.toString().padStart(7) + Math.round(data.damageDealt).toString().padStart(12) + Math.round(data.damageReceived).toString().padStart(12) + Math.round(data.healingDone).toString().padStart(12) + Math.round(data.shieldProvided).toString().padStart(12) + '\n';
+      }
+      report += '\n';
+      
+      // Top damage dealers
+      report += 'TOP DAMAGE DEALERS\n';
+      report += '-'.repeat(70) + '\n';
+      const topDmg = fighters.filter(f => f.damageDealt > 0).sort((a,b) => b.damageDealt - a.damageDealt).slice(0, 15);
+      for(const f of topDmg){
+        report += `${f.name.padEnd(25)} (${f.role.padEnd(10)}) : ${Math.round(f.damageDealt).toString().padStart(8)} damage\n`;
+      }
+      report += '\n';
+      
+      // Top healers
+      report += 'TOP HEALERS\n';
+      report += '-'.repeat(70) + '\n';
+      const topHeal = fighters.filter(f => f.healingDone > 0).sort((a,b) => b.healingDone - a.healingDone).slice(0, 10);
+      for(const f of topHeal){
+        report += `${f.name.padEnd(25)} (${f.role.padEnd(10)}) : ${Math.round(f.healingDone).toString().padStart(8)} healing\n`;
+      }
+      report += '\n';
+      
+      // Top shield providers
+      report += 'TOP SHIELD PROVIDERS\n';
+      report += '-'.repeat(70) + '\n';
+      const topShield = fighters.filter(f => f.shieldProvided > 0).sort((a,b) => b.shieldProvided - a.shieldProvided).slice(0, 10);
+      for(const f of topShield){
+        report += `${f.name.padEnd(25)} (${f.role.padEnd(10)}) : ${Math.round(f.shieldProvided).toString().padStart(8)} shields\n`;
+      }
+      report += '\n';
+      
+      // Full details
+      report += 'DETAILED BREAKDOWN\n';
+      report += '-'.repeat(70) + '\n';
+      fighters.sort((a,b) => b.damageDealt - a.damageDealt);
+      for(const f of fighters){
+        report += `\n${f.name} (${f.role}) - ${f.team}\n`;
+        report += `  HP: ${Math.round(f.hp)}/${Math.round(f.maxHp)}\n`;
+        report += `  Damage Dealt: ${Math.round(f.damageDealt)}\n`;
+        report += `  Damage Received: ${Math.round(f.damageReceived)}\n`;
+        report += `  Healing Done: ${Math.round(f.healingDone)}\n`;
+        report += `  Shields Provided: ${Math.round(f.shieldProvided)}\n`;
+      }
+      
+      const blob = new Blob([report], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `damage-report-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      ui.toast('Damage report downloaded');
+    }catch(e){
+      console.error('Error downloading damage log:', e);
+      ui.toast('Failed to download damage log');
     }
   };
 

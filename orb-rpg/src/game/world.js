@@ -282,7 +282,7 @@ export function initSites(state){
       for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - px, dc.y - py) < 140) { ok = false; break; } }
       tries++;
     }
-    if(ok) state.decorativeCircles.push({x: px, y: py, r: 48, type: 'pond', textureVariant: Math.floor(Math.random() * 4)});
+    if(ok) state.decorativeCircles.push({x: px, y: py, r: 96, type: 'pond', textureVariant: Math.floor(Math.random() * 4)});
   }
   
   // Additional rock formations - solid collision

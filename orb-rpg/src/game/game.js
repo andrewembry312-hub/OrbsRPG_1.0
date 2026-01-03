@@ -2,7 +2,7 @@
 import { INV_SIZE, LOOT_TTL, ARMOR_SLOTS, SLOT_LABEL, DEFAULT_BINDS } from "./constants.js";
 import { pickRarity, rarityClass, rarityTier } from "./rarity.js";
 import { xpForNext } from "./progression.js";
-import { SKILLS, getSkillById, getAbilityById, DOT_REGISTRY, BUFF_REGISTRY, defaultAbilitySlots, defaultPassives } from "./skills.js";
+import { SKILLS, getSkillById, getAbilityById, DOT_REGISTRY, BUFF_REGISTRY, defaultAbilitySlots, defaultPassives, loadLoadout } from "./skills.js";
 import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, updateFlagHealth, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
 import { META_LOADOUTS } from "./loadouts.js";
 import { LEVEL_CONFIG, getZoneForPosition, scaleAllyToPlayerLevel } from "./leveling.js";
@@ -811,30 +811,64 @@ function lifestealFrom(state, dealt, st){
 }
 
 function applyDamageToPlayer(state, raw, st){
-  console.log('[DAMAGE] Raw damage:', raw.toFixed(1), 'Shield:', state.player.shield.toFixed(1));
+  console.log('%c[DAMAGE TO PLAYER]', 'color: #f44; font-weight: bold;');
+  console.log('  Raw damage:', raw.toFixed(1));
+  console.log('  Current shield:', state.player.shield.toFixed(1), '(source:', state.player._lastShieldSource || 'unknown', ')');
+  console.log('  Current HP:', state.player.hp.toFixed(1), '/', st.maxHp.toFixed(1));
+  console.log('  Block active:', state.input.mouse.rDown ? 'YES' : 'NO', '| Stamina:', state.player.stam.toFixed(1));
   
-  let dmg=raw;
-  const blocking = state.input.mouse.rDown && state.player.stam>0 && state.player.mana>0;
-  if(blocking) dmg*=(1-st.blockBase);
-  dmg = dmg*(100/(100+st.def));
-  let remain=dmg;
+  let dmg = raw;
+  let shieldDamage = 0;
+  let postShieldDamage = 0;
   
-  const shieldBefore = state.player.shield;
-  if(state.player.shield>0){
-    const used=Math.min(state.player.shield,remain);
-    state.player.shield-=used;
-    remain-=used;
-    console.log('[DAMAGE] Shield absorbed:', used.toFixed(1), 'Shield remaining:', state.player.shield.toFixed(1));
+  // Track damage received
+  state.player._damageReceived = (state.player._damageReceived || 0) + raw;
+  
+  // STEP 1: Shield absorbs 100% of damage first (if present)
+  if(state.player.shield > 0){
+    const absorbed = Math.min(state.player.shield, dmg);
+    state.player.shield -= absorbed;
+    shieldDamage = absorbed;
+    dmg -= absorbed;
+    console.log('  [STEP 1 - SHIELD] Absorbed:', absorbed.toFixed(1), '| Shield remaining:', state.player.shield.toFixed(1));
+  } else {
+    console.log('  [STEP 1 - SHIELD] No shield active');
   }
   
-  if(remain>0){
+  // STEP 2: Blocking reduces remaining damage by 50% (only uses stamina when damage is actually blocked)
+  const blocking = state.input.mouse.rDown && state.player.stam > 0;
+  if(blocking && dmg > 0){
+    const preBlockDmg = dmg;
+    dmg *= (1 - st.blockBase); // Reduce by blockBase% (typically 50%)
+    const blockedAmount = preBlockDmg - dmg;
+    
+    // Consume stamina when blocking damage (10 stamina per hit blocked)
+    const stamCost = 10;
+    state.player.stam = Math.max(0, state.player.stam - stamCost);
+    console.log('  [STEP 2 - BLOCK] Block %:', (st.blockBase * 100).toFixed(0) + '%', '| Blocked:', blockedAmount.toFixed(1));
+    console.log('    Stamina cost:', stamCost, '| Stamina remaining:', state.player.stam.toFixed(1));
+  } else if(dmg > 0){
+    console.log('  [STEP 2 - BLOCK] Not blocking (no stam or not holding RMB)');
+  }
+  
+  // STEP 3: Apply defense formula to remaining damage
+  const preDefDmg = dmg;
+  dmg = dmg * (100 / (100 + st.def));
+  const defReduction = preDefDmg - dmg;
+  console.log('  [STEP 3 - DEFENSE] Defense:', st.def.toFixed(1), '| Reduced by:', defReduction.toFixed(1));
+  
+  // STEP 4: Subtract from HP
+  if(dmg > 0){
     const hpBefore = state.player.hp;
-    state.player.hp-=remain;
+    state.player.hp -= dmg;
     const hpAfter = state.player.hp;
-    console.log('[DAMAGE] HP before:', hpBefore.toFixed(1), 'damage:', remain.toFixed(1), 'HP after:', hpAfter.toFixed(1));
+    console.log('  [STEP 4 - HP DAMAGE] Before:', hpBefore.toFixed(1), '| Damage:', dmg.toFixed(1), '| After:', hpAfter.toFixed(1));
+    console.log('%c[DAMAGE SUMMARY] Raw: ' + raw.toFixed(1) + ' → Shield: ' + shieldDamage.toFixed(1) + ' → Final HP loss: ' + dmg.toFixed(1), 'color: #f44; font-weight: bold;');
     
     // Track damage taken timestamp for combat music (use Date.now() for reliable timing)
     state.lastDamageTakenTimestamp = Date.now();
+  } else {
+    console.log('  [STEP 4 - HP DAMAGE] No HP damage (fully mitigated)');
   }
 }
 
@@ -1214,6 +1248,11 @@ function assignNpcEquipment(unit, role){
 const CLASS_LOADOUTS = META_LOADOUTS; // Use the comprehensive loadouts from loadouts.js
 
 const ABILITY_META = {
+  // Light attacks (filler - low cost, spammable)
+  light_attack: { range: 60, cost:0, cd:0.4, dmg:5, type:'melee', arc:0.9, filler:true },
+  staff_light: { range: 280, cost:2, cd:0.65, dmg:4, type:'projectile', speed:420, pierce:0, filler:true },
+  
+  // Regular abilities
   arc_bolt: { range: 280, cost:10, cd:3.5, dmg:12, type:'projectile', speed:420, pierce:0, element:'shock', role:{mage:1.0,dps:0.6} },
   piercing_lance: { range: 320, cost:16, cd:6.0, dmg:16, type:'projectile', speed:540, pierce:2, element:'arcane', role:{mage:1.0,dps:0.8} },
   chain_light: { range: 260, cost:18, cd:5.5, dmg:10, type:'projectile', speed:420, pierce:1, element:'shock', role:{mage:0.9,dps:0.7} },
@@ -1242,12 +1281,17 @@ const ABILITY_META = {
   warrior_life_leech: { range: 82, cost:8, cd:4.0, dmg:16, type:'melee', arc:1.1, role:{mage:0.6,tank:0.9,dps:1.1} }
 };
 
-function npcHealPulse(state, cx, cy, radius, amount){
+function npcHealPulse(state, cx, cy, radius, amount, caster=null){
   const st = currentStats(state);
   const healOne = (ent, mult=1)=>{
     if(!ent) return;
     const maxHp = ent===state.player ? st.maxHp : ent.maxHp || st.maxHp;
-    ent.hp = clamp((ent.hp||0) + amount*mult, 0, maxHp);
+    const healAmt = amount * mult;
+    ent.hp = clamp((ent.hp||0) + healAmt, 0, maxHp);
+    // Track healing done
+    if(caster && caster._healingDone !== undefined){
+      caster._healingDone = (caster._healingDone || 0) + healAmt;
+    }
   };
   healOne(state.player, 1);
   for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x-cx,f.y-cy); if(d<=radius) healOne(f, 0.9); }
@@ -1262,10 +1306,21 @@ function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
   const flashColor = isEnemy ? '#6ec0ff' : '#ffb347';
   state.effects.flashes.push({ x: cx, y: cy, r: radius, life: 0.5, color: flashColor });
   
+  const casterName = caster.name || caster.variant || 'Unknown';
   const applyShield = (ent, mult=1)=>{
     if(!ent) return;
     const cap = ent.shieldCap || ent.maxShield || (ent===state.player ? 420 : 320);
-    ent.shield = clamp((ent.shield||0) + amount*mult, 0, cap);
+    const shieldGain = amount * mult;
+    ent.shield = clamp((ent.shield||0) + shieldGain, 0, cap);
+    // Track shield source
+    if(ent === state.player){
+      ent._lastShieldSource = casterName + ' (ability)';
+      console.log('%c[SHIELD GAIN] +' + shieldGain.toFixed(1) + ' from ' + casterName, 'color: #6cf; font-weight: bold;');
+    }
+    // Track healing/shield provided by caster
+    if(caster._shieldProvided !== undefined){
+      caster._shieldProvided = (caster._shieldProvided || 0) + shieldGain;
+    }
   };
   applyShield(caster, selfBoost);
   applyShield(state.player, 1);
@@ -1441,6 +1496,8 @@ function npcUpdateAbilities(state, u, dt, kind){
     }
   };
 
+  const fromPlayer = (kind === 'friendly');
+
   // target selection with short lock stickiness
   const now = state.campaign?.time || 0;
   const hostileCreatures = [];
@@ -1524,6 +1581,93 @@ function npcUpdateAbilities(state, u, dt, kind){
     if(state.party.macroState==='burst' && focusTarget){ let idx = tryCast('knight_taunt'); if(idx===-1) idx = tryCast('warcry'); if(idx!==-1){ u.npcCd[idx]=ABILITY_META[u.npcAbilities[idx]].cd; u.mana-=ABILITY_META[u.npcAbilities[idx]].cost; npcCastSupportAbility(state,u,u.npcAbilities[idx],u); recordAI('cast-prio',{role,ability:u.npcAbilities[idx]}); return; } }
   }
 
+  // DPS ROTATION SYSTEM: Maintain buffs 100%, then damage abilities by priority, weave light attacks
+  if(role==='DPS'){
+    const tryCast = (id)=>{ const i=u.npcAbilities.indexOf(id); return (i>=0 && u.npcCd[i]<=0 && u.mana >= (ABILITY_META[id]?.cost||0)) ? i : -1; };
+    
+    // PRIORITY 1: Maintain buff uptime (recast when < 3s remaining) - but don't return, continue to damage rotation
+    if(!u._buffTimers) u._buffTimers = {};
+    let buffCasted = false;
+    for(let i=0;i<u.npcAbilities.length;i++){
+      const id = u.npcAbilities[i];
+      const meta = ABILITY_META[id];
+      if(meta && (meta.kind === 'buff' || meta.kind === 'shield') && meta.type === 'support'){
+        const timeLeft = u._buffTimers[id] || 0;
+        if(timeLeft < 3.0){
+          const idx = tryCast(id);
+          if(idx !== -1){
+            u.npcCd[idx] = meta.cd;
+            u.mana -= meta.cost;
+            npcCastSupportAbility(state, u, id, u);
+            u._buffTimers[id] = 12.0; // Assume 12s duration
+            recordAI('cast-prio', {role, ability:id, reason:'buff_maintain'});
+            buffCasted = true;
+            break; // Only cast one buff per frame, then move to damage
+          }
+        }
+      }
+    }
+    
+    // If we just casted a buff, still try to use damage abilities (don't return yet)
+    // PRIORITY 2: Use damage abilities in rotation (prioritize high damage, prefer off-cooldown)
+    if(!buffCasted){
+      const damageAbilities = [];
+      for(let i=0;i<u.npcAbilities.length;i++){
+        const id = u.npcAbilities[i];
+        const meta = ABILITY_META[id];
+        if(meta && !meta.filler && meta.dmg && u.npcCd[i] <= 0 && u.mana >= meta.cost){
+          const inRange = bestD <= (meta.range || 100);
+          if(!isStaff && meta.type==='projectile') continue; // Skip staff abilities for melee
+          if(inRange) damageAbilities.push({id, meta, idx:i});
+        }
+      }
+      
+      // Sort by cost (use low-cost abilities more frequently for weaving)
+      damageAbilities.sort((a,b) => (a.meta.cost||0) - (b.meta.cost||0));
+      
+      if(damageAbilities.length > 0){
+        const chosen = damageAbilities[0];
+        u.npcCd[chosen.idx] = chosen.meta.cd;
+        u.mana -= chosen.meta.cost;
+        const ang = Math.atan2(target.y-u.y, target.x-u.x);
+        
+        if(chosen.meta.type === 'projectile'){
+          let aimAng = ang;
+          if(target.vx || target.vy){
+            const leadX = target.x + (target.vx||0)*0.25;
+            const leadY = target.y + (target.vy||0)*0.25;
+            aimAng = Math.atan2(leadY - u.y, leadX - u.x);
+          }
+          spawnProjectile(state, u.x, u.y, aimAng, chosen.meta.speed||420, 5, chosen.meta.dmg, chosen.meta.pierce||0, fromPlayer);
+        } else if(chosen.meta.type === 'melee'){
+          const range = chosen.meta.range;
+          const arc = chosen.meta.arc || 1.2;
+          const targets = kind==='enemy' ? [state.player, ...state.friendlies] : state.enemies;
+          
+          const slashColor = kind==='enemy' ? 'rgba(229, 89, 89, 0.6)' : 'rgba(186, 150, 255, 0.6)';
+          state.effects.slashes.push({t:0.12, arc, range, dir:ang, x:u.x, y:u.y, color:slashColor, dmg:chosen.meta.dmg});
+          
+          for(let ei=targets.length-1; ei>=0; ei--){
+            const e=targets[ei];
+            const dx=e.x-u.x, dy=e.y-u.y; const d=Math.hypot(dx,dy); if(d>range) continue;
+            const ea=Math.atan2(dy,dx); let diff=Math.abs(ea-ang); diff=Math.min(diff, Math.PI*2-diff);
+            if(diff<=arc/2 && e.hp!==undefined){ e.hp-=chosen.meta.dmg; }
+          }
+        }
+        
+        recordAI('cast', {ability:chosen.id, dmg:chosen.meta.dmg, dist:Math.round(bestD), mana:Math.round(u.mana)});
+        return;
+      }
+    }
+  }
+
+  // Decay buff timers for DPS
+  if(u._buffTimers){
+    for(const id in u._buffTimers){
+      u._buffTimers[id] = Math.max(0, u._buffTimers[id] - dt);
+    }
+  }
+
   // score abilities
   let bestIdx = -1, bestScore = -Infinity, bestSupportTarget=null;
   for(let i=0;i<u.npcAbilities.length;i++){
@@ -1555,7 +1699,6 @@ function npcUpdateAbilities(state, u, dt, kind){
     if(score > bestScore){ bestScore = score; bestIdx = i; bestSupportTarget = isSupport ? targetForAbility : target; }
   }
 
-  const fromPlayer = (kind==='friendly');
   if(bestIdx !== -1 && bestScore > -0.5){
     const id = u.npcAbilities[bestIdx];
     const meta = ABILITY_META[id];
@@ -1603,6 +1746,39 @@ function npcUpdateAbilities(state, u, dt, kind){
     }
     if(debugAI){ console.log('[NPC AI] cast', id, 'score', bestScore.toFixed(2), 'target', u._lockId||target.id||'?'); }
     recordAI('cast', { ability:id, score:Number(bestScore.toFixed(2)), dist:Math.round(bestD), mana:Math.round(u.mana), target:u._lockId||target.id||'?' });
+    return;
+  }
+
+  // LIGHT ATTACK WEAVING: When no abilities available, use light attack as filler
+  if(!u._lastLightAttack) u._lastLightAttack = 0;
+  const timeSinceLastLight = (state.campaign?.time || 0) - u._lastLightAttack;
+  const lightAttackCd = isStaff ? 0.65 : 0.4; // Faster light attacks
+  
+  if(timeSinceLastLight >= lightAttackCd && bestD <= (isStaff ? 280 : 80)){
+    u._lastLightAttack = state.campaign?.time || 0;
+    const ang = Math.atan2(target.y - u.y, target.x - u.x);
+    
+    if(isStaff){
+      // Staff light attack (projectile)
+      spawnProjectile(state, u.x, u.y, ang, 420, 4, 4, 0, fromPlayer);
+      recordAI('light_attack', {type:'staff', dist:Math.round(bestD)});
+    } else {
+      // Melee light attack
+      const range = 70;
+      const arc = 0.9;
+      const targets = kind==='enemy' ? [state.player, ...state.friendlies] : state.enemies;
+      const slashColor = kind==='enemy' ? 'rgba(229, 89, 89, 0.4)' : 'rgba(186, 150, 255, 0.4)';
+      
+      state.effects.slashes.push({t:0.1, arc, range, dir:ang, x:u.x, y:u.y, color:slashColor, dmg:5});
+      
+      for(let ei=targets.length-1; ei>=0; ei--){
+        const e=targets[ei];
+        const dx=e.x-u.x, dy=e.y-u.y; const d=Math.hypot(dx,dy); if(d>range) continue;
+        const ea=Math.atan2(dy,dx); let diff=Math.abs(ea-ang); diff=Math.min(diff, Math.PI*2-diff);
+        if(diff<=arc/2 && e.hp!==undefined){ e.hp-=5; }
+      }
+      recordAI('light_attack', {type:'melee', dist:Math.round(bestD)});
+    }
     return;
   }
 
@@ -4521,35 +4697,224 @@ export function handleHotkeys(state, dt){
   }
   if(!invDown) state._invLatch=false;
 
-  // E key for selling items when marketplace is open
+  // Loadout 1 (default: [)
+  const loadout1Down = state.input.keysDown.has(state.binds.loadout1);
+  if(loadout1Down && !state._loadout1Latch && !state.inMenu && !state.showInventory){
+    state._loadout1Latch = true;
+    const heroClass = state.player.class || 'warrior';
+    if(loadLoadout(state, heroClass, 0)){
+      state.ui.toast('✅ Loaded Loadout 1');
+      state.ui.renderAbilityBar();
+    } else {
+      state.ui.toast('⚠️ Loadout 1 is empty');
+    }
+  }
+  if(!loadout1Down) state._loadout1Latch = false;
+
+  // Loadout 2 (default: ])
+  const loadout2Down = state.input.keysDown.has(state.binds.loadout2);
+  if(loadout2Down && !state._loadout2Latch && !state.inMenu && !state.showInventory){
+    state._loadout2Latch = true;
+    const heroClass = state.player.class || 'warrior';
+    if(loadLoadout(state, heroClass, 1)){
+      state.ui.toast('✅ Loaded Loadout 2');
+      state.ui.renderAbilityBar();
+    } else {
+      state.ui.toast('⚠️ Loadout 2 is empty');
+    }
+  }
+  if(!loadout2Down) state._loadout2Latch = false;
+
+  // Loadout 3 (default: \)
+  const loadout3Down = state.input.keysDown.has(state.binds.loadout3);
+  if(loadout3Down && !state._loadout3Latch && !state.inMenu && !state.showInventory){
+    state._loadout3Latch = true;
+    const heroClass = state.player.class || 'warrior';
+    if(loadLoadout(state, heroClass, 2)){
+      state.ui.toast('✅ Loaded Loadout 3');
+      state.ui.renderAbilityBar();
+    } else {
+      state.ui.toast('⚠️ Loadout 3 is empty');
+    }
+  }
+  if(!loadout3Down) state._loadout3Latch = false;
+
+  // Tab navigation keybinds (optional - unassigned by default)
+  // Tab 0: Inventory
+  if(state.binds.tabInventory && state.binds.tabInventory !== ''){
+    const tabInvDown = state.input.keysDown.has(state.binds.tabInventory);
+    if(tabInvDown && !state._tabInvLatch && !state.inMenu){
+      state._tabInvLatch = true;
+      state.ui.toggleInventory(true);
+      // Switch to inventory tab (0)
+      setTimeout(() => {
+        const btn = document.querySelector('.tab-btn[data-tab="0"]');
+        if(btn) btn.click();
+      }, 10);
+    }
+    if(!tabInvDown) state._tabInvLatch = false;
+  }
+  
+  // Tab 1: Skills
+  if(state.binds.tabSkills && state.binds.tabSkills !== ''){
+    const tabSkillsDown = state.input.keysDown.has(state.binds.tabSkills);
+    if(tabSkillsDown && !state._tabSkillsLatch && !state.inMenu){
+      state._tabSkillsLatch = true;
+      state.ui.toggleInventory(true);
+      setTimeout(() => {
+        const btn = document.querySelector('.tab-btn[data-tab="1"]');
+        if(btn) btn.click();
+      }, 10);
+    }
+    if(!tabSkillsDown) state._tabSkillsLatch = false;
+  }
+  
+  // Tab 2: Level
+  if(state.binds.tabLevel && state.binds.tabLevel !== ''){
+    const tabLevelDown = state.input.keysDown.has(state.binds.tabLevel);
+    if(tabLevelDown && !state._tabLevelLatch && !state.inMenu){
+      state._tabLevelLatch = true;
+      state.ui.toggleInventory(true);
+      setTimeout(() => {
+        const btn = document.querySelector('.tab-btn[data-tab="2"]');
+        if(btn) btn.click();
+      }, 10);
+    }
+    if(!tabLevelDown) state._tabLevelLatch = false;
+  }
+  
+  // Tab 3: Buffs
+  if(state.binds.tabBuffs && state.binds.tabBuffs !== ''){
+    const tabBuffsDown = state.input.keysDown.has(state.binds.tabBuffs);
+    if(tabBuffsDown && !state._tabBuffsLatch && !state.inMenu){
+      state._tabBuffsLatch = true;
+      state.ui.toggleInventory(true);
+      setTimeout(() => {
+        const btn = document.querySelector('.tab-btn[data-tab="3"]');
+        if(btn) btn.click();
+      }, 10);
+    }
+    if(!tabBuffsDown) state._tabBuffsLatch = false;
+  }
+  
+  // Tab 4: Group
+  if(state.binds.tabGroup && state.binds.tabGroup !== ''){
+    const tabGroupDown = state.input.keysDown.has(state.binds.tabGroup);
+    if(tabGroupDown && !state._tabGroupLatch && !state.inMenu){
+      state._tabGroupLatch = true;
+      state.ui.toggleInventory(true);
+      setTimeout(() => {
+        const btn = document.querySelector('.tab-btn[data-tab="4"]');
+        if(btn) btn.click();
+      }, 10);
+    }
+    if(!tabGroupDown) state._tabGroupLatch = false;
+  }
+  
+  // Tab 5: Allies
+  if(state.binds.tabAllies && state.binds.tabAllies !== ''){
+    const tabAlliesDown = state.input.keysDown.has(state.binds.tabAllies);
+    if(tabAlliesDown && !state._tabAlliesLatch && !state.inMenu){
+      state._tabAlliesLatch = true;
+      state.ui.toggleInventory(true);
+      setTimeout(() => {
+        const btn = document.querySelector('.tab-btn[data-tab="5"]');
+        if(btn) btn.click();
+      }, 10);
+    }
+    if(!tabAlliesDown) state._tabAlliesLatch = false;
+  }
+  
+  // Tab 7: Campaign
+  if(state.binds.tabCampaign && state.binds.tabCampaign !== ''){
+    const tabCampaignDown = state.input.keysDown.has(state.binds.tabCampaign);
+    if(tabCampaignDown && !state._tabCampaignLatch && !state.inMenu){
+      state._tabCampaignLatch = true;
+      state.ui.toggleInventory(true);
+      setTimeout(() => {
+        const btn = document.querySelector('.tab-btn[data-tab="7"]');
+        if(btn) btn.click();
+      }, 10);
+    }
+    if(!tabCampaignDown) state._tabCampaignLatch = false;
+  }
+
+  // E key for selling/buying items when marketplace is open
   const eDown = state.input.keysDown.has('KeyE');
   if(eDown && !state._eLatch && state.showMarketplace){
     state._eLatch = true;
-    // Try to sell the last clicked/hovered item
-    const item = state._marketSelectedItem;
-    if(item){
-      // Check if equipped
-      const isEquipped = item.slot && state.equipped && state.equipped[item.slot] === item;
-      if(isEquipped){
-        state.ui.toast('Unequip this item before selling!');
+    
+    // Try to buy the selected shop item first
+    const shopItem = state._marketSelectedShopItem;
+    if(shopItem){
+      const affordable = state.player.gold >= shopItem.price;
+      if(!affordable){
+        state.ui.toast('Not enough gold!');
       } else {
-        const invIdx = state.inventory.indexOf(item);
-        if(invIdx !== -1){
-          const sellVal = item.rarity?.sellValue || 5;
-          state.player.gold += sellVal;
-          const color = item.rarity?.color || '#fff';
-          
-          if(item.count && item.count > 1){
-            item.count--;
-            state.ui.toast(`<span style="color:${color}"><b>${item.name}</b></span> sold for ${sellVal}g (${item.count} remaining)`);
-          } else {
-            state.inventory.splice(invIdx, 1);
-            state.ui.toast(`<span style="color:${color}"><b>${item.name}</b></span> sold for ${sellVal}g`);
+        const it = shopItem.item;
+        // Purchase item
+        state.player.gold -= shopItem.price;
+        
+        // Services apply immediately
+        if(it.kind === 'service'){
+          if(it.serviceId === 'squad_armor' && typeof window.applySquadArmorUpgrade === 'function'){
+            window.applySquadArmorUpgrade(state);
+            state.marketCosts.squadArmor = Math.round((state.marketCosts.squadArmor||1000) * 1.3);
+          } else if(it.serviceId === 'squad_level' && typeof window.applySquadLevelUpgrade === 'function'){
+            window.applySquadLevelUpgrade(state);
+            state.marketCosts.squadLevel = Math.round((state.marketCosts.squadLevel||800) * 1.25);
           }
-          
-          state.ui.updateGoldDisplay();
-          state.ui.renderSellItems();
-          state.ui.renderInventory?.();
+        } else {
+          // Add to inventory
+          const itemCopy = JSON.parse(JSON.stringify(it));
+          itemCopy.count = itemCopy.count || 1;
+          if(itemCopy.kind === 'potion'){
+            const existing = state.inventory.find(i => i.kind === 'potion' && i.type === itemCopy.type && i.rarity.key === itemCopy.rarity.key);
+            if(existing){
+              existing.count = (existing.count || 1) + 1;
+            } else {
+              state.inventory.push(itemCopy);
+            }
+          } else {
+            state.inventory.push(itemCopy);
+          }
+        }
+        
+        const color = it.rarity?.color || '#fff';
+        const formatGold = (g) => `${g}<span class="gold-icon">💰</span>`;
+        state.ui.toast(`<span style="color:${color}"><b>${it.name}</b></span> added to inventory for ${formatGold(shopItem.price)}`);
+        state.ui.updateGoldDisplay();
+        state.ui.renderShop();
+        state.ui.renderSellItems();
+        state.ui.renderInventory?.();
+      }
+    } else {
+      // Try to sell the last clicked/hovered item
+      const item = state._marketSelectedItem;
+      if(item){
+        // Check if equipped
+        const isEquipped = item.slot && state.equipped && state.equipped[item.slot] === item;
+        if(isEquipped){
+          state.ui.toast('Unequip this item before selling!');
+        } else {
+          const invIdx = state.inventory.indexOf(item);
+          if(invIdx !== -1){
+            const sellVal = item.rarity?.sellValue || 5;
+            state.player.gold += sellVal;
+            const color = item.rarity?.color || '#fff';
+            
+            if(item.count && item.count > 1){
+              item.count--;
+              state.ui.toast(`<span style="color:${color}"><b>${item.name}</b></span> sold for ${sellVal}g (${item.count} remaining)`);
+            } else {
+              state.inventory.splice(invIdx, 1);
+              state.ui.toast(`<span style="color:${color}"><b>${item.name}</b></span> sold for ${sellVal}g`);
+            }
+            
+            state.ui.updateGoldDisplay();
+            state.ui.renderSellItems();
+            state.ui.renderInventory?.();
+          }
         }
       }
     }
@@ -4898,10 +5263,10 @@ export function handleHotkeys(state, dt){
   }
   if(!pKey) state._previewLatch = false;
 
-  // Toggle HUD visibility with KeyB
-  const bDown = state.input.keysDown.has('KeyB');
-  if(bDown && !state._uiHideLatch){ state._uiHideLatch = true; state.uiHidden = !state.uiHidden; }
-  if(!bDown) state._uiHideLatch = false;
+  // Toggle HUD visibility (default: B)
+  const hudToggleDown = state.input.keysDown.has(state.binds.toggleHud);
+  if(hudToggleDown && !state._uiHideLatch){ state._uiHideLatch = true; state.uiHidden = !state.uiHidden; }
+  if(!hudToggleDown) state._uiHideLatch = false;
 
   // Use interact bind (often KeyF) for dungeon entry only. Fast travel is map-only.
   const fKey = state.input.keysDown.has(state.binds.interact);
@@ -5147,15 +5512,18 @@ export function updateGame(state, dt){
   const sprinting = state.input.keysDown.has(state.binds.sprint) && state.player.stam>0 && !state.input.mouse.rDown && !state.player.dead;
   const blocking = state.input.mouse.rDown && !state.player.dead;
 
-  if(!sprinting && !blocking && !state.player.dead){
+  // Regenerate stamina when not sprinting
+  if(!sprinting && !state.player.dead){
     state.player.stam=clamp(state.player.stam+st.stamRegen*dt,0,st.maxStam);
   }
-  if(sprinting) state.player.stam=Math.max(0, state.player.stam - st.sprintStamDrain*dt);
-  if(blocking){
-    state.player.stam=Math.max(0, state.player.stam - st.blockStamDrain*dt);
-    state.player.mana=Math.max(0, state.player.mana - 7.5*dt);
-    if(state.player.stam<=0 || state.player.mana<=0) state.input.mouse.rDown=false;
+  
+  // Consume stamina while sprinting
+  if(sprinting){
+    state.player.stam=Math.max(0, state.player.stam - st.sprintStamDrain*dt);
   }
+  
+  // Block only consumes stamina when actually blocking damage (handled in applyDamageToPlayer)
+  // No passive drain while holding block
 
   // Garrison assignment hotkeys (1-6 for flags, 7 for unassign all) - with confirmation prompts
   const capturableSites = state.sites

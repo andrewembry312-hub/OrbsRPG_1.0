@@ -17,8 +17,8 @@ export const META_LOADOUTS = {
       { kind:'weapon', slot:'weapon', weaponType:'Dagger', rarity:COMMON_RARITY, name:'Common Dagger', buffs:{atk:4, speed:5, critChance:0.05} },
       { kind:'weapon', slot:'weapon', weaponType:'Greatsword', rarity:COMMON_RARITY, name:'Common Greatsword', buffs:{atk:9, speed:-3} }
     ],
-    abilitiesMagic: ['arc_bolt','piercing_lance','chain_light','warrior_cleave','warrior_fortitude'], // For destruction staff
-    abilitiesMelee: ['slash','cleave','warrior_life_leech','warrior_cleave','warrior_charge'] // For melee weapons
+    abilitiesMagic: ['arc_bolt','piercing_lance','chain_light','warrior_fortitude','mage_radiant_aura'], // 3 attacks + 2 buffs for staff
+    abilitiesMelee: ['slash','cleave','warrior_cleave','warrior_fortitude','warrior_life_leech'] // 3 attacks + 2 buffs for melee
   },
   
   // KNIGHT -> TANK role (can use any weapon, preferably sword/axe for thematic fit)
@@ -28,7 +28,7 @@ export const META_LOADOUTS = {
       { kind:'weapon', slot:'weapon', weaponType:'Axe', rarity:COMMON_RARITY, name:'Common Axe', buffs:{atk:7, def:2, maxHp:12} },
       { kind:'weapon', slot:'weapon', weaponType:'Greatsword', rarity:COMMON_RARITY, name:'Common Greatsword', buffs:{atk:8, def:2, maxHp:10} }
     ],
-    abilities: ['knight_justice_strike','cleave','knight_shield_wall','knight_taunt','knight_rally']
+    abilities: ['knight_shield_wall','knight_taunt','knight_rally','warcry','heal_burst'] // All buffs/heals for tank role
   },
   
   // TANK -> TANK role (can use any weapon)
@@ -38,7 +38,7 @@ export const META_LOADOUTS = {
       { kind:'weapon', slot:'weapon', weaponType:'Sword', rarity:COMMON_RARITY, name:'Common Sword', buffs:{atk:5, def:5, maxHp:18} },
       { kind:'weapon', slot:'weapon', weaponType:'Greatsword', rarity:COMMON_RARITY, name:'Common Greatsword', buffs:{atk:8, def:3, maxHp:15} }
     ],
-    abilities: ['tank_ground_slam','cleave','tank_iron_skin','tank_anchor','tank_bodyguard']
+    abilities: ['tank_iron_skin','tank_anchor','tank_bodyguard','ward_barrier','heal_burst'] // All buffs/heals for tank role
   },
   
   // Legacy DPS/HEALER/TANK keys for backward compatibility (player might use these)

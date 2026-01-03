@@ -1,0 +1,444 @@
+Damage & Healing Report
+======================================================================
+Generated: 1/3/2026, 4:40:16 PM
+Game Time: 65s
+
+ROLE SUMMARY
+----------------------------------------------------------------------
+Role             Count     Dmg Out      Dmg In     Healing     Shields
+UNKNOWN              1           0        1308           0           0
+HEALER              15           0           0           0           0
+TANK                34           0           0           0           0
+DPS                 10           0           0           0           0
+
+TOP DAMAGE DEALERS
+----------------------------------------------------------------------
+
+TOP HEALERS
+----------------------------------------------------------------------
+
+TOP SHIELD PROVIDERS
+----------------------------------------------------------------------
+
+DETAILED BREAKDOWN
+----------------------------------------------------------------------
+
+Player (Unknown) - Player
+  HP: 168/173
+  Damage Dealt: 0
+  Damage Received: 1308
+  Healing Done: 0
+  Shields Provided: 0
+
+Mage 895 (HEALER) - Friendly
+  HP: 50/50
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Knight 948 (TANK) - Friendly
+  HP: 80/80
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Warden 45 (TANK) - Friendly
+  HP: 92/102
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Mage 445 (HEALER) - Friendly
+  HP: 45/50
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Warrior 465 (DPS) - Friendly
+  HP: 53/63
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Knight 444 (TANK) - Friendly
+  HP: 80/80
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Warden 407 (TANK) - Friendly
+  HP: 102/102
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Mage 249 (HEALER) - Friendly
+  HP: 45/50
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Warrior 119 (DPS) - Friendly
+  HP: 63/63
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Knight 220 (TANK) - Friendly
+  HP: 80/80
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Mage Guard 1 (HEALER) - Friendly
+  HP: 45/45
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Mage Guard 2 (HEALER) - Friendly
+  HP: 45/45
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Warrior Guard 3 (DPS) - Friendly
+  HP: 57/57
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Knight Guard 4 (TANK) - Friendly
+  HP: 73/73
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Warden Guard 5 (TANK) - Friendly
+  HP: 93/93
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Mage Guard 1 (HEALER) - Friendly
+  HP: 45/45
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Mage Guard 2 (HEALER) - Friendly
+  HP: 45/45
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Warrior Guard 3 (DPS) - Friendly
+  HP: 57/57
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Knight Guard 4 (TANK) - Friendly
+  HP: 68/73
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+Warden Guard 5 (TANK) - Friendly
+  HP: 88/93
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+mage (HEALER) - teamB
+  HP: 202/202
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warrior (DPS) - teamB
+  HP: 177/255
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warden (TANK) - teamB
+  HP: 180/417
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamB
+  HP: 292/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warden (TANK) - teamB
+  HP: 397/417
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamB
+  HP: 256/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warrior (DPS) - teamB
+  HP: 133/255
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warrior (DPS) - teamB
+  HP: 239/255
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamB
+  HP: 243/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamC
+  HP: 293/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+mage (HEALER) - teamC
+  HP: 140/202
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamC
+  HP: 243/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamC
+  HP: 327/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warden (TANK) - teamC
+  HP: 330/417
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warden (TANK) - teamC
+  HP: 403/417
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamC
+  HP: 126/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamC
+  HP: 288/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warrior (DPS) - teamC
+  HP: 222/255
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+mage (HEALER) - teamB
+  HP: 45/45
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+mage (HEALER) - teamB
+  HP: 45/45
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warrior (DPS) - teamB
+  HP: 57/57
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamB
+  HP: 73/73
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warden (TANK) - teamB
+  HP: 93/93
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+mage (HEALER) - teamB
+  HP: 50/50
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+mage (HEALER) - teamB
+  HP: 50/50
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+mage (HEALER) - teamB
+  HP: 45/45
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+mage (HEALER) - teamB
+  HP: 45/45
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warrior (DPS) - teamB
+  HP: 42/64
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamB
+  HP: 76/82
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+warden (TANK) - teamB
+  HP: 93/93
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamA
+  HP: 296/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamA
+  HP: 12/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamA
+  HP: 327/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamA
+  HP: 327/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamA
+  HP: 327/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamC
+  HP: 327/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamA
+  HP: 327/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamA
+  HP: 327/327
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
+
+knight (TANK) - teamB
+  HP: 152/152
+  Damage Dealt: 0
+  Damage Received: 0
+  Healing Done: 0
+  Shields Provided: 0
