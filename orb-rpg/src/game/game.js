@@ -1052,7 +1052,7 @@ function awardXP(state, amount){
     }
     // Update HUD to refresh XP bar
     if (state.ui && state.ui.renderHud) {
-      state.ui.renderHud(state);
+      state.ui.renderHud(currentStats(state));
     }
     saveJson('orb_rpg_mod_prog', state.progression);
   }
@@ -4077,6 +4077,8 @@ function updateDots(state, dt){
   };
   const process = (unit)=>{
     if(!unit || !unit.dots || unit.dots.length===0) return;
+    // Stop processing DoTs if unit is dead or has 0 HP
+    if(unit === state.player && state.player.hp <= 0) return;
     for(let di=unit.dots.length-1; di>=0; di--){
       const d = unit.dots[di];
       d.t = Math.max(0, d.t - dt);
@@ -4433,9 +4435,12 @@ export function handleHotkeys(state, dt){
     if(weaponPreview && weaponPreview.style.display === 'flex'){
       weaponPreview.style.display = 'none';
     } else {
-      // if any overlay (including menu itself) is open, close them and DO NOT open menu
-      const anyOverlay = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace || state.showBaseActions || state.showGarrison || state.showSaves || state.inMenu || state.selectedUnit;
-      if(anyOverlay){
+      // Check if any UI is open (including menu)
+      const anyUiOpen = state.showInventory || state.showSkills || state.showLevel || state.mapOpen || state.showMarketplace || state.showBaseActions || state.showGarrison || state.showSaves || state.selectedUnit;
+      const menuOpen = state.inMenu;
+      
+      if(anyUiOpen){
+        // Close active UI first (not the menu)
         state.showInventory = false; 
         state.showSkills = false; 
         state.showLevel = false; 
@@ -4444,10 +4449,8 @@ export function handleHotkeys(state, dt){
         state.showBaseActions = false;
         state.showGarrison = false;
         state.showSaves = false;
-        state.paused = false;
         if(state.ui) { 
           state.ui.invOverlay.classList.remove('show'); 
-          state.ui.escOverlay.classList.remove('show');
           state.ui.mapOverlay && state.ui.mapOverlay.classList && state.ui.mapOverlay.classList.remove('show'); 
           state.ui.marketplaceOverlay && state.ui.marketplaceOverlay.classList && state.ui.marketplaceOverlay.classList.remove('show');
           state.ui.baseActionsOverlay && state.ui.baseActionsOverlay.classList && state.ui.baseActionsOverlay.classList.remove('show');
@@ -4460,9 +4463,14 @@ export function handleHotkeys(state, dt){
             state.selectedUnit = null;
           }
         }
+        if(!state.campaignEnded) state.paused = false;
+      } else if(menuOpen){
+        // If only menu is open, close it
+        state.ui.escOverlay.classList.remove('show');
         state.inMenu = false;
+        if(!state.campaignEnded) state.paused = false;
       } else {
-        // Only open menu if nothing is open
+        // Nothing is open, open the menu
         state.ui.toggleMenu(true);
       }
     }

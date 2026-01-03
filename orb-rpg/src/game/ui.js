@@ -234,7 +234,7 @@ export function buildUI(state){
         <div class="tab-content" data-tab="0" style="margin-top:10px; display:block;">
           <div class="invFullGrid">
             <!-- LEFT: Equipment circle around hero -->
-            <div class="box invLeft" style="border-color:#d4af37;">
+            <div class="box invLeft" style="border-color:#d4af37; height:650px;">
               <div class="row" style="justify-content:space-between; align-items:center;">
                 <div>
                   <div class="pill">Gold <span id="gold">0</span></div>
@@ -245,13 +245,13 @@ export function buildUI(state){
               <div id="equipCircle" class="equipCircle">
                 <img id="heroPortrait" src="assets/char/warrior.svg" alt="Hero" class="heroLarge"/>
               </div>
-              <div id="equipExtras" class="equipExtras" style="text-align:center;"></div>
+              <div id="equipExtras" class="equipExtras" style="display:flex; justify-content:space-evenly; align-items:center;"></div>
               <div id="weaponSlot" class="weaponSlot" style="text-align:center;"></div>
               <div class="btnRow" style="margin-top:10px">
               </div>
             </div>
             <!-- STATS: selected item and stats -->
-            <div class="box invStats" style="border-color:#d4af37;">
+            <div class="box invStats" style="border-color:#d4af37; height:650px;">
               <div style="margin-top:12px" class="small">Selected Item</div>
               <div id="selName" style="font-weight:900;margin-top:2px">None</div>
               <div id="selDesc" class="small" style="margin-top:6px; line-height:1.35">Click an item.</div>
@@ -260,15 +260,12 @@ export function buildUI(state){
               <table class="statTable" id="statsTable"></table>
 
               <div class="box" style="margin-top:10px; border-color:#d4af37;">
-                <div class="pill" style="border-color:#d4af37; color:#d4af37;">Armor Rating: <span id="invArmorStars">☆☆☆☆☆</span> <span id="invArmorText">0/5</span></div>
+                <div class="pill" style="border-color:#d4af37; color:#d4af37;">Armor Rating: <span id="invArmorStars" style="font-size:32px; font-weight:normal;">☆☆☆☆☆</span> <span id="invArmorText">0/5</span></div>
               </div>
             </div>
 
-            <!-- SPACER -->
-            <div class="box invSpacer"></div>
-
             <!-- RIGHT: Inventory grid -->
-            <div id="invRight" class="box invRight" style="border-color:#d4af37;">
+            <div id="invRight" class="box invRight" style="border-color:#d4af37; height:650px;">
               <div class="invRightHeader">
                 <div class="row">
                   <div class="small">Inventory</div>
@@ -448,7 +445,7 @@ export function buildUI(state){
                 </div>
                 <div id="levelArmorRating" style="text-align:right;">
                   <div style="font-size:12px; color:#b8941f;">Armor Rating</div>
-                  <div style="font-size:16px; font-weight:bold; color:#d4af37;"><span id="levelArmorStars">☆☆☆☆☆</span></div>
+                  <div style="font-size:32px; font-weight:normal; color:#d4af37;"><span id="levelArmorStars">☆☆☆☆☆</span></div>
                 </div>
               </div>
 
@@ -1142,7 +1139,7 @@ export function buildUI(state){
               <div id="campaignTeams" class="small" style="line-height:1.6"></div>
             </div>
             <!-- Right: Active Captures -->
-            <div class="box tab-scroll" style="overflow:auto; border-color:#d4af37;">
+            <div class="box tab-scroll" style="overflow:auto; border-color:#d4af37; height:550px;">
               <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Active Captures</div>
               <div id="campaignCaptures" class="small" style="line-height:1.6"></div>
             </div>
@@ -1253,7 +1250,7 @@ export function buildUI(state){
             <div id="marketInspect" class="small" style="margin-bottom:10px; line-height:1.4; min-height:60px; padding:8px; background:rgba(0,0,0,0.2); border-radius:4px; flex-shrink:0">
               Select an item to view its stats.
             </div>
-            <div id="shopItems" class="grid2" style="flex:1; overflow-y:auto; gap:8px"></div>
+            <div id="shopItems" class="invGrid" style="flex:1; overflow-y:auto; gap:8px"></div>
           </div>
           
           <!-- Right: Player Inventory (Sell) -->
@@ -1531,40 +1528,7 @@ function bindUI(state){
   };
   // Helper to get item image path
   const getItemImage = (item) => {
-    if(!item) return null;
-    if(item.kind === 'weapon'){
-      const weaponType = item.weaponType || '';
-      const rarity = item.rarity?.key || 'common';
-      const rarityCapitalized = rarity.charAt(0).toUpperCase() + rarity.slice(1);
-      
-      // Map weapon types to image names - match exact file names in assets/items/
-      if(weaponType === 'Sword') return `assets/items/${rarityCapitalized} Sword.png`;
-      if(weaponType === 'Axe') return `assets/items/${rarityCapitalized} Axe.png`;
-      if(weaponType === 'Dagger') return `assets/items/${rarityCapitalized} Dagger.png`;
-      if(weaponType === 'Healing Staff') return `assets/items/${rarityCapitalized} Healing Staff.png`;
-      if(weaponType === 'Destruction Staff') return `assets/items/${rarityCapitalized} Destruction Staff.png`;
-      if(weaponType === 'Greatsword') return `assets/items/${rarityCapitalized} Great Sword.png`;
-    }
-    if(item.kind === 'armor'){
-      const slot = item.slot || '';
-      const rarity = item.rarity?.key || 'common';
-      const rarityCapitalized = rarity.charAt(0).toUpperCase() + rarity.slice(1);
-      
-      // Map armor slots to image names
-      if(slot === 'helm') return `assets/items/${rarityCapitalized} Helm.png`;
-      if(slot === 'chest') return `assets/items/${rarityCapitalized} Chest.png`;
-      if(slot === 'shoulders') return `assets/items/${rarityCapitalized} shoulders.png`;
-      if(slot === 'belt') return `assets/items/${rarityCapitalized} belt.png`;
-      if(slot === 'feet') return `assets/items/${rarityCapitalized} feet.png`;
-      if(slot === 'hands') return `assets/items/${rarityCapitalized} hands.png`;
-      if(slot === 'legs') return `assets/items/${rarityCapitalized} leggings.png`;
-    }
-    if(item.kind === 'potion'){
-      const potionType = item.type || '';
-      if(potionType === 'hp') return 'assets/items/HP Potion.png';
-      if(potionType === 'mana') return 'assets/items/Mana Potion.png';
-    }
-    return null;
+    return getItemIcon(item); // Use the new comprehensive icon mapping
   };
 
   // Sticky header shadow on inventory scroll
@@ -2464,34 +2428,112 @@ function bindUI(state){
     ];
 
     ui.shopItems.innerHTML = '';
+    
+    // Tooltip helpers for market items
+    const marketTooltip = document.getElementById('invTooltip');
+    const showMarketTooltip = (html, evt, parentElement) => {
+      if(!marketTooltip || !evt) return;
+      marketTooltip.innerHTML = html;
+      marketTooltip.style.display = 'block';
+      marketTooltip.style.visibility = 'hidden';
+      marketTooltip.style.transform = 'none';
+      marketTooltip.style.bottom = 'auto';
+      
+      const parentRect = (parentElement || ui.shopItems).getBoundingClientRect();
+      const tooltipRect = marketTooltip.getBoundingClientRect();
+      const scrollY = (parentElement || ui.shopItems).scrollTop || 0;
+      const cursorX = evt.clientX - parentRect.left;
+      const cursorY = evt.clientY - parentRect.top + scrollY;
+      const margin = 14;
+      
+      // Prefer right of cursor; if overflow, flip to left
+      let left = cursorX + margin;
+      if(left + tooltipRect.width > parentRect.width - 4){
+        left = cursorX - tooltipRect.width - margin;
+      }
+      // Prefer below cursor; if overflow, flip above
+      let top = cursorY + margin;
+      if(top + tooltipRect.height > parentRect.height + scrollY - 4){
+        top = cursorY - tooltipRect.height - margin;
+      }
+      // Clamp within panel bounds
+      left = Math.max(8, Math.min(left, parentRect.width - tooltipRect.width - 8));
+      top = Math.max(scrollY + 4, Math.min(top, scrollY + parentRect.height - tooltipRect.height - 4));
+      marketTooltip.style.top = `${top}px`;
+      marketTooltip.style.left = `${left}px`;
+      marketTooltip.style.visibility = 'visible';
+    };
+    const hideMarketTooltip = () => {
+      if(marketTooltip) marketTooltip.style.display = 'none';
+    };
+    
     shopItems.forEach((shopItem, idx)=>{
       const it = shopItem.item;
       const canBuy = true; // All items are unlimited
       const affordable = state.player.gold >= shopItem.price;
       
       const div = document.createElement('div');
-      div.className = 'box';
-      div.style.cssText = 'padding:8px; opacity:' + (affordable ? '1' : '0.5');
+      div.className = 'slot';
+      div.style.cssText = 'position:relative; cursor:pointer; opacity:' + (affordable ? '1' : '0.5') + '; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4px;';
       
       const stockText = '∞'; // All unlimited
       const imgPath = getItemImage(it);
-      const imageHtml = imgPath ? `<div style="width:120px; height:120px; margin:0 auto 8px;"><img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain;"/></div>` : '';
+      const imageHtml = imgPath ? `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0;"/>` : '';
       
       div.innerHTML = `
         ${imageHtml}
-        <div class="small" style="font-weight:900; color:var(--common)">${it.name}</div>
-        <div class="small" style="margin-top:4px; color:#999">${it.desc}</div>
-        <div class="small" style="margin-top:6px; display:flex; justify-content:space-between; align-items:center">
-          <span style="color:var(--epic); font-weight:900">${formatGold(shopItem.price)}</span>
-          <span style="color:#666">Stock: ${stockText}</span>
+        <div style="position:absolute; bottom:2px; left:2px; right:2px; background:rgba(0,0,0,0.85); padding:2px; border-radius:2px; pointer-events:none">
+          <div class="small" style="font-size:9px; font-weight:900; color:var(--common); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${it.name}</div>
+          <div class="small" style="font-size:8px; color:var(--epic); font-weight:900; text-align:center">${formatGold(shopItem.price)}</div>
         </div>
       `;
       
-      const btn = document.createElement('button');
-      btn.textContent = 'Buy';
-      btn.className = canBuy && affordable ? '' : 'secondary';
-      btn.disabled = !canBuy || !affordable;
-      btn.style.cssText = 'width:100%; margin-top:8px; padding:6px; font-size:11px';
+      // Add hover tooltip for shop items
+      div.addEventListener('mouseenter', (evt) => {
+        const color = it.rarity?.color || '#fff';
+        let html = `<div style="font-weight:900; color:${color}; margin-bottom:4px">${it.name}</div>`;
+        html += `<div style="color:#aaa; margin-bottom:8px">${it.desc || ''}</div>`;
+        
+        if(it.buffs && Object.keys(it.buffs).length > 0){
+          const buffsText = Object.entries(it.buffs).map(([k,v])=>{
+            let displayVal;
+            if(typeof v === 'number'){
+              if(Math.abs(v) < 1){
+                displayVal = (v>0?'+':'')+(v*100).toFixed(0)+'%';
+              } else {
+                displayVal = (v>0?'+':'')+Math.round(v);
+              }
+            } else {
+              displayVal = v;
+            }
+            return `<span style="color:var(--common)">${displayVal} ${k}</span>`;
+          }).join(' • ');
+          html += `<div style="margin-bottom:8px">${buffsText}</div>`;
+        }
+        
+        if(it.elementalEffects && it.elementalEffects.length > 0){
+          const elemsText = it.elementalEffects.map(e=>`${Math.round((e.chance||0)*100)}% ${e.type} on-hit`).join(' | ');
+          html += `<div style="color:var(--rare); margin-bottom:8px">${elemsText}</div>`;
+        }
+        
+        if(it.slot && it.slot !== 'none'){
+          html += `<div style="color:#999; margin-top:8px">Slot: ${it.slot}</div>`;
+        }
+        
+        if(it.kind === 'weapon' && it.weaponType){
+          html += `<div style="color:#999">Type: ${it.weaponType}</div>`;
+        }
+        
+        html += `<div style="color:var(--epic); font-weight:bold; margin-top:8px">💰 Price: ${formatGold(shopItem.price)}</div>`;
+        
+        if(!affordable){
+          html += `<div style="color:#f66; margin-top:4px; font-size:11px">⚠️ Not enough gold</div>`;
+        }
+        
+        showMarketTooltip(html, evt, ui.shopItems);
+      });
+      div.addEventListener('mouseleave', hideMarketTooltip);
+      
       const updateInspect = ()=>{
         if(!ui.marketInspect) return;
         const color = it.rarity?.color || '#fff';
@@ -2499,8 +2541,10 @@ function bindUI(state){
         const elems = formatElementals(it);
         ui.marketInspect.innerHTML = `<span style="color:${color}; font-weight:900">${it.name}</span><br>${it.desc || ''}<br>${buffsText}${elems? '<br>'+elems : ''}`;
       };
-      div.onclick = (ev)=>{ if(ev.target===btn) return; updateInspect(); };
-      btn.onclick = ()=>{
+      
+      div.onmouseenter = () => updateInspect();
+      
+      div.onclick = ()=>{
         if(!affordable){
           ui.toast('Not enough gold!');
           return;
@@ -2548,8 +2592,6 @@ function bindUI(state){
         ui.renderSellItems();
         ui.renderInventory?.();
       };
-      
-      div.appendChild(btn);
       ui.shopItems.appendChild(div);
     });
   };
@@ -3353,8 +3395,9 @@ function bindUI(state){
        Light <span class="kbd">LMB</span> | Heavy <span class="kbd">Hold LMB</span> | Block <span class="kbd">Hold RMB</span>`;
   };
 
-  // Shared icon mapping for buffs/debuffs (PNG overrides, otherwise emoji fallback)
+  // Shared icon mapping for buffs/debuffs/skills/items (PNG overrides, otherwise emoji fallback)
   const ICON_IMAGES = {
+    // Buff icons
     temporal_flux: 'assets/Buff%20icons/Temporal%20Flux.PNG',
     arcane_power: 'assets/Buff%20icons/Arcane%20Power.PNG',
     battle_fury: 'assets/Buff%20icons/Battle%20Fury.PNG',
@@ -3365,8 +3408,154 @@ function bindUI(state){
     iron_will: 'assets/Buff%20icons/Iron%20Will.PNG',
     radiance: 'assets/Buff%20icons/Radiance.PNG',
     regeneration: 'assets/Buff%20icons/Regeneration.PNG',
-    swift_strikes: 'assets/Buff%20icons/Swift%20Strikes.PNG'
+    swift_strikes: 'assets/Buff%20icons/Swift%20Strikes.PNG',
+    // Skill icons
+    arc_bolt: 'assets/skill%20icons/Arc%20Bolt.png',
+    chain_light: 'assets/skill%20icons/Chain%20Zap.png',
+    meteor_slam: 'assets/skill%20icons/Meteor%20Slam.png',
+    piercing_lance: 'assets/skill%20icons/Piercing%20Lance.png',
+    gravity_well: 'assets/skill%20icons/Gravity%20Well.png'
   };
+
+  // Item icon mapping - maps rarity + item type to PNG
+  const ITEM_ICON_MAP = {
+    // Weapons - Axes
+    'common_axe': 'assets/items/Common%20Axe.png',
+    'uncommon_axe': 'assets/items/Uncommon%20Axe.png',
+    'rare_axe': 'assets/items/Rare%20Axe.png',
+    'epic_axe': 'assets/items/Epic%20Axe.png',
+    'legendary_axe': 'assets/items/Legendary%20Axe.png',
+    // Weapons - Swords
+    'common_sword': 'assets/items/Common%20Sword.png',
+    'uncommon_sword': 'assets/items/Uncommon%20Sword.png',
+    'rare_sword': 'assets/items/Rare%20Sword.png',
+    'epic_sword': 'assets/items/Epic%20Sword.png',
+    'legendary_sword': 'assets/items/Legendary%20Sword.png',
+    // Weapons - Daggers
+    'common_dagger': 'assets/items/Common%20Dagger.png',
+    'uncommon_dagger': 'assets/items/Uncommon%20Dagger.png',
+    'rare_dagger': 'assets/items/Rare%20Dagger.png',
+    'epic_dagger': 'assets/items/Epic%20Dagger.png',
+    'legendary_dagger': 'assets/items/Legendary%20Dagger.png',
+    // Weapons - Great Swords
+    'common_greatsword': 'assets/items/Common%20Great%20Sword.png',
+    'uncommon_greatsword': 'assets/items/Uncommon%20Great%20Sword.png',
+    'rare_greatsword': 'assets/items/Rare%20Great%20Sword.png',
+    'epic_greatsword': 'assets/items/Epic%20Great%20Sword.png',
+    'legendary_greatsword': 'assets/items/Legendary%20Great%20Sword.png',
+    // Weapons - Destruction Staffs
+    'common_destruction_staff': 'assets/items/Common%20Destruction%20Staff.png',
+    'uncommon_destruction_staff': 'assets/items/Uncommon%20Destruction%20Staff.png',
+    'rare_destruction_staff': 'assets/items/Rare%20Destruction%20Staff.png',
+    'epic_destruction_staff': 'assets/items/Epic%20Destruction%20Staff.png',
+    'legendary_destruction_staff': 'assets/items/Legendary%20Destruction%20Staff.png',
+    // Weapons - Healing Staffs
+    'common_healing_staff': 'assets/items/Common%20Healing%20Staff.png',
+    'uncommon_healing_staff': 'assets/items/Uncommon%20Healing%20Staff.png',
+    'rare_healing_staff': 'assets/items/Rare%20Healing%20Staff.png',
+    'epic_healing_staff': 'assets/items/Epic%20Healing%20Staff.png',
+    'legendary_healing_staff': 'assets/items/Legendary%20Healing%20Staff.png',
+    // Armor - Helms
+    'common_helm': 'assets/items/Common%20Helm.png',
+    'uncommon_helm': 'assets/items/Uncommon%20Helm.png',
+    'rare_helm': 'assets/items/Rare%20Helm.png',
+    'epic_helm': 'assets/items/Epic%20Helm.png',
+    'legendary_helm': 'assets/items/Legendary%20Helm.png',
+    // Armor - Chest
+    'common_chest': 'assets/items/Common%20Chest.png',
+    'uncommon_chest': 'assets/items/Uncommon%20Chest.png',
+    'rare_chest': 'assets/items/Rare%20Chest.png',
+    'epic_chest': 'assets/items/Epic%20Chest.png',
+    'legendary_chest': 'assets/items/Legendary%20Chest.png',
+    // Armor - Shoulders
+    'common_shoulders': 'assets/items/Common%20Shoulders.png',
+    'uncommon_shoulders': 'assets/items/Uncommon%20Shoulders.png',
+    'rare_shoulders': 'assets/items/Rare%20Shoulders.png',
+    'epic_shoulders': 'assets/items/Epic%20Shoulders.png',
+    'legendary_shoulders': 'assets/items/Legendary%20Shoulders.png',
+    // Armor - Hands
+    'common_hands': 'assets/items/Common%20Hands.png',
+    'uncommon_hands': 'assets/items/Uncommon%20Hands.png',
+    'rare_hands': 'assets/items/Rare%20Hands.png',
+    'epic_hands': 'assets/items/Epic%20Hands.png',
+    'legendary_hands': 'assets/items/Legendary%20Hands.png',
+    // Armor - Leggings
+    'common_legs': 'assets/items/Common%20Leggings.png',
+    'uncommon_legs': 'assets/items/Uncommon%20Leggings.png',
+    'rare_legs': 'assets/items/Rare%20Leggings.png',
+    'epic_legs': 'assets/items/Epic%20Leggings.png',
+    'legendary_legs': 'assets/items/Legendary%20Leggings.png',
+    // Armor - Feet
+    'common_feet': 'assets/items/Common%20Feet.png',
+    'uncommon_feet': 'assets/items/Uncommon%20Feet.png',
+    'rare_feet': 'assets/items/Rare%20Feet.png',
+    'epic_feet': 'assets/items/Epic%20Feet.png',
+    'legendary_feet': 'assets/items/Legendary%20Feet.png',
+    // Armor - Belts
+    'common_belt': 'assets/items/Common%20Belt.png',
+    'uncommon_belt': 'assets/items/Uncommon%20Belt.png',
+    'rare_belt': 'assets/items/Rare%20Belt.png',
+    'epic_belt': 'assets/items/Epic%20Belt.png',
+    'legendary_belt': 'assets/items/Legendary%20Belt.png',
+    // Armor - Bracelets
+    'common_bracelet': 'assets/items/Common%20Bracelet.png',
+    'uncommon_bracelet': 'assets/items/Uncommon%20Bracelet.png',
+    'rare_bracelet': 'assets/items/Rare%20Bracelet.png',
+    'epic_bracelet': 'assets/items/Epic%20Bracelet.png',
+    'legendary_bracelet': 'assets/items/Legendary%20Bracelet.png',
+    // Armor - Rings
+    'common_ring': 'assets/items/Common%20Ring.png',
+    'uncommon_ring': 'assets/items/Uncommon%20Ring.png',
+    'rare_ring': 'assets/items/Rare%20Ring.png',
+    'epic_ring': 'assets/items/Epic%20Ring.png',
+    'legendary_ring': 'assets/items/Legendary%20Ring.png',
+    // Potions
+    'hp_potion': 'assets/items/HP%20Potion.png',
+    'mana_potion': 'assets/items/Mana%20Potion.png'
+  };
+
+  // Helper to get item icon from item object
+  function getItemIcon(item){
+    if(!item) return null;
+    
+    // Handle potions
+    if(item.kind === 'potion'){
+      if(item.name?.toLowerCase().includes('health') || item.name?.toLowerCase().includes('hp')){
+        return ITEM_ICON_MAP['hp_potion'];
+      }
+      if(item.name?.toLowerCase().includes('mana')){
+        return ITEM_ICON_MAP['mana_potion'];
+      }
+      return null;
+    }
+    
+    // Handle weapons and armor
+    const rarity = (item.rarity?.key || 'common').toLowerCase();
+    let itemType = '';
+    
+    if(item.kind === 'weapon' && item.weaponType){
+      // Normalize weapon type (e.g., "Great Sword" -> "greatsword", "Healing Staff" -> "healing_staff")
+      itemType = item.weaponType.toLowerCase().replace(/\s+/g, '_');
+    } else if(item.kind === 'armor' && item.slot){
+      // For armor, use the slot (helm, chest, legs, etc.)
+      // Special handling for accessories
+      if(item.slot === 'accessory1' || item.slot === 'accessory2'){
+        // Determine if it's a ring or bracelet from the name
+        if(item.name?.toLowerCase().includes('ring')){
+          itemType = 'ring';
+        } else if(item.name?.toLowerCase().includes('bracelet')){
+          itemType = 'bracelet';
+        }
+      } else {
+        itemType = item.slot;
+      }
+    }
+    
+    if(!itemType) return null;
+    
+    const key = `${rarity}_${itemType}`;
+    return ITEM_ICON_MAP[key] || null;
+  }
 
   const ICON_FALLBACKS = {
     // Debuffs / DoTs
@@ -3516,13 +3705,24 @@ function bindUI(state){
       const sk=getSkillById(state.abilitySlots[i]);
       const el=document.createElement('div');
       el.className='abilSlot';
-      el.innerHTML = `
-        <div class="abilKey">${nice(state.binds['abil'+(i+1)])}</div>
-        <div class="abilName">${sk?sk.name:'None'}</div>
-        <div class="abilMeta">${sk?`Mana ${sk.mana}, CD ${sk.cd}s`:'Assign via Skills (I)'} </div>
-        <div class="cdOverlay" id="cdOv${i}"></div>
-        <div class="cdText" id="cdTx${i}"></div>
-      `;
+      el.style.position='relative';
+      el.style.padding='0';
+      
+      // Get icon if available
+      const iconSrc = sk ? ICON_IMAGES[sk.id] : null;
+      
+      el.innerHTML = iconSrc
+        ? `<img src="${iconSrc}" style="width:100%; height:100%; object-fit:contain; pointer-events:none; position:absolute; top:0; left:0;" />
+           <div class="abilKey" style="position:absolute; top:4px; left:4px; text-shadow:0 0 4px rgba(0,0,0,0.9);">${nice(state.binds['abil'+(i+1)])}</div>
+           <div class="abilName" style="position:absolute; bottom:16px; left:0; right:0; text-align:center; text-shadow:0 0 4px rgba(0,0,0,0.9);">${sk.name}</div>
+           <div class="abilMeta" style="position:absolute; bottom:2px; left:0; right:0; text-align:center; font-size:9px; text-shadow:0 0 4px rgba(0,0,0,0.9);">${`Mana ${sk.mana}, CD ${sk.cd}s`}</div>
+           <div class="cdOverlay" id="cdOv${i}"></div>
+           <div class="cdText" id="cdTx${i}"></div>`
+        : `<div class="abilKey">${nice(state.binds['abil'+(i+1)])}</div>
+           <div class="abilName">${sk?sk.name:'None'}</div>
+           <div class="abilMeta">${sk?`Mana ${sk.mana}, CD ${sk.cd}s`:'Assign via Skills (I)'}</div>
+           <div class="cdOverlay" id="cdOv${i}"></div>
+           <div class="cdText" id="cdTx${i}"></div>`;
       
       if(sk){
         el.addEventListener('mouseenter', ()=>{
@@ -3621,64 +3821,38 @@ function bindUI(state){
       ui.equipCircle.appendChild(el);
     });
 
-    // Stack accessories centered under the hero - 3 slots with no spacing
-    const slotWidth = 70;
-    const totalAccWidth = slotWidth * 3; // 3 accessories
-    const containerWidth = ui.equipExtras.parentElement?.clientWidth || 500;
-    const startX = (containerWidth - totalAccWidth) / 2;
+    // All slots right-aligned in one row: Weapon | Neck | Acc1 | Acc2
+    // Using flexbox for even spacing
+    const allSlots = [
+      { key: 'weapon', item: equipTarget['weapon'] },
+      { key: 'neck', item: equipTarget['neck'] },
+      { key: 'accessory1', item: equipTarget['accessory1'] },
+      { key: 'accessory2', item: equipTarget['accessory2'] }
+    ];
     
-    ['accessory1','accessory2','neck'].forEach((slot, accIdx)=>{
-      const it = equipTarget[slot];
+    allSlots.forEach(({ key, item })=>{
       const el = document.createElement('div');
-      el.className = 'equipSlot' + (state.selectedEquipSlot === slot ? ' active' : '');
+      el.className = 'equipSlot' + (state.selectedEquipSlot === key ? ' active' : '');
       el.style.position = 'relative';
-      el.style.marginLeft = accIdx === 0 ? `${startX}px` : '0px';
-      el.style.display = 'inline-block';
-      el.title = SLOT_LABEL[slot];
-      const imgPath = it ? getItemImage(it) : null;
-      if(it && imgPath){
-        el.innerHTML = `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
-      } else if(it){
-        el.innerHTML = `<div style="text-align:center"><div style="color:${it.rarity.color}">${SLOT_LABEL[slot]}</div><div class="${rarityClass(it.rarity.key)}" style="font-size:10px">${it.name}</div></div>`;
+      el.title = SLOT_LABEL[key];
+      const imgPath = item ? getItemImage(item) : null;
+      if(item && imgPath){
+        el.innerHTML = `<img src="${imgPath}" alt="${item.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
+      } else if(item){
+        el.innerHTML = `<div style="text-align:center"><div style="color:${item.rarity.color}">${SLOT_LABEL[key]}</div><div class="${rarityClass(item.rarity.key)}" style="font-size:10px">${item.name}</div></div>`;
       } else {
-        el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[slot]}</div><div class="small" style="color:#aaa">None</div></div>`;
+        el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[key]}</div><div class="small" style="color:#aaa">None</div></div>`;
       }
       el.onclick = ()=>{
         const now = performance.now ? performance.now() : Date.now();
-        const key = `equip-${slot}`;
+        const clickKey = `equip-${key}`;
         const last = ui._lastInvClick;
-        if(last && last.key === key && now - last.t < 350){ state.selectedEquipSlot = slot; state.selectedIndex=-1; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return; }
-        ui._lastInvClick = { key, t: now };
-        state.selectedEquipSlot = it ? slot : null; state.selectedIndex=-1; ui.updateInventorySelection();
+        if(last && last.key === clickKey && now - last.t < 350){ state.selectedEquipSlot = key; state.selectedIndex=-1; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return; }
+        ui._lastInvClick = { key: clickKey, t: now };
+        state.selectedEquipSlot = item ? key : null; state.selectedIndex=-1; ui.updateInventorySelection();
       };
       ui.equipExtras.appendChild(el);
     });
-
-    // Weapon slot - centered directly under accessories (naturally under acc2)
-    const wIt = equipTarget['weapon'];
-    const wEl = document.createElement('div');
-    wEl.className = 'equipSlot' + (state.selectedEquipSlot === 'weapon' ? ' active' : '');
-    wEl.style.display = 'inline-block';
-    wEl.style.marginTop = '8px';
-    wEl.style.marginLeft = `${(containerWidth - slotWidth) / 2}px`; // Center single slot
-    wEl.title = SLOT_LABEL['weapon'];
-    const imgPath = wIt ? getItemImage(wIt) : null;
-    if(imgPath){
-      wEl.innerHTML = `<img src="${imgPath}" alt="${wIt.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
-    } else if(wIt){
-      wEl.innerHTML = `<div style="text-align:center"><div style="color:${wIt.rarity.color}">${SLOT_LABEL['weapon']}</div><div class="${rarityClass(wIt.rarity.key)}" style="font-size:10px">${wIt.name}</div></div>`;
-    } else {
-      wEl.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL['weapon']}</div><div class="small" style="color:#aaa">None</div></div>`;
-    }
-    wEl.onclick = ()=>{
-      const now = performance.now ? performance.now() : Date.now();
-      const key = `equip-weapon`;
-      const last = ui._lastInvClick;
-      if(last && last.key === key && now - last.t < 350){ state.selectedEquipSlot = 'weapon'; state.selectedIndex=-1; ui.equipSelected && ui.equipSelected(); ui._lastInvClick=null; return; }
-      ui._lastInvClick = { key, t: now };
-      state.selectedEquipSlot = wIt ? 'weapon' : null; state.selectedIndex=-1; ui.updateInventorySelection();
-    };
-    ui.weaponSlot.appendChild(wEl);
   };
 
   function invSlotLabel(it){
@@ -4268,14 +4442,19 @@ function bindUI(state){
     for(let i=0;i<5;i++){
       const skId = abilitySlots[i];
       const sk = getSkillById(skId);
+      const iconSrc = ICON_IMAGES[skId];
       const slotEl = document.createElement('div');
       slotEl.className = 'slot';
       slotEl.style.minWidth = '110px';
       slotEl.style.flexGrow = '1';
-      slotEl.innerHTML = `
-        <div style="font-weight:900; font-size:13px">Slot ${i+1}</div>
-        <div style="font-size:12px; color:#4a9eff">${sk ? sk.name : '—'}</div>
-      `;
+      slotEl.style.position = 'relative';
+      slotEl.style.padding = '0';
+      slotEl.innerHTML = iconSrc 
+        ? `<img src="${iconSrc}" style="width:100%; height:100%; object-fit:contain; pointer-events:none; position:absolute; top:0; left:0;" />
+           <div style="position:absolute; bottom:20px; left:0; right:0; text-align:center; font-weight:900; font-size:11px; text-shadow:0 0 4px rgba(0,0,0,0.9);">Slot ${i+1}</div>
+           <div style="position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:10px; color:#4a9eff; text-shadow:0 0 4px rgba(0,0,0,0.9);">${sk ? sk.name : '—'}</div>`
+        : `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:900; font-size:11px;">Slot ${i+1}</div>
+           <div style="position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:10px; color:#4a9eff;">${sk ? sk.name : '—'}</div>`;
       slotEl.style.cursor = sk ? 'help' : 'default';
       slotEl.style.background = 'transparent';
       slotEl.style.border = '1px solid rgba(255,255,255,0.1)';
@@ -4344,7 +4523,9 @@ function bindUI(state){
         listHtml += `<div style="color:#666; padding:8px; text-align:center;">No abilities in this category</div>`;
       } else {
         for(const ability of abilitiesInCategory){
-          const icon = ability.type === 'passive' ? '✦' : (ability.targetType ? TARGET_TYPE_INFO[ability.targetType]?.icon || '→' : '→');
+          const emojiIcon = ability.type === 'passive' ? '✦' : (ability.targetType ? TARGET_TYPE_INFO[ability.targetType]?.icon || '→' : '→');
+          const iconSrc = ICON_IMAGES[ability.id];
+          const iconHtml = iconSrc ? `<img src="${iconSrc}" style="width:80px; height:80px; border-radius:6px; border:2px solid #d4af37; object-fit:cover;" />` : `<span style="font-size:48px;">${emojiIcon}</span>`;
           
           // Check which slots have this ability assigned
           const assignedSlots = [];
@@ -4352,10 +4533,16 @@ function bindUI(state){
             if(abilitySlots[i] === ability.id) assignedSlots.push(i);
           }
           
-          listHtml += `<div style="padding:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); margin-bottom:8px; border-radius:4px;">`;
+          listHtml += `<div style="padding:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); margin-bottom:8px; border-radius:4px; display:grid; grid-template-columns:80px 1fr; gap:10px; align-items:start;">`;
+          
+          // Icon column
+          listHtml += `<div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center;">${iconHtml}</div>`;
+          
+          // Content column
+          listHtml += `<div>`;
           
           // Title and description
-          listHtml += `<div style="font-weight:900; font-size:13px; color:#4a9eff; margin-bottom:4px;">${icon} ${ability.name}</div>`;
+          listHtml += `<div style="font-weight:900; font-size:13px; color:#4a9eff; margin-bottom:4px;">${ability.name}</div>`;
           listHtml += `<div style="font-size:11px; color:#ccc; margin-bottom:6px; line-height:1.4;">${ability.details || ability.desc}</div>`;
           
           if(ability.type === 'active'){
@@ -4406,7 +4593,8 @@ function bindUI(state){
             }
           }
           
-          listHtml += `</div>`;
+          listHtml += `</div>`; // close content column
+          listHtml += `</div>`; // close grid container
         }
       }
       listHtml += `</div>`;
@@ -4847,7 +5035,7 @@ function bindUI(state){
             const desc = `${p.details||p.desc||''}`; 
             effectsList.push(`
               <div style="display:flex; gap:8px; align-items:center; padding:4px; background:rgba(100,200,100,0.1); border-left:2px solid #6c6; border-radius:2px; margin-bottom:4px;">
-                <span style="width:24px; height:24px; display:flex; align-items:center; justify-content:center;">${icon}</span>
+                <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center;">${icon}</span>
                 <div style="flex:1;">
                   <div style="font-weight:bold; color:#6c6; font-size:11px;">${title}</div>
                   <div style="color:#999; font-size:10px;">${desc}</div>
@@ -4876,7 +5064,7 @@ function bindUI(state){
           const textColor = isEmperor ? '#ffd700' : (deb ? '#c66' : '#6c6');
           effectsList.push(`
             <div style="display:flex; gap:8px; align-items:center; padding:4px; background:${bgColor}; border-left:2px solid ${borderColor}; border-radius:2px; margin-bottom:4px;">
-              <span style="width:24px; height:24px; display:flex; align-items:center; justify-content:center;">${icon}</span>
+              <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center;">${icon}</span>
               <div style="flex:1;">
                 <div style="font-weight:bold; color:${textColor}; font-size:11px;">${title}${stack} <span style="color:#999; font-size:10px;">(${timerDisplay})</span></div>
                 <div style="color:#999; font-size:10px;">${desc}</div>
@@ -4898,7 +5086,7 @@ function bindUI(state){
             const stack = (d.stacks||1)>1?` x${d.stacks||1}`:''; 
             effectsList.push(`
               <div style="display:flex; gap:8px; align-items:center; padding:4px; background:rgba(200,70,70,0.1); border-left:2px solid #c44; border-radius:2px; margin-bottom:4px;">
-                <span style="width:24px; height:24px; display:flex; align-items:center; justify-content:center;">${icon}</span>
+                <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center;">${icon}</span>
                 <div style="flex:1;">
                   <div style="font-weight:bold; color:#c66; font-size:11px;">${title}${stack} <span style="color:#999; font-size:10px;">(${timer})</span></div>
                   <div style="color:#999; font-size:10px;">${desc}</div>
@@ -4949,9 +5137,10 @@ function bindUI(state){
       const statsList = buff.stats ? Object.entries(buff.stats).map(([k,v])=>`${k}: ${v>=0?'+':''}${typeof v==='number'&&!Number.isInteger(v)?v.toFixed(2):v}`).join(', ') : '';
       const ticksList = buff.ticks ? `${buff.ticks.damage?'Dmg':'HP/Mana'}: ${buff.ticks.damage||buff.ticks.hp||buff.ticks.mana} every ${buff.ticks.interval}s` : '';
       const typeColor = buff.debuff ? '#c44' : '#4a4';
-      const icon = renderEffectIcon(id, buff, !!buff.debuff);
-      return `<div style="background:rgba(0,0,0,0.3); padding:8px; border-left:3px solid ${typeColor}; border-radius:3px; display:grid; grid-template-columns:28px 1fr; gap:8px; align-items:center;">
-        <div style="width:28px; height:28px; display:flex; align-items:center; justify-content:center;">${icon}</div>
+      const iconSrc = ICON_IMAGES[id];
+      const iconHtml = iconSrc ? `<img src="${iconSrc}" style="width:64px; height:64px; border-radius:6px; object-fit:cover; border:2px solid ${typeColor};" />` : `<span style="font-size:40px;">${ICON_FALLBACKS[id] || (buff.debuff ? '☠' : '★')}</span>`;
+      return `<div style="background:rgba(0,0,0,0.3); padding:8px; border-left:3px solid ${typeColor}; border-radius:3px; display:grid; grid-template-columns:64px 1fr; gap:8px; align-items:center;">
+        <div style="width:64px; height:64px; display:flex; align-items:center; justify-content:center;">${iconHtml}</div>
         <div>
           <div style="font-weight:bold; color:${typeColor};">${buff.name}</div>
           <div style="font-size:10px; color:#999; margin-top:2px;">Duration: ${dur}</div>
