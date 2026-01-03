@@ -138,7 +138,6 @@ export async function initGame(state){
     state.creatures.length = 0;
   }catch{}
   initSites(state);
-  spawnEnvironmentalDecorations(state);
   const hb=playerHome(state);
   state.player.x=hb.x; state.player.y=hb.y;
   const st=currentStats(state);
@@ -1759,100 +1758,6 @@ function applyDamageToCreature(c, dmg, state){
   return false;
 }
 
-/**
- * Spawn environmental decorations (trees, rocks, buildings) across the map.
- * Uses hybrid approach: visual parallax background + environmental props for depth.
- * Props are decorative (no collision) to allow player movement freedom.
- */
-function spawnEnvironmentalDecorations(state){
-  state.decorations = state.decorations || [];
-  state.decorations.length = 0; // Clear old decorations
-  
-  // Define decoration types from FreePack 2 tileset
-  // Increased spawn rates for better visibility
-  const decorTypes = [
-    { name: 'tree', chance: 0.12, variants: 3 },     // Increased from 0.04
-    { name: 'rock', chance: 0.08, variants: 2 },     // Increased from 0.03
-    { name: 'bush', chance: 0.15, variants: 2 },     // Increased from 0.05
-    { name: 'building', chance: 0.015, variants: 2 } // Increased from 0.008
-  ];
-  
-  // Spawn props across world terrain (2000x2000 world)
-  const worldW = 2000, worldH = 2000;
-  const gridSize = 100; // Cell size for distribution
-  
-  for(let gx = 0; gx < worldW; gx += gridSize){
-    for(let gy = 0; gy < worldH; gy += gridSize){
-      // Try to place a decoration in this cell
-      for(const type of decorTypes){
-        if(Math.random() < type.chance){
-          const variant = Math.floor(Math.random() * type.variants);
-          const x = gx + Math.random() * gridSize;
-          const y = gy + Math.random() * gridSize;
-          
-          // Skip if too close to player home or key sites
-          const hb = playerHome(state);
-          if(Math.hypot(x - hb.x, y - hb.y) < 100) continue; // Reduced exclusion zone
-          
-          state.decorations.push({
-            type: type.name,
-            variant: variant,
-            x: x,
-            y: y,
-            depth: Math.floor((y / worldH) * 100), // Z-order based on Y position
-            parallaxFactor: 0.7, // Move slower than player for depth
-            spriteIndex: calculateSpriteIndex(type.name, variant) // Position in FreePack 2.png
-          });
-        }
-      }
-    }
-  }
-  
-  console.log(`[ENVIRONMENT] Spawned ${state.decorations.length} environmental decorations`);
-}
-
-/**
- * Calculate sprite sheet index for a decoration type and variant.
- * FreePack 2.png tileset - trying multiple common tile sizes
- * Most nature tilesets use 16x16, 32x32, or 48x48 tiles
- */
-function calculateSpriteIndex(type, variant){
-  // Try 32x32 tiles first (common for environment packs)
-  const tileSize = 32;
-  
-  // Map to common positions in nature tilesets
-  // Trees usually in top-left, rocks below, plants scattered
-  const spriteMap = {
-    'tree': [
-      { x: 0, y: 0 },       // Tree variant 0
-      { x: 32, y: 0 },      // Tree variant 1  
-      { x: 64, y: 0 }       // Tree variant 2
-    ],
-    'rock': [
-      { x: 0, y: 64 },      // Rock variant 0
-      { x: 32, y: 64 }      // Rock variant 1
-    ],
-    'bush': [
-      { x: 0, y: 32 },      // Bush variant 0
-      { x: 32, y: 32 }      // Bush variant 1
-    ],
-    'building': [
-      { x: 0, y: 96 },      // Building variant 0
-      { x: 32, y: 96 }      // Building variant 1
-    ]
-  };
-  
-  const variants = spriteMap[type] || spriteMap['tree'];
-  const coords = variants[variant % variants.length];
-  
-  return {
-    x: coords.x,
-    y: coords.y,
-    w: tileSize,
-    h: tileSize
-  };
-}
-
 function spawnEnemies(state, dt){
   // Disable continuous spawning; fighters now only respawn from the initial roster.
   return;
@@ -1921,7 +1826,6 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
     // check collisions with trees, mountains, rocks (all use same overlap buffer as trees)
     let blocked=false;
     for(const t of state.trees||[]){ if(Math.hypot(nx - t.x, ny - t.y) <= (entity.r + t.r + 2)) { blocked=true; blockedBy = {x:t.x,y:t.y}; break; } }
-    if(!blocked && state.rocks){ for(const r of state.rocks){ if(Math.hypot(nx - r.x, ny - r.y) <= (entity.r + r.r + 2)) { blocked=true; blockedBy = {x:r.x,y:r.y}; break; } } }
     if(blocked){
       // slide along obstacle tangent to avoid getting pinned
       if(blockedBy){
@@ -1936,10 +1840,10 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
           const sny = entity.y + sy*slideStep;
           let sBlocked=false;
           for(const t of state.trees||[]){ if(Math.hypot(snx - t.x, sny - t.y) <= (entity.r + t.r + 2)) { sBlocked=true; break; } }
-          if(!sBlocked && state.rocks){ for(const r of state.rocks){ if(Math.hypot(snx - r.x, sny - r.y) <= (entity.r + r.r + 2)) { sBlocked=true; break; } } }
           if(!sBlocked) for(const mc of state.mountainCircles||[]){ if(Math.hypot(snx - mc.x, sny - mc.y) <= (entity.r + mc.r + 2)) { sBlocked=true; break; } }
           if(!sBlocked) for(const rc of state.rockCircles||[]){ if(Math.hypot(snx - rc.x, sny - rc.y) <= (entity.r + rc.r + 2)) { sBlocked=true; break; } }
           if(!sBlocked) for(const wc of state.waterCircles||[]){ if(Math.hypot(snx - wc.x, sny - wc.y) <= (entity.r + wc.r + 2)) { sBlocked=true; break; } }
+          if(!sBlocked) for(const dc of state.decorativeCircles||[]){ if(Math.hypot(snx - dc.x, sny - dc.y) <= (entity.r + dc.r + 2)) { sBlocked=true; break; } }
           if(!sBlocked){
             // Check flag collision during slide
             for(const s of state.sites){
@@ -1985,6 +1889,8 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
     for(const rc of state.rockCircles||[]){ if(Math.hypot(nx - rc.x, ny - rc.y) <= (entity.r + rc.r + 2)) { blocked=true; blockedBy = {x:rc.x,y:rc.y}; break; } }
     if(blocked) continue;
     for(const wc of state.waterCircles||[]){ if(Math.hypot(nx - wc.x, ny - wc.y) <= (entity.r + wc.r + 2)) { blocked=true; blockedBy = {x:wc.x,y:wc.y}; break; } }
+    if(blocked) continue;
+    for(const dc of state.decorativeCircles||[]){ if(Math.hypot(nx - dc.x, ny - dc.y) <= (entity.r + dc.r + 2)) { blocked=true; blockedBy = {x:dc.x,y:dc.y}; break; } }
     if(blocked) continue;
     // captured flags with health act as collision obstacles for enemies
     for(const s of state.sites){
@@ -2052,10 +1958,10 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
     const ny = entity.y + Math.sin(jitterAng)*mv;
     let blocked=false;
     for(const t of state.trees||[]){ if(Math.hypot(nx - t.x, ny - t.y) <= (entity.r + t.r + 2)) { blocked=true; break; } }
-    if(!blocked && state.rocks){ for(const r of state.rocks){ if(Math.hypot(nx - r.x, ny - r.y) <= (entity.r + r.r + 2)) { blocked=true; break; } } }
     if(!blocked) for(const mc of state.mountainCircles||[]){ if(Math.hypot(nx - mc.x, ny - mc.y) <= (entity.r + mc.r + 2)) { blocked=true; break; } }
     if(!blocked) for(const rc of state.rockCircles||[]){ if(Math.hypot(nx - rc.x, ny - rc.y) <= (entity.r + rc.r + 2)) { blocked=true; break; } }
     if(!blocked) for(const wc of state.waterCircles||[]){ if(Math.hypot(nx - wc.x, ny - wc.y) <= (entity.r + wc.r + 2)) { blocked=true; break; } }
+    if(!blocked) for(const dc of state.decorativeCircles||[]){ if(Math.hypot(nx - dc.x, ny - dc.y) <= (entity.r + dc.r + 2)) { blocked=true; break; } }
     if(!blocked){
       // Check flag collision during jitter
       for(const s of state.sites){
@@ -4022,6 +3928,52 @@ function updateProjectiles(state, dt){
       continue;
     }
 
+    // Check terrain collision
+    let hitTerrain = false;
+    for(const t of state.trees || []){
+      if(Math.hypot(p.x - t.x, p.y - t.y) <= (p.r + t.r)){ hitTerrain = true; break; }
+    }
+    if(!hitTerrain){
+      for(const t of state.borderTrees || []){
+        if(Math.hypot(p.x - t.x, p.y - t.y) <= (p.r + t.r)){ hitTerrain = true; break; }
+      }
+    }
+    if(!hitTerrain){
+      for(const mc of state.mountainCircles || []){
+        if(Math.hypot(p.x - mc.x, p.y - mc.y) <= (p.r + mc.r)){ hitTerrain = true; break; }
+      }
+    }
+    if(!hitTerrain){
+      for(const rc of state.rockCircles || []){
+        if(Math.hypot(p.x - rc.x, p.y - rc.y) <= (p.r + rc.r)){ hitTerrain = true; break; }
+      }
+    }
+    if(!hitTerrain){
+      for(const dc of state.decorativeCircles || []){
+        if(Math.hypot(p.x - dc.x, p.y - dc.y) <= (p.r + dc.r)){ hitTerrain = true; break; }
+      }
+    }
+    if(!hitTerrain){
+      for(const m of state.mountains || []){
+        for(const peak of m.peaks || []){
+          if(Math.hypot(p.x - peak.x, p.y - peak.y) <= (p.r + peak.r)){ hitTerrain = true; break; }
+        }
+        if(hitTerrain) break;
+      }
+    }
+    if(!hitTerrain){
+      for(const m of state.borderMountains || []){
+        for(const peak of m.peaks || []){
+          if(Math.hypot(p.x - peak.x, p.y - peak.y) <= (p.r + peak.r)){ hitTerrain = true; break; }
+        }
+        if(hitTerrain) break;
+      }
+    }
+    if(hitTerrain){
+      state.projectiles.splice(pi,1);
+      continue;
+    }
+
     if(p.fromPlayer){
       for(let ei=state.enemies.length-1; ei>=0; ei--){
         const e=state.enemies[ei];
@@ -5247,9 +5199,29 @@ export function updateGame(state, dt){
     for(const t of state.trees || []){
       if(Math.hypot(proposedX - t.x, proposedY - t.y) <= (state.player.r + t.r + 2)) { blocked=true; break; }
     }
-    // collision with mountains
-    for(const m of state.mountains || []){
-      if(Math.hypot(proposedX - m.x, proposedY - m.y) <= (state.player.r + m.r + 2)) { blocked=true; break; }
+    if(!blocked){
+      // collision with mountains
+      for(const m of state.mountains || []){
+        if(Math.hypot(proposedX - m.x, proposedY - m.y) <= (state.player.r + m.r + 2)) { blocked=true; break; }
+      }
+    }
+    if(!blocked){
+      // collision with mountain circles
+      for(const mc of state.mountainCircles || []){
+        if(Math.hypot(proposedX - mc.x, proposedY - mc.y) <= (state.player.r + mc.r + 2)) { blocked=true; break; }
+      }
+    }
+    if(!blocked){
+      // collision with rocks
+      for(const rc of state.rockCircles || []){
+        if(Math.hypot(proposedX - rc.x, proposedY - rc.y) <= (state.player.r + rc.r + 2)) { blocked=true; break; }
+      }
+    }
+    if(!blocked){
+      // collision with decorative objects (trees, ponds, crystals, etc)
+      for(const dc of state.decorativeCircles || []){
+        if(Math.hypot(proposedX - dc.x, proposedY - dc.y) <= (state.player.r + dc.r + 2)) { blocked=true; break; }
+      }
     }
     // check water presence (using water circles from lakes and rivers)
     for(const wc of state.waterCircles || []){

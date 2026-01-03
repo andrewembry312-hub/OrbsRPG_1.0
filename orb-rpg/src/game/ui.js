@@ -3353,32 +3353,58 @@ function bindUI(state){
        Light <span class="kbd">LMB</span> | Heavy <span class="kbd">Hold LMB</span> | Block <span class="kbd">Hold RMB</span>`;
   };
 
+  // Shared icon mapping for buffs/debuffs (PNG overrides, otherwise emoji fallback)
+  const ICON_IMAGES = {
+    temporal_flux: 'assets/Buff%20icons/Temporal%20Flux.PNG',
+    arcane_power: 'assets/Buff%20icons/Arcane%20Power.PNG',
+    battle_fury: 'assets/Buff%20icons/Battle%20Fury.PNG',
+    berserker_rage: 'assets/Buff%20icons/Berserker%20Rage.PNG',
+    blessed: 'assets/Buff%20icons/Blessed.PNG',
+    guardian_stance: 'assets/Buff%20icons/Guardian%20Stance.PNG',
+    healing_empowerment: 'assets/Buff%20icons/Healing%20Empowerment.PNG',
+    iron_will: 'assets/Buff%20icons/Iron%20Will.PNG',
+    radiance: 'assets/Buff%20icons/Radiance.PNG',
+    regeneration: 'assets/Buff%20icons/Regeneration.PNG',
+    swift_strikes: 'assets/Buff%20icons/Swift%20Strikes.PNG'
+  };
+
+  const ICON_FALLBACKS = {
+    // Debuffs / DoTs
+    poison:'☠', bleed:'🩸', burn:'🔥', arcane_burn:'✴', freeze:'❄', shock:'⚡', curse:'☠', weakness:'🪶', vulnerability:'🎯', slow:'🐌', root:'⛓', silence:'🔇', stun:'💫',
+    // Buffs
+    healing_empowerment:'✚', blessed:'✦', radiance:'☀', temporal_flux:'⏳', berserker_rage:'🗡', iron_will:'🛡', swift_strikes:'➤', arcane_power:'✷', battle_fury:'⚔', guardian_stance:'🛡',
+    regeneration:'✚', mana_surge:'💧', vigor:'♥', spirit:'🔮', endurance:'⚡', fortified:'🛡', lifesteal_boost:'🩹',
+    haste:'🏃', sprint:'🏃', flight:'🕊', focus:'🎯', clarity:'💡', stealth:'👁', divine_shield:'✨', lucky:'🍀',
+    // Special
+    emperor_power:'🔱',
+    // Passives
+    bulwark:'🛡', arcane_focus:'🔮', predator:'🐺', vital_soul:'♥', siphon:'🩹'
+  };
+
+  function renderEffectIcon(id, meta, isDebuff){
+    const src = ICON_IMAGES[id];
+    if(src){
+      const alt = meta?.name || id;
+      return `<img src="${src}" alt="${alt}" />`;
+    }
+    const fallback = ICON_FALLBACKS[id] || (isDebuff ? '☠' : '★');
+    return `<span>${fallback}</span>`;
+  }
+
   // Build active effect icons list for HUD and tab
   function buildActiveEffectIcons(state){
-    const ICONS = {
-      // Debuffs / DoTs
-      poison:'☠', bleed:'🩸', burn:'🔥', arcane_burn:'✴', freeze:'❄', shock:'⚡', curse:'☠', weakness:'🪶', vulnerability:'🎯', slow:'🐌', root:'⛓', silence:'🔇', stun:'💫',
-      // Buffs
-      healing_empowerment:'✚', blessed:'✦', radiance:'☀', temporal_flux:'⏳', berserker_rage:'🗡', iron_will:'🛡', swift_strikes:'➤', arcane_power:'✷', battle_fury:'⚔', guardian_stance:'🛡',
-      regeneration:'✚', mana_surge:'💧', vigor:'♥', spirit:'🔮', endurance:'⚡', fortified:'🛡', lifesteal_boost:'🩹',
-      haste:'🏃', sprint:'🏃', flight:'🕊', focus:'🎯', clarity:'💡', stealth:'👁', divine_shield:'✨', lucky:'🍀',
-      // Special
-      emperor_power:'🔱',
-      // Passives
-      bulwark:'🛡', arcane_focus:'🔮', predator:'🐺', vital_soul:'♥', siphon:'🩹'
-    };
     const list = [];
     // Passives (permanent)
     try{
-      for(const p of state.player.passives||[]){ if(!p) continue; const icon=ICONS[p.id]||'✦'; const title=`${p.name}`; const desc=`${p.details||p.desc||''}`; list.push({ html:`<div class="buffIcon passive" data-title="${title}" data-desc="${desc}"><span>${icon}</span></div>` }); }
+      for(const p of state.player.passives||[]){ if(!p) continue; const meta=null; const icon=renderEffectIcon(p.id, meta, false); const title=`${p.name}`; const desc=`${p.details||p.desc||''}`; list.push({ html:`<div class="buffIcon passive" data-title="${title}" data-desc="${desc}">${icon}</div>` }); }
     }catch{}
     // Buffs
     try{
-      for(const b of state.player.buffs||[]){ const meta=BUFF_REGISTRY[b.id]; const deb=!!meta?.debuff; const icon=ICONS[b.id]|| (deb?'☠':'★'); const title=`${b.name||meta?.name||b.id}`; const desc=b.id==='emperor_power'?'Permanent: +3x HP, Mana, Stamina, 50% Cooldown Reduction':`${deb?'Debuff':'Buff'} — ${meta?.desc||''}`; const timer=b.duration===Infinity||b.id==='emperor_power'?'∞':(b.t||0).toFixed(1)+'s'; const stack=(b.stacks||1)>1?`<span class="stack">x${b.stacks||1}</span>`:''; list.push({ html:`<div class="buffIcon ${deb?'debuff':'buff'}" data-title="${title}" data-desc="${desc}"><span>${icon}</span><span class="timer">${timer}</span>${stack}</div>` }); }
+      for(const b of state.player.buffs||[]){ const meta=BUFF_REGISTRY[b.id]; const deb=!!meta?.debuff; const icon=renderEffectIcon(b.id, meta, deb); const title=`${b.name||meta?.name||b.id}`; const desc=b.id==='emperor_power'?'Permanent: +3x HP, Mana, Stamina, 50% Cooldown Reduction':`${deb?'Debuff':'Buff'} — ${meta?.desc||''}`; const timer=b.duration===Infinity||b.id==='emperor_power'?'∞':(b.t||0).toFixed(1)+'s'; const stack=(b.stacks||1)>1?`<span class="stack">x${b.stacks||1}</span>`:''; list.push({ html:`<div class="buffIcon ${deb?'debuff':'buff'}" data-title="${title}" data-desc="${desc}">${icon}<span class="timer">${timer}</span>${stack}</div>` }); }
     }catch{}
     // DoTs (on player)
     try{
-      for(const d of state.player.dots||[]){ const meta=DOT_REGISTRY[d.id]; const icon=ICONS[d.id]||'☠'; const title=`${meta?.name||d.id}`; const desc=`DoT — ${Math.round(d.damage||meta?.damage||0)} per ${(meta?.interval||d.tl||1.0)}s`; const timer=(d.t||0).toFixed(1)+'s'; const stack=(d.stacks||1)>1?`<span class="stack">x${d.stacks||1}</span>`:''; list.push({ html:`<div class="buffIcon debuff" data-title="${title}" data-desc="${desc}"><span>${icon}</span><span class="timer">${timer}</span>${stack}</div>` }); }
+      for(const d of state.player.dots||[]){ const meta=DOT_REGISTRY[d.id]; const icon=renderEffectIcon(d.id, meta, true); const title=`${meta?.name||d.id}`; const desc=`DoT — ${Math.round(d.damage||meta?.damage||0)} per ${(meta?.interval||d.tl||1.0)}s`; const timer=(d.t||0).toFixed(1)+'s'; const stack=(d.stacks||1)>1?`<span class="stack">x${d.stacks||1}</span>`:''; list.push({ html:`<div class="buffIcon debuff" data-title="${title}" data-desc="${desc}">${icon}<span class="timer">${timer}</span>${stack}</div>` }); }
     }catch{}
     return list;
   }
@@ -4809,17 +4835,6 @@ function bindUI(state){
     
     // Update active effects - use same rendering as buff icons system
     if(ui.levelEffectsList){
-      const ICONS = {
-        // Debuffs / DoTs
-        poison:'☠', bleed:'🩸', burn:'🔥', arcane_burn:'✴', freeze:'❄', shock:'⚡', curse:'☠', weakness:'🪶', vulnerability:'🎯', slow:'🐌', root:'⛓', silence:'🔇', stun:'💫',
-        // Buffs
-        healing_empowerment:'✚', blessed:'✦', radiance:'☀', temporal_flux:'⏳', berserker_rage:'🗡', iron_will:'🛡', swift_strikes:'➤', arcane_power:'✷', battle_fury:'⚔', guardian_stance:'🛡',
-        regeneration:'✚', mana_surge:'💧', vigor:'♥', spirit:'🔮', endurance:'⚡', fortified:'🛡', lifesteal_boost:'🩹',
-        haste:'🏃', sprint:'🏃', flight:'🕊', focus:'🎯', clarity:'💡', stealth:'👁', divine_shield:'✨', lucky:'🍀',
-        // Passives & Special
-        bulwark:'🛡', arcane_focus:'🔮', predator:'🐺', vital_soul:'♥', siphon:'🩹', emperor_power:'🔱'
-      };
-      
       const effectsList = [];
       
       // Add passives (only for player)
@@ -4827,12 +4842,12 @@ function bindUI(state){
         try{
           for(const p of state.player.passives||[]){ 
             if(!p) continue; 
-            const icon = ICONS[p.id]||'✦'; 
+            const icon = renderEffectIcon(p.id, null, false); 
             const title = `${p.name}`; 
             const desc = `${p.details||p.desc||''}`; 
             effectsList.push(`
               <div style="display:flex; gap:8px; align-items:center; padding:4px; background:rgba(100,200,100,0.1); border-left:2px solid #6c6; border-radius:2px; margin-bottom:4px;">
-                <span style="font-size:20px; flex-shrink:0;">${icon}</span>
+                <span style="width:24px; height:24px; display:flex; align-items:center; justify-content:center;">${icon}</span>
                 <div style="flex:1;">
                   <div style="font-weight:bold; color:#6c6; font-size:11px;">${title}</div>
                   <div style="color:#999; font-size:10px;">${desc}</div>
@@ -4848,7 +4863,7 @@ function bindUI(state){
         for(const b of buffs){ 
           const meta = BUFF_REGISTRY[b.id]; 
           const deb = !!meta?.debuff; 
-          const icon = ICONS[b.id] || (deb?'☠':'★'); 
+          const icon = renderEffectIcon(b.id, meta, deb); 
           const title = `${b.name||meta?.name||b.id}`; 
           const desc = `${b.description||meta?.desc||''}`; 
           // Handle infinity duration (for permanent effects like emperor_power)
@@ -4861,7 +4876,7 @@ function bindUI(state){
           const textColor = isEmperor ? '#ffd700' : (deb ? '#c66' : '#6c6');
           effectsList.push(`
             <div style="display:flex; gap:8px; align-items:center; padding:4px; background:${bgColor}; border-left:2px solid ${borderColor}; border-radius:2px; margin-bottom:4px;">
-              <span style="font-size:20px; flex-shrink:0;">${icon}</span>
+              <span style="width:24px; height:24px; display:flex; align-items:center; justify-content:center;">${icon}</span>
               <div style="flex:1;">
                 <div style="font-weight:bold; color:${textColor}; font-size:11px;">${title}${stack} <span style="color:#999; font-size:10px;">(${timerDisplay})</span></div>
                 <div style="color:#999; font-size:10px;">${desc}</div>
@@ -4876,14 +4891,14 @@ function bindUI(state){
         try{
           for(const d of state.player.dots||[]){ 
             const meta = DOT_REGISTRY[d.id]; 
-            const icon = ICONS[d.id]||'☠'; 
+            const icon = renderEffectIcon(d.id, meta, true); 
             const title = `${meta?.name||d.id}`; 
             const desc = `${Math.round(d.damage||meta?.damage||0)} damage per ${(meta?.interval||d.tl||1.0)}s`; 
             const timer = (d.t||0).toFixed(1)+'s'; 
             const stack = (d.stacks||1)>1?` x${d.stacks||1}`:''; 
             effectsList.push(`
               <div style="display:flex; gap:8px; align-items:center; padding:4px; background:rgba(200,70,70,0.1); border-left:2px solid #c44; border-radius:2px; margin-bottom:4px;">
-                <span style="font-size:20px; flex-shrink:0;">${icon}</span>
+                <span style="width:24px; height:24px; display:flex; align-items:center; justify-content:center;">${icon}</span>
                 <div style="flex:1;">
                   <div style="font-weight:bold; color:#c66; font-size:11px;">${title}${stack} <span style="color:#999; font-size:10px;">(${timer})</span></div>
                   <div style="color:#999; font-size:10px;">${desc}</div>
@@ -4934,12 +4949,16 @@ function bindUI(state){
       const statsList = buff.stats ? Object.entries(buff.stats).map(([k,v])=>`${k}: ${v>=0?'+':''}${typeof v==='number'&&!Number.isInteger(v)?v.toFixed(2):v}`).join(', ') : '';
       const ticksList = buff.ticks ? `${buff.ticks.damage?'Dmg':'HP/Mana'}: ${buff.ticks.damage||buff.ticks.hp||buff.ticks.mana} every ${buff.ticks.interval}s` : '';
       const typeColor = buff.debuff ? '#c44' : '#4a4';
-      return `<div style="background:rgba(0,0,0,0.3); padding:8px; border-left:3px solid ${typeColor}; border-radius:3px;">
-        <div style="font-weight:bold; color:${typeColor};">${buff.name}</div>
-        <div style="font-size:10px; color:#999; margin-top:2px;">Duration: ${dur}</div>
-        <div style="margin-top:4px; color:#ccc;">${buff.desc}</div>
-        ${statsList ? `<div style="margin-top:4px; font-size:10px; color:#aaf;">${statsList}</div>` : ''}
-        ${ticksList ? `<div style="margin-top:2px; font-size:10px; color:#f94;">${ticksList}</div>` : ''}
+      const icon = renderEffectIcon(id, buff, !!buff.debuff);
+      return `<div style="background:rgba(0,0,0,0.3); padding:8px; border-left:3px solid ${typeColor}; border-radius:3px; display:grid; grid-template-columns:28px 1fr; gap:8px; align-items:center;">
+        <div style="width:28px; height:28px; display:flex; align-items:center; justify-content:center;">${icon}</div>
+        <div>
+          <div style="font-weight:bold; color:${typeColor};">${buff.name}</div>
+          <div style="font-size:10px; color:#999; margin-top:2px;">Duration: ${dur}</div>
+          <div style="margin-top:4px; color:#ccc;">${buff.desc}</div>
+          ${statsList ? `<div style="margin-top:4px; font-size:10px; color:#aaf;">${statsList}</div>` : ''}
+          ${ticksList ? `<div style="margin-top:2px; font-size:10px; color:#f94;">${ticksList}</div>` : ''}
+        </div>
       </div>`;
     };
 
