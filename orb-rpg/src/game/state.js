@@ -5,9 +5,10 @@ import { META_LOADOUTS } from "./loadouts.js";
 
 export function createState(engine, input, ui){
   // options + binds + saves
-  let options = loadJson('orb_rpg_mod_opts') ?? { showAim:true, showDebug:false, autoPickup:false };
+  let options = loadJson('orb_rpg_mod_opts') ?? { showAim:true, showDebug:false, showDebugAI:true, autoPickup:false };
   if(!options.hasOwnProperty('cameraMode')) options.cameraMode = 'follow';
   if(!options.hasOwnProperty('autoPickup')) options.autoPickup = false;
+  if(!options.hasOwnProperty('showDebugAI')) options.showDebugAI = true;
   
   // Load binds with version check - reset if version changed
   let savedBinds = loadJson('orb_rpg_mod_binds');

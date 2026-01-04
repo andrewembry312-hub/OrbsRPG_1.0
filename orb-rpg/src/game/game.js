@@ -357,7 +357,7 @@ export function currentStats(state){
   // Apply all selected passives (they are always active once selected)
   for(const p of state.player.passives){
     if(p?.type==='passive' && p.buffs){
-      applyBuffs(base, p.buffs);
+      applyBuffs(base, p.buffs, true); // Passive ability buffs use percentages
     }
   }
   
@@ -366,7 +366,7 @@ export function currentStats(state){
     if(state.player.buffs && state.player.buffs.length){
       for(const b of state.player.buffs){
             const meta = BUFF_REGISTRY[b.id];
-        if(meta && meta.stats) applyBuffs(base, meta.stats);
+        if(meta && meta.stats) applyBuffs(base, meta.stats, true); // Ability buffs use percentages
       }
     }
   }catch{}
@@ -399,10 +399,11 @@ function applySpends(state, st){
   st.stamRegen += (s.agi??0)*1.2;
 }
 
-function applyBuffs(st, buffs){
+// Apply buffs with percentage handling (for ability buffs only)
+function applyBuffs(st, buffs, isPercentage = true){
   for(const [k,v] of Object.entries(buffs)){
-    // Special handling for percentage-based multiplicative stats
-    if(k === 'allStats'){
+    // Special handling for percentage-based multiplicative stats (ONLY for ability buffs)
+    if(k === 'allStats' && isPercentage){
       // Apply percentage to all major stats
       const mult = 1 + v;
       st.maxHp = Math.round(st.maxHp * mult);
@@ -414,64 +415,68 @@ function applyBuffs(st, buffs){
       st.manaRegen = Number((st.manaRegen * mult).toFixed(2));
       st.stamRegen = Math.round(st.stamRegen * mult);
     }
-    // Percentage-based attack/defense (e.g., atk:0.40 = +40%)
-    else if((k === 'atk' || k === 'def') && Math.abs(v) < 10){
+    // Percentage-based attack/defense (e.g., atk:0.40 = +40%) - ONLY for ability buffs
+    else if((k === 'atk' || k === 'def') && isPercentage && Math.abs(v) < 10){
       st[k] = Math.round(st[k] * (1 + v));
     }
-    // Percentage-based speed (e.g., speed:0.30 = +30%)
-    else if(k === 'speed' && Math.abs(v) < 10){
+    // Percentage-based speed (e.g., speed:0.30 = +30%) - ONLY for ability buffs
+    else if(k === 'speed' && isPercentage && Math.abs(v) < 10){
       st[k] = Math.round(st[k] * (1 + v));
     }
-    // Percentage-based regen (e.g., manaRegen:0.15 = +15%)
-    else if((k === 'hpRegen' || k === 'manaRegen') && Math.abs(v) < 10){
+    // Percentage-based regen (e.g., manaRegen:0.15 = +15%) - ONLY for ability buffs
+    else if((k === 'hpRegen' || k === 'manaRegen') && isPercentage && Math.abs(v) < 10){
       st[k] = Number((st[k] * (1 + v)).toFixed(2));
     }
-    // Percentage-based max stats (e.g., maxHp:0.15 = +15%)
-    else if((k === 'maxHp' || k === 'maxMana' || k === 'maxStam') && Math.abs(v) < 10){
+    // Percentage-based max stats (e.g., maxHp:0.15 = +15%) - ONLY for ability buffs
+    else if((k === 'maxHp' || k === 'maxMana' || k === 'maxStam') && isPercentage && Math.abs(v) < 10){
       st[k] = Math.round(st[k] * (1 + v));
     }
-    // Percentage-based stamina regen
-    else if(k === 'stamRegen' && Math.abs(v) < 100){
+    // Percentage-based stamina regen - ONLY for ability buffs
+    else if(k === 'stamRegen' && isPercentage && Math.abs(v) < 100){
       st[k] = Math.round(st[k] * (1 + v));
     }
-    // Percentage-based damage stats
-    else if((k === 'magicDmg' || k === 'allDamage') && Math.abs(v) < 10){
+    // Percentage-based damage stats - ONLY for ability buffs
+    else if((k === 'magicDmg' || k === 'allDamage') && isPercentage && Math.abs(v) < 10){
       st.magicDmg = (st.magicDmg ?? 1.0) * (1 + v);
       if(k === 'allDamage') st.atk = Math.round(st.atk * (1 + v));
     }
-    // Percentage-based attack speed
-    else if(k === 'atkSpeed'){
+    // Percentage-based attack speed - ONLY for ability buffs
+    else if(k === 'atkSpeed' && isPercentage){
       st.atkSpeed = (st.atkSpeed ?? 1.0) * (1 + v);
     }
-    // Percentage-based cast speed
-    else if(k === 'castSpeed'){
+    // Percentage-based cast speed - ONLY for ability buffs
+    else if(k === 'castSpeed' && isPercentage){
       st.castSpeed = (st.castSpeed ?? 1.0) * (1 + v);
     }
-    // Percentage-based damage taken (debuff)
-    else if(k === 'damageTaken'){
+    // Percentage-based damage taken (debuff) - ONLY for ability buffs
+    else if(k === 'damageTaken' && isPercentage){
       st.damageTaken = (st.damageTaken ?? 1.0) * (1 + v);
     }
-    // Percentage-based healing power
-    else if(k === 'healingPower'){
+    // Percentage-based healing power - ONLY for ability buffs
+    else if(k === 'healingPower' && isPercentage){
       st.healingPower = (st.healingPower ?? 1.0) * (1 + v);
     }
-    // Percentage-based mana cost reduction
+    // Percentage-based mana cost reduction - always additive
     else if(k === 'manaCostReduction'){
       st.manaCostReduction = (st.manaCostReduction ?? 0) + v;
     }
-    // Percentage-based shield effectiveness
-    else if(k === 'shieldEff'){
+    // Percentage-based shield effectiveness - ONLY for ability buffs
+    else if(k === 'shieldEff' && isPercentage){
       st.shieldEff = (st.shieldEff ?? 1.0) * (1 + v);
     }
-    // Additive stats (CDR, crit, block, lifesteal, flat shield)
+    // Additive stats (CDR, crit, block, lifesteal) - always flat addition
     else if(k==='cdr') st.cdr+=v;
     else if(k==='blockEff') st.blockBase+=v;
     else if(k==='lifesteal') st.lifesteal=(st.lifesteal??0)+v;
     else if(k==='shieldGain') st.shieldGain=(st.shieldGain??0)+v;
     else if(k==='critChance') st.critChance=(st.critChance??0)+v;
     else if(k==='critMult') st.critMult=(st.critMult??1.5)+v;
-    else if(k==='shield') st.shield=(st.shield??0)+v; // Flat shield gain
-    // Boolean flags (immunity, cc, etc.)
+    else if(k==='shield') {
+      // Shield buff should NOT be in stats (would apply every frame)
+      // Only apply once when buff is first added
+      if(!isPercentage) st.shield=(st.shield??0)+v;
+    }
+    // Boolean flags (immunity, cc, etc.) - always direct assignment
     else if(k === 'ccImmune' || k === 'invulnerable' || k === 'invisible' || k === 'silenceImmune' || k === 'flying' || k === 'rooted' || k === 'stunned' || k === 'silenced'){
       st[k] = v;
     }
@@ -483,7 +488,7 @@ function applyBuffs(st, buffs){
 function applyAllArmor(state, st){
   for(const slot of ARMOR_SLOTS){
     const it=state.player.equip[slot];
-    if(it?.kind==='armor') applyBuffs(st, it.buffs);
+    if(it?.kind==='armor') applyBuffs(st, it.buffs, false); // Equipment stats are ALWAYS flat, never percentage
   }
 }
 
@@ -926,6 +931,18 @@ function lifestealFrom(state, dealt, st){
 }
 
 function applyDamageToPlayer(state, raw, st){
+  const hpBefore = state.player.hp;
+  const shieldBefore = state.player.shield;
+  
+  // Log every damage attempt
+  logDebug(state, 'DAMAGE', 'Damage attempt to player', {
+    rawDamage: raw,
+    currentShield: state.player.shield,
+    currentHP: state.player.hp,
+    blocking: state.input.mouse.rDown,
+    stamina: state.player.stam
+  });
+  
   console.log('%c[DAMAGE TO PLAYER]', 'color: #f44; font-weight: bold;');
   console.log('  Raw damage:', raw.toFixed(1));
   console.log('  Current shield:', state.player.shield.toFixed(1), '(source:', state.player._lastShieldSource || 'unknown', ')');
@@ -935,6 +952,8 @@ function applyDamageToPlayer(state, raw, st){
   let dmg = raw;
   let shieldDamage = 0;
   let postShieldDamage = 0;
+  let blockedAmount = 0;
+  let defReduced = 0;
   
   // Track damage received
   state.player._damageReceived = (state.player._damageReceived || 0) + raw;
@@ -946,6 +965,13 @@ function applyDamageToPlayer(state, raw, st){
     shieldDamage = absorbed;
     dmg -= absorbed;
     console.log('  [STEP 1 - SHIELD] Absorbed:', absorbed.toFixed(1), '| Shield remaining:', state.player.shield.toFixed(1));
+    
+    // Log shield loss
+    logPlayerEvent(state, 'SHIELD_LOST', {
+      amount: absorbed,
+      before: shieldBefore,
+      after: state.player.shield
+    });
   } else {
     console.log('  [STEP 1 - SHIELD] No shield active');
   }
@@ -955,13 +981,13 @@ function applyDamageToPlayer(state, raw, st){
   if(blocking && dmg > 0){
     const preBlockDmg = dmg;
     dmg *= (1 - st.blockBase); // Reduce by blockBase% (typically 50%)
-    const blockedAmount = preBlockDmg - dmg;
+    blockedAmount = preBlockDmg - dmg;
     
-    // Consume stamina when blocking damage (10 stamina per hit blocked)
-    const stamCost = 10;
+    // Consume stamina proportional to blocked damage (0.5 stamina per point blocked, minimum 5)
+    const stamCost = Math.max(5, blockedAmount * 0.5);
     state.player.stam = Math.max(0, state.player.stam - stamCost);
     console.log('  [STEP 2 - BLOCK] Block %:', (st.blockBase * 100).toFixed(0) + '%', '| Blocked:', blockedAmount.toFixed(1));
-    console.log('    Stamina cost:', stamCost, '| Stamina remaining:', state.player.stam.toFixed(1));
+    console.log('    Stamina cost:', stamCost.toFixed(1), '| Stamina remaining:', state.player.stam.toFixed(1));
   } else if(dmg > 0){
     console.log('  [STEP 2 - BLOCK] Not blocking (no stam or not holding RMB)');
   }
@@ -969,21 +995,65 @@ function applyDamageToPlayer(state, raw, st){
   // STEP 3: Apply defense formula to remaining damage
   const preDefDmg = dmg;
   dmg = dmg * (100 / (100 + st.def));
-  const defReduction = preDefDmg - dmg;
-  console.log('  [STEP 3 - DEFENSE] Defense:', st.def.toFixed(1), '| Reduced by:', defReduction.toFixed(1));
+  defReduced = preDefDmg - dmg;
+  console.log('  [STEP 3 - DEFENSE] Defense:', st.def.toFixed(1), '| Reduced by:', defReduced.toFixed(1));
   
   // STEP 4: Subtract from HP
   if(dmg > 0){
-    const hpBefore = state.player.hp;
     state.player.hp -= dmg;
+    // Clamp HP to minimum 0 (never go negative)
+    state.player.hp = Math.max(0, state.player.hp);
     const hpAfter = state.player.hp;
     console.log('  [STEP 4 - HP DAMAGE] Before:', hpBefore.toFixed(1), '| Damage:', dmg.toFixed(1), '| After:', hpAfter.toFixed(1));
     console.log('%c[DAMAGE SUMMARY] Raw: ' + raw.toFixed(1) + ' → Shield: ' + shieldDamage.toFixed(1) + ' → Final HP loss: ' + dmg.toFixed(1), 'color: #f44; font-weight: bold;');
     
     // Track damage taken timestamp for combat music (use Date.now() for reliable timing)
     state.lastDamageTakenTimestamp = Date.now();
+    
+    // Log damage taken to player event log
+    logPlayerEvent(state, 'DAMAGE_TAKEN', {
+      raw,
+      shieldAbsorbed: shieldDamage,
+      blocked: blockedAmount,
+      defReduced,
+      hpLoss: dmg,
+      hpBefore,
+      hpAfter
+    });
+    
+    // Log to combat log (even if damage was absorbed by shield)
+    if(state.combatLog){
+      state.combatLog.push({
+        time: (state.campaign?.time || 0).toFixed(2),
+        type: 'DAMAGE',
+        target: 'Player',
+        raw: raw.toFixed(2),
+        shieldAbsorbed: shieldDamage.toFixed(2),
+        blocked: blockedAmount.toFixed(2),
+        defReduced: defReduced.toFixed(2),
+        hpLoss: dmg.toFixed(2),
+        hpBefore: hpBefore.toFixed(2),
+        hpAfter: hpAfter.toFixed(2)
+      });
+    }
   } else {
     console.log('  [STEP 4 - HP DAMAGE] No HP damage (fully mitigated)');
+    
+    // Log shield-only damage to combat log
+    if(state.combatLog && shieldDamage > 0){
+      state.combatLog.push({
+        time: (state.campaign?.time || 0).toFixed(2),
+        type: 'SHIELD_DAMAGE',
+        target: 'Player',
+        raw: raw.toFixed(2),
+        shieldAbsorbed: shieldDamage.toFixed(2),
+        blocked: blockedAmount.toFixed(2),
+        defReduced: defReduced.toFixed(2),
+        hpLoss: 0,
+        hpBefore: hpBefore.toFixed(2),
+        hpAfter: hpBefore.toFixed(2)
+      });
+    }
   }
 }
 
@@ -1426,8 +1496,11 @@ function npcHealPulse(state, cx, cy, radius, amount, caster=null){
       if(d <= radius) healOne(e, e === caster ? 1 : 0.9);
     }
   } else {
-    // Friendly caster - heal player and friendlies
-    healOne(state.player, 1);
+    // Friendly caster - heal player and friendlies within radius
+    const playerDist = Math.hypot(state.player.x - cx, state.player.y - cy);
+    if(playerDist <= radius){
+      healOne(state.player, 1);
+    }
     for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x-cx,f.y-cy); if(d<=radius) healOne(f, 0.9); }
   }
   
@@ -1444,13 +1517,33 @@ function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
   const casterName = caster.name || caster.variant || 'Unknown';
   const applyShield = (ent, mult=1)=>{
     if(!ent) return;
-    const cap = ent.shieldCap || ent.maxShield || (ent===state.player ? 420 : 320);
+    // Shield cap is player's max HP (or 320 for NPCs)
+    const cap = ent.shieldCap || ent.maxShield || (ent===state.player ? currentStats(state).maxHp : 320);
     const shieldGain = amount * mult;
+    const before = ent.shield || 0;
     ent.shield = clamp((ent.shield||0) + shieldGain, 0, cap);
+    const after = ent.shield;
     // Track shield source
     if(ent === state.player){
+      const distance = Math.round(Math.hypot(caster.x - state.player.x, caster.y - state.player.y));
       ent._lastShieldSource = casterName + ' (ability)';
-      console.log('%c[SHIELD GAIN] +' + shieldGain.toFixed(1) + ' from ' + casterName, 'color: #6cf; font-weight: bold;');
+      console.log('%c[SHIELD GAIN] +' + shieldGain.toFixed(1) + ' from ' + casterName + ' at ' + distance + ' pixels', 'color: #6cf; font-weight: bold;');
+      logPlayerEvent(state, 'SHIELD_GAINED', {
+        amount: shieldGain,
+        before,
+        after,
+        source: `ally:${casterName}`,
+        distance,
+        radius
+      });
+      logDebug(state, 'SHIELD', 'Shield from ally ability', { 
+        caster: casterName, 
+        amount: shieldGain, 
+        before, 
+        after,
+        distance,
+        radius
+      });
     }
     // Track healing/shield provided by caster
     if(caster._shieldProvided !== undefined){
@@ -1466,9 +1559,12 @@ function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
       if(d <= radius) applyShield(e, e === caster ? selfBoost : 0.6);
     }
   } else {
-    // Friendly caster - shield player and friendlies
+    // Friendly caster - shield player and friendlies within radius
     applyShield(caster, selfBoost);
-    applyShield(state.player, 1);
+    const playerDist = Math.hypot(state.player.x - cx, state.player.y - cy);
+    if(playerDist <= radius){
+      applyShield(state.player, 1);
+    }
     for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x-cx,f.y-cy); if(d<=radius) applyShield(f, 0.6); }
   }
 }
@@ -1489,14 +1585,14 @@ function npcCastSupportAbility(state, u, id, target){
     }
     case 'ward_barrier':{
       const shield = 32 + (u.def||8)*1.0;
-      npcShieldPulse(state, u, u.x, u.y, 170, shield);
+      npcShieldPulse(state, u, u.x, u.y, 90, shield);
       return true;
     }
     case 'cleanse_wave':{
       const heal = 14 + (u.maxHp||90)*0.06;
       const shield = 20 + (u.def||6)*0.9;
       npcHealPulse(state, u.x, u.y, 150, heal);
-      npcShieldPulse(state, u, u.x, u.y, 150, shield);
+      npcShieldPulse(state, u, u.x, u.y, 80, shield);
       return true;
     }
     case 'renewal_field':{
@@ -1548,31 +1644,31 @@ function npcCastSupportAbility(state, u, id, target){
     }
     case 'mage_radiant_aura':{
       const shield = 26 + (u.def||10)*1.0;
-      npcShieldPulse(state, u, u.x, u.y, 170, shield);
+      npcShieldPulse(state, u, u.x, u.y, 90, shield);
       return true;
     }
     case 'warcry':{
       const shield = 18 + (u.def||6)*0.8;
-      npcShieldPulse(state, u, u.x, u.y, 140, shield);
+      npcShieldPulse(state, u, u.x, u.y, 80, shield);
       return true;
     }
     case 'knight_shield_wall':{
       const shield = 34 + (u.def||9)*1.1;
-      npcShieldPulse(state, u, u.x, u.y, 180, shield);
+      npcShieldPulse(state, u, u.x, u.y, 100, shield);
       npcHealPulse(state, u.x, u.y, 180, 10 + (u.maxHp||90)*0.04);
       return true;
     }
     case 'knight_rally':{
       npcHealPulse(state, u.x, u.y, 180, 12 + (u.maxHp||90)*0.03);
-      npcShieldPulse(state, u, u.x, u.y, 180, 18 + (u.def||8)*0.8);
+      npcShieldPulse(state, u, u.x, u.y, 100, 18 + (u.def||8)*0.8);
       return true;
     }
     case 'knight_taunt':{
-      npcShieldPulse(state, u, u.x, u.y, 150, 16 + (u.def||8)*0.7);
+      npcShieldPulse(state, u, u.x, u.y, 80, 16 + (u.def||8)*0.7);
       return true;
     }
     case 'warrior_fortitude':{
-      npcShieldPulse(state, u, u.x, u.y, 170, 22 + (u.def||8)*0.9);
+      npcShieldPulse(state, u, u.x, u.y, 90, 22 + (u.def||8)*0.9);
       return true;
     }
     case 'tank_iron_skin':{
@@ -1581,11 +1677,11 @@ function npcCastSupportAbility(state, u, id, target){
       return true;
     }
     case 'tank_bodyguard':{
-      npcShieldPulse(state, u, u.x, u.y, 190, 24 + (u.def||10)*1.0);
+      npcShieldPulse(state, u, u.x, u.y, 100, 24 + (u.def||10)*1.0);
       return true;
     }
     case 'tank_anchor':{
-      npcShieldPulse(state, u, u.x, u.y, 170, 20 + (u.def||9)*0.9);
+      npcShieldPulse(state, u, u.x, u.y, 90, 20 + (u.def||9)*0.9);
       return true;
     }
     default:
@@ -1651,7 +1747,8 @@ function npcUpdateAbilities(state, u, dt, kind){
   for(let i=0;i<u.npcCd.length;i++) u.npcCd[i] = Math.max(0, (u.npcCd[i]||0) - dt);
   const debugAI = state.options?.showDebug || state.options?.showDebugAI;
   const recordAI = (action, extra={})=>{
-    if(debugAI){
+    // Only show abilities in AI debug, not light attacks
+    if(debugAI && action !== 'light_attack' && action !== 'filler'){
       state.debugAiEvents = state.debugAiEvents || [];
       state.debugAiEvents.push({ t: state.campaign?.time||0, unit: u.name||u.variant||'npc', id: u.id||u._id, action, ...extra });
       if(state.debugAiEvents.length > 32) state.debugAiEvents.shift();
@@ -1661,16 +1758,20 @@ function npcUpdateAbilities(state, u, dt, kind){
     const shouldTrack = (kind === 'friendly' && state.ui?.trackFriendlyAbilities?.checked) || 
                        (kind === 'enemy' && state.ui?.trackEnemyAbilities?.checked);
     if(shouldTrack && (action === 'cast' || action === 'cast-prio') && extra.ability){
-      state.abilityUsageTracking = state.abilityUsageTracking || { friendly: {}, enemy: {} };
-      const category = kind === 'friendly' ? 'friendly' : 'enemy';
-      const role = extra.role || u.role || u.variant || 'unknown';
+      state.abilityLog = state.abilityLog || {};
       const ability = extra.ability;
-      const key = `${role} - ${ability}`;
+      const role = extra.role || u.role || u.variant || 'unknown';
       
-      if(!state.abilityUsageTracking[category][key]){
-        state.abilityUsageTracking[category][key] = { role, ability, count: 0 };
+      if(!state.abilityLog[ability]){
+        state.abilityLog[ability] = {
+          kind: kind,
+          count: 0,
+          byRole: {}
+        };
       }
-      state.abilityUsageTracking[category][key].count++;
+      
+      state.abilityLog[ability].count++;
+      state.abilityLog[ability].byRole[role] = (state.abilityLog[ability].byRole[role] || 0) + 1;
     }
   };
 
@@ -1938,7 +2039,7 @@ function npcUpdateAbilities(state, u, dt, kind){
   // LIGHT ATTACK WEAVING: When no abilities available, use light attack as filler
   if(!u._lastLightAttack) u._lastLightAttack = 0;
   const timeSinceLastLight = (state.campaign?.time || 0) - u._lastLightAttack;
-  const lightAttackCd = isStaff ? 0.65 : 0.4; // Faster light attacks
+  const lightAttackCd = 1.0; // 1 second cooldown for all light attacks
   
   if(timeSinceLastLight >= lightAttackCd && bestD <= (isStaff ? 280 : 80)){
     u._lastLightAttack = state.campaign?.time || 0;
@@ -2485,6 +2586,14 @@ function updateFriendlies(state, dt){
         // If no garrison or garrison lost, use normal flag respawn
         if(!respawnSite){
           respawnSite = flag && flag.owner === 'player' ? flag : null;
+        }
+        
+        // Final fallback: respawn at home base if no player-owned flags available
+        if(!respawnSite){
+          const homeBase = state.sites.find(s => s.name === 'Home Base' || s.id === 'site_0');
+          if(homeBase){
+            respawnSite = homeBase;
+          }
         }
         
         if(respawnSite){
@@ -3661,6 +3770,11 @@ function die(state){
   if(state.player.dead) return;
   state.player.dead=true;
   state.player.respawnT=2.0;
+  // Set all resources to 0 when dead
+  state.player.hp = 0;
+  state.player.mana = 0;
+  state.player.stam = 0;
+  state.player.shield = 0;
   state.ui.toast('<span class="neg"><b>You died.</b></span> Respawning at nearest captured flag...');
 }
 
@@ -4163,8 +4277,9 @@ function updateHeals(state, dt){
       if(h.beacon){
         const {x,y,r} = h.beacon;
         for(const t of targets){ 
-          // Skip dead, removed, or respawning units
+          // Skip dead, removed, respawning units, or units at 0 HP
           if(!t || t.dead || t.hp === undefined || t.hp <= 0) continue;
+          if(t === state.player && state.player.dead) continue;
           if(t !== state.player && t.respawnT && t.respawnT > 0) continue;
           
           if(Math.hypot((t.x||state.player.x)-x,(t.y||state.player.y)-y)<=r){ 
@@ -4199,8 +4314,9 @@ function updateHeals(state, dt){
         }
       } else {
         for(const t of targets){ 
-          // Skip dead, removed, or respawning units
+          // Skip dead, removed, respawning units, or units at 0 HP
           if(!t || t.dead || t.hp === undefined || t.hp <= 0) continue;
+          if(t === state.player && state.player.dead) continue;
           if(t !== state.player && t.respawnT && t.respawnT > 0) continue;
           
           const maxHp = t===state.player ? st.maxHp : (t.maxHp || st.maxHp); 
@@ -4603,12 +4719,38 @@ function applyBuffTo(entity, buffId){
   }
 
   // immediate shield gain when a buff carries a shield stat so the HUD reflects it
-  if(meta.stats && typeof meta.stats.shield === 'number'){
+  // Check both meta.shield and meta.stats.shield for backward compatibility
+  const shieldValue = meta.shield ?? meta.stats?.shield;
+  if(typeof shieldValue === 'number'){
     const cap = entity.shieldCap || entity.maxShield || 420;
     const stacks = existing ? existing.stacks : 1;
     const gainStacks = Math.max(1, stacks - prevStacks);
-    const gain = meta.stats.shield * gainStacks;
+    const gain = shieldValue * gainStacks;
+    const before = entity.shield || 0;
     entity.shield = clamp((entity.shield||0) + gain, 0, cap);
+    const after = entity.shield;
+    
+    // Log shield gain for player
+    if(entity === window.state?.player){
+      console.log('%c[SHIELD GAIN] +' + gain.toFixed(1) + ' from buff: ' + buffId, 'color: #6cf; font-weight: bold;');
+      logDebug(window.state, 'SHIELD', 'Shield gained from buff', { buffId, gain, before, after, stacks });
+      logPlayerEvent(window.state, 'SHIELD_GAINED', {
+        amount: gain,
+        before,
+        after,
+        source: `buff:${buffId}`
+      });
+    }
+  }
+  
+  // Log buff application for player
+  if(entity === window.state?.player){
+    logPlayerEvent(window.state, 'BUFF_APPLIED', {
+      buffName: meta.name || buffId,
+      buffId,
+      duration: meta.duration || 5.0,
+      stacks: existing ? existing.stacks : 1
+    });
   }
 }
 
@@ -4824,7 +4966,7 @@ function fireLightOrHeavy(state, heldMs){
   const st = currentStats(state);
   const m = state.input.mouse;
   const now = performance.now();
-  const cdMs = isStaff ? 190 : 220;
+  const cdMs = 1000; // 1 second cooldown for all light attacks
   if(now - (m.lastShot||0) < cdMs) return;
   m.lastShot = now;
 
@@ -5756,6 +5898,27 @@ export function updateGame(state, dt){
   state.campaign.time += dt;
   const st=currentStats(state);
 
+  // Periodic shield value check (every 5 seconds)
+  if(!state._lastShieldCheck) state._lastShieldCheck = 0;
+  state._lastShieldCheck += dt;
+  if(state._lastShieldCheck >= 5){
+    state._lastShieldCheck = 0;
+    if(state.player.shield > 0){
+      logDebug(state, 'SHIELD', 'Periodic shield check', {
+        shieldValue: state.player.shield,
+        shieldSource: state.player._lastShieldSource || 'unknown',
+        nearbyAllies: state.friendlies.filter(f => {
+          const d = Math.hypot(f.x - state.player.x, f.y - state.player.y);
+          return d <= 200 && !f.dead && f.respawnT <= 0;
+        }).length,
+        nearbyEnemies: state.enemies.filter(e => {
+          const d = Math.hypot(e.x - state.player.x, e.y - state.player.y);
+          return d <= 200 && !e.dead;
+        }).length
+      });
+    }
+  }
+
   if(!state.player.dead){
     const hpBefore = state.player.hp;
     state.player.hp=clamp(state.player.hp+st.hpRegen*dt,0,st.maxHp);
@@ -6110,7 +6273,10 @@ export function updateGame(state, dt){
     updateFlashes(state, dt);
     updateLootTTL(state, dt);
     updateDamageNums(state, dt);
-    if(!state.player.dead && state.player.hp<=0) die(state);
+    if(!state.player.dead && state.player.hp<=0){ 
+      state.player.dead = true;
+      die(state);
+    }
     if(state.player.dead){ state.player.respawnT -= dt; if(state.player.respawnT<=0) respawn(state); }
     return;
   }
@@ -6784,40 +6950,118 @@ window.testEmperorBuff = function(){
 };
 
 // ================== LOGGING SYSTEM ==================
-// Captures game events for debugging
-export function addGameLogEvent(state, eventType, data){
-  if(!state.gameLog) return;
-  if(!state.gameLog.enabled) return;
-  
-  const timestamp = Date.now() - state.gameLog.startTime;
-  const event = { timestamp, type: eventType, data };
-  state.gameLog.events.push(event);
-}
-
+// Captures player events for debugging
 export function initGameLogging(state){
-  if(!state.gameLog) state.gameLog = { enabled: false, events: [], startTime: 0, lastSaveTime: 0 };
-  state.gameLog.startTime = Date.now();
-  state.gameLog.lastSaveTime = Date.now();
-  state.gameLog.events = [];
+  // Initialize player event log (detailed tracking of everything affecting player)
+  if(!state.playerLog) state.playerLog = [];
 }
 
-export function saveGameLogToStorage(state){
-  if(!state.gameLog || !state.gameLog.enabled) return;
+// Log player events (damage, healing, shields, buffs, etc.)
+function logPlayerEvent(state, type, data){
+  if(!state.playerLog) state.playerLog = [];
   
+  const event = {
+    time: (state.campaign?.time || 0).toFixed(2),
+    timestamp: Date.now(),
+    type,
+    ...data
+  };
+  
+  state.playerLog.push(event);
+  
+  // Keep only last 2000 events to prevent memory bloat
+  if(state.playerLog.length > 2000){
+    state.playerLog.shift();
+  }
+}
+
+function logDebug(state, category, message, data = {}){
+  if(!state.debugLog) state.debugLog = [];
+  
+  const event = {
+    time: (state.campaign?.time || 0).toFixed(2),
+    timestamp: Date.now(),
+    category,
+    message,
+    ...data
+  };
+  
+  state.debugLog.push(event);
+  
+  // Keep only last 2000 events to prevent memory bloat
+  if(state.debugLog.length > 2000){
+    state.debugLog.shift();
+  }
+}
+
+// Download player event log
+export function downloadPlayerLog(state){
   try{
-    const now = Date.now();
-    const sessionId = state.gameLog.startTime;
-    const log = {
-      sessionId,
-      startTime: state.gameLog.startTime,
-      lastSave: now,
-      eventCount: state.gameLog.events.length,
-      events: state.gameLog.events.slice(-500) // Keep last 500 events to avoid memory bloat
-    };
-    localStorage.setItem(`gameLog_${sessionId}`, JSON.stringify(log));
-    state.gameLog.lastSaveTime = now;
+    if(!state.playerLog || state.playerLog.length === 0){
+      alert('No player events logged yet. Play for a bit and try again.');
+      return;
+    }
+    
+    let log = 'Player Event Log\n';
+    log += '='.repeat(120) + '\n';
+    log += `Generated: ${new Date().toLocaleString()}\n`;
+    log += `Total Events: ${state.playerLog.length}\n`;
+    log += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n`;
+    log += `Player Level: ${state.progression?.level || 1}\n`;
+    log += `Player HP: ${Math.round(state.player.hp)}/${Math.round(currentStats(state).maxHp)}\n`;
+    log += `Player Shield: ${Math.round(state.player.shield)}\n\n`;
+    
+    // Keep only last 1000 events
+    const events = state.playerLog.slice(-1000);
+    
+    for(const evt of events){
+      const time = `[${evt.time}s]`.padEnd(10);
+      
+      if(evt.type === 'DAMAGE_TAKEN'){
+        log += `${time} DAMAGE: ${evt.raw.toFixed(1)} raw → Shield: -${(evt.shieldAbsorbed || 0).toFixed(1)} → Block: -${(evt.blocked || 0).toFixed(1)} → Def: -${(evt.defReduced || 0).toFixed(1)} → HP: -${evt.hpLoss.toFixed(1)} (${evt.hpBefore.toFixed(1)} → ${evt.hpAfter.toFixed(1)})\n`;
+      }
+      else if(evt.type === 'HEAL_RECEIVED'){
+        log += `${time} HEAL: +${evt.amount.toFixed(1)} HP from ${evt.source} (${evt.hpBefore.toFixed(1)} → ${evt.hpAfter.toFixed(1)})\n`;
+      }
+      else if(evt.type === 'SHIELD_GAINED'){
+        const distInfo = evt.distance !== undefined ? ` (range: ${evt.distance}/${evt.radius})` : '';
+        log += `${time} SHIELD: +${evt.amount.toFixed(1)} from ${evt.source}${distInfo} (${evt.before.toFixed(1)} → ${evt.after.toFixed(1)})\n`;
+      }
+      else if(evt.type === 'SHIELD_LOST'){
+        log += `${time} SHIELD: -${evt.amount.toFixed(1)} absorbed damage (${evt.before.toFixed(1)} → ${evt.after.toFixed(1)})\n`;
+      }
+      else if(evt.type === 'BUFF_APPLIED'){
+        log += `${time} BUFF: ${evt.buffName} applied (duration: ${evt.duration}s, stacks: ${evt.stacks})\n`;
+      }
+      else if(evt.type === 'BUFF_EXPIRED'){
+        log += `${time} BUFF: ${evt.buffName} expired\n`;
+      }
+      else if(evt.type === 'REGEN'){
+        log += `${time} REGEN: +${evt.amount.toFixed(1)} ${evt.stat} (${evt.before.toFixed(1)} → ${evt.after.toFixed(1)})\n`;
+      }
+      else if(evt.type === 'STAT_CHANGE'){
+        log += `${time} STATS: ${evt.stat} changed from ${evt.before.toFixed(1)} to ${evt.after.toFixed(1)} (reason: ${evt.reason})\n`;
+      }
+      else if(evt.type === 'ABILITY_CAST'){
+        log += `${time} CAST: ${evt.ability} (cost: ${evt.cost} mana)\n`;
+      }
+    }
+    
+    log += '\n' + '='.repeat(120) + '\n';
+    log += 'END OF PLAYER LOG\n';
+    
+    const blob = new Blob([log], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `player-log-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    console.log(`[LOG] Downloaded player log with ${events.length} events`);
   }catch(e){
-    console.error('[LOG] Failed to save game log:', e);
+    console.error('[LOG] Failed to download player log:', e);
+    alert('Failed to download player log');
   }
 }
 
@@ -6841,7 +7085,10 @@ export function downloadCombatLog(state){
       const time = `[${evt.time}s]`.padEnd(12);
       
       if(evt.type === 'DAMAGE'){
-        log += `${time} DAMAGE: ${evt.target} took ${evt.amount} from ${evt.source} (${evt.hpBefore} -> ${evt.hpAfter})${evt.crit ? ' CRIT!' : ''}\n`;
+        log += `${time} DAMAGE: ${evt.target} took ${evt.hpLoss} HP (raw: ${evt.raw}, shield: ${evt.shieldAbsorbed}, block: ${evt.blocked}, def: ${evt.defReduced}) | HP: ${evt.hpBefore} → ${evt.hpAfter}\n`;
+      }
+      else if(evt.type === 'SHIELD_DAMAGE'){
+        log += `${time} SHIELD ONLY: ${evt.target} blocked ${evt.shieldAbsorbed} damage (raw: ${evt.raw}) | Shield absorbed all damage\n`;
       }
       else if(evt.type === 'HOT_CREATE'){
         log += `${time} HOT START: ${evt.ability} by ${evt.caster} (${evt.healPerTick}/tick for ${evt.duration}s, ${evt.targets} targets, enemy=${evt.isEnemyCaster})\n`;
@@ -6936,44 +7183,91 @@ export function downloadErrorLog(state){
   }
 }
 
-export function downloadGameLog(state){
-  if(!state.gameLog || state.gameLog.events.length === 0){
-    alert('No log data to download');
+export function downloadDebugLog(state){
+  if(!state.debugLog || state.debugLog.length === 0){
+    console.warn('No debug events logged yet');
     return;
   }
+
+  let txt = 'Debug Diagnostic Log\n';
+  txt += '='.repeat(120) + '\n';
+  txt += `Generated: ${new Date().toLocaleString()}\n`;
+  txt += `Total Events: ${state.debugLog.length}\n`;
+  txt += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
   
-  try{
-    const date = new Date().toISOString().split('T')[0];
-    const time = new Date().toLocaleTimeString('en-US', { hour12: false }).replace(/:/g, '-');
-    const filename = `orb-rpg-log_${date}_${time}.json`;
-    
-    const logData = {
-      generatedAt: new Date().toISOString(),
-      sessionStartTime: new Date(state.gameLog.startTime).toISOString(),
-      totalEvents: state.gameLog.events.length,
-      events: state.gameLog.events
-    };
-    
-    const dataStr = JSON.stringify(logData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    console.log(`[LOG] Downloaded log with ${state.gameLog.events.length} events`);
-  }catch(e){
-    console.error('[LOG] Failed to download log:', e);
-    alert('Failed to download log');
+  txt += 'CURRENT STATE:\n';
+  txt += `  Player Level: ${state.progression?.level || 1}\n`;
+  txt += `  Player HP: ${Math.round(state.player.hp)}/${Math.round(currentStats(state).maxHp)}\n`;
+  txt += `  Player Mana: ${Math.round(state.player.mana)}/${Math.round(currentStats(state).maxMana)}\n`;
+  txt += `  Player Stamina: ${Math.round(state.player.stam)}/${Math.round(currentStats(state).maxStam)}\n`;
+  txt += `  Player Shield: ${Math.round(state.player.shield)} (cap: ${Math.round(currentStats(state).maxHp)})\n`;
+  txt += `  Base Player MaxMana: ${state.basePlayer.maxMana}\n`;
+  txt += `  Stat Spends: ${JSON.stringify(state.progression.spends)}\n\n`;
+
+  // Keep last 1000 events
+  const events = state.debugLog.slice(-1000);
+
+  // Group by category for easier reading
+  const categories = {};
+  for(const ev of events){
+    if(!categories[ev.category]) categories[ev.category] = [];
+    categories[ev.category].push(ev);
   }
+
+  for(const [cat, evs] of Object.entries(categories)){
+    txt += `\n${'='.repeat(40)} ${cat} ${'='.repeat(40)}\n`;
+    for(const ev of evs){
+      const time = `[${ev.time}s]`.padEnd(10);
+      const data = Object.entries(ev)
+        .filter(([k]) => k !== 'time' && k !== 'timestamp' && k !== 'category' && k !== 'message')
+        .map(([k, v]) => `${k}:${JSON.stringify(v)}`)
+        .join(', ');
+      txt += `${time} ${ev.message}${data ? ' | ' + data : ''}\n`;
+    }
+  }
+
+  txt += '\n' + '='.repeat(120) + '\n';
+  txt += 'END OF DEBUG LOG\n';
+
+  const blob = new Blob([txt], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `debug-log-${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-export function clearGameLog(state){
-  if(!state.gameLog) return;
-  state.gameLog.events = [];
-  console.log('[LOG] Game log cleared');
-}
+// Expose player log download as console command
+window.downloadPlayerLog = function(){
+  const state = window.state;
+  if(!state){
+    console.error('❌ State not found. Make sure the game is loaded.');
+    return;
+  }
+  downloadPlayerLog(state);
+};
+
+// Expose combat log download as console command
+window.downloadCombatLog = function(){
+  const state = window.state;
+  if(!state){
+    console.error('❌ State not found. Make sure the game is loaded.');
+    return;
+  }
+  downloadCombatLog(state);
+};
+
+// Expose debug log download as console command
+window.downloadDebugLog = function(){
+  const state = window.state;
+  if(!state){
+    console.error('❌ State not found. Make sure the game is loaded.');
+    return;
+  }
+  downloadDebugLog(state);
+};
+
+console.log('💾 Player logging enabled. Use window.downloadPlayerLog() to download detailed player event log.');
+console.log('⚔️ Combat logging available. Use window.downloadCombatLog() to download combat event log.');
+console.log('🔧 Debug logging available. Use window.downloadDebugLog() to download diagnostic log.');

@@ -1,7 +1,7 @@
 import { saveJson, loadJson, clamp } from "../engine/util.js";
 import { DEFAULT_BINDS, ACTION_LABELS, INV_SIZE, ARMOR_SLOTS, SLOT_LABEL } from "./constants.js";
 import { rarityClass } from "./rarity.js";
-import { currentStats, exportSave, importSave, applyClassToUnit, downloadGameLog, downloadErrorLog, downloadCombatLog, initConsoleErrorLogger } from "./game.js";
+import { currentStats, exportSave, importSave, applyClassToUnit, downloadErrorLog, downloadCombatLog, downloadPlayerLog, downloadDebugLog, initConsoleErrorLogger } from "./game.js";
 import { LEVEL_CONFIG, getItemLevelColor } from "./leveling.js";
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
@@ -150,9 +150,9 @@ export function buildUI(state){
       <div style="flex:1; display:flex; flex-direction:column; gap:0; min-width:200px;">
         <!-- HP Bar with Shield Overlay -->
         <div style="position:relative; height:14px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.2); border-radius:2px;">
-          <div id="hpFill" style="position:absolute; top:0; left:0; height:100%; background:#d32f2f; transition:width 0.2s;"></div>
-          <div id="shieldFill" style="position:absolute; top:0; left:0; height:100%; background:rgba(100,181,246,0.85); transition:width 0.2s; pointer-events:none;"></div>
-          <div id="hpText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:11px; font-weight:bold; text-shadow:0 0 3px #000, 0 0 2px #000; pointer-events:none; white-space:nowrap;"></div>
+          <div id="hpFill" style="position:absolute; top:0; left:0; height:100%; background:#d32f2f; transition:width 0.2s; z-index:1;"></div>
+          <div id="shieldFill" style="position:absolute; top:0; left:0; height:100%; width:0%; background:rgba(100,181,246,0.85); transition:width 0.2s; pointer-events:none; z-index:2;"></div>
+          <div id="hpText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:11px; font-weight:bold; text-shadow:0 0 3px #000, 0 0 2px #000; pointer-events:none; white-space:nowrap; z-index:3;"></div>
         </div>
         
         <!-- Mana Bar -->
@@ -1165,13 +1165,10 @@ export function buildUI(state){
             <div style="margin-top:10px" class="row">
               <label class="small"><input id="optShowAim" type="checkbox" checked/> Show aim line</label>
               <label class="small"><input id="optShowDebug" type="checkbox"/> Show debug</label>
-              <label class="small"><input id="optShowDebugAI" type="checkbox"/> AI debug (party)</label>
+              <label class="small"><input id="optShowDebugAI" type="checkbox" checked/> AI debug (party)</label>
             </div>
             <div style="margin-top:8px">
               <label class="small"><input id="optAutoPickup" type="checkbox"/> Auto-pickup loot when walked over</label>
-            </div>
-            <div style="margin-top:10px">
-              <label class="small"><input id="optAutoLog" type="checkbox"/> Auto-save game log (debug)</label>
             </div>
             <div style="margin-top:10px">
               <label class="small"><b>Camera Mode:</b></label>
@@ -1208,33 +1205,60 @@ export function buildUI(state){
           <div class="box" style="margin-top:12px; background:rgba(5,5,5,0.75); border:2px solid rgba(212,175,55,0.35); box-shadow:0 0 12px rgba(212,175,55,0.18);">
             <div class="small" style="font-weight:900; color:#d4af37;">Debug</div>
             <div style="padding:8px; background:rgba(0,0,0,0.3); border-radius:4px;">
-              <button id="btnDownloadErrorLog" style="width:100%; margin-bottom:8px;">Download Console Errors</button>
-              <div class="small" style="margin-bottom:8px; color:#888; font-size:10px;">Export console errors for debugging.</div>
+              <div style="margin-bottom:12px;">
+                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:10px;">Download Logs</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="enablePlayerLog" checked style="cursor:pointer;">
+                  <span class="small" style="color:#6cf;">Player Event Log</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">All events affecting player: damage, healing, shields, buffs, regen, stat changes</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="enableCombatLog" checked style="cursor:pointer;">
+                  <span class="small" style="color:#f90;">Combat Event Log</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Timestamped combat events: damage, healing, HOT effects</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="enableDebugLog" checked style="cursor:pointer;">
+                  <span class="small" style="color:#9f9;">Debug Diagnostic Log</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Technical diagnostics: stat calculations, shield mechanics, system debugging</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="enableDamageLog" checked style="cursor:pointer;">
+                  <span class="small" style="color:#f66;">Damage/Healing Report</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Summary of damage dealt/received, healing done, shields provided by each fighter</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="enableAbilityLog" checked style="cursor:pointer;">
+                  <span class="small" style="color:#c9f;">Ability Usage Log</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Track how often each ability is cast by role/class for AI tuning</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="enableConsoleLog" checked style="cursor:pointer;">
+                  <span class="small" style="color:#fa3;">Console Errors</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:12px; color:#888; font-size:10px;">JavaScript errors and warnings from browser console</div>
+                
+                <button id="btnDownloadAllLogs" style="width:100%; margin-top:4px; font-weight:bold; background:linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); color:#000;">Download All Enabled Logs</button>
+                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Downloads all checked logs as separate files with one click.</div>
+              </div>
               
               <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.2);">
-                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Ability Usage Tracking</div>
+                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Ability Tracking Options</div>
                 <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px; cursor:pointer;">
-                  <input type="checkbox" id="trackFriendlyAbilities" style="cursor:pointer;">
+                  <input type="checkbox" id="trackFriendlyAbilities" checked style="cursor:pointer;">
                   <span class="small" style="color:#6cf;">Track Friendly Abilities</span>
                 </label>
                 <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px; cursor:pointer;">
-                  <input type="checkbox" id="trackEnemyAbilities" style="cursor:pointer;">
+                  <input type="checkbox" id="trackEnemyAbilities" checked style="cursor:pointer;">
                   <span class="small" style="color:#f66;">Track Enemy Abilities</span>
                 </label>
-                <button id="btnDownloadAbilityLog" style="width:100%; margin-top:4px;">Download Ability Usage Log</button>
-                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Track how often each ability is cast by role/class for AI tuning.</div>
-              </div>
-              
-              <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.3);">
-                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Damage & Healing Tracking</div>
-                <button id="btnDownloadDamageLog" style="width:100%; margin-top:4px;">Download Damage/Healing Report</button>
-                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Shows damage dealt, damage received, healing done, and shields provided by each fighter.</div>
-              </div>
-              
-              <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.3);">
-                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Combat Event Log</div>
-                <button id="btnDownloadCombatLog" style="width:100%; margin-top:4px;">Download Combat Event Log</button>
-                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Detailed timestamped log of damage, healing, and HOT events affecting the player (for debugging).</div>
+                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Control which abilities are tracked in the Ability Usage Log.</div>
               </div>
             </div>
           </div>
@@ -1484,17 +1508,19 @@ function bindUI(state){
     btnBackToMenu:$('btnBackToMenu'),
     btnApplyOpts:$('btnApplyOpts'),
     btnResetBinds:$('btnResetBinds'),
-    btnDownloadErrorLog:$('btnDownloadErrorLog'),
     trackFriendlyAbilities:$('trackFriendlyAbilities'),
     trackEnemyAbilities:$('trackEnemyAbilities'),
-    btnDownloadAbilityLog:$('btnDownloadAbilityLog'),
-    btnDownloadDamageLog:$('btnDownloadDamageLog'),
-    btnDownloadCombatLog:$('btnDownloadCombatLog'),
+    enablePlayerLog:$('enablePlayerLog'),
+    enableCombatLog:$('enableCombatLog'),
+    enableDebugLog:$('enableDebugLog'),
+    enableDamageLog:$('enableDamageLog'),
+    enableAbilityLog:$('enableAbilityLog'),
+    enableConsoleLog:$('enableConsoleLog'),
+    btnDownloadAllLogs:$('btnDownloadAllLogs'),
     optShowAim:$('optShowAim'),
     optShowDebug:$('optShowDebug'),
     optShowDebugAI:$('optShowDebugAI'),
-    optAutoLog:$('optAutoLog'),
-      optCameraFreeView:$('optCameraFreeView'),
+    optCameraFreeView:$('optCameraFreeView'),
       optCameraFollowChar:$('optCameraFollowChar'),
       optCameraEdgeStrict:$('optCameraEdgeStrict'),
     bindList:$('bindList'),
@@ -1879,8 +1905,6 @@ function bindUI(state){
       state.options.showDebug = !!ui.optShowDebug?.checked;
       if(ui.optShowDebugAI) state.options.showDebugAI = !!ui.optShowDebugAI.checked;
       state.options.autoPickup = !!ui.optAutoPickup?.checked;
-      state.options.autoLog = !!ui.optAutoLog?.checked;
-      state.gameLog.enabled = state.options.autoLog;
       // camera mode
       try{
         if(ui.optCameraFollowChar?.checked) state.options.cameraMode = 'follow';
@@ -2865,8 +2889,7 @@ function bindUI(state){
       ui.optShowDebug.checked=state.options.showDebug;
       if(ui.optShowDebugAI) ui.optShowDebugAI.checked = !!state.options.showDebugAI;
       ui.optAutoPickup.checked=state.options.autoPickup || false;
-      if(ui.optAutoLog) ui.optAutoLog.checked = !!state.options.autoLog;
-        const cameraMode = state.options.cameraMode || 'follow';
+      const cameraMode = state.options.cameraMode || 'follow';
         ui.optCameraFollowChar.checked = cameraMode === 'follow';
         ui.optCameraFreeView.checked = cameraMode === 'freeview';
         if(ui.optCameraEdgeStrict) ui.optCameraEdgeStrict.checked = cameraMode === 'edge_strict';
@@ -3438,8 +3461,18 @@ function bindUI(state){
     const stam = Math.round(state.player.stam || 0);
     const maxStam = Math.round(st.maxStam || 100);
     const shield = Math.round(state.player.shield || 0);
-    const xp = Math.round(state.player.xp || 0);
-    const xpNext = Math.round(xpForNext(state.player.level || 1));
+    const xp = Math.round(state.progression.xp || 0);
+    const xpNext = Math.round(xpForNext(state.progression.level || 1));
+    
+    // Debug mana display if fallback is used
+    if(st.maxMana === undefined || st.maxMana === 0){
+      console.warn('[UI] maxMana fallback triggered! st.maxMana:', st.maxMana, 'Using fallback: 100');
+      logDebug(state, 'MANA', 'UI fallback triggered', { 
+        stMaxMana: st.maxMana, 
+        fallbackUsed: true,
+        basePlayerMaxMana: state.basePlayer?.maxMana 
+      });
+    }
     
     ui.hpText.textContent = `${hp}/${maxHp}`;
     ui.manaText.textContent = `${mana}/${maxMana}`;
@@ -3451,7 +3484,9 @@ function bindUI(state){
     ui.hpFill.style.width = `${clamp(hp/maxHp,0,1)*100}%`;
     ui.manaFill.style.width = `${clamp(mana/maxMana,0,1)*100}%`;
     ui.stamFill.style.width = `${clamp(stam/maxStam,0,1)*100}%`;
-    ui.shieldFill.style.width = `${clamp(shield/(maxHp*1.5),0,1)*100}%`;
+    // Shield bar should fill 100% when at max shield (cap=maxHP)
+    const shieldPercent = clamp(shield/maxHp,0,1)*100;
+    ui.shieldFill.style.width = `${shieldPercent}%`;
     ui.xpFill.style.width = `${clamp(xp/xpNext,0,1)*100}%`;
     
     // Update hero portrait based on class
@@ -3703,6 +3738,64 @@ function bindUI(state){
     return `<span style="font-size:20px;">${fallback}</span>`;
   }
 
+  // Build item tooltip HTML
+  function buildItemTooltip(item){
+    if(!item) return '';
+    
+    let html = `<div style="font-weight:900; font-size:14px; color:${item.rarity.color}; margin-bottom:8px;">${item.name}</div>`;
+    
+    // Item level
+    if(item.itemLevel){
+      html += `<div style="font-size:11px; color:#6af; margin-bottom:6px;"><b>Item Level:</b> ${item.itemLevel}</div>`;
+    }
+    
+    // Kind and slot
+    if(item.kind === 'weapon'){
+      html += `<div style="font-size:11px; color:#999; margin-bottom:6px;"><b>Type:</b> Weapon</div>`;
+    } else if(item.kind === 'armor'){
+      const slotName = SLOT_LABEL[item.slot] || item.slot;
+      html += `<div style="font-size:11px; color:#999; margin-bottom:6px;"><b>Slot:</b> ${slotName}</div>`;
+    }
+    
+    // Description
+    html += `<div style="font-size:11px; color:#ccc; margin-bottom:8px; line-height:1.4;">${item.desc || ''}</div>`;
+    
+    // Stats from buffs
+    if(item.buffs && Object.keys(item.buffs).length > 0){
+      html += `<div style="font-weight:bold; color:#d4af37; font-size:10px; margin-bottom:4px;">Stats</div>`;
+      html += `<div style="font-size:11px; color:#6f9; line-height:1.6;">`;
+      for(const [stat, value] of Object.entries(item.buffs)){
+        let statName = stat;
+        let displayValue = value;
+        
+        // Format stat names
+        if(stat === 'maxHp') statName = 'Max HP';
+        else if(stat === 'maxMana') statName = 'Max Mana';
+        else if(stat === 'maxStam') statName = 'Max Stamina';
+        else if(stat === 'hpRegen') statName = 'HP Regen';
+        else if(stat === 'manaRegen') statName = 'Mana Regen';
+        else if(stat === 'stamRegen') statName = 'Stamina Regen';
+        else if(stat === 'atk') statName = 'Attack';
+        else if(stat === 'def') statName = 'Defense';
+        else if(stat === 'speed') statName = 'Speed';
+        else if(stat === 'critChance') { statName = 'Crit Chance'; displayValue = `${Math.round(value*100)}%`; }
+        else if(stat === 'critMult') statName = 'Crit Multiplier';
+        else if(stat === 'cdr') { statName = 'Cooldown Reduction'; displayValue = `${Math.round(value*100)}%`; }
+        else if(stat === 'blockEff') { statName = 'Block Effectiveness'; displayValue = `${Math.round(value*100)}%`; }
+        else if(stat === 'lifesteal') { statName = 'Lifesteal'; displayValue = `${Math.round(value*100)}%`; }
+        
+        const sign = value > 0 ? '+' : '';
+        html += `<div>${sign}${displayValue} ${statName}</div>`;
+      }
+      html += `</div>`;
+    }
+    
+    // Rarity
+    html += `<div style="font-size:10px; color:#888; margin-top:6px;"><b>Rarity:</b> <span style="color:${item.rarity.color};">${item.rarity.name}</span></div>`;
+    
+    return html;
+  }
+
   // Build active effect icons list for HUD and tab
   function buildActiveEffectIcons(state){
     const list = [];
@@ -3928,6 +4021,18 @@ function bindUI(state){
         ui._lastInvClick = { key, t: now };
         state.selectedEquipSlot = it ? slot : null; state.selectedIndex=-1; ui.updateInventorySelection();
       };
+      
+      // Add tooltip on hover
+      if(it){
+        el.onmouseenter = (e) => {
+          const tooltipHtml = buildItemTooltip(it);
+          ui.showBuffTooltip('', tooltipHtml, e.target);
+        };
+        el.onmouseleave = () => {
+          ui.hideBuffTooltip();
+        };
+      }
+      
       ui.equipCircle.appendChild(el);
     });
 
@@ -3961,6 +4066,18 @@ function bindUI(state){
         ui._lastInvClick = { key: clickKey, t: now };
         state.selectedEquipSlot = item ? key : null; state.selectedIndex=-1; ui.updateInventorySelection();
       };
+      
+      // Add tooltip on hover
+      if(item){
+        el.onmouseenter = (e) => {
+          const tooltipHtml = buildItemTooltip(item);
+          ui.showBuffTooltip('', tooltipHtml, e.target);
+        };
+        el.onmouseleave = () => {
+          ui.hideBuffTooltip();
+        };
+      }
+      
       ui.equipExtras.appendChild(el);
     });
   };
@@ -5538,211 +5655,159 @@ function bindUI(state){
     ui.toast('Keybinds reset.');
   };
 
-  ui.btnDownloadErrorLog.onclick=()=>{
-    if(!state.consoleErrors || state.consoleErrors.length === 0){
-      ui.toast('No console errors logged');
-      return;
-    }
+  ui.btnDownloadAllLogs.onclick=()=>{
     try{
-      downloadErrorLog(state);
-      ui.toast(`Downloaded ${state.consoleErrors.length} console errors`);
-    }catch(e){
-      console.error('Download error log failed:', e);
-      ui.toast('Failed to download error log');
-    }
-  };
-
-  // Initialize ability tracking state
-  state.abilityUsageTracking = state.abilityUsageTracking || { friendly: {}, enemy: {} };
-  
-  ui.btnDownloadAbilityLog.onclick=()=>{
-    const tracking = state.abilityUsageTracking || { friendly: {}, enemy: {} };
-    const friendlyCount = Object.keys(tracking.friendly).length;
-    const enemyCount = Object.keys(tracking.enemy).length;
-    
-    if(friendlyCount === 0 && enemyCount === 0){
-      ui.toast('No ability usage data logged yet');
-      return;
-    }
-    
-    try{
-      let report = 'Ability Usage Report\n';
-      report += '='.repeat(60) + '\n';
-      report += `Generated: ${new Date().toLocaleString()}\n`;
-      report += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
+      let count = 0;
+      const logs = [];
       
-      if(friendlyCount > 0){
-        report += 'FRIENDLY ABILITIES\n';
-        report += '-'.repeat(60) + '\n';
-        const sorted = Object.entries(tracking.friendly).sort((a,b) => b[1].count - a[1].count);
-        for(const [key, data] of sorted){
-          report += `${key.padEnd(40)} : ${data.count.toString().padStart(5)} casts\n`;
+      if(ui.enablePlayerLog.checked){
+        downloadPlayerLog(state);
+        logs.push('Player');
+        count++;
+      }
+      
+      if(ui.enableCombatLog.checked){
+        downloadCombatLog(state);
+        logs.push('Combat');
+        count++;
+      }
+      
+      if(ui.enableDebugLog.checked){
+        downloadDebugLog(state);
+        logs.push('Debug');
+        count++;
+      }
+      
+      if(ui.enableDamageLog.checked){
+        // Generate damage log
+        let report = 'Damage & Healing Report\n';
+        report += '='.repeat(70) + '\n';
+        report += `Generated: ${new Date().toLocaleString()}\n`;
+        report += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
+        
+        const fighters = [state.player, ...state.friendlies, ...state.enemies].filter(f=>f && !f.dead);
+        
+        report += 'DAMAGE DEALT:\n';
+        report += '-'.repeat(70) + '\n';
+        const byDamage = fighters.slice().sort((a,b)=>(b._damageDealt||0)-(a._damageDealt||0));
+        for(const f of byDamage){
+          const name = f===state.player ? 'PLAYER' : (f.name||f.variant||'Unknown');
+          const team = state.friendlies.includes(f) ? 'Ally' : (state.enemies.includes(f) ? 'Enemy' : 'Player');
+          report += `  ${name.padEnd(25)} [${team.padEnd(6)}] ${Math.round(f._damageDealt||0)}\n`;
         }
-        report += '\n';
-      }
-      
-      if(enemyCount > 0){
-        report += 'ENEMY ABILITIES\n';
-        report += '-'.repeat(60) + '\n';
-        const sorted = Object.entries(tracking.enemy).sort((a,b) => b[1].count - a[1].count);
-        for(const [key, data] of sorted){
-          report += `${key.padEnd(40)} : ${data.count.toString().padStart(5)} casts\n`;
+        
+        report += '\nDAMAGE RECEIVED:\n';
+        report += '-'.repeat(70) + '\n';
+        const byReceived = fighters.slice().sort((a,b)=>(b._damageReceived||0)-(a._damageReceived||0));
+        for(const f of byReceived){
+          const name = f===state.player ? 'PLAYER' : (f.name||f.variant||'Unknown');
+          const team = state.friendlies.includes(f) ? 'Ally' : (state.enemies.includes(f) ? 'Enemy' : 'Player');
+          report += `  ${name.padEnd(25)} [${team.padEnd(6)}] ${Math.round(f._damageReceived||0)}\n`;
         }
-        report += '\n';
+        
+        report += '\nHEALING DONE:\n';
+        report += '-'.repeat(70) + '\n';
+        const byHealing = fighters.slice().sort((a,b)=>(b._healingDone||0)-(a._healingDone||0));
+        for(const f of byHealing){
+          if((f._healingDone||0)===0) continue;
+          const name = f===state.player ? 'PLAYER' : (f.name||f.variant||'Unknown');
+          const team = state.friendlies.includes(f) ? 'Ally' : (state.enemies.includes(f) ? 'Enemy' : 'Player');
+          report += `  ${name.padEnd(25)} [${team.padEnd(6)}] ${Math.round(f._healingDone||0)}\n`;
+        }
+        
+        report += '\nSHIELDS PROVIDED:\n';
+        report += '-'.repeat(70) + '\n';
+        const byShield = fighters.slice().sort((a,b)=>(b._shieldProvided||0)-(a._shieldProvided||0));
+        for(const f of byShield){
+          if((f._shieldProvided||0)===0) continue;
+          const name = f===state.player ? 'PLAYER' : (f.name||f.variant||'Unknown');
+          const team = state.friendlies.includes(f) ? 'Ally' : (state.enemies.includes(f) ? 'Enemy' : 'Player');
+          report += `  ${name.padEnd(25)} [${team.padEnd(6)}] ${Math.round(f._shieldProvided||0)}\n`;
+        }
+        
+        const blob = new Blob([report], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `damage-report-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        logs.push('Damage');
+        count++;
       }
       
-      const blob = new Blob([report], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `ability-usage-${Date.now()}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
+      if(ui.enableAbilityLog.checked){
+        // Generate ability log (copy from btnDownloadAbilityLog handler)
+        const byAbility = state.abilityLog || {};
+        let friendlyCount = 0;
+        let enemyCount = 0;
+        
+        let log = 'Ability Usage Log\n';
+        log += '='.repeat(70) + '\n';
+        log += `Generated: ${new Date().toLocaleString()}\n`;
+        log += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
+        
+        log += 'FRIENDLY ABILITIES:\n';
+        log += '-'.repeat(70) + '\n';
+        for(const [ability, data] of Object.entries(byAbility)){
+          if(data.kind !== 'friendly') continue;
+          friendlyCount++;
+          const roleStats = Object.entries(data.byRole).map(([role, count]) => `${role}:${count}`).join(', ');
+          log += `${ability.padEnd(30)} Total: ${data.count.toString().padStart(5)} | ${roleStats}\n`;
+        }
+        
+        log += '\nENEMY ABILITIES:\n';
+        log += '-'.repeat(70) + '\n';
+        for(const [ability, data] of Object.entries(byAbility)){
+          if(data.kind !== 'enemy') continue;
+          enemyCount++;
+          const roleStats = Object.entries(data.byRole).map(([role, count]) => `${role}:${count}`).join(', ');
+          log += `${ability.padEnd(30)} Total: ${data.count.toString().padStart(5)} | ${roleStats}\n`;
+        }
+        
+        const blob = new Blob([log], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ability-usage-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        logs.push('Ability');
+        count++;
+      }
       
-      ui.toast(`Downloaded ability usage log (${friendlyCount + enemyCount} abilities tracked)`);
+      if(ui.enableConsoleLog.checked){
+        // Generate console error log
+        let errorLog = 'Console Errors Log\n';
+        errorLog += '='.repeat(70) + '\n';
+        errorLog += `Generated: ${new Date().toLocaleString()}\n`;
+        errorLog += `Total Errors: ${(state.consoleErrors||[]).length}\n\n`;
+        
+        for(const err of (state.consoleErrors||[])){
+          errorLog += `[${err.time}] ${err.type}: ${err.message}\n`;
+          if(err.stack) errorLog += `  Stack: ${err.stack}\n`;
+          errorLog += '\n';
+        }
+        
+        const blob = new Blob([errorLog], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `console-errors_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)}.log`;
+        a.click();
+        URL.revokeObjectURL(url);
+        logs.push('Console');
+        count++;
+      }
+      
+      if(count === 0){
+        ui.toast('No logs enabled - check at least one log type');
+      } else {
+        ui.toast(`Downloaded ${count} log${count>1?'s':''}: ${logs.join(', ')}`);
+      }
     }catch(e){
-      console.error('Download ability log failed:', e);
-      ui.toast('Failed to download ability log');
-    }
-  };
-  
-  ui.btnDownloadCombatLog.onclick=()=>{
-    try{
-      downloadCombatLog(state);
-      ui.toast(`Downloaded combat log (${state.combatLog?.length || 0} events)`);
-    }catch(e){
-      console.error('Error downloading combat log:', e);
-      ui.toast('Failed to download combat log');
-    }
-  };
-  
-  ui.btnDownloadDamageLog.onclick=()=>{
-    try{
-      let report = 'Damage & Healing Report\n';
-      report += '='.repeat(70) + '\n';
-      report += `Generated: ${new Date().toLocaleString()}\n`;
-      report += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
-      
-      // Collect all fighters (player + friendlies + enemies)
-      const fighters = [];
-      
-      // Player
-      fighters.push({
-        name: 'Player',
-        role: state.player.heroClass || 'Unknown',
-        team: 'Player',
-        damageDealt: state.player._damageDealt || 0,
-        damageReceived: state.player._damageReceived || 0,
-        healingDone: state.player._healingDone || 0,
-        shieldProvided: state.player._shieldProvided || 0,
-        hp: state.player.hp || 0,
-        maxHp: currentStats(state).maxHp
-      });
-      
-      // Friendlies
-      for(const f of state.friendlies){
-        if(!f) continue;
-        fighters.push({
-          name: f.name || f.variant || 'Ally',
-          role: f.role || f.variant || 'Unknown',
-          team: 'Friendly',
-          damageDealt: f._damageDealt || 0,
-          damageReceived: f._damageReceived || 0,
-          healingDone: f._healingDone || 0,
-          shieldProvided: f._shieldProvided || 0,
-          hp: f.hp || 0,
-          maxHp: f.maxHp || 100
-        });
-      }
-      
-      // Enemies
-      for(const e of state.enemies){
-        if(!e || e.dead) continue;
-        fighters.push({
-          name: e.name || e.variant || 'Enemy',
-          role: e.role || e.variant || 'Unknown',
-          team: e.team || 'Enemy',
-          damageDealt: e._damageDealt || 0,
-          damageReceived: e._damageReceived || 0,
-          healingDone: e._healingDone || 0,
-          shieldProvided: e._shieldProvided || 0,
-          hp: e.hp || 0,
-          maxHp: e.maxHp || 100
-        });
-      }
-      
-      // Group by role for analysis
-      const byRole = {};
-      for(const f of fighters){
-        const role = f.role.toUpperCase();
-        if(!byRole[role]) byRole[role] = { count: 0, damageDealt: 0, damageReceived: 0, healingDone: 0, shieldProvided: 0 };
-        byRole[role].count++;
-        byRole[role].damageDealt += f.damageDealt;
-        byRole[role].damageReceived += f.damageReceived;
-        byRole[role].healingDone += f.healingDone;
-        byRole[role].shieldProvided += f.shieldProvided;
-      }
-      
-      report += 'ROLE SUMMARY\n';
-      report += '-'.repeat(70) + '\n';
-      report += 'Role'.padEnd(15) + 'Count'.padStart(7) + 'Dmg Out'.padStart(12) + 'Dmg In'.padStart(12) + 'Healing'.padStart(12) + 'Shields'.padStart(12) + '\n';
-      for(const [role, data] of Object.entries(byRole).sort((a,b) => b[1].damageDealt - a[1].damageDealt)){
-        report += role.padEnd(15) + data.count.toString().padStart(7) + Math.round(data.damageDealt).toString().padStart(12) + Math.round(data.damageReceived).toString().padStart(12) + Math.round(data.healingDone).toString().padStart(12) + Math.round(data.shieldProvided).toString().padStart(12) + '\n';
-      }
-      report += '\n';
-      
-      // Top damage dealers
-      report += 'TOP DAMAGE DEALERS\n';
-      report += '-'.repeat(70) + '\n';
-      const topDmg = fighters.filter(f => f.damageDealt > 0).sort((a,b) => b.damageDealt - a.damageDealt).slice(0, 15);
-      for(const f of topDmg){
-        report += `${f.name.padEnd(25)} (${f.role.padEnd(10)}) : ${Math.round(f.damageDealt).toString().padStart(8)} damage\n`;
-      }
-      report += '\n';
-      
-      // Top healers
-      report += 'TOP HEALERS\n';
-      report += '-'.repeat(70) + '\n';
-      const topHeal = fighters.filter(f => f.healingDone > 0).sort((a,b) => b.healingDone - a.healingDone).slice(0, 10);
-      for(const f of topHeal){
-        report += `${f.name.padEnd(25)} (${f.role.padEnd(10)}) : ${Math.round(f.healingDone).toString().padStart(8)} healing\n`;
-      }
-      report += '\n';
-      
-      // Top shield providers
-      report += 'TOP SHIELD PROVIDERS\n';
-      report += '-'.repeat(70) + '\n';
-      const topShield = fighters.filter(f => f.shieldProvided > 0).sort((a,b) => b.shieldProvided - a.shieldProvided).slice(0, 10);
-      for(const f of topShield){
-        report += `${f.name.padEnd(25)} (${f.role.padEnd(10)}) : ${Math.round(f.shieldProvided).toString().padStart(8)} shields\n`;
-      }
-      report += '\n';
-      
-      // Full details
-      report += 'DETAILED BREAKDOWN\n';
-      report += '-'.repeat(70) + '\n';
-      fighters.sort((a,b) => b.damageDealt - a.damageDealt);
-      for(const f of fighters){
-        report += `\n${f.name} (${f.role}) - ${f.team}\n`;
-        report += `  HP: ${Math.round(f.hp)}/${Math.round(f.maxHp)}\n`;
-        report += `  Damage Dealt: ${Math.round(f.damageDealt)}\n`;
-        report += `  Damage Received: ${Math.round(f.damageReceived)}\n`;
-        report += `  Healing Done: ${Math.round(f.healingDone)}\n`;
-        report += `  Shields Provided: ${Math.round(f.shieldProvided)}\n`;
-      }
-      
-      const blob = new Blob([report], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `damage-report-${Date.now()}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      ui.toast('Damage report downloaded');
-    }catch(e){
-      console.error('Error downloading damage log:', e);
-      ui.toast('Failed to download damage log');
+      console.error('Error downloading logs:', e);
+      ui.toast('Failed to download logs');
     }
   };
 

@@ -634,7 +634,8 @@ export function render(state){
   if(state.player.dead) ctx.globalAlpha=0.35;
   // draw shield ring (orange shield indicator)
   if(state.player.shield>0){
-    const shieldRatio = Math.min(1, state.player.shield / (state.player.maxShield || 420));
+    const st = currentStats(state);
+    const shieldRatio = Math.min(1, state.player.shield / (state.player.maxShield || st.maxHp));
     ctx.globalAlpha = 0.4 + 0.3*shieldRatio;
     ctx.strokeStyle='#ffb347';
     ctx.lineWidth=4;
@@ -958,6 +959,14 @@ function drawMiniMap(ctx, canvas, state){
   // player dot
   const px = x + (state.player.x/mapW)*mw; const py = y + (state.player.y/mapH)*mh;
   ctx.fillStyle = cssVar('--player'); ctx.beginPath(); ctx.arc(px,py,3,0,Math.PI*2); ctx.fill();
+  // friendly dots
+  if(state.friendlies){
+    for(const f of state.friendlies){
+      if(f.dead) continue;
+      const fx = x + (f.x/mapW)*mw; const fy = y + (f.y/mapH)*mh;
+      ctx.fillStyle = '#4a9eff'; ctx.beginPath(); ctx.arc(fx,fy,2.5,0,Math.PI*2); ctx.fill();
+    }
+  }
   // dungeon dots
   if(state.dungeons){
     for(const d of state.dungeons){ const dx = x + (d.x/mapW)*mw; const dy = y + (d.y/mapH)*mh; drawTriangle(ctx, dx, dy-2, 6, d.cleared ? 'rgba(80,60,40,0.6)' : '#8B5A2B'); }
@@ -987,6 +996,14 @@ function drawFullMap(ctx, canvas, state){
     }
   }
   const px = x + state.player.x*scale; const py = y + state.player.y*scale; ctx.fillStyle=cssVar('--player'); ctx.beginPath(); ctx.arc(px,py,6,0,Math.PI*2); ctx.fill();
+  // friendly dots
+  if(state.friendlies){
+    for(const f of state.friendlies){
+      if(f.dead) continue;
+      const fx = x + f.x*scale; const fy = y + f.y*scale;
+      ctx.fillStyle = '#4a9eff'; ctx.beginPath(); ctx.arc(fx,fy,5,0,Math.PI*2); ctx.fill();
+    }
+  }
   // if hovering a player-owned site, highlight and show label
   if(hoverSite){
     ctx.strokeStyle='rgba(255,255,255,0.95)'; ctx.lineWidth=2;

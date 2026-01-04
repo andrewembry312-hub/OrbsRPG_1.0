@@ -1,0 +1,128 @@
+Debug Diagnostic Log
+========================================================================================================================
+Generated: 1/4/2026, 12:03:50 PM
+Total Events: 106
+Game Time: 80s
+
+CURRENT STATE:
+  Player Level: 2
+  Player HP: 173/173
+  Player Mana: 76/76
+  Player Stamina: 108/108
+  Player Shield: 0 (cap: 173)
+  Base Player MaxMana: 70
+  Stat Spends: {"vit":0,"int":0,"str":0,"def":0,"agi":0}
+
+
+======================================== SHIELD ========================================
+[0.02s]    Shield from ally ability | caster:"Warrior 359", amount:29.2, before:0, after:29.2, distance:17, radius:90
+[0.02s]    Shield from ally ability | caster:"Mage 194", amount:40, before:29.2, after:69.2, distance:9, radius:90
+[0.02s]    Shield from ally ability | caster:"Warrior 455", amount:29.2, before:69.2, after:98.4, distance:23, radius:90
+[0.02s]    Shield from ally ability | caster:"Mage 606", amount:40, before:98.4, after:138.4, distance:30, radius:90
+[0.02s]    Shield from ally ability | caster:"Mage 806", amount:40, before:138.4, after:160, distance:24, radius:90
+[5.00s]    Periodic shield check | shieldValue:160, shieldSource:"Mage 806 (ability)", nearbyAllies:0, nearbyEnemies:0
+[10.00s]   Periodic shield check | shieldValue:160, shieldSource:"Mage 806 (ability)", nearbyAllies:0, nearbyEnemies:0
+[15.00s]   Periodic shield check | shieldValue:160, shieldSource:"Mage 806 (ability)", nearbyAllies:0, nearbyEnemies:0
+[20.04s]   Periodic shield check | shieldValue:160, shieldSource:"Mage 806 (ability)", nearbyAllies:3, nearbyEnemies:0
+[25.06s]   Periodic shield check | shieldValue:160, shieldSource:"Mage 806 (ability)", nearbyAllies:3, nearbyEnemies:0
+[26.07s]   Shield from ally ability | caster:"Mage Guard 2", amount:25.4, before:160, after:160, distance:62, radius:80
+[27.68s]   Shield from ally ability | caster:"Mage Guard 1", amount:36, before:160, after:160, distance:80, radius:90
+[30.09s]   Periodic shield check | shieldValue:160, shieldSource:"Mage Guard 1 (ability)", nearbyAllies:4, nearbyEnemies:1
+[45.54s]   Shield from ally ability | caster:"Mage Guard 2", amount:25.4, before:0, after:25.4, distance:6, radius:80
+[50.11s]   Periodic shield check | shieldValue:25.4, shieldSource:"Mage Guard 2 (ability)", nearbyAllies:2, nearbyEnemies:0
+[55.12s]   Periodic shield check | shieldValue:17.4, shieldSource:"Mage Guard 2 (ability)", nearbyAllies:4, nearbyEnemies:7
+[57.84s]   Shield from ally ability | caster:"Knight 19", amount:24.4, before:0, after:24.4, distance:100, radius:100
+[58.93s]   Shield from ally ability | caster:"Mage 606", amount:36, before:0, after:36, distance:65, radius:90
+[59.54s]   Shield from ally ability | caster:"Mage 606", amount:25.4, before:0, after:25.4, distance:55, radius:80
+[66.32s]   Shield from ally ability | caster:"Warrior Guard 3", amount:29.2, before:0, after:29.2, distance:64, radius:90
+[70.15s]   Periodic shield check | shieldValue:21.2, shieldSource:"Warrior Guard 3 (ability)", nearbyAllies:4, nearbyEnemies:4
+[73.34s]   Shield from ally ability | caster:"Mage Guard 1", amount:36, before:21.2, after:57.2, distance:85, radius:90
+[75.16s]   Periodic shield check | shieldValue:57.2, shieldSource:"Mage Guard 1 (ability)", nearbyAllies:4, nearbyEnemies:4
+
+======================================== DAMAGE ========================================
+[32.81s]   Damage attempt to player | rawDamage:51, currentShield:160, currentHP:160, blocking:false, stamina:100
+[33.37s]   Damage attempt to player | rawDamage:39, currentShield:109, currentHP:155.16198, blocking:false, stamina:100
+[34.05s]   Damage attempt to player | rawDamage:39, currentShield:70, currentHP:151.10978, blocking:false, stamina:100
+[34.73s]   Damage attempt to player | rawDamage:39, currentShield:31, currentHP:142.05898, blocking:false, stamina:100
+[35.90s]   Damage attempt to player | rawDamage:39, currentShield:0, currentHP:120.93614970873772, blocking:false, stamina:100
+[36.56s]   Damage attempt to player | rawDamage:39, currentShield:0, currentHP:79.00069203883474, blocking:false, stamina:100
+[37.23s]   Damage attempt to player | rawDamage:39, currentShield:0, currentHP:32.067474368931805, blocking:false, stamina:100
+[54.19s]   Damage attempt to player | rawDamage:8, currentShield:25.4, currentHP:173, blocking:false, stamina:90.1822999999995
+[55.22s]   Damage attempt to player | rawDamage:8, currentShield:17.4, currentHP:173, blocking:false, stamina:108
+[55.66s]   Damage attempt to player | rawDamage:4, currentShield:9.399999999999999, currentHP:173, blocking:false, stamina:108
+[55.73s]   Damage attempt to player | rawDamage:8, currentShield:5.399999999999999, currentHP:173, blocking:false, stamina:108
+[55.78s]   Damage attempt to player | rawDamage:27, currentShield:0, currentHP:170.55062415533976, blocking:false, stamina:108
+[56.57s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:148.7359719223298, blocking:false, stamina:108
+[56.87s]   Damage attempt to player | rawDamage:27, currentShield:0, currentHP:141.41775363106757, blocking:false, stamina:108
+[57.15s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:138.62801839805775, blocking:false, stamina:108
+[57.18s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:134.79435325242667, blocking:false, stamina:108
+[57.18s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:130.91085810679562, blocking:false, stamina:108
+[57.22s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:123.19369781553348, blocking:false, stamina:108
+[57.23s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:115.45177352427133, blocking:false, stamina:108
+[57.27s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:107.7346132330092, blocking:false, stamina:108
+[57.55s]   Damage attempt to player | rawDamage:27, currentShield:0, currentHP:94.27497508737812, blocking:false, stamina:108
+[57.65s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:102.31087285436843, blocking:false, stamina:108
+[57.68s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:98.47720770873735, blocking:false, stamina:108
+[57.81s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:85.90953741747522, blocking:false, stamina:108
+[57.84s]   Damage attempt to player | rawDamage:4, currentShield:24.4, currentHP:92.5923771262131, blocking:false, stamina:108
+[57.86s]   Damage attempt to player | rawDamage:4, currentShield:20.4, currentHP:92.61759412621309, blocking:false, stamina:108
+[57.91s]   Damage attempt to player | rawDamage:8, currentShield:16.4, currentHP:92.69264112621309, blocking:false, stamina:108
+[58.22s]   Damage attempt to player | rawDamage:27, currentShield:8.399999999999999, currentHP:88.1663281262131, blocking:false, stamina:108
+[58.29s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:105.20773569902863, blocking:false, stamina:108
+[58.32s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:101.37407055339756, blocking:false, stamina:108
+[58.47s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:93.83161726213542, blocking:false, stamina:108
+[58.54s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:86.16428697087329, blocking:false, stamina:108
+[58.54s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:82.28079182524222, blocking:false, stamina:108
+[58.60s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:73.49695667961115, blocking:false, stamina:108
+[58.90s]   Damage attempt to player | rawDamage:27, currentShield:0, currentHP:100.27843638834901, blocking:false, stamina:108
+[58.93s]   Damage attempt to player | rawDamage:4, currentShield:36, currentHP:109.1146741553393, blocking:false, stamina:108
+[58.97s]   Damage attempt to player | rawDamage:8, currentShield:32, currentHP:109.1645041553393, blocking:false, stamina:108
+[59.15s]   Damage attempt to player | rawDamage:8, currentShield:24, currentHP:104.43872015533931, blocking:false, stamina:108
+[59.21s]   Damage attempt to player | rawDamage:4, currentShield:16, currentHP:104.53838015533931, blocking:false, stamina:108
+[59.21s]   Damage attempt to player | rawDamage:4, currentShield:12, currentHP:104.53838015533931, blocking:false, stamina:108
+[59.28s]   Damage attempt to player | rawDamage:8, currentShield:8, currentHP:104.63804015533931, blocking:false, stamina:108
+[59.58s]   Damage attempt to player | rawDamage:27, currentShield:25.4, currentHP:117.08696315533932, blocking:false, stamina:108
+[59.61s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:115.58339509708689, blocking:false, stamina:108
+[59.64s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:111.74972995145582, blocking:false, stamina:108
+[59.84s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:104.28171966019369, blocking:false, stamina:108
+[59.87s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:91.56455936893155, blocking:false, stamina:108
+[59.91s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:87.73089422330048, blocking:false, stamina:108
+[59.94s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:83.89722907766941, blocking:false, stamina:108
+[60.24s]   Damage attempt to player | rawDamage:27, currentShield:0, currentHP:132.57870878640722, blocking:false, stamina:108
+[60.30s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:101.46477655339751, blocking:false, stamina:108
+[60.30s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:93.69778626213538, blocking:false, stamina:108
+[60.49s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:90.08850711650432, blocking:false, stamina:108
+[60.55s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:82.42117682524218, blocking:false, stamina:108
+[60.55s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:78.53768167961111, blocking:false, stamina:108
+[60.62s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:74.75384653398004, blocking:false, stamina:108
+[60.90s]   Damage attempt to player | rawDamage:27, currentShield:0, currentHP:76.29086424271792, blocking:false, stamina:108
+[60.96s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:50.17693200970821, blocking:false, stamina:108
+[61.00s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:46.343266864077144, blocking:false, stamina:108
+[61.16s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:33.82587957281501, blocking:false, stamina:108
+[61.20s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:26.108719281552876, blocking:false, stamina:108
+[61.23s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:22.275054135921806, blocking:false, stamina:108
+[61.26s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:46.44138899029074, blocking:false, stamina:108
+[61.58s]   Damage attempt to player | rawDamage:27, currentShield:0, currentHP:39.148387699028596, blocking:false, stamina:108
+[61.64s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:8.034455466018887, blocking:false, stamina:108
+[61.67s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:4.200790320387819, blocking:false, stamina:108
+[67.91s]   Damage attempt to player | rawDamage:8, currentShield:29.2, currentHP:173, blocking:false, stamina:108
+[76.27s]   Damage attempt to player | rawDamage:64, currentShield:57.2, currentHP:161.2499049999999, blocking:false, stamina:94.21480000000119
+[76.67s]   Damage attempt to player | rawDamage:35, currentShield:0, currentHP:135.24773525242693, blocking:false, stamina:83.88760000000163
+[76.93s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:96.66730272815504, blocking:false, stamina:87.43760000000104
+[76.97s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:92.83363758252396, blocking:false, stamina:88.06460000000104
+[77.12s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:80.29163729126178, blocking:false, stamina:90.89560000000046
+[77.15s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:76.4579721456307, blocking:false, stamina:91.52260000000045
+[77.33s]   Damage attempt to player | rawDamage:35, currentShield:0, currentHP:96.06595285436855, blocking:false, stamina:94.98249999999999
+[77.60s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:57.4861243300967, blocking:false, stamina:100.02509999999985
+[77.65s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:53.6775251844656, blocking:false, stamina:100.9674999999994
+[77.79s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:46.13567589320352, blocking:false, stamina:103.80040000000005
+[77.84s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:104.72722774757241, blocking:false, stamina:104.74469999999971
+[77.99s]   Damage attempt to player | rawDamage:35, currentShield:0, currentHP:92.18552945631029, blocking:false, stamina:107.57949999999991
+[78.28s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:51.63046493203844, blocking:false, stamina:108
+[78.29s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:47.772337786407356, blocking:false, stamina:108
+[78.47s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:35.28031849514523, blocking:false, stamina:108
+[78.51s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:31.446653349514165, blocking:false, stamina:108
+[78.67s]   Damage attempt to player | rawDamage:35, currentShield:0, currentHP:23.930323058252032, blocking:false, stamina:108
+
+========================================================================================================================
+END OF DEBUG LOG

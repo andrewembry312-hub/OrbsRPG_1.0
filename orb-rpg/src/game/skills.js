@@ -164,7 +164,7 @@ export const BUFF_REGISTRY = {
   'vigor': { name:'Vigor', desc:'+15% max HP, +8 HP/s regen', duration:12, stats:{maxHp:0.15, hpRegen:8} },
   'spirit': { name:'Spirit', desc:'+20% max mana, +5 mana/s regen', duration:12, stats:{maxMana:0.20, manaRegen:5} },
   'endurance': { name:'Endurance', desc:'+25% max stamina, +12 stam/s regen', duration:10, stats:{maxStam:0.25, stamRegen:12} },
-  'fortified': { name:'Fortified', desc:'+300 shield, +20% shield effectiveness', duration:8, stats:{shield:300, shieldEff:0.20} },
+  'fortified': { name:'Fortified', desc:'+300 shield, +20% shield effectiveness', duration:8, stats:{shieldEff:0.20}, shield:300 },
   'lifesteal_boost': { name:'Lifesteal Surge', desc:'+15% lifesteal', duration:10, stats:{lifesteal:0.15} },
   
   // MOBILITY BUFFS
