@@ -201,14 +201,14 @@ export function buildUI(state){
         </div>
         <!-- Tab buttons -->
         <div style="display:flex; gap:6px; border-bottom:1px solid #d4af37; margin-top:10px; padding-bottom:8px;">
-          <button class="tab-btn active" data-tab="0" style="flex:1; padding:8px; background:rgba(212,175,55,0.3); border:1px solid #d4af37; color:#d4af37; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold;">🎒 Inventory</button>
-          <button class="tab-btn" data-tab="1" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">⚔️ Skills ⚔️</button>
-          <button class="tab-btn" data-tab="2" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">📈 Level Up</button>
-          <button class="tab-btn" data-tab="4" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">👥 Group</button>
-          <button class="tab-btn" data-tab="5" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">🤝 Allies</button>
-          <button class="tab-btn" data-tab="7" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">🗺️ Campaign</button>
-          <button class="tab-btn" data-tab="3" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Buffs/Debuffs</button>
-          <button class="tab-btn" data-tab="6" style="flex:1; padding:8px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:11px;">Help</button>
+          <button class="tab-btn active" data-tab="0" style="flex:1; padding:10px; background:rgba(212,175,55,0.3); border:1px solid #d4af37; color:#d4af37; border-radius:3px; cursor:pointer; font-size:14px; font-weight:bold;">🎒 Inventory</button>
+          <button class="tab-btn" data-tab="1" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">⚔️ Skills ⚔️</button>
+          <button class="tab-btn" data-tab="2" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">📈 Level Up</button>
+          <button class="tab-btn" data-tab="4" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">👥 Group</button>
+          <button class="tab-btn" data-tab="5" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">🤝 Allies</button>
+          <button class="tab-btn" data-tab="7" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">🗺️ Campaign</button>
+          <button class="tab-btn" data-tab="3" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">Buffs/Debuffs</button>
+          <button class="tab-btn" data-tab="6" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">Help</button>
         </div>
 
         <!-- Tab 0: Inventory -->
@@ -343,10 +343,10 @@ export function buildUI(state){
                   </div>
                 </div>
                 
-                <div style="border-top:1px solid rgba(212,175,55,0.2); padding-top:12px;">
+                <div style="margin-top:12px; border-top:1px solid rgba(212,175,55,0.2); padding-top:12px;">
                   <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Passive Abilities</div>
+                  <div id="passiveList" style="display:flex; flex-direction:column; gap:6px;"></div>
                 </div>
-                <div id="passiveList" style="display:flex; flex-direction:column; gap:6px;"></div>
               </div>
             </div>
           </div>
@@ -3484,136 +3484,155 @@ function bindUI(state){
   // Shared icon mapping for buffs/debuffs/skills/items (PNG overrides, otherwise emoji fallback)
   const ICON_IMAGES = {
     // Buff icons
-    temporal_flux: 'assets/Buff%20icons/Temporal%20Flux.PNG',
-    arcane_power: 'assets/Buff%20icons/Arcane%20Power.PNG',
-    battle_fury: 'assets/Buff%20icons/Battle%20Fury.PNG',
-    berserker_rage: 'assets/Buff%20icons/Berserker%20Rage.PNG',
-    berserk: 'assets/Buff%20icons/Berserker%20Rage.PNG',
-    blessed: 'assets/Buff%20icons/Blessed.PNG',
-    guardian_stance: 'assets/Buff%20icons/Guardian%20Stance.PNG',
-    healing_empowerment: 'assets/Buff%20icons/Healing%20Empowerment.PNG',
-    iron_will: 'assets/Buff%20icons/Iron%20Will.PNG',
-    radiance: 'assets/Buff%20icons/Radiance.PNG',
-    regeneration: 'assets/Buff%20icons/Regeneration.PNG',
-    swift_strikes: 'assets/Buff%20icons/Swift%20Strikes.PNG',
-    haste: 'assets/Buff%20icons/haste.PNG',
-    fortified: 'assets/Buff%20icons/fortified.PNG',
-    vigor: 'assets/Buff%20icons/vigor.PNG',
-    mana_surge: 'assets/Buff%20icons/mana%20surge.PNG',
-    slow: 'assets/Buff%20icons/slow.PNG',
-    root: 'assets/Buff%20icons/root.PNG',
+    temporal_flux: 'assets/Buff icons/Temporal Flux.PNG',
+    arcane_power: 'assets/Buff icons/Arcane Power.PNG',
+    arcane_burn: 'assets/Buff icons/Arcane Burn.png',
+    battle_fury: 'assets/Buff icons/Battle Fury.PNG',
+    berserker_rage: 'assets/Buff icons/Berserker Rage.PNG',
+    berserk: 'assets/Buff icons/Berserker.PNG',
+    blessed: 'assets/Buff icons/Blessed.PNG',
+    bleed: 'assets/Buff icons/Bleed.png',
+    burn: 'assets/Buff icons/burn.PNG',
+    clarity: 'assets/Buff icons/clarity.PNG',
+    curse: 'assets/Buff icons/curse.PNG',
+    divine_shield: 'assets/Buff icons/devine shield.PNG',
+    flight: 'assets/Buff icons/flight.png',
+    fortified: 'assets/Buff icons/fortified.PNG',
+    guardian_stance: 'assets/Buff icons/Guardian Stance.PNG',
+    haste: 'assets/Buff icons/haste.PNG',
+    healing_empowerment: 'assets/Buff icons/Healing Empowerment.PNG',
+    iron_will: 'assets/Buff icons/Iron Will.PNG',
+    lucky: 'assets/Buff icons/lucky.PNG',
+    mana_surge: 'assets/Buff icons/mana surge.PNG',
+    poison: 'assets/Buff icons/Poison.png',
+    radiance: 'assets/Buff icons/Radiance.PNG',
+    regeneration: 'assets/Buff icons/Regeneration.PNG',
+    root: 'assets/Buff icons/root.PNG',
+    slow: 'assets/Buff icons/slow.PNG',
+    sprint: 'assets/Buff icons/sprint.png',
+    stealth: 'assets/Buff icons/Stealth.png',
+    swift_strikes: 'assets/Buff icons/Swift Strikes.PNG',
+    vigor: 'assets/Buff icons/vigor.PNG',
     // Skill icons
-    arc_bolt: 'assets/skill%20icons/Arc%20Bolt.png',
-    chain_light: 'assets/skill%20icons/Chain%20Zap.png',
-    meteor_slam: 'assets/skill%20icons/Meteor%20Slam.png',
-    piercing_lance: 'assets/skill%20icons/Piercing%20Lance.png',
-    gravity_well: 'assets/skill%20icons/Gravity%20Well.png',
-    warrior_cleave: 'assets/skill%20icons/Rending%20Cleave.png',
-    warrior_life_leech: 'assets/skill%20icons/Life%20Leech.png',
-    warrior_charge: 'assets/skill%20icons/shoulder%20charge.png',
-    warrior_fortitude: 'assets/skill%20icons/Fortitude.png',
-    warrior_berserk: 'assets/skill%20icons/Berserk.png',
-    renewal_field: 'assets/skill%20icons/Renewal%20Field.png',
-    endurance: 'assets/skill%20icons/Endurance.png',
-    spirit: 'assets/skill%20icons/Spirit.png'
+    arc_bolt: 'assets/skill icons/Arc Bolt.png',
+    chain_light: 'assets/skill icons/Chain Zap.png',
+    meteor_slam: 'assets/skill icons/Meteor Slam.png',
+    piercing_lance: 'assets/skill icons/Piercing Lance.png',
+    gravity_well: 'assets/skill icons/Gravity Well.png',
+    warrior_cleave: 'assets/skill icons/Rending Cleave.png',
+    warrior_life_leech: 'assets/skill icons/Life Leech.png',
+    warrior_charge: 'assets/skill icons/shoulder charge.png',
+    warrior_fortitude: 'assets/skill icons/Fortitude.png',
+    warrior_berserk: 'assets/skill icons/Berserk.png',
+    mage_healing_burst: 'assets/skill icons/heal burst.png',
+    renewal_field: 'assets/skill icons/Renewal Field.png',
+    endurance: 'assets/skill icons/Endurance.png',
+    spirit: 'assets/skill icons/Spirit.png',
+    knight_shield_wall: 'assets/skill icons/Ward Barrier.png'
   };
 
   // Item icon mapping - maps rarity + item type to PNG
   const ITEM_ICON_MAP = {
     // Weapons - Axes
-    'common_axe': 'assets/items/Common%20Axe.png',
-    'uncommon_axe': 'assets/items/Uncommon%20Axe.png',
-    'rare_axe': 'assets/items/Rare%20Axe.png',
-    'epic_axe': 'assets/items/Epic%20Axe.png',
-    'legendary_axe': 'assets/items/Legendary%20Axe.png',
+    'common_axe': 'assets/items/Common Axe.png',
+    'uncommon_axe': 'assets/items/Uncommon Axe.png',
+    'rare_axe': 'assets/items/Rare Axe.png',
+    'epic_axe': 'assets/items/Epic Axe.png',
+    'legendary_axe': 'assets/items/Legendary Axe.png',
     // Weapons - Swords
-    'common_sword': 'assets/items/Common%20Sword.png',
-    'uncommon_sword': 'assets/items/Uncommon%20Sword.png',
-    'rare_sword': 'assets/items/Rare%20Sword.png',
-    'epic_sword': 'assets/items/Epic%20Sword.png',
-    'legendary_sword': 'assets/items/Legendary%20sword.png',
+    'common_sword': 'assets/items/Common Sword.png',
+    'uncommon_sword': 'assets/items/Uncommon Sword.png',
+    'rare_sword': 'assets/items/Rare Sword.png',
+    'epic_sword': 'assets/items/Epic Sword.png',
+    'legendary_sword': 'assets/items/Legendary sword.png',
     // Weapons - Daggers
-    'common_dagger': 'assets/items/Common%20Dagger.png',
-    'uncommon_dagger': 'assets/items/Uncommon%20Dagger.png',
-    'rare_dagger': 'assets/items/Rare%20Dagger.png',
-    'epic_dagger': 'assets/items/Epic%20Dagger.png',
-    'legendary_dagger': 'assets/items/Legendary%20Dagger.png',
+    'common_dagger': 'assets/items/Common Dagger.png',
+    'uncommon_dagger': 'assets/items/Uncommon Dagger.png',
+    'rare_dagger': 'assets/items/Rare Dagger.png',
+    'epic_dagger': 'assets/items/Epic Dagger.png',
+    'legendary_dagger': 'assets/items/Legendary Dagger.png',
     // Weapons - Great Swords
-    'common_greatsword': 'assets/items/Common%20Great%20Sword.png',
-    'uncommon_greatsword': 'assets/items/Uncommon%20Great%20Sword.png',
-    'rare_greatsword': 'assets/items/Rare%20Great%20Sword.png',
-    'epic_greatsword': 'assets/items/Epic%20Great%20Sword.png',
-    'legendary_greatsword': 'assets/items/Legendary%20Great%20Sword.png',
+    'common_greatsword': 'assets/items/Common Great Sword.png',
+    'uncommon_greatsword': 'assets/items/Uncommon Great Sword.png',
+    'rare_greatsword': 'assets/items/Rare Great Sword.png',
+    'epic_greatsword': 'assets/items/Epic Great Sword.png',
+    'legendary_greatsword': 'assets/items/Legendary Great Sword.png',
     // Weapons - Destruction Staffs
-    'common_destruction_staff': 'assets/items/Common%20Destruction%20Staff.png',
-    'uncommon_destruction_staff': 'assets/items/Uncommon%20Destruction%20Staff.png',
-    'rare_destruction_staff': 'assets/items/Rare%20Destruction%20Staff.png',
-    'epic_destruction_staff': 'assets/items/Epic%20Destruction%20Staff.png',
-    'legendary_destruction_staff': 'assets/items/Legendary%20Destruction%20Staff.png',
+    'common_destruction_staff': 'assets/items/Common Destruction Staff.png',
+    'uncommon_destruction_staff': 'assets/items/Uncommon Destruction Staff.png',
+    'rare_destruction_staff': 'assets/items/Rare Destruction Staff.png',
+    'epic_destruction_staff': 'assets/items/Epic Destruction Staff.png',
+    'legendary_destruction_staff': 'assets/items/Legendary Destruction Staff.png',
     // Weapons - Healing Staffs
-    'common_healing_staff': 'assets/items/Common%20Healing%20Staff.png',
-    'uncommon_healing_staff': 'assets/items/Uncommon%20Healing%20Staff.png',
-    'rare_healing_staff': 'assets/items/Rare%20Healing%20Staff.png',
-    'epic_healing_staff': 'assets/items/Epic%20Healing%20Staff.png',
-    'legendary_healing_staff': 'assets/items/Legendary%20Healing%20Staff.png',
+    'common_healing_staff': 'assets/items/Common Healing Staff.png',
+    'uncommon_healing_staff': 'assets/items/Uncommon Healing Staff.png',
+    'rare_healing_staff': 'assets/items/Rare Healing Staff.png',
+    'epic_healing_staff': 'assets/items/Epic Healing Staff.png',
+    'legendary_healing_staff': 'assets/items/Legendary Healing Staff.png',
     // Armor - Helms
-    'common_helm': 'assets/items/Common%20Helm.png',
-    'uncommon_helm': 'assets/items/Uncommon%20Helm.png',
-    'rare_helm': 'assets/items/Rare%20Helm.png',
-    'epic_helm': 'assets/items/Epic%20Helm.png',
-    'legendary_helm': 'assets/items/Legendary%20Helm.png',
+    'common_helm': 'assets/items/Common Helm.png',
+    'uncommon_helm': 'assets/items/Uncommon Helm.png',
+    'rare_helm': 'assets/items/Rare Helm.png',
+    'epic_helm': 'assets/items/Epic Helm.png',
+    'legendary_helm': 'assets/items/Legendary Helm.png',
     // Armor - Chest
-    'common_chest': 'assets/items/Common%20Chest.png',
-    'uncommon_chest': 'assets/items/Uncommon%20Chest.png',
-    'rare_chest': 'assets/items/Rare%20Chest.png',
+    'common_chest': 'assets/items/Common Chest.png',
+    'uncommon_chest': 'assets/items/Uncommon Chest.png',
+    'rare_chest': 'assets/items/Rare Chest.png',
     // NOTE: epic_chest and legendary_chest files are missing from assets/items
-    // 'epic_chest': 'assets/items/Epic%20Chest.png',
-    // 'legendary_chest': 'assets/items/Legendary%20Chest.png',
+    // 'epic_chest': 'assets/items/Epic Chest.png',
+    // 'legendary_chest': 'assets/items/Legendary Chest.png',
     // Armor - Shoulders
-    'common_shoulders': 'assets/items/common%20shoulders.png',
-    'uncommon_shoulders': 'assets/items/uncommon%20shoulders.png',
-    'rare_shoulders': 'assets/items/Rare%20Shoulders.png',
-    'epic_shoulders': 'assets/items/epic%20shoulders.png',
-    'legendary_shoulders': 'assets/items/legendary%20shoulders.png',
+    'common_shoulders': 'assets/items/common shoulders.png',
+    'uncommon_shoulders': 'assets/items/uncommon shoulders.png',
+    'rare_shoulders': 'assets/items/Rare Shoulders.png',
+    'epic_shoulders': 'assets/items/epic shoulders.png',
+    'legendary_shoulders': 'assets/items/legendary shoulders.png',
     // Armor - Hands
-    'common_hands': 'assets/items/common%20hands.png',
-    'uncommon_hands': 'assets/items/uncommon%20hands.png',
-    'rare_hands': 'assets/items/rare%20hands.png',
-    'epic_hands': 'assets/items/epic%20hands.png',
-    'legendary_hands': 'assets/items/legendary%20hands.png',
+    'common_hands': 'assets/items/common hands.png',
+    'uncommon_hands': 'assets/items/uncommon hands.png',
+    'rare_hands': 'assets/items/rare hands.png',
+    'epic_hands': 'assets/items/epic hands.png',
+    'legendary_hands': 'assets/items/legendary hands.png',
     // Armor - Leggings
-    'common_legs': 'assets/items/common%20leggings.png',
-    'uncommon_legs': 'assets/items/uncommon%20leggings.png',
-    'rare_legs': 'assets/items/rare%20leggings.png',
-    'epic_legs': 'assets/items/epic%20leggings.png',
-    'legendary_legs': 'assets/items/legendary%20leggings.png',
+    'common_legs': 'assets/items/common leggings.png',
+    'uncommon_legs': 'assets/items/uncommon leggings.png',
+    'rare_legs': 'assets/items/rare leggings.png',
+    'epic_legs': 'assets/items/epic leggings.png',
+    'legendary_legs': 'assets/items/legendary leggings.png',
     // Armor - Feet
-    'common_feet': 'assets/items/common%20feet.png',
-    'uncommon_feet': 'assets/items/uncommon%20feet.png',
-    'rare_feet': 'assets/items/rare%20feet.png',
-    'epic_feet': 'assets/items/epic%20feet.png',
-    'legendary_feet': 'assets/items/legendary%20feet.png',
+    'common_feet': 'assets/items/common feet.png',
+    'uncommon_feet': 'assets/items/uncommon feet.png',
+    'rare_feet': 'assets/items/rare feet.png',
+    'epic_feet': 'assets/items/epic feet.png',
+    'legendary_feet': 'assets/items/legendary feet.png',
     // Armor - Belts
-    'common_belt': 'assets/items/common%20belt.png',
-    'uncommon_belt': 'assets/items/uncommon%20belt.png',
-    'rare_belt': 'assets/items/rare%20belt.png',
-    'epic_belt': 'assets/items/epic%20belt.png',
-    'legendary_belt': 'assets/items/legendary%20belt.png',
+    'common_belt': 'assets/items/common belt.png',
+    'uncommon_belt': 'assets/items/uncommon belt.png',
+    'rare_belt': 'assets/items/rare belt.png',
+    'epic_belt': 'assets/items/epic belt.png',
+    'legendary_belt': 'assets/items/legendary belt.png',
     // Armor - Bracelets
-    'common_bracelet': 'assets/items/common%20bracelet.png',
-    'uncommon_bracelet': 'assets/items/uncommon%20bracelet.png',
-    'rare_bracelet': 'assets/items/rare%20bracelet.png',
-    'epic_bracelet': 'assets/items/epic%20bracelet.png',
-    'legendary_bracelet': 'assets/items/legendary%20bracelet.png',
+    'common_bracelet': 'assets/items/common bracelet.png',
+    'uncommon_bracelet': 'assets/items/uncommon bracelet.png',
+    'rare_bracelet': 'assets/items/rare bracelet.png',
+    'epic_bracelet': 'assets/items/epic bracelet.png',
+    'legendary_bracelet': 'assets/items/legendary bracelet.png',
     // Armor - Rings
-    'common_ring': 'assets/items/common%20ring.png',
-    'uncommon_ring': 'assets/items/uncommon%20ring.png',
-    'rare_ring': 'assets/items/rare%20ring.png',
-    'epic_ring': 'assets/items/epic%20ring.png',
-    'legendary_ring': 'assets/items/legendary%20ring.png',
+    'common_ring': 'assets/items/common ring.png',
+    'uncommon_ring': 'assets/items/uncommon ring.png',
+    'rare_ring': 'assets/items/rare ring.png',
+    'epic_ring': 'assets/items/epic ring.png',
+    'legendary_ring': 'assets/items/legendary ring.png',
+    // Armor - Necklaces (slot is 'neck')
+    'common_neck': 'assets/items/common necklace.png',
+    'uncommon_neck': 'assets/items/uncommon necklace.png',
+    'rare_neck': 'assets/items/rare necklace.png',
+    'epic_neck': 'assets/items/epic necklace.png',
+    'legendary_neck': 'assets/items/legendary necklace.png',
     // Potions
-    'hp_potion': 'assets/items/HP%20Potion.png',
-    'mana_potion': 'assets/items/Mana%20Potion.png'
+    'hp_potion': 'assets/items/HP Potion.png',
+    'mana_potion': 'assets/items/Mana Potion.png'
   };
 
   // Helper to get item icon from item object
@@ -3642,11 +3661,13 @@ function bindUI(state){
       // For armor, use the slot (helm, chest, legs, etc.)
       // Special handling for accessories
       if(item.slot === 'accessory1' || item.slot === 'accessory2'){
-        // Determine if it's a ring or bracelet from the name
+        // Determine if it's a ring, bracelet, or necklace from the name
         if(item.name?.toLowerCase().includes('ring')){
           itemType = 'ring';
         } else if(item.name?.toLowerCase().includes('bracelet')){
           itemType = 'bracelet';
+        } else if(item.name?.toLowerCase().includes('necklace')){
+          itemType = 'necklace';
         }
       } else {
         itemType = item.slot;
@@ -3676,10 +3697,10 @@ function bindUI(state){
     const src = ICON_IMAGES[id];
     if(src){
       const alt = meta?.name || id;
-      return `<img src="${src}" alt="${alt}" />`;
+      return `<img src="${src}" alt="${alt}" style="width:100%; height:100%; object-fit:cover; border-radius:3px;" />`;
     }
     const fallback = ICON_FALLBACKS[id] || (isDebuff ? '☠' : '★');
-    return `<span>${fallback}</span>`;
+    return `<span style="font-size:20px;">${fallback}</span>`;
   }
 
   // Build active effect icons list for HUD and tab
@@ -4498,19 +4519,18 @@ function bindUI(state){
     
     // Render ability slots at top
     ui.skillSlots.innerHTML='';
-    const headerText = isGroupMemberMode ? `${memberName} - Abilities` : 'Your Abilities';
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.alignItems = 'center';
-    header.style.justifyContent = 'space-between';
-    header.style.gap = '8px';
-    header.style.fontWeight = 'bold';
-    header.style.marginBottom = '8px';
-    header.style.color = isGroupMemberMode ? '#4a9eff' : '#fff';
-    const titleSpan = document.createElement('span');
-    titleSpan.textContent = headerText;
-    header.appendChild(titleSpan);
     if(isGroupMemberMode){
+      const header = document.createElement('div');
+      header.style.display = 'flex';
+      header.style.alignItems = 'center';
+      header.style.justifyContent = 'space-between';
+      header.style.gap = '8px';
+      header.style.fontWeight = 'bold';
+      header.style.marginBottom = '8px';
+      header.style.color = '#4a9eff';
+      const titleSpan = document.createElement('span');
+      titleSpan.textContent = `${memberName} - Abilities`;
+      header.appendChild(titleSpan);
       const backBtn = document.createElement('button');
       backBtn.className = 'secondary';
       backBtn.textContent = 'Switch to Player';
@@ -4518,8 +4538,8 @@ function bindUI(state){
       backBtn.style.fontSize = '11px';
       backBtn.onclick = ()=>{ state.groupMemberInventoryMode = null; ui.renderSkills(); ui.renderInventory(); };
       header.appendChild(backBtn);
+      ui.skillSlots.appendChild(header);
     }
-    ui.skillSlots.appendChild(header);
     
     const slotsContainer = document.createElement('div');
     slotsContainer.style.display = 'flex';
@@ -4658,10 +4678,13 @@ function bindUI(state){
     // Show list of abilities in selected category with full stats and buttons
       let listHtml = `<div style="margin-bottom:12px;"><div class="small" style="font-weight:bold; color:#4a9eff; margin-bottom:8px;">${selectedCat ? selectedCat.name : 'Abilities'}</div>`;
       
-      if(abilitiesInCategory.length === 0){
-        listHtml += `<div style="color:#666; padding:8px; text-align:center;">No abilities in this category</div>`;
+      // Filter to only show ACTIVE abilities in abilityDetails
+      const activeAbilities = abilitiesInCategory.filter(a => a.type === 'active');
+      
+      if(activeAbilities.length === 0){
+        listHtml += `<div style="color:#666; padding:8px; text-align:center;">No active abilities in this category</div>`;
       } else {
-        for(const ability of abilitiesInCategory){
+        for(const ability of activeAbilities){
           const emojiIcon = ability.type === 'passive' ? '✦' : (ability.targetType ? TARGET_TYPE_INFO[ability.targetType]?.icon || '→' : '→');
           const iconSrc = ICON_IMAGES[ability.id];
           const iconHtml = iconSrc ? `<img src="${iconSrc}" style="width:80px; height:80px; border-radius:6px; border:2px solid #d4af37; object-fit:cover;" />` : `<span style="font-size:48px;">${emojiIcon}</span>`;
@@ -4794,13 +4817,8 @@ function bindUI(state){
     // Get player's selected passives
     const activePassiveIds = (state.player.passives || []).map(p => p?.id).filter(Boolean);
     
-    // Get all passives or filter by category
-    const allPassives = Object.values(ABILITIES).filter(a => a.type === 'passive');
-    const passives = allPassives.filter(pass => {
-      if(!ui._selectedCategory || ui._selectedCategory === 'all') return true;
-      // Show passives matching selected category
-      return selectedAbilities.some(ab => ab.id === pass.id);
-    });
+    // Get passives from selected category (filter from abilitiesInCategory)
+    const passives = abilitiesInCategory.filter(a => a.type === 'passive');
     
     for(const pass of passives){
       const isSelected = activePassiveIds.includes(pass.id);

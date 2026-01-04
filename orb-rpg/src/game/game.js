@@ -401,10 +401,81 @@ function applySpends(state, st){
 
 function applyBuffs(st, buffs){
   for(const [k,v] of Object.entries(buffs)){
-    if(k==='cdr') st.cdr+=v;
+    // Special handling for percentage-based multiplicative stats
+    if(k === 'allStats'){
+      // Apply percentage to all major stats
+      const mult = 1 + v;
+      st.maxHp = Math.round(st.maxHp * mult);
+      st.maxMana = Math.round(st.maxMana * mult);
+      st.maxStam = Math.round(st.maxStam * mult);
+      st.atk = Math.round(st.atk * mult);
+      st.def = Math.round(st.def * mult);
+      st.hpRegen = Number((st.hpRegen * mult).toFixed(2));
+      st.manaRegen = Number((st.manaRegen * mult).toFixed(2));
+      st.stamRegen = Math.round(st.stamRegen * mult);
+    }
+    // Percentage-based attack/defense (e.g., atk:0.40 = +40%)
+    else if((k === 'atk' || k === 'def') && Math.abs(v) < 10){
+      st[k] = Math.round(st[k] * (1 + v));
+    }
+    // Percentage-based speed (e.g., speed:0.30 = +30%)
+    else if(k === 'speed' && Math.abs(v) < 10){
+      st[k] = Math.round(st[k] * (1 + v));
+    }
+    // Percentage-based regen (e.g., manaRegen:0.15 = +15%)
+    else if((k === 'hpRegen' || k === 'manaRegen') && Math.abs(v) < 10){
+      st[k] = Number((st[k] * (1 + v)).toFixed(2));
+    }
+    // Percentage-based max stats (e.g., maxHp:0.15 = +15%)
+    else if((k === 'maxHp' || k === 'maxMana' || k === 'maxStam') && Math.abs(v) < 10){
+      st[k] = Math.round(st[k] * (1 + v));
+    }
+    // Percentage-based stamina regen
+    else if(k === 'stamRegen' && Math.abs(v) < 100){
+      st[k] = Math.round(st[k] * (1 + v));
+    }
+    // Percentage-based damage stats
+    else if((k === 'magicDmg' || k === 'allDamage') && Math.abs(v) < 10){
+      st.magicDmg = (st.magicDmg ?? 1.0) * (1 + v);
+      if(k === 'allDamage') st.atk = Math.round(st.atk * (1 + v));
+    }
+    // Percentage-based attack speed
+    else if(k === 'atkSpeed'){
+      st.atkSpeed = (st.atkSpeed ?? 1.0) * (1 + v);
+    }
+    // Percentage-based cast speed
+    else if(k === 'castSpeed'){
+      st.castSpeed = (st.castSpeed ?? 1.0) * (1 + v);
+    }
+    // Percentage-based damage taken (debuff)
+    else if(k === 'damageTaken'){
+      st.damageTaken = (st.damageTaken ?? 1.0) * (1 + v);
+    }
+    // Percentage-based healing power
+    else if(k === 'healingPower'){
+      st.healingPower = (st.healingPower ?? 1.0) * (1 + v);
+    }
+    // Percentage-based mana cost reduction
+    else if(k === 'manaCostReduction'){
+      st.manaCostReduction = (st.manaCostReduction ?? 0) + v;
+    }
+    // Percentage-based shield effectiveness
+    else if(k === 'shieldEff'){
+      st.shieldEff = (st.shieldEff ?? 1.0) * (1 + v);
+    }
+    // Additive stats (CDR, crit, block, lifesteal, flat shield)
+    else if(k==='cdr') st.cdr+=v;
     else if(k==='blockEff') st.blockBase+=v;
     else if(k==='lifesteal') st.lifesteal=(st.lifesteal??0)+v;
     else if(k==='shieldGain') st.shieldGain=(st.shieldGain??0)+v;
+    else if(k==='critChance') st.critChance=(st.critChance??0)+v;
+    else if(k==='critMult') st.critMult=(st.critMult??1.5)+v;
+    else if(k==='shield') st.shield=(st.shield??0)+v; // Flat shield gain
+    // Boolean flags (immunity, cc, etc.)
+    else if(k === 'ccImmune' || k === 'invulnerable' || k === 'invisible' || k === 'silenceImmune' || k === 'flying' || k === 'rooted' || k === 'stunned' || k === 'silenced'){
+      st[k] = v;
+    }
+    // Everything else as flat addition
     else st[k]=(st[k]??0)+v;
   }
 }

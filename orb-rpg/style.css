@@ -250,9 +250,9 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   width:min(920px,92vw);
 }
 .buffIcon{
-  position:relative; width:32px; height:32px; border-radius:6px;
+  position:relative; width:64px; height:64px; border-radius:6px;
   display:inline-flex; align-items:center; justify-content:center;
-  font-size:14px; font-weight:900; color:#000;
+  font-size:28px; font-weight:900; color:#000;
   border:2px solid #d4af37;
   background:rgba(0,0,0,.82);
   box-shadow:0 0 8px rgba(212,175,55,.4);
@@ -263,14 +263,14 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
 .buffIcon.debuff{ background:rgba(30,0,0,.92); border-color:#f44; box-shadow:0 0 8px rgba(255,68,68,.5); }
 .buffIcon.passive{ background:rgba(0,10,30,.92); border-color:#7aa2ff; box-shadow:0 0 8px rgba(122,162,255,.5); }
 .buffIcon .timer{
-  position:absolute; right:-3px; bottom:-3px; font-size:8px; font-weight:800;
+  position:absolute; right:-3px; bottom:-3px; font-size:10px; font-weight:800;
   color:#ffd700; background:rgba(0,0,0,.85); border:1px solid rgba(212,175,55,.6);
-  padding:1px 3px; border-radius:3px;
+  padding:2px 4px; border-radius:3px;
 }
 .buffIcon .stack{
-  position:absolute; left:-3px; top:-3px; font-size:8px; font-weight:900;
+  position:absolute; left:-3px; top:-3px; font-size:10px; font-weight:900;
   color:#ffd700; background:rgba(0,0,0,.85); border:1px solid rgba(212,175,55,.6);
-  padding:1px 3px; border-radius:3px;
+  padding:2px 4px; border-radius:3px;
 }
 .buffIcon:hover{ filter:brightness(1.15); box-shadow:0 0 12px rgba(212,175,55,.7); }
 

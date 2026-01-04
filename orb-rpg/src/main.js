@@ -15,6 +15,9 @@ const input = initInput(engine.canvas);
 let state = createState(engine, input, null);
 let ui; // Will be initialized after all imports complete
 
+// Expose state for debugging console commands
+window.state = state;
+
 // Initialize UI after all modules are loaded
 async function initializeApp() {
   ui = buildUI(state);
