@@ -1,7 +1,7 @@
 import { saveJson, loadJson, clamp } from "../engine/util.js";
 import { DEFAULT_BINDS, ACTION_LABELS, INV_SIZE, ARMOR_SLOTS, SLOT_LABEL } from "./constants.js";
 import { rarityClass } from "./rarity.js";
-import { currentStats, exportSave, importSave, applyClassToUnit, downloadGameLog, downloadErrorLog, initConsoleErrorLogger } from "./game.js";
+import { currentStats, exportSave, importSave, applyClassToUnit, downloadGameLog, downloadErrorLog, downloadCombatLog, initConsoleErrorLogger } from "./game.js";
 import { LEVEL_CONFIG, getItemLevelColor } from "./leveling.js";
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
@@ -59,14 +59,12 @@ export function buildUI(state){
         </div>
       </div>
     </div>
-    <div class="hud" id="hud">
+    <div class="hud" id="hud" style="margin-top:100px;">
       <div class="row">
         <div class="pill">Campaign</div>
         <div class="pill">Enemies <span id="enemyCount">0</span></div>
         <div class="pill">Friendlies <span id="allyCount">0</span></div>
       </div>
-
-      
 
       <div class="row" style="margin-top:8px">
         <div class="pill">Player Pts <span id="pPts">0</span></div>
@@ -76,25 +74,7 @@ export function buildUI(state){
 
       <div class="row" style="margin-top:8px">
         <div class="pill">Lv <span id="lvl">1</span></div>
-        <!-- XP pill removed - now using top-left XP UI -->
         <div class="pill">SP <span id="spText">0</span></div>
-      </div>
-
-      <div style="margin-top:10px">
-        <div class="small">HP <span id="hpText"></span></div>
-        <div class="bar"><div id="hpFill" class="fill" style="background:var(--hp);width:100%"></div></div>
-      </div>
-      <div style="margin-top:8px">
-        <div class="small">Mana <span id="manaText"></span></div>
-        <div class="bar"><div id="manaFill" class="fill" style="background:var(--mana);width:100%"></div></div>
-      </div>
-      <div style="margin-top:8px">
-        <div class="small">Stamina <span id="stamText"></span></div>
-        <div class="bar"><div id="stamFill" class="fill" style="background:var(--stam);width:100%"></div></div>
-      </div>
-      <div style="margin-top:8px">
-        <div class="small">Shield <span id="shieldText"></span></div>
-        <div class="bar"><div id="shieldFill" class="fill" style="background:var(--shield);width:0%"></div></div>
       </div>
 
       <div class="hint" id="hintText"></div>
@@ -136,66 +116,67 @@ export function buildUI(state){
     <!-- Active Buff/Debuff Icons HUD -->
     <div id="buffIconsHud" class="buffIconsHud"></div>
 
-    <!-- Bottom stats (horizontal) above ability bar -->
-    <div id="bottomStats" class="bottomStats">
-      <div class="statBox" style="width:260px">
-        <div class="small">HP <span id="bs_hpText"></span></div>
-        <div class="bar"><div id="bs_hpFill" class="fill" style="background:var(--hp);width:100%"></div></div>
-        <div class="small" style="margin-top:2px">Shield <span id="bs_shieldText"></span></div>
-        <div class="bar"><div id="bs_shieldFill" class="fill" style="background:var(--shield);width:0%"></div></div>
+    <!-- Player Stats UI (Top-Left Corner) -->
+    <div id="statsContainer" style="position:fixed; top:10px; left:10px; z-index:200; display:flex; gap:8px; align-items:stretch; background:rgba(0,0,0,0.75); border:2px solid rgba(212,175,55,0.5); border-radius:8px; padding:8px; box-shadow:0 4px 12px rgba(0,0,0,0.6);">
+      <!-- Hero Portrait Circle with Level Badge Overlay -->
+      <div style="position:relative; flex-shrink:0;">
+        <div id="heroPortrait" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid rgba(212,175,55,0.8); box-shadow:0 0 12px rgba(212,175,55,0.4); background:#000;">
+          <img id="heroPortraitImg" src="" style="width:100%; height:100%; object-fit:cover; display:none;" />
+        </div>
+        
+        <!-- Level Badge - Bottom Right Corner of Portrait -->
+        <div id="levelBadge" style="position:absolute; bottom:-2px; right:-2px; width:25px; height:25px;">
+          <svg width="25" height="25" viewBox="0 0 50 50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+            <defs>
+              <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#ffed4e;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#d4af37;stop-opacity:1" />
+              </linearGradient>
+              <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+                <stop offset="70%" style="stop-color:#0f0f1e;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+              </radialGradient>
+            </defs>
+            <circle cx="25" cy="25" r="23" fill="url(#goldGradient)" stroke="#fff" stroke-width="1" opacity="0.9"/>
+            <circle cx="25" cy="25" r="19" fill="url(#centerGlow)" stroke="#d4af37" stroke-width="1.5"/>
+          </svg>
+          <div id="levelNumber" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:9px; font-weight:bold; color:#ffd700; text-shadow: 0 0 4px rgba(255,215,0,0.8), 0 1px 2px rgba(0,0,0,0.9); font-family: 'Arial Black', sans-serif;">1</div>
+        </div>
       </div>
-      <div class="statBox" style="width:200px">
-        <div class="small">Mana <span id="bs_manaText"></span></div>
-        <div class="bar"><div id="bs_manaFill" class="fill" style="background:var(--mana);width:100%"></div></div>
-      </div>
-      <div class="statBox" style="width:200px">
-        <div class="small">Stamina <span id="bs_stamText"></span></div>
-        <div class="bar"><div id="bs_stamFill" class="fill" style="background:var(--stam);width:100%"></div></div>
+      
+      <!-- Vertical Stat Bars (Extended) -->
+      <div style="flex:1; display:flex; flex-direction:column; gap:0; min-width:200px;">
+        <!-- HP Bar with Shield Overlay -->
+        <div style="position:relative; height:14px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.2); border-radius:2px;">
+          <div id="hpFill" style="position:absolute; top:0; left:0; height:100%; background:#d32f2f; transition:width 0.2s;"></div>
+          <div id="shieldFill" style="position:absolute; top:0; left:0; height:100%; background:rgba(100,181,246,0.85); transition:width 0.2s; pointer-events:none;"></div>
+          <div id="hpText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:11px; font-weight:bold; text-shadow:0 0 3px #000, 0 0 2px #000; pointer-events:none; white-space:nowrap;"></div>
+        </div>
+        
+        <!-- Mana Bar -->
+        <div style="position:relative; height:14px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.2); border-top:none; border-radius:0;">
+          <div id="manaFill" style="position:absolute; top:0; left:0; height:100%; background:#1976d2; transition:width 0.2s;"></div>
+          <div id="manaText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:11px; font-weight:bold; text-shadow:0 0 3px #000, 0 0 2px #000; pointer-events:none; white-space:nowrap;"></div>
+        </div>
+        
+        <!-- Stamina Bar -->
+        <div style="position:relative; height:14px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.2); border-top:none; border-radius:0;">
+          <div id="stamFill" style="position:absolute; top:0; left:0; height:100%; background:#388e3c; transition:width 0.2s;"></div>
+          <div id="stamText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:11px; font-weight:bold; text-shadow:0 0 3px #000, 0 0 2px #000; pointer-events:none; white-space:nowrap;"></div>
+        </div>
+        
+        <!-- XP Bar -->
+        <div style="position:relative; height:14px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.2); border-top:none; border-radius:0 0 2px 2px;">
+          <div id="xpFill" style="position:absolute; top:0; left:0; height:100%; background:#f57c00; transition:width 0.2s;"></div>
+          <div id="xpText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:11px; font-weight:bold; text-shadow:0 0 3px #000, 0 0 2px #000; pointer-events:none; white-space:nowrap;"></div>
+        </div>
       </div>
     </div>
     
-    <!-- High-Quality XP UI with Circular Level (Top-Left Corner of Screen) -->
-    <div id="xpContainer" style="position:fixed; top:10px; left:10px; display:flex; align-items:center; gap:10px; z-index:200;">
-      <!-- Circular Level Badge -->
-      <div id="levelBadge" style="position:relative; width:50px; height:50px;">
-        <svg width="50" height="50" viewBox="0 0 50 50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
-          <!-- Outer ring gradient -->
-          <defs>
-            <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
-              <stop offset="50%" style="stop-color:#ffed4e;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#d4af37;stop-opacity:1" />
-            </linearGradient>
-            <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
-              <stop offset="70%" style="stop-color:#0f0f1e;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
-            </radialGradient>
-          </defs>
-          <!-- Outer circle -->
-          <circle cx="25" cy="25" r="23" fill="url(#goldGradient)" stroke="#fff" stroke-width="1" opacity="0.9"/>
-          <!-- Inner dark circle -->
-          <circle cx="25" cy="25" r="19" fill="url(#centerGlow)" stroke="#d4af37" stroke-width="1.5"/>
-        </svg>
-        <!-- Level number -->
-        <div id="levelNumber" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:18px; font-weight:bold; color:#ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.8), 0 2px 4px rgba(0,0,0,0.9); font-family: 'Arial Black', sans-serif;">1</div>
-      </div>
-      
-      <!-- XP Progress Bar -->
-      <div style="position:relative; width:180px; height:50px; display:flex; flex-direction:column; justify-content:center; gap:4px;">
-        <!-- XP Text -->
-        <div style="font-size:11px; color:#d4af37; text-shadow:0 1px 3px rgba(0,0,0,0.8); font-weight:600; letter-spacing:0.5px;">EXPERIENCE</div>
-        <!-- Progress bar container -->
-        <div style="position:relative; width:100%; height:18px; background:linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); border:2px solid #3a3a3a; border-radius:9px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.6), 0 1px 2px rgba(255,215,0,0.2); overflow:hidden;">
-          <!-- Animated glow background -->
-          <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:linear-gradient(90deg, transparent 0%, rgba(255,215,0,0.1) 50%, transparent 100%); animation: shimmer 2s infinite;"></div>
-          <!-- Progress fill -->
-          <div id="xpFill" style="position:relative; height:100%; width:0%; background:linear-gradient(180deg, #ffed4e 0%, #ffd700 30%, #d4af37 70%, #b8941f 100%); box-shadow: 0 0 10px rgba(255,215,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3); transition: width 0.3s ease-out;"></div>
-        </div>
-        <!-- XP Numbers -->
-        <div id="xpText" style="font-size:10px; color:#888; text-shadow:0 1px 2px rgba(0,0,0,0.8); font-weight:500;">0 / 100</div>
-      </div>
-    </div>
+    <!-- Hint text below stats display -->
+    <div id="statsHintText" style="position:fixed; top:100px; left:10px; z-index:199; max-width:320px; font-size:11px; color:#ccc; background:rgba(0,0,0,0.7); padding:6px 10px; border-radius:4px; border:1px solid rgba(212,175,55,0.3); display:none;"></div>
     
     <!-- Level Up Notification -->
     <div id="levelUpNotification" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
@@ -330,37 +311,41 @@ export function buildUI(state){
 
         <!-- Tab 1: Skills -->
         <div class="tab-content" data-tab="1" style="margin-top:10px; display:none;">
-          <div class="grid2">
-            <!-- Left: Category Navigation & Loadouts -->
-            <div class="box" style="padding:0; overflow:hidden; display:flex; flex-direction:column; border-color:#d4af37;">
-              <div class="small" style="padding:8px; border-bottom:1px solid #d4af37; background:rgba(0,0,0,0.3); font-weight:bold; color:#d4af37;">Categories</div>
-              <div id="skillCategories" class="tab-scroll" style="display:flex; flex-direction:column; flex:1 1 auto;">
-                <!-- Categories will be populated by JS -->
-              </div>
-              
-              <!-- Ability Loadouts Section -->
-              <div style="border-top:1px solid #d4af37; padding:8px; background:rgba(0,0,0,0.2);">
-                <div class="small" style="font-weight:bold; color:#ffd700; margin-bottom:8px;">💾 Ability Loadouts</div>
-                <div id="loadoutsList" style="display:flex; flex-direction:column; gap:4px; font-size:11px;">
-                  <!-- Loadouts will be populated by JS -->
-                </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; height:calc(100vh - 200px);">
+            <!-- Column 1: Loadouts -->
+            <div class="box" style="padding:8px; border-color:#ffd700; overflow-y:auto;">
+              <div id="loadoutsList" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Loadouts will be populated by JS -->
               </div>
             </div>
             
-            <!-- Right: Ability Details & Assignment -->
-            <div class="box tab-scroll" style="overflow:auto; border-color:#d4af37;">
-              <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Active Ability Slots</div>
-              <div id="skillSlots" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;"></div>
-              
-              <div style="border-top:1px solid #d4af37; padding-top:12px;">
-                <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Selected Ability</div>
-                <div id="abilityDetails" style="font-size:12px; line-height:1.5; color:#ccc;">
-                  <div style="color:#999; padding:8px;">Select an ability to view details</div>
-                </div>
+            <!-- Column 2: Categories -->
+            <div class="box" style="padding:8px; border-color:#d4af37; overflow-y:auto;">
+              <div id="skillCategories" style="display:flex; flex-direction:column; justify-content:space-evenly; height:100%;">
+                <!-- Categories will be populated by JS -->
+              </div>
+            </div>
+            
+            <!-- Column 3: Abilities -->
+            <div class="box" style="padding:0; border-color:#d4af37; overflow:hidden; display:flex; flex-direction:column;">
+              <!-- Frozen header with ability slots -->
+              <div style="flex-shrink:0; padding:8px; border-bottom:1px solid #d4af37; background:rgba(0,0,0,0.5);">
+                <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Active Ability Slots</div>
+                <div id="skillSlots" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
               </div>
               
-              <div style="margin-top:12px; border-top:1px solid rgba(212,175,55,0.2); padding-top:12px;">
-                <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Passive Abilities</div>
+              <!-- Scrollable ability details -->
+              <div class="tab-scroll" style="flex:1; overflow-y:auto; padding:8px;">
+                <div style="margin-bottom:12px;">
+                  <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Selected Ability</div>
+                  <div id="abilityDetails" style="font-size:12px; line-height:1.5; color:#ccc;">
+                    <div style="color:#999; padding:8px;">Select an ability to view details</div>
+                  </div>
+                </div>
+                
+                <div style="border-top:1px solid rgba(212,175,55,0.2); padding-top:12px;">
+                  <div class="small" style="font-weight:bold; margin-bottom:8px; color:#d4af37;">Passive Abilities</div>
+                </div>
                 <div id="passiveList" style="display:flex; flex-direction:column; gap:6px;"></div>
               </div>
             </div>
@@ -1245,6 +1230,12 @@ export function buildUI(state){
                 <button id="btnDownloadDamageLog" style="width:100%; margin-top:4px;">Download Damage/Healing Report</button>
                 <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Shows damage dealt, damage received, healing done, and shields provided by each fighter.</div>
               </div>
+              
+              <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.3);">
+                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Combat Event Log</div>
+                <button id="btnDownloadCombatLog" style="width:100%; margin-top:4px;">Download Combat Event Log</button>
+                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Detailed timestamped log of damage, healing, and HOT events affecting the player (for debugging).</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1362,7 +1353,7 @@ export function buildUI(state){
 
     <!-- Unit Inspection Panel (non-blocking, no overlay dim) -->
     <div id="unitInspectionPanel" style="position:fixed; inset:0; pointer-events:none; background:transparent; display:none;">
-      <div class="panel" id="unitInspectionContent" style="position:fixed; width:280px; pointer-events:auto; background:rgba(0,0,0,0.92); border:2px solid rgba(212,175,55,0.6); box-shadow:0 0 18px rgba(212,175,55,0.3); padding:10px; left:20px; top:80px; z-index:150; display:none;">
+      <div class="panel" id="unitInspectionContent" style="position:fixed; width:280px; pointer-events:auto; background:rgba(0,0,0,0.92); border:2px solid rgba(212,175,55,0.6); box-shadow:0 0 18px rgba(212,175,55,0.3); padding:10px; left:10px; top:195px; z-index:150; display:none;">
         <div class="row" style="justify-content:space-between; align-items:center">
           <h3 id="unitName" style="margin:0; color:#d4af37;">Unit</h3>
           <button id="closeUnitPanel" style="background:none; border:1px solid rgba(255,255,255,0.2); color:#fff; padding:4px 8px; cursor:pointer; font-size:12px;">Close</button>
@@ -1443,17 +1434,17 @@ function bindUI(state){
     gold:$('gold'),
     lvl:$('lvl'),
     spText:$('spText'),
-    hpFill:$('hpFill'), manaFill:$('manaFill'), stamFill:$('stamFill'), shieldFill:$('shieldFill'),
-    hpText:$('hpText'), manaText:$('manaText'), stamText:$('stamText'), shieldText:$('shieldText'),
+    hpFill:$('hpFill'), manaFill:$('manaFill'), stamFill:$('stamFill'), shieldFill:$('shieldFill'), xpFill:$('xpFill'),
+    hpText:$('hpText'), manaText:$('manaText'), stamText:$('stamText'), xpText:$('xpText'),
+    heroPortrait:$('heroPortrait'), heroPortraitImg:$('heroPortraitImg'),
     hintText:$('hintText'),
     hud:$('hud'),
     bottomBar:$('bottomBar'),
     b_hpFill:$('b_hpFill'), b_manaFill:$('b_manaFill'), b_stamFill:$('b_stamFill'),
     b_hpText:$('b_hpText'), b_manaText:$('b_manaText'), b_stamText:$('b_stamText'),
-    bottomStats:$('bottomStats'), bs_hpFill:$('bs_hpFill'), bs_manaFill:$('bs_manaFill'), bs_stamFill:$('bs_stamFill'),
-    bs_hpText:$('bs_hpText'), bs_manaText:$('bs_manaText'), bs_stamText:$('bs_stamText'),
-    bs_shieldText:$('bs_shieldText'), bs_shieldFill:$('bs_shieldFill'),
-    xpText:$('xpText'), xpFill:$('xpFill'), levelNumber:$('levelNumber'),
+    b_hpFill:$('b_hpFill'), b_manaFill:$('b_manaFill'), b_stamFill:$('b_stamFill'),
+    b_hpText:$('b_hpText'), b_manaText:$('b_manaText'), b_stamText:$('b_stamText'),
+    levelNumber:$('levelNumber'),
     levelTabLevelNum:$('levelTabLevelNum'), levelTabXpFill:$('levelTabXpFill'), levelTabXpText:$('levelTabXpText'),
     levelTabCurrentLevel:$('levelTabCurrentLevel'), levelTabStatPoints:$('levelTabStatPoints'),
     levelUpNotification:$('levelUpNotification'), levelUpText:$('levelUpText'), levelUpNumber:$('levelUpNumber'),
@@ -1498,6 +1489,7 @@ function bindUI(state){
     trackEnemyAbilities:$('trackEnemyAbilities'),
     btnDownloadAbilityLog:$('btnDownloadAbilityLog'),
     btnDownloadDamageLog:$('btnDownloadDamageLog'),
+    btnDownloadCombatLog:$('btnDownloadCombatLog'),
     optShowAim:$('optShowAim'),
     optShowDebug:$('optShowDebug'),
     optShowDebugAI:$('optShowDebugAI'),
@@ -1747,7 +1739,6 @@ function bindUI(state){
   ui.setGameUIVisible = (on)=>{
     try{ ui.hud.style.display = on ? 'block' : 'none'; }catch{}
     try{ ui.bottomBar.style.display = on ? (state.uiHidden?'block':'none') : 'none'; }catch{}
-    try{ ui.bottomStats.style.display = on ? 'flex' : 'none'; }catch{}
     try{ ui.abilBar.style.display = on ? 'flex' : 'none'; }catch{}
     try{ ui.buffIconsHud.style.display = on ? 'flex' : 'none'; }catch{}
     // ensure overlays are hidden
@@ -3439,28 +3430,43 @@ function bindUI(state){
       console.error('XP UI update error:', e);
     }
     
-    ui.hpText.textContent = `${Math.round(state.player.hp)}/${Math.round(st.maxHp)}`;
-    ui.manaText.textContent = `${Math.round(state.player.mana)}/${Math.round(st.maxMana)}`;
-    ui.stamText.textContent = `${Math.round(state.player.stam)}/${Math.round(st.maxStam)}`;
-    ui.shieldText.textContent = `${Math.round(state.player.shield)}`;
+    // Update stats text with current/max values (fix NaN)
+    const hp = Math.round(state.player.hp || 0);
+    const maxHp = Math.round(st.maxHp || 100);
+    const mana = Math.round(state.player.mana || 0);
+    const maxMana = Math.round(st.maxMana || 100);
+    const stam = Math.round(state.player.stam || 0);
+    const maxStam = Math.round(st.maxStam || 100);
+    const shield = Math.round(state.player.shield || 0);
+    const xp = Math.round(state.player.xp || 0);
+    const xpNext = Math.round(xpForNext(state.player.level || 1));
+    
+    ui.hpText.textContent = `${hp}/${maxHp}`;
+    ui.manaText.textContent = `${mana}/${maxMana}`;
+    ui.stamText.textContent = `${stam}/${maxStam}`;
+    ui.xpText.textContent = `${xp}/${xpNext}`;
     ui.updateGoldDisplay();
 
-    // (Armor rating moved to Inventory UI)
-
-    ui.hpFill.style.width = `${clamp(state.player.hp/st.maxHp,0,1)*100}%`;
-    ui.manaFill.style.width = `${clamp(state.player.mana/st.maxMana,0,1)*100}%`;
-    ui.stamFill.style.width = `${clamp(state.player.stam/st.maxStam,0,1)*100}%`;
-    ui.shieldFill.style.width = `${clamp(state.player.shield/320,0,1)*100}%`;
-
-    // update bottom stats (horizontal) above abilities
-    ui.bs_hpText.textContent = `${Math.round(state.player.hp)}/${Math.round(st.maxHp)}`;
-    ui.bs_manaText.textContent = `${Math.round(state.player.mana)}/${Math.round(st.maxMana)}`;
-    ui.bs_stamText.textContent = `${Math.round(state.player.stam)}/${Math.round(st.maxStam)}`;
-    ui.bs_shieldText.textContent = `${Math.round(state.player.shield)}`;
-    ui.bs_hpFill.style.width = `${clamp(state.player.hp/st.maxHp,0,1)*100}%`;
-    ui.bs_manaFill.style.width = `${clamp(state.player.mana/st.maxMana,0,1)*100}%`;
-    ui.bs_stamFill.style.width = `${clamp(state.player.stam/st.maxStam,0,1)*100}%`;
-    ui.bs_shieldFill.style.width = `${clamp(state.player.shield/320,0,1)*100}%`;
+    // Update bar widths
+    ui.hpFill.style.width = `${clamp(hp/maxHp,0,1)*100}%`;
+    ui.manaFill.style.width = `${clamp(mana/maxMana,0,1)*100}%`;
+    ui.stamFill.style.width = `${clamp(stam/maxStam,0,1)*100}%`;
+    ui.shieldFill.style.width = `${clamp(shield/(maxHp*1.5),0,1)*100}%`;
+    ui.xpFill.style.width = `${clamp(xp/xpNext,0,1)*100}%`;
+    
+    // Update hero portrait based on class
+    const classPortraits = {
+      'warden': 'assets/char/Warden Player head.png',
+      'mage': 'assets/char/mage player head.png',
+      'knight': 'assets/char/knight player head.png',
+      'warrior': 'assets/char/Warior Player head.png'
+    };
+    const className = (state.player.className || 'warrior').toLowerCase();
+    const portraitSrc = classPortraits[className] || classPortraits['warrior'];
+    if(ui.heroPortraitImg.src !== portraitSrc){
+      ui.heroPortraitImg.src = portraitSrc;
+      ui.heroPortraitImg.style.display = 'block';
+    }
 
     // Update buff icons HUD (above abilities)
     try { ui.updateBuffIconsHUD?.(); } catch(e) { console.error('updateBuffIconsHUD error:', e); }
@@ -3724,14 +3730,12 @@ function bindUI(state){
     }).join('');
   };
 
-  // Compute dynamic position so the icon bar starts right above the bottom stats UI
+  // Position buff icons above ability bar
   ui._positionBuffIconsHUD = ()=>{
     try{
-      if(!ui.buffIconsHud || !ui.bottomStats) return;
-      const rect = ui.bottomStats.getBoundingClientRect();
-      const margin = 8; // small gap above the bottom stats
-      const bottomFromViewport = Math.max(0, (window.innerHeight - rect.top) + margin);
-      ui.buffIconsHud.style.bottom = `${Math.round(bottomFromViewport)}px`;
+      if(!ui.buffIconsHud) return;
+      // Fixed position above ability bar
+      ui.buffIconsHud.style.bottom = '120px';
     }catch{}
   };
 
@@ -3747,17 +3751,6 @@ function bindUI(state){
     ui.b_hpFill.style.width = `${clamp(state.player.hp/st.maxHp,0,1)*100}%`;
     ui.b_manaFill.style.width = `${clamp(state.player.mana/st.maxMana,0,1)*100}%`;
     ui.b_stamFill.style.width = `${clamp(state.player.stam/st.maxStam,0,1)*100}%`;
-    // also update the persistent bottomStats bar we added (keeps values when main HUD hidden)
-    try{
-      ui.bs_hpText.textContent = `${Math.round(state.player.hp)}/${Math.round(st.maxHp)}`;
-      ui.bs_manaText.textContent = `${Math.round(state.player.mana)}/${Math.round(st.maxMana)}`;
-      ui.bs_stamText.textContent = `${Math.round(state.player.stam)}/${Math.round(st.maxStam)}`;
-      ui.bs_shieldText.textContent = `${Math.round(state.player.shield)}`;
-      ui.bs_hpFill.style.width = `${clamp(state.player.hp/st.maxHp,0,1)*100}%`;
-      ui.bs_manaFill.style.width = `${clamp(state.player.mana/st.maxMana,0,1)*100}%`;
-      ui.bs_stamFill.style.width = `${clamp(state.player.stam/st.maxStam,0,1)*100}%`;
-      ui.bs_shieldFill.style.width = `${clamp(state.player.shield/320,0,1)*100}%`;
-    }catch(e){}
   };
 
   ui.renderAbilityBar = ()=>{
@@ -4481,8 +4474,6 @@ function bindUI(state){
   // Show/hide main HUD while keeping bottom stats visible
   ui.toggleHud = (on)=>{
     try{ ui.hud.style.display = on ? 'block' : 'none'; }catch(e){}
-    // bottomStats should remain visible regardless of main HUD hidden state
-    try{ ui.bottomStats.style.display = 'flex'; }catch(e){}
   };
 
   ui.renderSkills = ()=>{
@@ -4560,17 +4551,42 @@ function bindUI(state){
         const ability = ABILITIES[skId];
         if(ability){
           slotEl.onmouseenter = (e) => {
-            let tooltipText = `<b>${ability.name}</b><br><span style="font-size:11px; color:#ccc;">${ability.desc}</span>`;
+            // ESO-style tooltip
+            let tooltipText = `<div style="font-weight:900; font-size:14px; color:#4a9eff; margin-bottom:8px;">${ability.name}</div>`;
+            
             if(ability.type === 'active'){
-              tooltipText += `<br><br><div style="font-size:10px; color:#999;">`;
-              tooltipText += `Mana: ${ability.mana} | CD: ${ability.cd}s`;
-              if(ability.range > 0) tooltipText += ` | Range: ${ability.range}m`;
+              // Target/Range/Cost section
+              const targetInfo = ability.targetType && TARGET_TYPE_INFO[ability.targetType] 
+                ? TARGET_TYPE_INFO[ability.targetType].name 
+                : (ability.target || 'Self');
+              
+              tooltipText += `<div style="font-size:11px; color:#999; margin-bottom:8px; line-height:1.8;">`;
+              tooltipText += `<div><b>Target:</b> ${targetInfo}</div>`;
+              if(ability.range > 0) tooltipText += `<div><b>Range:</b> ${ability.range}m</div>`;
+              tooltipText += `<div><b>Cost:</b> ${ability.mana} Mana</div>`;
+              tooltipText += `</div>`;
+              
+              // Skill Description section
+              tooltipText += `<div style="margin-bottom:8px;">`;
+              tooltipText += `<div style="font-weight:bold; color:#d4af37; font-size:10px; margin-bottom:4px;">Skill Description</div>`;
+              tooltipText += `<div style="font-size:11px; color:#ccc; line-height:1.4;">${ability.details || ability.desc}</div>`;
+              tooltipText += `</div>`;
+              
+              // Additional stats
+              tooltipText += `<div style="font-size:10px; color:#888;">`;
+              tooltipText += `Cooldown: ${ability.cd}s`;
+              if(ability.castTime) tooltipText += ` | Cast Time: ${ability.castTime.toFixed(1)}s`;
               if(ability.radius > 0) tooltipText += ` | Radius: ${ability.radius}m`;
               tooltipText += `</div>`;
+              
               if(ability.scaling){
-                tooltipText += `<div style="font-size:10px; color:#8f9; margin-top:4px;">${ability.scaling}</div>`;
+                tooltipText += `<div style="font-size:10px; color:#8f9; margin-top:6px;"><b>Scaling:</b> ${ability.scaling}</div>`;
               }
+            } else {
+              // Passive ability
+              tooltipText += `<div style="font-size:11px; color:#ccc; margin-bottom:6px;">${ability.details || ability.desc}</div>`;
             }
+            
             ui.showBuffTooltip('', tooltipText, e.target);
           };
           slotEl.onmouseleave = () => {
@@ -4583,21 +4599,48 @@ function bindUI(state){
     }
     ui.skillSlots.appendChild(slotsContainer);
     
-    // Render categories on LEFT SIDE
+    // Render categories on LEFT SIDE with icon placeholders
     ui.skillCategories.innerHTML = '';
     for(const cat of ABILITY_CATEGORIES){
       const catBtn = document.createElement('button');
       catBtn.style.width = '100%';
-      catBtn.style.padding = '10px 8px';
-      catBtn.style.textAlign = 'left';
+      catBtn.style.padding = '12px 12px';
+      catBtn.style.display = 'flex';
+      catBtn.style.alignItems = 'center';
+      catBtn.style.justifyContent = 'space-between';
+      catBtn.style.gap = '10px';
       catBtn.style.border = 'none';
       catBtn.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
       catBtn.style.background = ui._selectedCategory === cat.id ? 'rgba(122,162,255,0.15)' : 'transparent';
       catBtn.style.color = ui._selectedCategory === cat.id ? '#4a9eff' : '#aaa';
       catBtn.style.cursor = 'pointer';
-      catBtn.style.fontSize = '12px';
+      catBtn.style.fontSize = '14px';
+      catBtn.style.fontWeight = 'bold';
       catBtn.style.transition = 'all 0.2s';
-      catBtn.textContent = cat.name;
+      
+      // Icon placeholder (50x50 box on the left)
+      const iconPlaceholder = document.createElement('div');
+      iconPlaceholder.style.width = '50px';
+      iconPlaceholder.style.height = '50px';
+      iconPlaceholder.style.border = '2px solid rgba(255,255,255,0.2)';
+      iconPlaceholder.style.borderRadius = '4px';
+      iconPlaceholder.style.background = 'rgba(0,0,0,0.3)';
+      iconPlaceholder.style.display = 'flex';
+      iconPlaceholder.style.alignItems = 'center';
+      iconPlaceholder.style.justifyContent = 'center';
+      iconPlaceholder.style.fontSize = '24px';
+      iconPlaceholder.style.flexShrink = '0';
+      iconPlaceholder.textContent = cat.name.split(' ')[0]; // Show emoji from category name
+      
+      // Text label (right-aligned)
+      const label = document.createElement('span');
+      label.style.flex = '1';
+      label.style.textAlign = 'right';
+      label.textContent = cat.name.split(' ').slice(1).join(' '); // Text without emoji
+      
+      catBtn.appendChild(iconPlaceholder);
+      catBtn.appendChild(label);
+      
       catBtn.onclick = () => {
         ui._selectedCategory = cat.id;
         ui._selectedAbility = null;
@@ -4629,7 +4672,7 @@ function bindUI(state){
             if(abilitySlots[i] === ability.id) assignedSlots.push(i);
           }
           
-          listHtml += `<div style="padding:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); margin-bottom:8px; border-radius:4px; display:grid; grid-template-columns:80px 1fr; gap:10px; align-items:start;">`;
+          listHtml += `<div class="ability-card" data-ability-id="${ability.id}" style="padding:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); margin-bottom:8px; border-radius:4px; display:grid; grid-template-columns:80px 1fr; gap:10px; align-items:start;">`;
           
           // Icon column
           listHtml += `<div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center;">${iconHtml}</div>`;
@@ -4638,28 +4681,33 @@ function bindUI(state){
           listHtml += `<div>`;
           
           // Title and description
-          listHtml += `<div style="font-weight:900; font-size:13px; color:#4a9eff; margin-bottom:4px;">${ability.name}</div>`;
-          listHtml += `<div style="font-size:11px; color:#ccc; margin-bottom:6px; line-height:1.4;">${ability.details || ability.desc}</div>`;
+          listHtml += `<div style="font-weight:900; font-size:13px; color:#4a9eff; margin-bottom:6px;">${ability.name}</div>`;
           
           if(ability.type === 'active'){
-            // Show stats in a compact grid
-            listHtml += `<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; margin-bottom:8px; font-size:10px; color:#999;">`;
+            // ESO-style target/range/cost info
+            const targetInfo = ability.targetType && TARGET_TYPE_INFO[ability.targetType] 
+              ? TARGET_TYPE_INFO[ability.targetType].name 
+              : (ability.target || 'Self');
             
-            // Targeting info
-            if(ability.targetType && TARGET_TYPE_INFO[ability.targetType]){
-              const ttype = TARGET_TYPE_INFO[ability.targetType];
-              listHtml += `<div><b>Target:</b> ${ttype.name}</div>`;
-            } else {
-              listHtml += `<div><b>Target:</b> ${ability.target || 'Self'}</div>`;
-            }
-            
-            listHtml += `<div><b>Mana:</b> ${ability.mana}</div>`;
-            listHtml += `<div><b>CD:</b> ${ability.cd}s</div>`;
-            
+            listHtml += `<div style="font-size:10px; color:#999; margin-bottom:6px; line-height:1.6;">`;
+            listHtml += `<div><b>Target:</b> ${targetInfo}</div>`;
             if(ability.range > 0) listHtml += `<div><b>Range:</b> ${ability.range}m</div>`;
             if(ability.radius > 0) listHtml += `<div><b>Radius:</b> ${ability.radius}m</div>`;
-            if(ability.castTime) listHtml += `<div><b>Cast:</b> ${ability.castTime.toFixed(1)}s</div>`;
-            
+            listHtml += `<div><b>Cost:</b> ${ability.mana} Mana</div>`;
+            listHtml += `</div>`;
+          }
+          
+          // Description (labeled as "Skill Description")
+          listHtml += `<div style="font-size:11px; color:#ccc; margin-bottom:8px; line-height:1.5;">`;
+          listHtml += `<div style="font-weight:bold; color:#d4af37; font-size:10px; margin-bottom:2px;">Skill Description</div>`;
+          listHtml += `${ability.details || ability.desc}`;
+          listHtml += `</div>`;
+          
+          if(ability.type === 'active'){
+            // Show cooldown and cast time
+            listHtml += `<div style="font-size:10px; color:#888; margin-bottom:6px;">`;
+            listHtml += `Cooldown: ${ability.cd}s`;
+            if(ability.castTime) listHtml += ` | Cast Time: ${ability.castTime.toFixed(1)}s`;
             listHtml += `</div>`;
             
             if(ability.scaling){
@@ -4743,65 +4791,69 @@ function bindUI(state){
     // Render passives list at bottom
     ui.passiveList.innerHTML = '';
     
-    // Get player's active passives to determine sources
-    const activePassives = state.player.passives || [];
-    const activePassiveIds = activePassives.map(p => p?.id).filter(Boolean);
+    // Get player's selected passives
+    const activePassiveIds = (state.player.passives || []).map(p => p?.id).filter(Boolean);
     
-    const passives = Object.values(ABILITIES).filter(a => a.type === 'passive');
+    // Get all passives or filter by category
+    const allPassives = Object.values(ABILITIES).filter(a => a.type === 'passive');
+    const passives = allPassives.filter(pass => {
+      if(!ui._selectedCategory || ui._selectedCategory === 'all') return true;
+      // Show passives matching selected category
+      return selectedAbilities.some(ab => ab.id === pass.id);
+    });
+    
     for(const pass of passives){
-      const isActive = activePassiveIds.includes(pass.id);
-      
-      // Determine source of passive
-      let source = '';
-      if(isActive){
-        // Check if from equipment
-        for(const slot in state.player.equip){
-          const item = state.player.equip[slot];
-          if(item?.passive === pass.id){
-            source = `From: ${item.name}`;
-            break;
-          }
-        }
-        if(!source) source = 'Active';
-      }
+      const isSelected = activePassiveIds.includes(pass.id);
       
       const passEl = document.createElement('div');
       passEl.style.padding = '8px';
-      passEl.style.background = isActive ? 'rgba(249, 153, 153, 0.15)' : 'rgba(0,0,0,0.2)';
-      passEl.style.borderLeft = isActive ? '3px solid #f99' : '3px solid rgba(249, 153, 153, 0.3)';
+      passEl.style.background = isSelected ? 'rgba(212,175,55,0.15)' : 'rgba(0,0,0,0.2)';
+      passEl.style.borderLeft = isSelected ? '3px solid #d4af37' : '3px solid rgba(212,175,55,0.3)';
       passEl.style.marginBottom = '6px';
       passEl.style.borderRadius = '3px';
       passEl.style.cursor = 'pointer';
       
-      let html = `<div style="font-weight:900; color:#f99; font-size:12px;">✦ ${pass.name}</div>`;
-      html += `<div style="font-size:11px; color:#ccc; margin-top:2px;">${pass.details || pass.desc}</div>`;
+      let html = `<div style="font-weight:900; color:#d4af37; font-size:12px;">✦ ${pass.name}</div>`;
+      html += `<div style="font-size:11px; color:#ccc; margin-top:4px;">${pass.details || pass.desc}</div>`;
       
       // Show buff values
       if(pass.buffs){
-        html += `<div style="font-size:10px; color:#8f9; margin-top:4px;">`;
+        html += `<div style="font-size:10px; color:#8f9; margin-top:4px; font-weight:bold;">`;
         for(const [key, val] of Object.entries(pass.buffs)){
-          const displayVal = val < 1 ? `${(val * 100).toFixed(0)}%` : val;
-          html += `+${displayVal} ${key} `;
+          const displayVal = val < 1 && val > -1 ? `${(val * 100).toFixed(0)}%` : `+${val}`;
+          html += `${displayVal} ${key}  `;
         }
         html += `</div>`;
       }
       
-      // Show source
-      if(source){
-        html += `<div style="font-size:9px; color:#aaa; margin-top:4px; font-style:italic;">${source}</div>`;
+      // Show status
+      if(isSelected){
+        html += `<div style="font-size:9px; color:#8f9; margin-top:4px; font-weight:bold;">✓ ACTIVE - Benefits applied continuously</div>`;
+      } else {
+        html += `<div style="font-size:9px; color:#888; margin-top:4px; font-style:italic;">Click to activate this passive</div>`;
       }
       
       passEl.innerHTML = html;
-      passEl.onmouseover = () => passEl.style.background = isActive ? 'rgba(249, 153, 153, 0.25)' : 'rgba(249, 153, 153, 0.1)';
-      passEl.onmouseout = () => passEl.style.background = isActive ? 'rgba(249, 153, 153, 0.15)' : 'rgba(0,0,0,0.2)';
+      passEl.onmouseover = () => passEl.style.background = isSelected ? 'rgba(212,175,55,0.25)' : 'rgba(212,175,55,0.1)';
+      passEl.onmouseout = () => passEl.style.background = isSelected ? 'rgba(212,175,55,0.15)' : 'rgba(0,0,0,0.2)';
       passEl.onclick = () => {
-        ui._selectedCategory = 'passive-all';
+        // Toggle passive selection
+        const idx = state.player.passives.findIndex(p => p?.id === pass.id);
+        if(idx >= 0){
+          state.player.passives.splice(idx, 1);
+          ui.toast(`<b>${pass.name}</b> deactivated`);
+        } else {
+          state.player.passives.push(pass);
+          ui.toast(`<b>${pass.name}</b> activated - benefits are now active!`);
+        }
         ui.renderSkills();
+        ui.renderLevel(); // Update all active effects displays
+        ui.updateBuffIconsHUD(); // Update HUD
       };
       ui.passiveList.appendChild(passEl);
     }
 
-    // Render loadouts section
+    // Render loadouts section (simple vertical layout)
     if(!isGroupMemberMode && ui.loadoutsList){
       ui.loadoutsList.innerHTML = '';
       const heroClass = state.currentHero || 'warrior';
@@ -4814,88 +4866,31 @@ function bindUI(state){
         const div = document.createElement('div');
         div.style.display = 'flex';
         div.style.flexDirection = 'column';
-        div.style.gap = '4px';
-        div.style.padding = '6px';
+        div.style.gap = '6px';
+        div.style.padding = '8px';
         div.style.background = 'rgba(0,0,0,0.3)';
-        div.style.border = '1px solid rgba(255,215,0,0.2)';
+        div.style.border = '1px solid rgba(255,215,0,0.3)';
         div.style.borderRadius = '3px';
         
-        // Editable name input with status indicator
-        const nameRow = document.createElement('div');
-        nameRow.style.display = 'flex';
-        nameRow.style.justifyContent = 'space-between';
-        nameRow.style.alignItems = 'center';
-        nameRow.style.marginBottom = '4px';
-        nameRow.style.gap = '4px';
-        
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = loadout.name;
-        nameInput.style.flex = '1';
-        nameInput.style.fontSize = '10px';
-        nameInput.style.padding = '3px 4px';
-        nameInput.style.background = 'rgba(255,215,0,0.1)';
-        nameInput.style.border = '1px solid rgba(255,215,0,0.3)';
-        nameInput.style.borderRadius = '2px';
-        nameInput.style.color = '#ffd700';
-        nameInput.style.fontWeight = 'bold';
-        nameInput.onchange = (e) => {
-          const newName = e.target.value.trim();
-          if(newName){
-            loadout.name = newName;
-            try {
-              localStorage.setItem('orb_rpg_mod_loadouts', JSON.stringify(state.abilityLoadouts));
-            } catch(err) {
-              console.warn('[LOADOUT] Failed to rename:', err);
-            }
-          } else {
-            e.target.value = loadout.name; // Revert if empty
-          }
-        };
-        
-        const statusIcon = document.createElement('span');
-        statusIcon.textContent = hasLoadout ? '✓' : '○';
-        statusIcon.style.color = '#aaa';
-        statusIcon.style.fontSize = '9px';
-        
-        nameRow.appendChild(nameInput);
-        nameRow.appendChild(statusIcon);
-        div.appendChild(nameRow);
+        // Loadout name
+        const nameDiv = document.createElement('div');
+        nameDiv.style.fontSize = '12px';
+        nameDiv.style.fontWeight = 'bold';
+        nameDiv.style.color = '#ffd700';
+        nameDiv.textContent = loadout.name;
+        div.appendChild(nameDiv);
         
         // Buttons row
         const btnRow = document.createElement('div');
         btnRow.style.display = 'flex';
-        btnRow.style.gap = '3px';
-        btnRow.style.flexWrap = 'wrap';
-        
-        // Save button
-        const saveBtn = document.createElement('button');
-        saveBtn.textContent = '💾 Save';
-        saveBtn.style.flex = '1';
-        saveBtn.style.padding = '3px 6px';
-        saveBtn.style.fontSize = '9px';
-        saveBtn.style.background = 'rgba(255,215,0,0.2)';
-        saveBtn.style.border = '1px solid rgba(255,215,0,0.4)';
-        saveBtn.style.color = '#ffd700';
-        saveBtn.style.borderRadius = '2px';
-        saveBtn.style.cursor = 'pointer';
-        saveBtn.onclick = (e) => {
-          e.stopPropagation();
-          if(saveLoadout(state, heroClass, i, loadout.name)){
-            ui.toast(`<b>${loadout.name}</b> saved!`);
-            ui.renderSkills();
-          } else {
-            ui.toast('Failed to save loadout');
-          }
-        };
-        btnRow.appendChild(saveBtn);
+        btnRow.style.gap = '4px';
         
         // Load button
         const loadBtn = document.createElement('button');
-        loadBtn.textContent = '📂 Load';
+        loadBtn.textContent = 'Load';
         loadBtn.style.flex = '1';
-        loadBtn.style.padding = '3px 6px';
-        loadBtn.style.fontSize = '9px';
+        loadBtn.style.padding = '4px 6px';
+        loadBtn.style.fontSize = '10px';
         loadBtn.style.background = hasLoadout ? 'rgba(122,162,255,0.2)' : 'rgba(100,100,100,0.2)';
         loadBtn.style.border = hasLoadout ? '1px solid rgba(122,162,255,0.4)' : '1px solid rgba(100,100,100,0.3)';
         loadBtn.style.color = hasLoadout ? '#7aa2ff' : '#888';
@@ -4914,12 +4909,34 @@ function bindUI(state){
         };
         btnRow.appendChild(loadBtn);
         
+        // Save button
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save';
+        saveBtn.style.flex = '1';
+        saveBtn.style.padding = '4px 6px';
+        saveBtn.style.fontSize = '10px';
+        saveBtn.style.background = 'rgba(255,215,0,0.2)';
+        saveBtn.style.border = '1px solid rgba(255,215,0,0.4)';
+        saveBtn.style.color = '#ffd700';
+        saveBtn.style.borderRadius = '2px';
+        saveBtn.style.cursor = 'pointer';
+        saveBtn.onclick = (e) => {
+          e.stopPropagation();
+          if(saveLoadout(state, heroClass, i, loadout.name)){
+            ui.toast(`<b>${loadout.name}</b> saved!`);
+            ui.renderSkills();
+          } else {
+            ui.toast('Failed to save loadout');
+          }
+        };
+        btnRow.appendChild(saveBtn);
+        
         // Delete button
         const delBtn = document.createElement('button');
-        delBtn.textContent = '🗑';
-        delBtn.style.flex = '0 0 28px';
-        delBtn.style.padding = '3px 4px';
-        delBtn.style.fontSize = '9px';
+        delBtn.textContent = 'Delete';
+        delBtn.style.flex = '1';
+        delBtn.style.padding = '4px 6px';
+        delBtn.style.fontSize = '10px';
         delBtn.style.background = hasLoadout ? 'rgba(244,67,54,0.2)' : 'rgba(100,100,100,0.2)';
         delBtn.style.border = hasLoadout ? '1px solid rgba(244,67,54,0.4)' : '1px solid rgba(100,100,100,0.3)';
         delBtn.style.color = hasLoadout ? '#f44336' : '#888';
@@ -5121,25 +5138,34 @@ function bindUI(state){
     if(ui.levelEffectsList){
       const effectsList = [];
       
-      // Add passives (only for player)
+      // Add passives (only for player) - ALWAYS SHOW WHEN SELECTED
       if(!state.groupMemberInventoryMode){
         try{
-          for(const p of state.player.passives||[]){ 
-            if(!p) continue; 
-            const icon = renderEffectIcon(p.id, null, false); 
-            const title = `${p.name}`; 
-            const desc = `${p.details||p.desc||''}`; 
+          for(const p of state.player.passives||[]){
+            if(!p) continue;
+            const icon = renderEffectIcon(p.id, null, false);
+            const title = `${p.name} (Passive)`;
+            // Show buff values in description
+            let buffDesc = '';
+            if(p.buffs){
+              const buffParts = [];
+              for(const [key, val] of Object.entries(p.buffs)){
+                const displayVal = val < 1 && val > -1 ? `${(val * 100).toFixed(0)}%` : `+${val}`;
+                buffParts.push(`${displayVal} ${key}`);
+              }
+              buffDesc = buffParts.join(', ');
+            }
             effectsList.push(`
-              <div style="display:flex; gap:8px; align-items:center; padding:4px; background:rgba(100,200,100,0.1); border-left:2px solid #6c6; border-radius:2px; margin-bottom:4px;">
-                <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center;">${icon}</span>
+              <div style="display:flex; gap:8px; align-items:center; padding:4px; background:rgba(212,175,55,0.15); border-left:2px solid #d4af37; border-radius:2px; margin-bottom:4px;">
+                <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:18px;">✦</span>
                 <div style="flex:1;">
-                  <div style="font-weight:bold; color:#6c6; font-size:11px;">${title}</div>
-                  <div style="color:#999; font-size:10px;">${desc}</div>
+                  <div style="font-weight:bold; color:#d4af37; font-size:11px;">${title} <span style="color:#8f9; font-size:9px;">✓</span></div>
+                  <div style="color:#8f9; font-size:10px;">${buffDesc}</div>
                 </div>
               </div>
-            `); 
+            `);
           }
-        }catch{}
+        }catch(e){ console.error('Error rendering passives:', e); }
       }
       
       // Add buffs
@@ -5191,6 +5217,31 @@ function bindUI(state){
             `); 
           }
         }catch{}
+      }
+      
+      // Add HOT effects (heal-over-time from state.effects.heals)
+      if(!state.groupMemberInventoryMode){
+        try{
+          for(const h of state.effects.heals||[]){
+            // Only show HOTs affecting the player
+            const targets = h.targets ? (Array.isArray(h.targets) ? h.targets : [h.targets]) : [state.player];
+            if(!targets.includes(state.player)) continue;
+            
+            const icon = '💚'; // Green heart emoji for healing
+            const title = h.beacon ? 'Healing Field' : 'Heal Over Time';
+            const desc = `+${h.amt.toFixed(1)} HP every ${h.tick.toFixed(1)}s`;
+            const timer = (h.t||0).toFixed(1)+'s';
+            effectsList.push(`
+              <div style="display:flex; gap:8px; align-items:center; padding:4px; background:rgba(70,200,70,0.1); border-left:2px solid #4c4; border-radius:2px; margin-bottom:4px;">
+                <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:20px;">${icon}</span>
+                <div style="flex:1;">
+                  <div style="font-weight:bold; color:#6c6; font-size:11px;">${title} <span style="color:#999; font-size:10px;">(${timer})</span></div>
+                  <div style="color:#999; font-size:10px;">${desc}</div>
+                </div>
+              </div>
+            `);
+          }
+        }catch(e){ console.error('Error rendering HOTs:', e); }
       }
       
       if(effectsList.length === 0){
@@ -5534,6 +5585,16 @@ function bindUI(state){
     }catch(e){
       console.error('Download ability log failed:', e);
       ui.toast('Failed to download ability log');
+    }
+  };
+  
+  ui.btnDownloadCombatLog.onclick=()=>{
+    try{
+      downloadCombatLog(state);
+      ui.toast(`Downloaded combat log (${state.combatLog?.length || 0} events)`);
+    }catch(e){
+      console.error('Error downloading combat log:', e);
+      ui.toast('Failed to download combat log');
     }
   };
   

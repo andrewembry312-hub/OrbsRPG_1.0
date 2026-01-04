@@ -51,26 +51,95 @@ export const ABILITIES = {
   'tank_anchor': { id:'tank_anchor', type:'active', name:'Anchor Stance', category:'Tank - Exclusive', targetType:'area', mana:10, cd:9.0, castTime:0.25, range:0, radius:18, target:'Self AoE', desc:'Root yourself to hold line.', details:'Damages and Stuns nearby enemies. Applies shield to yourself and nearby allies.', scaling:'Defense + Small Damage', buffs:['stun'] },
   'tank_seismic_wave': { id:'tank_seismic_wave', type:'active', name:'Seismic Wave', category:'Tank - Exclusive', targetType:'projectile', mana:13, cd:7.5, castTime:0.3, range:30, radius:0, target:'Line Shock', desc:'Send a ground wave.', details:'Linear shockwave that damages enemies in a line.', scaling:'Attack Power: 125%' },
 
-  // PASSIVE ABILITIES (unchanged)
-  'bulwark': { id:'bulwark', type:'passive', name:'Bulwark Training', category:'Passive - Defense', desc:'Better block and stamina regen.', details:'Increases block effectiveness by 8% and stamina regen by 6/s.', buffs:{blockEff:0.08, stamRegen:6} },
-  'arcane_focus': { id:'arcane_focus', type:'passive', name:'Arcane Focus', category:'Passive - Magic', desc:'Mana regen + cooldown reduction.', details:'+1.2 mana/s, +10 max mana, 6% CDR.', buffs:{manaRegen:1.2, cdr:0.06, maxMana:10} },
-  'predator': { id:'predator', type:'passive', name:'Predator Instinct', category:'Passive - Damage', desc:'Crit and attack boost.', details:'Adds 5% crit chance and +1.2 attack.', buffs:{critChance:0.05, atk:1.2} },
-  'vital_soul': { id:'vital_soul', type:'passive', name:'Vital Soul', category:'Passive - Survival', desc:'HP and regen boost.', details:'Grants +20 max HP and 0.8 HP/s regen.', buffs:{maxHp:20, hpRegen:0.8} },
-  'siphon': { id:'siphon', type:'passive', name:'Siphon', category:'Passive - Damage', desc:'Lifesteal.', details:'6% of damage dealt heals you.', buffs:{lifesteal:0.06} },
+  // GUILD - ASSAULT (Offensive Buffs) - 5 active + 2 passive
+  'assault_bloodlust': { id:'assault_bloodlust', type:'active', name:'Bloodlust', category:'Guild - Assault', targetType:'area', mana:20, cd:12.0, castTime:0.4, range:0, radius:20, target:'Self AoE', desc:'Enter berserker state.', details:'Grants Berserker Rage buff to you and nearby allies (+40% attack, -20% defense, 6s).', scaling:'Buff Only', buffs:['berserker_rage'] },
+  'assault_battle_cry': { id:'assault_battle_cry', type:'active', name:'Battle Cry', category:'Guild - Assault', targetType:'area', mana:16, cd:10.0, castTime:0.3, range:0, radius:18, target:'Self AoE', desc:'Empower combat prowess.', details:'Grants Battle Fury buff (+20% all damage, +10% crit mult, 7s) to allies.', scaling:'Buff Only', buffs:['battle_fury'] },
+  'assault_rapid_strikes': { id:'assault_rapid_strikes', type:'active', name:'Rapid Strikes', category:'Guild - Assault', targetType:'area', mana:14, cd:8.0, castTime:0.2, range:0, radius:16, target:'Self AoE', desc:'Increase attack speed.', details:'Grants Swift Strikes buff (+25% attack speed, +15% movement speed, 8s).', scaling:'Buff Only', buffs:['swift_strikes'] },
+  'assault_fortune': { id:'assault_fortune', type:'active', name:'Fortune\'s Favor', category:'Guild - Assault', targetType:'area', mana:18, cd:15.0, castTime:0.5, range:0, radius:20, target:'Self AoE', desc:'Enhance critical strikes.', details:'Grants Lucky buff (+25% crit chance, +50% crit multiplier, 10s) to allies.', scaling:'Buff Only', buffs:['lucky'] },
+  'assault_rampage': { id:'assault_rampage', type:'active', name:'Rampage', category:'Guild - Assault', targetType:'area', mana:22, cd:18.0, castTime:0.5, range:0, radius:18, target:'Self AoE', desc:'Ultimate offensive buff.', details:'Grants Berserk buff (+50% attack, +30% speed, -30% defense, 8s). High risk, high reward.', scaling:'Buff Only', buffs:['berserk'] },
+
+  // GUILD - SUPPORT (Defensive Buffs) - 5 active + 2 passive
+  'support_iron_resolve': { id:'support_iron_resolve', type:'active', name:'Iron Resolve', category:'Guild - Support', targetType:'area', mana:18, cd:10.0, castTime:0.4, range:0, radius:20, target:'Self AoE', desc:'Unbreakable defense.', details:'Grants Iron Will buff (+50% defense, immune to CC, 5s) to allies.', scaling:'Buff Only', buffs:['iron_will'] },
+  'support_defensive_stance': { id:'support_defensive_stance', type:'active', name:'Defensive Stance', category:'Guild - Support', targetType:'area', mana:16, cd:12.0, castTime:0.3, range:0, radius:18, target:'Self AoE', desc:'Enhanced blocking.', details:'Grants Guardian Stance buff (+35% defense, +25% block effectiveness, 8s).', scaling:'Buff Only', buffs:['guardian_stance'] },
+  'support_fortify': { id:'support_fortify', type:'active', name:'Fortify', category:'Guild - Support', targetType:'area', mana:20, cd:11.0, castTime:0.4, range:0, radius:20, target:'Self AoE', desc:'Massive shield.', details:'Grants Fortified buff (+300 shield, +20% shield effectiveness, 8s) to allies.', scaling:'Buff Only', buffs:['fortified'] },
+  'support_enduring_spirit': { id:'support_enduring_spirit', type:'active', name:'Enduring Spirit', category:'Guild - Support', targetType:'area', mana:14, cd:9.0, castTime:0.3, range:0, radius:18, target:'Self AoE', desc:'Boost stamina.', details:'Grants Endurance buff (+25% max stamina, +12 stam/s regen, 10s) to allies.', scaling:'Buff Only', buffs:['endurance'] },
+  'support_divine_protection': { id:'support_divine_protection', type:'active', name:'Divine Protection', category:'Guild - Support', targetType:'area', mana:25, cd:20.0, castTime:0.6, range:0, radius:16, target:'Self AoE', desc:'Ultimate protection.', details:'Grants Divine Shield buff (Immune to damage and CC, 3s). Emergency use only.', scaling:'Buff Only', buffs:['divine_shield'] },
+
+  // RESTORATION (Sustain/Regen Buffs) - 5 active + 2 passive
+  'resto_rejuvenation': { id:'resto_rejuvenation', type:'active', name:'Rejuvenation', category:'Restoration', targetType:'area', mana:16, cd:10.0, castTime:0.4, range:0, radius:20, target:'Self AoE', desc:'HP regeneration over time.', details:'Grants Regeneration buff (Restores 5 HP per second, 8s) to allies.', scaling:'Buff Only', buffs:['regeneration'] },
+  'resto_vitality': { id:'resto_vitality', type:'active', name:'Vitality Surge', category:'Restoration', targetType:'area', mana:18, cd:12.0, castTime:0.4, range:0, radius:18, target:'Self AoE', desc:'Max HP boost and regen.', details:'Grants Vigor buff (+15% max HP, +8 HP/s regen, 12s) to allies.', scaling:'Buff Only', buffs:['vigor'] },
+  'resto_mana_flow': { id:'resto_mana_flow', type:'active', name:'Mana Flow', category:'Restoration', targetType:'area', mana:14, cd:9.0, castTime:0.3, range:0, radius:20, target:'Self AoE', desc:'Mana regeneration over time.', details:'Grants Mana Surge buff (Restores 8 mana per second, 6s) to allies.', scaling:'Buff Only', buffs:['mana_surge'] },
+  'resto_spiritual_attunement': { id:'resto_spiritual_attunement', type:'active', name:'Spiritual Attunement', category:'Restoration', targetType:'area', mana:16, cd:11.0, castTime:0.4, range:0, radius:18, target:'Self AoE', desc:'Max mana boost and regen.', details:'Grants Spirit buff (+20% max mana, +5 mana/s regen, 12s) to allies.', scaling:'Buff Only', buffs:['spirit'] },
+  'resto_vampiric_aura': { id:'resto_vampiric_aura', type:'active', name:'Vampiric Aura', category:'Restoration', targetType:'area', mana:20, cd:13.0, castTime:0.5, range:0, radius:20, target:'Self AoE', desc:'Lifesteal boost.', details:'Grants Lifesteal Surge buff (+15% lifesteal, 10s) to allies. Damage heals you.', scaling:'Buff Only', buffs:['lifesteal_boost'] },
+
+  // ARCANE ARTS (Utility Buffs) - 5 active + 2 passive
+  'arcane_concentration': { id:'arcane_concentration', type:'active', name:'Concentration', category:'Arcane Arts', targetType:'area', mana:18, cd:12.0, castTime:0.4, range:0, radius:20, target:'Self AoE', desc:'Reduce costs and cooldowns.', details:'Grants Focus buff (+20% CDR, -50% mana costs, 8s) to allies. Powerful utility.', scaling:'Buff Only', buffs:['focus'] },
+  'arcane_mental_clarity': { id:'arcane_mental_clarity', type:'active', name:'Mental Clarity', category:'Arcane Arts', targetType:'area', mana:16, cd:10.0, castTime:0.3, range:0, radius:18, target:'Self AoE', desc:'Silence immunity and mana regen.', details:'Grants Clarity buff (Immune to silence, +25% mana regen, 10s) to allies.', scaling:'Buff Only', buffs:['clarity'] },
+  'arcane_shadow_veil': { id:'arcane_shadow_veil', type:'active', name:'Shadow Veil', category:'Arcane Arts', targetType:'area', mana:20, cd:15.0, castTime:0.5, range:0, radius:16, target:'Self AoE', desc:'Stealth and enhanced crits.', details:'Grants Stealth buff (Invisible to enemies, +50% crit chance, 5s) to allies. Break on damage.', scaling:'Buff Only', buffs:['stealth'] },
+  'arcane_power_surge': { id:'arcane_power_surge', type:'active', name:'Arcane Power', category:'Arcane Arts', targetType:'area', mana:18, cd:13.0, castTime:0.4, range:0, radius:20, target:'Self AoE', desc:'Magic damage boost.', details:'Grants Arcane Power buff (+30% magic damage, +15% mana regen, 10s) to allies.', scaling:'Buff Only', buffs:['arcane_power'] },
+  'arcane_swiftness': { id:'arcane_swiftness', type:'active', name:'Swiftness', category:'Arcane Arts', targetType:'area', mana:14, cd:8.0, castTime:0.2, range:0, radius:18, target:'Self AoE', desc:'Movement speed boost.', details:'Grants Haste buff (+30% movement speed, 5s) to allies. Quick repositioning.', scaling:'Buff Only', buffs:['haste'] },
+
+  // PASSIVE ABILITIES - Each belongs to a skill category and provides ongoing benefits
+  
+  // Destruction Staff Passives
+  'arcane_mastery': { id:'arcane_mastery', type:'passive', name:'Arcane Mastery', category:'Weapons - Destruction Staff', desc:'Enhanced magic power.', details:'+1.2 mana/s, +10 max mana, 6% CDR. Always active when selected.', buffs:{manaRegen:1.2, cdr:0.06, maxMana:10} },
+  'elemental_focus': { id:'elemental_focus', type:'passive', name:'Elemental Focus', category:'Weapons - Destruction Staff', desc:'Spell damage boost.', details:'+8% spell crit chance, +0.5 magic damage. Always active when selected.', buffs:{critChance:0.08, atk:0.5} },
+  
+  // Healing Staff Passives
+  'blessed_healing': { id:'blessed_healing', type:'passive', name:'Blessed Healing', category:'Weapons - Healing Staff', desc:'Enhanced healing and survival.', details:'+20 max HP, +0.8 HP/s regen, +5% healing power. Always active when selected.', buffs:{maxHp:20, hpRegen:0.8, healingPower:0.05} },
+  'restorative_spirit': { id:'restorative_spirit', type:'passive', name:'Restorative Spirit', category:'Weapons - Healing Staff', desc:'Improved sustain.', details:'+15 max mana, +1.0 mana/s, +5% CDR. Always active when selected.', buffs:{maxMana:15, manaRegen:1.0, cdr:0.05} },
+  
+  // Melee Weapon Passives
+  'weapon_mastery': { id:'weapon_mastery', type:'passive', name:'Weapon Mastery', category:'Weapons - Melee', desc:'Enhanced physical combat.', details:'+8% block effectiveness, +6 stamina/s. Always active when selected.', buffs:{blockEff:0.08, stamRegen:6} },
+  'battle_fury': { id:'battle_fury', type:'passive', name:'Battle Fury', category:'Weapons - Melee', desc:'Offensive power.', details:'6% lifesteal, +5% crit chance. Always active when selected.', buffs:{lifesteal:0.06, critChance:0.05} },
+  
+  // Mage Exclusive Passives
+  'arcane_intellect': { id:'arcane_intellect', type:'passive', name:'Arcane Intellect', category:'Mage - Exclusive', desc:'Mage combat mastery.', details:'+15 max mana, +1.5 mana/s, +10% magic damage. Always active when selected.', buffs:{maxMana:15, manaRegen:1.5, magicDmg:0.10} },
+  
+  // Knight Exclusive Passives
+  'shield_wall': { id:'shield_wall', type:'passive', name:'Shield Wall', category:'Knight - Exclusive', desc:'Defensive mastery.', details:'+12% defense, +10% block effectiveness, +25 max HP. Always active when selected.', buffs:{def:0.12, blockEff:0.10, maxHp:25} },
+  
+  // Warrior Exclusive Passives
+  'combat_veteran': { id:'combat_veteran', type:'passive', name:'Combat Veteran', category:'Warrior - Exclusive', desc:'Battle-hardened warrior.', details:'+1.5 attack, +8% crit chance, +15 max HP. Always active when selected.', buffs:{atk:1.5, critChance:0.08, maxHp:15} },
+  
+  // Tank/Warden Exclusive Passives
+  'indomitable': { id:'indomitable', type:'passive', name:'Indomitable', category:'Tank - Exclusive', desc:'Unbreakable defender.', details:'+40 max HP, +1.2 HP/s, +15% defense. Always active when selected.', buffs:{maxHp:40, hpRegen:1.2, def:0.15} },
+  
+  // Guild - Assault Passives
+  'assault_war_veteran': { id:'assault_war_veteran', type:'passive', name:'War Veteran', category:'Guild - Assault', desc:'Seasoned warrior.', details:'+2.0 attack, +10% crit chance, +12% crit multiplier. Always active when selected.', buffs:{atk:2.0, critChance:0.10, critMult:0.12} },
+  'assault_killer_instinct': { id:'assault_killer_instinct', type:'passive', name:'Killer Instinct', category:'Guild - Assault', desc:'Enhanced offense.', details:'+8% attack speed, +15% movement speed, +5% all damage. Always active when selected.', buffs:{atkSpeed:0.08, speed:0.15, allDamage:0.05} },
+  
+  // Guild - Support Passives
+  'support_stalwart_defender': { id:'support_stalwart_defender', type:'passive', name:'Stalwart Defender', category:'Guild - Support', desc:'Defensive mastery.', details:'+15% defense, +12% block effectiveness, +30 max HP. Always active when selected.', buffs:{def:0.15, blockEff:0.12, maxHp:30} },
+  'support_resilience': { id:'support_resilience', type:'passive', name:'Resilience', category:'Guild - Support', desc:'Enhanced endurance.', details:'+20% max stamina, +10 stamina/s, +1.0 HP/s. Always active when selected.', buffs:{maxStam:0.20, stamRegen:10, hpRegen:1.0} },
+  
+  // Restoration Passives
+  'resto_life_bond': { id:'resto_life_bond', type:'passive', name:'Life Bond', category:'Restoration', desc:'Enhanced vitality.', details:'+35 max HP, +1.5 HP/s, +8% lifesteal. Always active when selected.', buffs:{maxHp:35, hpRegen:1.5, lifesteal:0.08} },
+  'resto_mana_affinity': { id:'resto_mana_affinity', type:'passive', name:'Mana Affinity', category:'Restoration', desc:'Enhanced mana flow.', details:'+20 max mana, +1.8 mana/s, +5% healing power. Always active when selected.', buffs:{maxMana:20, manaRegen:1.8, healingPower:0.05} },
+  
+  // Arcane Arts Passives
+  'arcane_scholar': { id:'arcane_scholar', type:'passive', name:'Arcane Scholar', category:'Arcane Arts', desc:'Magical expertise.', details:'+8% CDR, +18 max mana, +1.2 mana/s. Always active when selected.', buffs:{cdr:0.08, maxMana:18, manaRegen:1.2} },
+  'arcane_versatility': { id:'arcane_versatility', type:'passive', name:'Versatility', category:'Arcane Arts', desc:'Adaptive mastery.', details:'+6% all stats, +10% movement speed, +5% cast speed. Always active when selected.', buffs:{allStats:0.06, speed:0.10, castSpeed:0.05} },
 };
 
 // Ability categories - Weapons are shared, Hero categories are unique
 export const ABILITY_CATEGORIES = [
-  // SHARED WEAPON CATEGORIES (5 each)
+  // SHARED WEAPON CATEGORIES (5 active + 2 passive each)
   { id: 'weapons-destruction', name: '🔥 Weapons - Destruction Staff', filter: a => a.category === 'Weapons - Destruction Staff' },
   { id: 'weapons-healing', name: '💚 Weapons - Healing Staff', filter: a => a.category === 'Weapons - Healing Staff' },
   { id: 'weapons-melee', name: '⚔️ Weapons - Melee', filter: a => a.category === 'Weapons - Melee' },
 
-  // HERO CATEGORIES (5 each)
+  // HERO CATEGORIES (5 active + 1 passive each)
   { id: 'mage-exclusive', name: '🌟 Mage - Exclusive', filter: a => a.category === 'Mage - Exclusive' },
   { id: 'knight-exclusive', name: '🛡️ Knight - Exclusive', filter: a => a.category === 'Knight - Exclusive' },
   { id: 'warrior-exclusive', name: '⚔️ Warrior - Exclusive', filter: a => a.category === 'Warrior - Exclusive' },
   { id: 'tank-exclusive', name: '🏔️ Tank - Exclusive', filter: a => a.category === 'Tank - Exclusive' },
+  
+  // UNIVERSAL SKILL LINES (5 active + 2 passive each) - Available to all heroes
+  { id: 'guild-assault', name: '⚔️ Guild - Assault', filter: a => a.category === 'Guild - Assault' },
+  { id: 'guild-support', name: '🛡️ Guild - Support', filter: a => a.category === 'Guild - Support' },
+  { id: 'restoration', name: '💚 Restoration', filter: a => a.category === 'Restoration' },
+  { id: 'arcane-arts', name: '✨ Arcane Arts', filter: a => a.category === 'Arcane Arts' },
 ];
 
 // Comprehensive Buff Registry
@@ -159,7 +228,7 @@ export function getAbilityById(id){ return ABILITIES[id] || null; }
 
 export function defaultAbilitySlots(){ return [null, null, null, null, null]; } // No default abilities - must be selected first
 
-export function defaultPassives(get){ return [get('bulwark'), get('siphon')]; }
+export function defaultPassives(get){ return []; } // Start with no passives - must equip weapon and select them
 
 export function clampCdr(cdr){ return clamp(cdr,0,0.45); }
 

@@ -23,6 +23,9 @@ export function hardResetGameState(state){
   
   if(!state || !state.player) return; // Safety check
   
+  // Initialize combat log for debugging
+  if(!state.combatLog) state.combatLog = [];
+  
   // Reset progression to level 1
   state.progression = { level:1, xp:0, statPoints:1, spends:{vit:0,int:0,str:0,def:0,agi:0} };
   
@@ -120,6 +123,9 @@ export function hardResetGameState(state){
 
 export async function initGame(state){
   try{ console.log('initGame: starting'); }catch(e){}
+  
+  // Initialize combat log for debugging
+  if(!state.combatLog) state.combatLog = [];
   
   // ALWAYS clear ability slots on new game - simple and explicit
   state.abilitySlots = [null, null, null, null, null];
@@ -347,7 +353,14 @@ export function currentStats(state){
   
   applySpends(state, base);
   applyAllArmor(state, base);
-  for(const p of state.player.passives) if(p?.type==='passive') applyBuffs(base, p.buffs);
+  
+  // Apply all selected passives (they are always active once selected)
+  for(const p of state.player.passives){
+    if(p?.type==='passive' && p.buffs){
+      applyBuffs(base, p.buffs);
+    }
+  }
+  
   // apply active buffs on player
   try{
     if(state.player.buffs && state.player.buffs.length){
@@ -784,7 +797,38 @@ function applyWeaponElementals(state, target){
 function applyDamageToEnemy(e,dmg,st,state,fromPlayer=false){
   const crit=rollCrit(st||{critChance:0});
   const final=crit?(dmg*(st?.critMult||1.5)):dmg;
+  
+  // LOG: Track damage to player
+  if(e === state.player){
+    console.log('[DAMAGE TO PLAYER]', final.toFixed(2), 'from', fromPlayer ? 'PLAYER' : 'ENEMY', 'hp before:', e.hp.toFixed(2));
+    // Add to combat log
+    if(state.combatLog){
+      state.combatLog.push({
+        time: (state.campaign?.time || 0).toFixed(2),
+        type: 'DAMAGE',
+        target: 'Player',
+        source: fromPlayer ? 'Player' : 'Enemy',
+        amount: final.toFixed(2),
+        hpBefore: e.hp.toFixed(2),
+        hpAfter: (e.hp - final).toFixed(2),
+        crit: crit
+      });
+    }
+  }
+  
   e.hp-=final;
+  
+  // Track damage dealt and received
+  e._damageReceived = (e._damageReceived || 0) + final;
+  if(fromPlayer){
+    state.player._damageDealt = (state.player._damageDealt || 0) + final;
+  }
+  
+  // LOG: Track damage result for player
+  if(e === state.player){
+    console.log('[DAMAGE TO PLAYER RESULT] hp after:', e.hp.toFixed(2), 'damage:', final.toFixed(2));
+  }
+  
   // spawn floating damage number above target only when player deals damage
   if(fromPlayer){
     try{
@@ -873,7 +917,7 @@ function applyDamageToPlayer(state, raw, st){
 }
 
 // Generic shield-first damage for any entity (player, friendly, enemy, creature)
-function applyShieldedDamage(state, entity, amount){
+function applyShieldedDamage(state, entity, amount, attacker=null){
   if(!entity || amount<=0) return;
   // respect invulnerability buffs
   try{
@@ -888,6 +932,12 @@ function applyShieldedDamage(state, entity, amount){
   if(remain<=0) return;
   const maxHp = entity===state.player ? currentStats(state).maxHp : entity.maxHp || 9999;
   entity.hp = clamp((entity.hp||0) - remain, 0, maxHp);
+  
+  // Track damage dealt and received
+  entity._damageReceived = (entity._damageReceived || 0) + amount;
+  if(attacker){
+    attacker._damageDealt = (attacker._damageDealt || 0) + amount;
+  }
 }
 
 const ELEMENT_COLORS = { fire:'#ff9a3c', shock:'#6ec0ff', poison:'#5fd86b', ice:'#c4e6ff', arcane:'#c16bff' };
@@ -1036,6 +1086,7 @@ function spawnProjectile(state, x,y,angle,speed,r,dmg,pierce=0, fromPlayer=true,
   const p = {x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,r,dmg,pierce,life:1.35, fromPlayer};
   if(opts.dotId) p.dotId = opts.dotId;
   if(opts.team) p.team = opts.team;
+  if(opts.shooter) p.shooter = opts.shooter; // Track who fired this projectile
   const col = colorForProjectile(opts, fromPlayer);
   if(col) p.color = col;
   if(opts.element) p.element = opts.element;
@@ -1283,6 +1334,8 @@ const ABILITY_META = {
 
 function npcHealPulse(state, cx, cy, radius, amount, caster=null){
   const st = currentStats(state);
+  const isEnemyCaster = caster && state.enemies.includes(caster);
+  
   const healOne = (ent, mult=1)=>{
     if(!ent) return;
     const maxHp = ent===state.player ? st.maxHp : ent.maxHp || st.maxHp;
@@ -1293,8 +1346,19 @@ function npcHealPulse(state, cx, cy, radius, amount, caster=null){
       caster._healingDone = (caster._healingDone || 0) + healAmt;
     }
   };
-  healOne(state.player, 1);
-  for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x-cx,f.y-cy); if(d<=radius) healOne(f, 0.9); }
+  
+  if(isEnemyCaster){
+    // Enemy caster - heal other enemies
+    for(const e of state.enemies){
+      if(e.dead || e.hp <= 0) continue;
+      const d = Math.hypot(e.x - cx, e.y - cy);
+      if(d <= radius) healOne(e, e === caster ? 1 : 0.9);
+    }
+  } else {
+    // Friendly caster - heal player and friendlies
+    healOne(state.player, 1);
+    for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x-cx,f.y-cy); if(d<=radius) healOne(f, 0.9); }
+  }
   
   // Visual flash for heal cast
   state.effects.flashes.push({ x: cx, y: cy, r: radius, life: 0.5, color: '#ffd760' });
@@ -1302,8 +1366,8 @@ function npcHealPulse(state, cx, cy, radius, amount, caster=null){
 
 function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
   // Visual flash for shield cast
-  const isEnemy = state.enemies.includes(caster);
-  const flashColor = isEnemy ? '#6ec0ff' : '#ffb347';
+  const isEnemyCaster = caster && state.enemies.includes(caster);
+  const flashColor = isEnemyCaster ? '#6ec0ff' : '#ffb347';
   state.effects.flashes.push({ x: cx, y: cy, r: radius, life: 0.5, color: flashColor });
   
   const casterName = caster.name || caster.variant || 'Unknown';
@@ -1322,9 +1386,20 @@ function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
       caster._shieldProvided = (caster._shieldProvided || 0) + shieldGain;
     }
   };
-  applyShield(caster, selfBoost);
-  applyShield(state.player, 1);
-  for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x-cx,f.y-cy); if(d<=radius) applyShield(f, 0.6); }
+  
+  if(isEnemyCaster){
+    // Enemy caster - shield other enemies
+    for(const e of state.enemies){
+      if(e.dead || e.hp <= 0) continue;
+      const d = Math.hypot(e.x - cx, e.y - cy);
+      if(d <= radius) applyShield(e, e === caster ? selfBoost : 0.6);
+    }
+  } else {
+    // Friendly caster - shield player and friendlies
+    applyShield(caster, selfBoost);
+    applyShield(state.player, 1);
+    for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x-cx,f.y-cy); if(d<=radius) applyShield(f, 0.6); }
+  }
 }
 
 function npcDirectHeal(state, target, amount){
@@ -1355,12 +1430,44 @@ function npcCastSupportAbility(state, u, id, target){
     }
     case 'renewal_field':{
       const amt = 4 + (u.maxHp||90)*0.01;
-      state.effects.heals.push({t:5.0,tick:0.8,tl:0.8,amt, beacon:{x:u.x,y:u.y,r:150}, targets:[state.player, ...state.friendlies.filter(f=>f.respawnT<=0)]});
+      const isEnemyCaster = state.enemies.includes(u);
+      const targets = isEnemyCaster ? state.enemies.filter(e=>!e.dead && e.hp>0) : [state.player, ...state.friendlies.filter(f=>f.respawnT<=0)];
+      console.log('[HOT CREATE] renewal_field', 'amt:', amt, 'duration: 5s', 'targets:', targets.length, 'isEnemy:', isEnemyCaster);
+      // Add to combat log if player is affected
+      if(state.combatLog && targets.includes(state.player)){
+        state.combatLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'HOT_CREATE',
+          ability: 'renewal_field',
+          caster: u.name || u.variant || (isEnemyCaster ? 'Enemy' : 'Ally'),
+          targets: targets.length,
+          healPerTick: amt.toFixed(2),
+          duration: 5.0,
+          isEnemyCaster
+        });
+      }
+      state.effects.heals.push({t:5.0,tick:0.8,tl:0.8,amt, beacon:{x:u.x,y:u.y,r:150}, targets});
       return true;
     }
     case 'beacon_of_light':{
       const amt = 6 + (u.maxHp||90)*0.012;
-      state.effects.heals.push({t:6.0,tick:1.0,tl:1.0,amt, beacon:{x:u.x,y:u.y,r:170}, targets:[state.player, ...state.friendlies.filter(f=>f.respawnT<=0)]});
+      const isEnemyCaster = state.enemies.includes(u);
+      const targets = isEnemyCaster ? state.enemies.filter(e=>!e.dead && e.hp>0) : [state.player, ...state.friendlies.filter(f=>f.respawnT<=0)];
+      console.log('[HOT CREATE] beacon_of_light', 'amt:', amt, 'duration: 6s', 'targets:', targets.length, 'isEnemy:', isEnemyCaster);
+      // Add to combat log if player is affected
+      if(state.combatLog && targets.includes(state.player)){
+        state.combatLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'HOT_CREATE',
+          ability: 'beacon_of_light',
+          caster: u.name || u.variant || (isEnemyCaster ? 'Enemy' : 'Ally'),
+          targets: targets.length,
+          healPerTick: amt.toFixed(2),
+          duration: 6.0,
+          isEnemyCaster
+        });
+      }
+      state.effects.heals.push({t:6.0,tick:1.0,tl:1.0,amt, beacon:{x:u.x,y:u.y,r:170}, targets});
       return true;
     }
     case 'mage_divine_touch':{
@@ -1533,7 +1640,10 @@ function npcUpdateAbilities(state, u, dt, kind){
   const roleKey = (u.variant==='mage') ? 'mage' : (u.variant==='warden' ? 'warden' : 'dps');
   let role = u.role || (u.variant==='mage' ? 'HEALER' : (u.variant==='warden' ? 'TANK' : 'DPS'));
   if(typeof role === 'string') role = role.toUpperCase();
-  const allies = [state.player, ...state.friendlies.filter(f=>f.respawnT<=0), u];
+  // Allies = same team as this NPC (enemies heal enemies, friendlies heal player/friendlies)
+  const allies = kind === 'enemy' 
+    ? state.enemies.filter(e=>!e.dead && e.hp>0)
+    : [state.player, ...state.friendlies.filter(f=>f.respawnT<=0), u];
   let lowestAlly = null, lowestAllyHp = 1, lowestDist = Infinity;
   for(const ally of allies){
     if(!ally || ally.hp===undefined) continue;
@@ -1716,7 +1826,7 @@ function npcUpdateAbilities(state, u, dt, kind){
         const leadY = target.y + (target.vy||0)*0.25;
         aimAng = Math.atan2(leadY - u.y, leadX - u.x);
       }
-      spawnProjectile(state, u.x, u.y, aimAng, meta.speed||420, 5, meta.dmg, meta.pierce||0, fromPlayer);
+      spawnProjectile(state, u.x, u.y, aimAng, meta.speed||420, 5, meta.dmg, meta.pierce||0, fromPlayer, { shooter: u });
     } else {
       // Melee attack with visual slash effect
       const range = meta.range;
@@ -1741,7 +1851,12 @@ function npcUpdateAbilities(state, u, dt, kind){
         const e=targets[ei];
         const dx=e.x-u.x, dy=e.y-u.y; const d=Math.hypot(dx,dy); if(d>range) continue;
         const ea=Math.atan2(dy,dx); let diff=Math.abs(ea-ang); diff=Math.min(diff, Math.PI*2-diff);
-        if(diff<=arc/2 && e.hp!==undefined){ e.hp-=meta.dmg; }
+        if(diff<=arc/2 && e.hp!==undefined){ 
+          e.hp-=meta.dmg; 
+          // Track damage dealt and received
+          e._damageReceived = (e._damageReceived || 0) + meta.dmg;
+          u._damageDealt = (u._damageDealt || 0) + meta.dmg;
+        }
       }
     }
     if(debugAI){ console.log('[NPC AI] cast', id, 'score', bestScore.toFixed(2), 'target', u._lockId||target.id||'?'); }
@@ -3208,7 +3323,7 @@ function updateEnemies(state, dt){
       const OUTPOST_FOCUS_RANGE = 220;
       let outpostTx = null, outpostTy = null;
       let outpostFocus = false;
-      if(spawnTarget && spawnTarget.owner && spawnTarget.owner !== e.team && spawnTarget.health > 0){
+      if(spawnTarget && spawnTarget.owner && spawnTarget.owner !== e.team){
         const distToFlag = Math.hypot(spawnTarget.x - e.x, spawnTarget.y - e.y);
         const attackRange = e.r + spawnTarget.r + 80;
         if(distToFlag > attackRange){
@@ -3236,13 +3351,13 @@ function updateEnemies(state, dt){
         e.attacked = true;
         e._hostTarget = nearestHost;
       } else if(spawnTarget){
-        // PRIORITY: Attack flag health first if it exists and has health
-        if(spawnTarget.health > 0 && spawnTarget.owner && spawnTarget.owner !== e.team){
-          tx = outpostTx;
-          ty = outpostTy;
+        // PRIORITY: Attack flag if it's enemy-controlled (health system handles damage)
+        if(spawnTarget.owner && spawnTarget.owner !== e.team){
+          tx = outpostTx || spawnTarget.x;
+          ty = outpostTy || spawnTarget.y;
         }
-        // If flag has no health or is destroyed, attack walls
-        else if(spawnTarget.owner && spawnTarget.owner !== e.team && spawnTarget.wall){
+        // If flag is neutral or destroyed but has walls, attack walls
+        else if(spawnTarget.wall && (!spawnTarget.owner || spawnTarget.health <= 0)){
           // choose the nearest intact wall side and move to a point on the ring there
           let bestIdx = -1, bestD = Infinity;
           for(let si=0; si<4; si++){
@@ -3955,20 +4070,113 @@ function tryCastSlot(state, idx){
 
 function updateHeals(state, dt){
   const st=currentStats(state);
+  
+  // LOG: Track active HOTs
+  if(state.effects.heals.length > 0 && Math.random() < 0.1){
+    console.log('[HOT STATUS]', state.effects.heals.length, 'active heals, player hp:', state.player.hp.toFixed(2));
+  }
+  
   for(let i=state.effects.heals.length-1;i>=0;i--){
     const h=state.effects.heals[i];
     h.t-=dt; h.tl-=dt;
     if(h.tl<=0){
       h.tl+=h.tick;
       const targets = h.targets ? (Array.isArray(h.targets)?h.targets:[h.targets]) : [state.player];
+      
+      // LOG: Track HOT tick
+      const playerInTargets = targets.includes(state.player);
+      if(playerInTargets){
+        console.log('[HOT TICK]', 'amt:', h.amt, 'duration left:', h.t.toFixed(2), 'targets:', targets.length, 'beacon:', !!h.beacon);
+      }
+      
       if(h.beacon){
         const {x,y,r} = h.beacon;
-        for(const t of targets){ if(!t) continue; if(Math.hypot((t.x||state.player.x)-x,(t.y||state.player.y)-y)<=r){ const maxHp = t.maxHp || st.maxHp; t.hp = clamp(t.hp + h.amt, 0, maxHp); } }
+        for(const t of targets){ 
+          // Skip dead, removed, or respawning units
+          if(!t || t.dead || t.hp === undefined || t.hp <= 0) continue;
+          if(t !== state.player && t.respawnT && t.respawnT > 0) continue;
+          
+          if(Math.hypot((t.x||state.player.x)-x,(t.y||state.player.y)-y)<=r){ 
+            const maxHp = t===state.player ? st.maxHp : (t.maxHp || st.maxHp); 
+            const hpBefore = t.hp;
+            t.hp = clamp(t.hp + h.amt, 0, maxHp); 
+            const gained = t.hp - hpBefore;
+            
+            // LOG: Track healing to player
+            if(t === state.player && gained > 0){
+              console.log('[HOT HEAL PLAYER]', '+' + gained.toFixed(2), 'hp:', hpBefore.toFixed(2), '->', t.hp.toFixed(2), 'amt:', h.amt);
+              // Add to combat log
+              if(state.combatLog){
+                state.combatLog.push({
+                  time: (state.campaign?.time || 0).toFixed(2),
+                  type: 'HOT_TICK',
+                  target: 'Player',
+                  gained: gained.toFixed(2),
+                  hpBefore: hpBefore.toFixed(2),
+                  hpAfter: t.hp.toFixed(2),
+                  healAmount: h.amt.toFixed(2),
+                  timeLeft: h.t.toFixed(2)
+                });
+              }
+            }
+            
+            // Debug excessive healing
+            if(gained > 50){
+              console.warn('[HEAL OVER TIME] Large heal:', gained.toFixed(2), 'to', t.name || t.variant, 'amt:', h.amt, 'tick:', h.tick);
+            }
+          } 
+        }
       } else {
-        for(const t of targets){ if(!t) continue; const maxHp = t.maxHp || st.maxHp; t.hp = clamp(t.hp + h.amt, 0, maxHp); }
+        for(const t of targets){ 
+          // Skip dead, removed, or respawning units
+          if(!t || t.dead || t.hp === undefined || t.hp <= 0) continue;
+          if(t !== state.player && t.respawnT && t.respawnT > 0) continue;
+          
+          const maxHp = t===state.player ? st.maxHp : (t.maxHp || st.maxHp); 
+          const hpBefore = t.hp;
+          t.hp = clamp(t.hp + h.amt, 0, maxHp);
+          const gained = t.hp - hpBefore;
+          
+          // LOG: Track healing to player
+          if(t === state.player && gained > 0){
+            console.log('[HOT HEAL PLAYER]', '+' + gained.toFixed(2), 'hp:', hpBefore.toFixed(2), '->', t.hp.toFixed(2), 'amt:', h.amt);
+            // Add to combat log
+            if(state.combatLog){
+              state.combatLog.push({
+                time: (state.campaign?.time || 0).toFixed(2),
+                type: 'HOT_TICK',
+                target: 'Player',
+                gained: gained.toFixed(2),
+                hpBefore: hpBefore.toFixed(2),
+                hpAfter: t.hp.toFixed(2),
+                healAmount: h.amt.toFixed(2),
+                timeLeft: h.t.toFixed(2)
+              });
+            }
+          }
+          
+          // Debug excessive healing
+          if(gained > 50){
+            console.warn('[HEAL OVER TIME] Large heal:', gained.toFixed(2), 'to', t.name || t.variant, 'amt:', h.amt, 'tick:', h.tick);
+          }
+        }
       }
     }
-    if(h.t<=0) state.effects.heals.splice(i,1);
+    if(h.t<=0){
+      // LOG: HOT expired
+      if(h.targets && h.targets.includes(state.player)){
+        console.log('[HOT EXPIRED] duration was:', (5.0 + h.t).toFixed(2), 'seconds');
+        // Add to combat log
+        if(state.combatLog){
+          state.combatLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'HOT_EXPIRED',
+            target: 'Player'
+          });
+        }
+      }
+      state.effects.heals.splice(i,1);
+    }
   }
 }
 
@@ -4224,7 +4432,7 @@ function updateProjectiles(state, dt){
         const f = state.friendlies[fi];
         if(f.respawnT>0) continue;
         if(Math.hypot(p.x-f.x, p.y-f.y) <= f.r + p.r){
-          applyShieldedDamage(state, f, p.dmg);
+          applyShieldedDamage(state, f, p.dmg, p.shooter);
           if(f.hp<=0){ killFriendly(state, fi, true); }
           state.projectiles.splice(pi,1);
           break;
@@ -4233,6 +4441,10 @@ function updateProjectiles(state, dt){
       if(pi>=state.projectiles.length) continue; // removed by friendly hit
       if(!state.player.dead && Math.hypot(p.x-state.player.x,p.y-state.player.y)<=state.player.r+p.r){
         applyDamageToPlayer(state, p.dmg, st);
+        // Track damage dealt by shooter if available
+        if(p.shooter){
+          p.shooter._damageDealt = (p.shooter._damageDealt || 0) + p.dmg;
+        }
         // potential enemy projectile DoTs could be applied here similarly
         state.projectiles.splice(pi,1);
       }
@@ -5525,7 +5737,7 @@ export function updateGame(state, dt){
   // Block only consumes stamina when actually blocking damage (handled in applyDamageToPlayer)
   // No passive drain while holding block
 
-  // Garrison assignment hotkeys (1-6 for flags, 7 for unassign all) - with confirmation prompts
+  // Garrison assignment hotkeys (1-6 for flags, 7 for unassign all) - no confirmation needed
   const capturableSites = state.sites
     .filter(s => s && s.id && s.id.startsWith('site_'))
     .sort((a,b) => a.id.localeCompare(b.id));
@@ -5534,23 +5746,20 @@ export function updateGame(state, dt){
     if(state.input.keysDown.has(state.binds[bindKey])){
       const targetSite = capturableSites[flagNum - 1];
       if(targetSite && targetSite.owner === 'player'){
-        // Prompt for confirmation
-        const confirmMsg = `Assign all non-grouped allies to ${targetSite.name || `Flag ${flagNum}`}?`;
-        if(confirm(confirmMsg)){
-          for(const friendly of state.friendlies){
-            if(friendly && !friendly.dead && friendly.respawnT <= 0){
-              // Skip if this friendly is in a group
-              if(state.group && state.group.members && state.group.members.includes(friendly.id)) continue;
-              // Assign to garrison
-              friendly.garrisonSiteId = targetSite.id;
-              // Reset garrison position so it recalculates
-              delete friendly._garrisonX;
-              delete friendly._garrisonY;
-              delete friendly._garrisonSlot;
-            }
+        // Assign directly without confirmation
+        for(const friendly of state.friendlies){
+          if(friendly && !friendly.dead && friendly.respawnT <= 0){
+            // Skip if this friendly is in a group
+            if(state.group && state.group.members && state.group.members.includes(friendly.id)) continue;
+            // Assign to garrison
+            friendly.garrisonSiteId = targetSite.id;
+            // Reset garrison position so it recalculates
+            delete friendly._garrisonX;
+            delete friendly._garrisonY;
+            delete friendly._garrisonSlot;
           }
-          state.ui?.toast(`Assigned allies to ${targetSite.name || `Flag ${flagNum}`}`);
         }
+        state.ui?.toast(`Assigned allies to ${targetSite.name || `Flag ${flagNum}`}`);
       } else {
         state.ui?.toast(`No captured flag mapped to hotkey ${flagNum}.`);
       }
@@ -5559,19 +5768,17 @@ export function updateGame(state, dt){
     }
   }
 
-  // Unassign all garrison assignments (hotkey 7) - with confirmation prompt
+  // Unassign all garrison assignments (hotkey 7) - no confirmation needed
   if(state.input.keysDown.has(state.binds.garrisonUnassignAll)){
-    if(confirm('Clear all garrison assignments?')){
-      for(const friendly of state.friendlies){
-        if(friendly && !friendly.dead && friendly.respawnT <= 0){
-          delete friendly.garrisonSiteId;
-          delete friendly._garrisonX;
-          delete friendly._garrisonY;
-          delete friendly._garrisonSlot;
-        }
+    for(const friendly of state.friendlies){
+      if(friendly && !friendly.dead && friendly.respawnT <= 0){
+        delete friendly.garrisonSiteId;
+        delete friendly._garrisonX;
+        delete friendly._garrisonY;
+        delete friendly._garrisonSlot;
       }
-      state.ui?.toast('All garrison assignments cleared.');
     }
+    state.ui?.toast('All garrison assignments cleared.');
     // Consume the keypress
     state.input.keysDown.delete(state.binds.garrisonUnassignAll);
   }
@@ -6540,6 +6747,57 @@ export function saveGameLogToStorage(state){
     state.gameLog.lastSaveTime = now;
   }catch(e){
     console.error('[LOG] Failed to save game log:', e);
+  }
+}
+
+export function downloadCombatLog(state){
+  try{
+    if(!state.combatLog || state.combatLog.length === 0){
+      alert('No combat events logged yet. Play for a bit and try again.');
+      return;
+    }
+    
+    let log = 'Combat Event Log\n';
+    log += '='.repeat(100) + '\n';
+    log += `Generated: ${new Date().toLocaleString()}\n`;
+    log += `Total Events: ${state.combatLog.length}\n`;
+    log += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
+    
+    // Keep only last 1000 events to prevent huge files
+    const events = state.combatLog.slice(-1000);
+    
+    for(const evt of events){
+      const time = `[${evt.time}s]`.padEnd(12);
+      
+      if(evt.type === 'DAMAGE'){
+        log += `${time} DAMAGE: ${evt.target} took ${evt.amount} from ${evt.source} (${evt.hpBefore} -> ${evt.hpAfter})${evt.crit ? ' CRIT!' : ''}\n`;
+      }
+      else if(evt.type === 'HOT_CREATE'){
+        log += `${time} HOT START: ${evt.ability} by ${evt.caster} (${evt.healPerTick}/tick for ${evt.duration}s, ${evt.targets} targets, enemy=${evt.isEnemyCaster})\n`;
+      }
+      else if(evt.type === 'HOT_TICK'){
+        log += `${time} HOT HEAL: ${evt.target} +${evt.gained} HP (${evt.hpBefore} -> ${evt.hpAfter}, ${evt.timeLeft}s left)\n`;
+      }
+      else if(evt.type === 'HOT_EXPIRED'){
+        log += `${time} HOT END: ${evt.target} heal-over-time expired\n`;
+      }
+    }
+    
+    log += '\n' + '='.repeat(100) + '\n';
+    log += 'END OF LOG\n';
+    
+    const blob = new Blob([log], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `combat-log-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    console.log(`[LOG] Downloaded combat log with ${events.length} events`);
+  }catch(e){
+    console.error('[LOG] Failed to download combat log:', e);
+    alert('Failed to download combat log');
   }
 }
 

@@ -1,8 +1,51 @@
-# Recent Fixes - Loadout Hotkeys & Item Previews
+# Recent Fixes - Loadout Hotkeys, Item Previews & Damage Tracking
 
 ## ✅ Completed (Latest Session - Jan 3, 2026)
 
-### 1. **Loadout Hotkey System** 
+### 1. **Ability Keybinds Updated**
+**Status:** ✅ Fixed
+
+Changed default ability keybinds for better ergonomics:
+- **Ability 1:** `Q` (unchanged)
+- **Ability 2:** `2` (unchanged)  
+- **Ability 3:** `Digit3` → **`E`** ⚡NEW
+- **Ability 4:** `R` (unchanged)
+- **Ability 5:** `T` → **`F`** ⚡NEW
+
+**Keybind version bumped to 8** - all players will get new defaults on launch
+
+### 2. **Garrison Assignment Simplified**
+**Status:** ✅ Fixed
+
+Removed annoying confirmation prompts - now instantly assigns:
+- Press `1-6` → Assigns allies to that flag immediately (no popup)
+- Press `7` → Clears all assignments immediately (no popup)
+
+### 3. **🔴 CRITICAL: Damage Tracking Fixed**
+**Status:** ✅ Fixed
+
+**ISSUE FOUND IN LOGS:** All damage/healing was showing as 0 even though combat was happening!
+
+**Root Cause:** Damage tracking fields existed but weren't being incremented when damage occurred.
+
+**Fixed:**
+- ✅ Added `_damageDealt` tracking to `applyDamageToEnemy()`
+- ✅ Added damage tracking to `applyShieldedDamage()`
+- ✅ Added damage tracking to NPC melee attacks
+- ✅ Added `shooter` tracking to projectiles for attribution
+- ✅ Player damage dealt/received now properly tracked
+
+**Impact:** Damage reports now show actual combat statistics!
+
+**Files Modified:**
+- [game.js](c:/Users/Home/Downloads/orb-rpg-modular/OrbsRPG/orb-rpg/src/game/game.js) - Added tracking to all damage functions
+- [constants.js](c:/Users/Home/Downloads/orb-rpg-modular/OrbsRPG/orb-rpg/src/game/constants.js) - Updated keybinds
+
+---
+
+## 📋 Previous Session Fixes
+
+### 4. **Loadout Hotkey System** 
 **Status:** ✅ Fully Implemented & Updated
 
 Added hotkey support for quick loadout switching during gameplay:
@@ -42,7 +85,7 @@ Added hotkey support for quick loadout switching during gameplay:
 - `src/game/game.js` - Added loadout1/2/3 handlers, tab navigation handlers, HUD toggle keybind
 - `src/game/ui.js` - Icon mappings (already had loadout UI in Skills tab)
 
-### 2. **Item Preview System Fixed**
+### 5. **Item Preview System Fixed**
 **Status:** ✅ 41 Case Mismatches Fixed
 
 Fixed item preview failures caused by case-sensitive file name mismatches:
@@ -71,7 +114,7 @@ Fixed item preview failures caused by case-sensitive file name mismatches:
 - Epic/Legendary chest items will show "No preview available" (files missing)
 - All other armor/weapon previews should display correctly
 
-### 3. **Icon Asset Integration**
+### 6. **Icon Asset Integration**
 **Status:** ✅ 21 New Icons Mapped (From Previous Session)
 
 Added mappings for newly provided skill and buff icons:
