@@ -648,6 +648,18 @@ export function updateCapture(state, dt){
       s.owner = capturingTeam;
       s._justCaptured = capturingTeam;
       
+      // Log flag capture event
+      if(state.debugLog){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'FLAG_CAPTURED',
+          flag: s.name || s.id,
+          previousOwner: previousOwner || 'neutral',
+          newOwner: capturingTeam,
+          playerUnits: dominant.count
+        });
+      }
+      
       // DESTROY all guards from previous owner and reset progression
       destroyAllGuardsAtSite(state, s, previousOwner);
       s.guardProgression = {
@@ -681,6 +693,18 @@ export function updateCapture(state, dt){
       s.owner = capturingTeam;
       s._justCaptured = capturingTeam;
       s.prog = 1; // Set to full once captured
+      
+      // Log flag recapture event
+      if(state.debugLog){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'FLAG_RECAPTURED',
+          flag: s.name || s.id,
+          previousOwner,
+          newOwner: capturingTeam,
+          playerUnits: dominant.count
+        });
+      }
       
       // DESTROY all guards from previous owner and reset progression
       destroyAllGuardsAtSite(state, s, previousOwner);

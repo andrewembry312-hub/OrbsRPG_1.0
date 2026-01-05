@@ -1577,15 +1577,20 @@ function npcDirectHeal(state, target, amount){
 }
 
 function npcCastSupportAbility(state, u, id, target){
+  const isEnemyCaster = state.enemies.includes(u);
+  const kind = isEnemyCaster ? 'enemy' : 'friendly';
+  
   switch(id){
     case 'heal_burst':{
       const amt = 22 + (u.maxHp||90)*0.12;
       npcHealPulse(state, u.x, u.y, 150, amt);
+      logEffect(state, 'heal', 'heal_burst', u, kind, 'aoe');
       return true;
     }
     case 'ward_barrier':{
       const shield = 32 + (u.def||8)*1.0;
       npcShieldPulse(state, u, u.x, u.y, 90, shield);
+      logEffect(state, 'shield', 'ward_barrier', u, kind, 'aoe');
       return true;
     }
     case 'cleanse_wave':{
@@ -1593,6 +1598,7 @@ function npcCastSupportAbility(state, u, id, target){
       const shield = 20 + (u.def||6)*0.9;
       npcHealPulse(state, u.x, u.y, 150, heal);
       npcShieldPulse(state, u, u.x, u.y, 80, shield);
+      logEffect(state, 'heal+shield', 'cleanse_wave', u, kind, 'aoe');
       return true;
     }
     case 'renewal_field':{
@@ -1614,6 +1620,7 @@ function npcCastSupportAbility(state, u, id, target){
         });
       }
       state.effects.heals.push({t:5.0,tick:0.8,tl:0.8,amt, beacon:{x:u.x,y:u.y,r:150}, targets});
+      logEffect(state, 'hot', 'renewal_field', u, kind, targets.length);
       return true;
     }
     case 'beacon_of_light':{
@@ -1635,53 +1642,64 @@ function npcCastSupportAbility(state, u, id, target){
         });
       }
       state.effects.heals.push({t:6.0,tick:1.0,tl:1.0,amt, beacon:{x:u.x,y:u.y,r:170}, targets});
+      logEffect(state, 'hot', 'beacon_of_light', u, kind, targets.length);
       return true;
     }
     case 'mage_divine_touch':{
       const tgt = target || state.player;
       npcDirectHeal(state, tgt, 26 + (u.maxHp||90)*0.18);
+      logEffect(state, 'heal', 'mage_divine_touch', u, kind, 1);
       return true;
     }
     case 'mage_radiant_aura':{
       const shield = 26 + (u.def||10)*1.0;
       npcShieldPulse(state, u, u.x, u.y, 90, shield);
+      logEffect(state, 'shield', 'mage_radiant_aura', u, kind, 'aoe');
       return true;
     }
     case 'warcry':{
       const shield = 18 + (u.def||6)*0.8;
       npcShieldPulse(state, u, u.x, u.y, 80, shield);
+      logEffect(state, 'shield', 'warcry', u, kind, 'aoe');
       return true;
     }
     case 'knight_shield_wall':{
       const shield = 34 + (u.def||9)*1.1;
       npcShieldPulse(state, u, u.x, u.y, 100, shield);
       npcHealPulse(state, u.x, u.y, 180, 10 + (u.maxHp||90)*0.04);
+      logEffect(state, 'shield+heal', 'knight_shield_wall', u, kind, 'aoe');
       return true;
     }
     case 'knight_rally':{
       npcHealPulse(state, u.x, u.y, 180, 12 + (u.maxHp||90)*0.03);
       npcShieldPulse(state, u, u.x, u.y, 100, 18 + (u.def||8)*0.8);
+      logEffect(state, 'heal+shield', 'knight_rally', u, kind, 'aoe');
       return true;
     }
     case 'knight_taunt':{
       npcShieldPulse(state, u, u.x, u.y, 80, 16 + (u.def||8)*0.7);
+      logEffect(state, 'shield', 'knight_taunt', u, kind, 'aoe');
       return true;
     }
     case 'warrior_fortitude':{
       npcShieldPulse(state, u, u.x, u.y, 90, 22 + (u.def||8)*0.9);
+      logEffect(state, 'shield', 'warrior_fortitude', u, kind, 'aoe');
       return true;
     }
     case 'tank_iron_skin':{
       const cap = u.shieldCap || u.maxShield || 320;
       u.shield = clamp((u.shield||0) + 50 + (u.def||10)*1.2, 0, cap);
+      logEffect(state, 'shield', 'tank_iron_skin', u, kind, 1);
       return true;
     }
     case 'tank_bodyguard':{
       npcShieldPulse(state, u, u.x, u.y, 100, 24 + (u.def||10)*1.0);
+      logEffect(state, 'shield', 'tank_bodyguard', u, kind, 'aoe');
       return true;
     }
     case 'tank_anchor':{
       npcShieldPulse(state, u, u.x, u.y, 90, 20 + (u.def||9)*0.9);
+      logEffect(state, 'shield', 'tank_anchor', u, kind, 'aoe');
       return true;
     }
     default:
@@ -1745,12 +1763,14 @@ function npcUpdateAbilities(state, u, dt, kind){
   if(u.respawnT>0) return;
   if(!u.npcAbilities || !u.npcCd) return;
   for(let i=0;i<u.npcCd.length;i++) u.npcCd[i] = Math.max(0, (u.npcCd[i]||0) - dt);
-  const debugAI = state.options?.showDebug || state.options?.showDebugAI;
+  // Check if AI debug is enabled for this unit's kind
+  const debugAI = (kind === 'friendly' && state.options?.showDebugAI) ||
+                  (kind === 'enemy' && state.options?.showDebugAIEnemies);
   const recordAI = (action, extra={})=>{
     // Only show abilities in AI debug, not light attacks
     if(debugAI && action !== 'light_attack' && action !== 'filler'){
       state.debugAiEvents = state.debugAiEvents || [];
-      state.debugAiEvents.push({ t: state.campaign?.time||0, unit: u.name||u.variant||'npc', id: u.id||u._id, action, ...extra });
+      state.debugAiEvents.push({ t: state.campaign?.time||0, unit: u.name||u.variant||'npc', id: u.id||u._id, kind, action, ...extra });
       if(state.debugAiEvents.length > 32) state.debugAiEvents.shift();
     }
     
@@ -1766,9 +1786,22 @@ function npcUpdateAbilities(state, u, dt, kind){
         state.abilityLog[ability] = {
           kind: kind,
           count: 0,
-          byRole: {}
+          byRole: {},
+          lastCastTime: 0,
+          avgCooldown: 0,
+          expectedCd: ABILITY_META[ability]?.cd || 0
         };
       }
+      
+      // Track cooldown between casts
+      const currentTime = state.campaign?.time || 0;
+      const timeSinceLastCast = currentTime - state.abilityLog[ability].lastCastTime;
+      if(state.abilityLog[ability].lastCastTime > 0 && timeSinceLastCast > 0){
+        // Rolling average of actual cooldowns observed
+        const count = state.abilityLog[ability].count || 1;
+        state.abilityLog[ability].avgCooldown = ((state.abilityLog[ability].avgCooldown * count) + timeSinceLastCast) / (count + 1);
+      }
+      state.abilityLog[ability].lastCastTime = currentTime;
       
       state.abilityLog[ability].count++;
       state.abilityLog[ability].byRole[role] = (state.abilityLog[ability].byRole[role] || 0) + 1;
@@ -1835,7 +1868,27 @@ function npcUpdateAbilities(state, u, dt, kind){
 
   // Healer priority: emergency save, then AoE stabilize, then pre-burst mitigation
   if(role==='HEALER'){
-    const tryCast = (id)=>{ const i=u.npcAbilities.indexOf(id); return (i>=0 && u.npcCd[i]<=0 && u.mana >= (ABILITY_META[id]?.cost||0)) ? i : -1; };
+    const tryCast = (id)=>{ 
+      const i=u.npcAbilities.indexOf(id); 
+      const hasCd = i>=0 && u.npcCd[i]<=0;
+      const cost = ABILITY_META[id]?.cost||0;
+      const hasMana = u.mana >= cost;
+      
+      // Log mana starvation (5% sample)
+      if(hasCd && !hasMana && state.debugLog && Math.random() < 0.05){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'MANA_STARVATION',
+          unit: u.name || u.variant,
+          ability: id,
+          required: cost,
+          current: Math.round(u.mana ?? 0),
+          reason: 'healer_priority'
+        });
+      }
+      
+      return (hasCd && hasMana) ? i : -1; 
+    };
     if(lowestAlly && lowestAllyHp < 0.40){
       let idx = tryCast('mage_divine_touch'); if(idx===-1) idx = tryCast('heal_burst');
       if(idx!==-1){ u.npcCd[idx]=ABILITY_META[u.npcAbilities[idx]].cd; u.mana-=ABILITY_META[u.npcAbilities[idx]].cost; npcCastSupportAbility(state,u,u.npcAbilities[idx],lowestAlly); recordAI('cast-prio',{role,ability:u.npcAbilities[idx]}); return; }
@@ -1884,7 +1937,7 @@ function npcUpdateAbilities(state, u, dt, kind){
             u._buffTimers[id] = 12.0; // Assume 12s duration
             recordAI('cast-prio', {role, ability:id, reason:'buff_maintain'});
             buffCasted = true;
-            break; // Only cast one buff per frame, then move to damage
+            return; // Return immediately after casting buff to prevent double-casting
           }
         }
       }
@@ -1897,10 +1950,29 @@ function npcUpdateAbilities(state, u, dt, kind){
       for(let i=0;i<u.npcAbilities.length;i++){
         const id = u.npcAbilities[i];
         const meta = ABILITY_META[id];
-        if(meta && !meta.filler && meta.dmg && u.npcCd[i] <= 0 && u.mana >= meta.cost){
-          const inRange = bestD <= (meta.range || 100);
-          if(!isStaff && meta.type==='projectile') continue; // Skip staff abilities for melee
-          if(inRange) damageAbilities.push({id, meta, idx:i});
+        if(meta && !meta.filler && meta.dmg){
+          const cost = meta.cost || 0;
+          const hasMana = u.mana >= cost;
+          const hasCd = u.npcCd[i] <= 0;
+          
+          // Log mana starvation for damage abilities (2% sample)
+          if(hasCd && !hasMana && state.debugLog && Math.random() < 0.02){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: 'MANA_STARVATION',
+              unit: u.name || u.variant,
+              ability: id,
+              required: cost,
+              current: Math.round(u.mana ?? 0),
+              reason: 'damage_rotation'
+            });
+          }
+          
+          if(hasCd && hasMana){
+            const inRange = bestD <= (meta.range || 100);
+            if(!isStaff && meta.type==='projectile') continue; // Skip staff abilities for melee
+            if(inRange) damageAbilities.push({id, meta, idx:i});
+          }
         }
       }
       
@@ -1957,7 +2029,22 @@ function npcUpdateAbilities(state, u, dt, kind){
     const cdReady = u.npcCd[i] <= 0;
     const meta = ABILITY_META[id];
     if(!cdReady || !meta) continue;
-    if(u.mana < meta.cost) continue;
+    if(u.mana < meta.cost){
+      // Log mana starvation (sampled to avoid spam)
+      if(debugAI && state.debugLog && Math.random() < 0.01){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'MANA_STARVED',
+          unit: u.name || u.variant,
+          kind,
+          ability: id,
+          required: meta.cost,
+          current: Math.round(u.mana),
+          max: u.maxMana || 60
+        });
+      }
+      continue;
+    }
     if(!isStaff && meta.type==='projectile') continue; // melee only weapon can't cast staffs
     const isSupport = meta.kind === 'heal' || meta.kind === 'shield' || meta.kind === 'buff' || meta.type === 'support';
     let distScore = 0;
@@ -1990,6 +2077,8 @@ function npcUpdateAbilities(state, u, dt, kind){
     if(meta.type==='support' || meta.kind){
       const handled = npcCastSupportAbility(state, u, id, chosenTarget);
       if(!handled && debugAI){ console.log('[NPC AI] support cast fallback', id); }
+      recordAI('cast', { ability:id, score:Number(bestScore.toFixed(2)), dist:Math.round(bestD), mana:Math.round(u.mana), target:u._lockId||target.id||'?' });
+      return; // CRITICAL: Return after casting support ability to respect cooldown
     }
     else if(meta.type==='projectile'){
       let aimAng = ang;
@@ -2525,6 +2614,20 @@ function spawnFriendlyAt(state, site, forceVariant=null){
   
   npcInitAbilities(f);
   state.friendlies.push(f);
+  
+  // Log friendly spawn
+  if(state.debugLog){
+    state.debugLog.push({
+      time: (state.campaign?.time || 0).toFixed(2),
+      type: 'FRIENDLY_SPAWN',
+      variant: v,
+      site: site.name || site.id || 'unknown',
+      hp: f.maxHp,
+      damage: f.dmg,
+      level: playerLevel
+    });
+  }
+  
   return f;
 }
 
@@ -3525,16 +3628,88 @@ function updateEnemies(state, dt){
         tx = outpostTx;
         ty = outpostTy;
         e.attacked = true;
+        // Log enemy targeting decision
+        if(state.debugLog && Math.random() < 0.02){ // 2% sample rate to avoid spam
+          state.debugLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'ENEMY_AI_TARGET',
+            enemy: e.name || e.variant,
+            decision: 'outpost_focus',
+            target: spawnTarget?.name || 'unknown',
+            targetOwner: spawnTarget?.owner || 'none',
+            distance: Math.round(Math.hypot(spawnTarget.x - e.x, spawnTarget.y - e.y))
+          });
+        }
       } else if(nearestHost && nearestHD <= AGGRO_DIST && !e.inWater){
         // prioritize attacking the nearest hostile
         tx = nearestHost.x; ty = nearestHost.y;
         e.attacked = true;
         e._hostTarget = nearestHost;
+        // Log enemy targeting decision
+        if(state.debugLog && Math.random() < 0.02){
+          state.debugLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'ENEMY_AI_TARGET',
+            enemy: e.name || e.variant,
+            decision: 'attack_host',
+            target: nearestHost.name || nearestHost.variant || 'unknown',
+            targetType: hostType,
+            distance: Math.round(nearestHD)
+          });
+        }
       } else if(spawnTarget){
-        // PRIORITY: Attack flag if it's enemy-controlled (health system handles damage)
+        // PRIORITY: Check if walls exist before trying to capture flag
         if(spawnTarget.owner && spawnTarget.owner !== e.team){
-          tx = outpostTx || spawnTarget.x;
-          ty = outpostTy || spawnTarget.y;
+          // If there are intact walls, attack those FIRST
+          if(spawnTarget.wall && spawnTarget.wall.sides && spawnTarget.wall.sides.some(side => side && !side.destroyed)){
+            // Attack walls - target nearest intact wall
+            let bestIdx = -1, bestD = Infinity;
+            for(let si=0; si<4; si++){
+              const side = spawnTarget.wall.sides && spawnTarget.wall.sides[si];
+              if(!side || side.destroyed) continue;
+              const midAng = (si + 0.5) * (Math.PI/2);
+              const px = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
+              const py = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
+              const d = Math.hypot(px - e.x, py - e.y);
+              if(d < bestD){ bestD = d; bestIdx = si; }
+            }
+            if(bestIdx !== -1){
+              const midAng = (bestIdx + 0.5) * (Math.PI/2);
+              tx = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
+              ty = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
+            } else {
+              tx = outpostTx || spawnTarget.x;
+              ty = outpostTy || spawnTarget.y;
+            }
+            // Log wall targeting
+            if(state.debugLog && Math.random() < 0.02){
+              state.debugLog.push({
+                time: (state.campaign?.time || 0).toFixed(2),
+                type: 'ENEMY_AI_TARGET',
+                enemy: e.name || e.variant,
+                decision: 'attack_walls',
+                target: spawnTarget?.name || 'unknown',
+                targetOwner: spawnTarget?.owner || 'none',
+                wallsIntact: spawnTarget.wall.sides.filter(s => s && !s.destroyed).length
+              });
+            }
+          } else {
+            // No walls or all destroyed - can now attack flag
+            tx = outpostTx || spawnTarget.x;
+            ty = outpostTy || spawnTarget.y;
+            // Log flag capture attempt
+            if(state.debugLog && Math.random() < 0.02){
+              state.debugLog.push({
+                time: (state.campaign?.time || 0).toFixed(2),
+                type: 'ENEMY_AI_TARGET',
+                enemy: e.name || e.variant,
+                decision: 'capture_flag',
+                target: spawnTarget?.name || 'unknown',
+                targetOwner: spawnTarget?.owner || 'none',
+                hasWalls: !!spawnTarget.wall
+              });
+            }
+          }
         }
         // If flag is neutral or destroyed but has walls, attack walls
         else if(spawnTarget.wall && (!spawnTarget.owner || spawnTarget.health <= 0)){
@@ -5868,6 +6043,17 @@ function updatePartyCoordinator(state, dt){
   }
 
   if(nextMacro !== party.macroState){
+    // Log macro state change
+    if(state.debugLog){
+      state.debugLog.push({
+        time: (state.campaign?.time || 0).toFixed(2),
+        type: 'PARTY_MACRO_CHANGE',
+        previousState: party.macroState,
+        newState: nextMacro,
+        reason: wantsReset ? 'low_hp' : (focus ? 'has_focus' : 'auto'),
+        playerHP: `${Math.round(hpPct*100)}%`
+      });
+    }
     party.macroState = nextMacro;
     party.macroLockUntil = time + 1.25;
     if(nextMacro === 'burst' && focus) party.burstUntil = time + 2.6;
@@ -6972,6 +7158,29 @@ function logPlayerEvent(state, type, data){
   // Keep only last 2000 events to prevent memory bloat
   if(state.playerLog.length > 2000){
     state.playerLog.shift();
+  }
+}
+
+// Log effect casts (buffs, shields, heals) from all sources
+function logEffect(state, effectType, ability, caster, kind, targets = 1){
+  if(!state.effectLog) state.effectLog = [];
+  
+  const event = {
+    time: (state.campaign?.time || 0).toFixed(2),
+    timestamp: Date.now(),
+    effectType,  // 'buff', 'shield', 'heal', 'hot'
+    ability,
+    caster: caster.name || caster.variant || kind,
+    casterId: caster.id || caster._id,
+    kind,  // 'friendly', 'enemy', 'player'
+    targets
+  };
+  
+  state.effectLog.push(event);
+  
+  // Keep only last 2000 events
+  if(state.effectLog.length > 2000){
+    state.effectLog.shift();
   }
 }
 

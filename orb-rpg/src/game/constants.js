@@ -1,6 +1,6 @@
 export const INV_SIZE=24;
 export const LOOT_TTL=30.0;
-export const KEYBIND_VERSION = 9; // Increment to force keybind reset
+export const KEYBIND_VERSION = 10; // Increment to force keybind reset
 
 export const ARMOR_SLOTS=['weapon','helm','shoulders','chest','hands','belt','legs','feet','neck','accessory1','accessory2'];
 export const SLOT_LABEL={
@@ -12,8 +12,8 @@ export const SLOT_LABEL={
 export const DEFAULT_BINDS = {
   moveUp: 'KeyW', moveDown: 'KeyS', moveLeft: 'KeyA', moveRight: 'KeyD',
   interact: 'KeyF', inventory: 'KeyI', menu:'Escape', sprint:'ShiftLeft',
-  abil1:'KeyQ', abil2:'KeyE', abil3:'KeyR', abil4:'KeyT', abil5:'KeyF',
-  level:'KeyL', potion:'KeyG', map:'KeyM', skills:'KeyK',
+  abil1:'KeyQ', abil2:'KeyE', abil3:'KeyR', abil4:'KeyT', abil5:'KeyG',
+  level:'KeyL', potion:'KeyC', map:'KeyM', skills:'KeyK',
   loadout1:'BracketLeft', loadout2:'BracketRight', loadout3:'Backslash',
   tabInventory:'', tabSkills:'', tabLevel:'', tabBuffs:'', tabGroup:'', tabAllies:'', tabCampaign:'',
   toggleHud:'KeyB',

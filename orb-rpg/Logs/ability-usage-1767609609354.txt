@@ -1,0 +1,30 @@
+Ability Usage Log
+======================================================================
+Generated: 1/5/2026, 5:40:09 AM
+Game Time: 126s
+
+FRIENDLY ABILITIES:
+----------------------------------------------------------------------
+warrior_fortitude              Total:   112 | DPS:112 | CD: 8.0s (actual: 1.3s)
+mage_radiant_aura              Total:    75 | DPS:13, HEALER:62 | CD: 8.0s (actual: 1.8s)
+piercing_lance                 Total:    19 | DPS:19 | CD: 6.0s (actual: 5.5s)
+arc_bolt                       Total:    34 | DPS:34 | CD: 3.5s (actual: 3.1s)
+chain_light                    Total:     4 | DPS:4 | CD: 5.5s (actual: 25.7s)
+
+ENEMY ABILITIES:
+----------------------------------------------------------------------
+knight_taunt                   Total:   250 | TANK:250 | CD: 8.0s (actual: 1.1s)
+warcry                         Total:   243 | TANK:243 | CD: 8.0s (actual: 1.0s)
+knight_shield_wall             Total:   218 | TANK:218 | CD: 9.0s (actual: 1.1s)
+slash                          Total:   101 | DPS:101 | CD: 1.0s (actual: 1.2s)
+warrior_life_leech             Total:    27 | DPS:27 | CD: 4.0s (actual: 4.2s)
+warrior_cleave                 Total:    16 | DPS:16 | CD: 4.2s (actual: 7.1s)
+cleave                         Total:    13 | DPS:13 | CD: 3.2s (actual: 9.1s)
+tank_anchor                    Total:    40 | TANK:40 | CD: 9.0s (actual: 2.9s)
+tank_bodyguard                 Total:    33 | TANK:33 | CD: 11.0s (actual: 3.5s)
+tank_iron_skin                 Total:    29 | TANK:29 | CD: 10.0s (actual: 4.1s)
+knight_rally                   Total:    72 | TANK:72 | CD: 10.0s (actual: 1.9s)
+mage_divine_touch              Total:   258 | HEALER:258 | CD: 4.5s (actual: 0.4s)
+heal_burst                     Total:   223 | TANK:69, HEALER:154 | CD: 7.5s (actual: 0.6s)
+cleanse_wave                   Total:    55 | HEALER:55 | CD: 9.0s (actual: 1.9s)
+ward_barrier                   Total:    35 | TANK:15, HEALER:20 | CD: 10.0s (actual: 2.8s)

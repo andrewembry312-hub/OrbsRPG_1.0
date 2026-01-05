@@ -1164,8 +1164,10 @@ export function buildUI(state){
             <div style="font-weight:900; color:#d4af37;">Gameplay</div>
             <div style="margin-top:10px" class="row">
               <label class="small"><input id="optShowAim" type="checkbox" checked/> Show aim line</label>
-              <label class="small"><input id="optShowDebug" type="checkbox"/> Show debug</label>
-              <label class="small"><input id="optShowDebugAI" type="checkbox" checked/> AI debug (party)</label>
+            </div>
+            <div style="margin-top:8px; display:flex; gap:12px;">
+              <label class="small"><input id="optShowDebugAI" type="checkbox" checked/> AI debug: Friendlies</label>
+              <label class="small"><input id="optShowDebugAIEnemies" type="checkbox"/> AI debug: Enemies</label>
             </div>
             <div style="margin-top:8px">
               <label class="small"><input id="optAutoPickup" type="checkbox"/> Auto-pickup loot when walked over</label>
@@ -1236,7 +1238,13 @@ export function buildUI(state){
                   <input type="checkbox" id="enableAbilityLog" checked style="cursor:pointer;">
                   <span class="small" style="color:#c9f;">Ability Usage Log</span>
                 </label>
-                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Track how often each ability is cast by role/class for AI tuning</div>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Track how often each ability is cast by role/class with average cooldowns for AI tuning</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="enableEffectLog" checked style="cursor:pointer;">
+                  <span class="small" style="color:#6cf;">Effect Cast Log</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Track all buffs, shields, heals, and HOTs cast by friendlies and enemies</div>
                 
                 <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
                   <input type="checkbox" id="enableConsoleLog" checked style="cursor:pointer;">
@@ -1515,11 +1523,12 @@ function bindUI(state){
     enableDebugLog:$('enableDebugLog'),
     enableDamageLog:$('enableDamageLog'),
     enableAbilityLog:$('enableAbilityLog'),
+    enableEffectLog:$('enableEffectLog'),
     enableConsoleLog:$('enableConsoleLog'),
     btnDownloadAllLogs:$('btnDownloadAllLogs'),
     optShowAim:$('optShowAim'),
-    optShowDebug:$('optShowDebug'),
     optShowDebugAI:$('optShowDebugAI'),
+    optShowDebugAIEnemies:$('optShowDebugAIEnemies'),
     optCameraFreeView:$('optCameraFreeView'),
       optCameraFollowChar:$('optCameraFollowChar'),
       optCameraEdgeStrict:$('optCameraEdgeStrict'),
@@ -1902,7 +1911,6 @@ function bindUI(state){
   if(ui.btnApplyOpts){
     ui.btnApplyOpts.onclick = ()=>{
       state.options.showAim = !!ui.optShowAim?.checked;
-      state.options.showDebug = !!ui.optShowDebug?.checked;
       if(ui.optShowDebugAI) state.options.showDebugAI = !!ui.optShowDebugAI.checked;
       state.options.autoPickup = !!ui.optAutoPickup?.checked;
       // camera mode
@@ -2886,8 +2894,8 @@ function bindUI(state){
       
       state.paused=true;
       ui.optShowAim.checked=state.options.showAim;
-      ui.optShowDebug.checked=state.options.showDebug;
       if(ui.optShowDebugAI) ui.optShowDebugAI.checked = !!state.options.showDebugAI;
+      if(ui.optShowDebugAIEnemies) ui.optShowDebugAIEnemies.checked = !!state.options.showDebugAIEnemies;
       ui.optAutoPickup.checked=state.options.autoPickup || false;
       const cameraMode = state.options.cameraMode || 'follow';
         ui.optCameraFollowChar.checked = cameraMode === 'follow';
@@ -3829,7 +3837,7 @@ function bindUI(state){
   ui.updateAiFeed = ()=>{
     const el = document.getElementById('aiFeed');
     if(!el) return;
-    const on = !!(state.options?.showDebugAI);
+    const on = !!(state.options?.showDebugAI || state.options?.showDebugAIEnemies);
     if(!on){ el.style.display='none'; return; }
     const events = state.debugAiEvents || [];
     if(!events.length){ el.style.display='none'; return; }
@@ -3840,7 +3848,8 @@ function bindUI(state){
       const nm = (ev.unit||'npc');
       const act = ev.action||'act';
       const ab = ev.ability ? ` • ${ev.ability}` : (ev.score!==undefined?` • s=${ev.score}`:'');
-      return `<div><span style="color:#6cf">${t}s</span> <b>${nm}</b> — ${act}${ab}</div>`;
+      const color = ev.kind === 'enemy' ? '#ff6b6b' : '#6bff6b'; // Red for enemies, green for friendlies
+      return `<div><span style="color:#6cf">${t}s</span> <b style="color:${color}">${nm}</b> — ${act}${ab}</div>`;
     }).join('');
   };
 
@@ -5615,10 +5624,24 @@ function bindUI(state){
       persistOpts();
     });
   }
+  if(ui.optShowDebugAI){
+    ui.optShowDebugAI.addEventListener('change', ()=>{
+      state.options.showDebugAI = !!ui.optShowDebugAI.checked;
+      persistOpts();
+    });
+  }
+  if(ui.optShowDebugAIEnemies){
+    ui.optShowDebugAIEnemies.addEventListener('change', ()=>{
+      state.options.showDebugAIEnemies = !!ui.optShowDebugAIEnemies.checked;
+      persistOpts();
+    });
+  }
 
   ui.btnApplyOpts.onclick=()=>{
     state.options.showAim = !!ui.optShowAim.checked;
     state.options.showDebug = !!ui.optShowDebug.checked;
+    state.options.showDebugAI = !!ui.optShowDebugAI?.checked;
+    state.options.showDebugAIEnemies = !!ui.optShowDebugAIEnemies?.checked;
     state.options.autoPickup = !!ui.optAutoPickup.checked;
       state.options.cameraMode = document.querySelector('input[name="cameraMode"]:checked')?.value || 'follow';
     saveJson('orb_rpg_mod_opts', state.options);
@@ -5753,7 +5776,8 @@ function bindUI(state){
           if(data.kind !== 'friendly') continue;
           friendlyCount++;
           const roleStats = Object.entries(data.byRole).map(([role, count]) => `${role}:${count}`).join(', ');
-          log += `${ability.padEnd(30)} Total: ${data.count.toString().padStart(5)} | ${roleStats}\n`;
+          const cdInfo = data.expectedCd > 0 ? ` | CD: ${data.expectedCd.toFixed(1)}s (actual: ${(data.avgCooldown || 0).toFixed(1)}s)` : '';
+          log += `${ability.padEnd(30)} Total: ${data.count.toString().padStart(5)} | ${roleStats}${cdInfo}\n`;
         }
         
         log += '\nENEMY ABILITIES:\n';
@@ -5762,7 +5786,8 @@ function bindUI(state){
           if(data.kind !== 'enemy') continue;
           enemyCount++;
           const roleStats = Object.entries(data.byRole).map(([role, count]) => `${role}:${count}`).join(', ');
-          log += `${ability.padEnd(30)} Total: ${data.count.toString().padStart(5)} | ${roleStats}\n`;
+          const cdInfo = data.expectedCd > 0 ? ` | CD: ${data.expectedCd.toFixed(1)}s (actual: ${(data.avgCooldown || 0).toFixed(1)}s)` : '';
+          log += `${ability.padEnd(30)} Total: ${data.count.toString().padStart(5)} | ${roleStats}${cdInfo}\n`;
         }
         
         const blob = new Blob([log], { type: 'text/plain' });
@@ -5773,6 +5798,64 @@ function bindUI(state){
         a.click();
         URL.revokeObjectURL(url);
         logs.push('Ability');
+        count++;
+      }
+      
+      if(ui.enableEffectLog.checked){
+        // Generate effect log
+        const effects = state.effectLog || [];
+        let log = 'Effect Cast Log\n';
+        log += '='.repeat(70) + '\n';
+        log += `Generated: ${new Date().toLocaleString()}\n`;
+        log += `Total Effects: ${effects.length}\n`;
+        log += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
+        
+        // Group by effect type
+        const byType = {};
+        for(const evt of effects){
+          const key = `${evt.kind}|${evt.effectType}`;
+          if(!byType[key]) byType[key] = [];
+          byType[key].push(evt);
+        }
+        
+        log += 'FRIENDLY EFFECTS:\n';
+        log += '-'.repeat(70) + '\n';
+        for(const [key, evts] of Object.entries(byType)){
+          if(!key.startsWith('friendly|')) continue;
+          const type = key.split('|')[1];
+          const byAbility = {};
+          for(const evt of evts){
+            byAbility[evt.ability] = (byAbility[evt.ability] || 0) + 1;
+          }
+          log += `  ${type.toUpperCase()}:\n`;
+          for(const [ability, count] of Object.entries(byAbility)){
+            log += `    ${ability.padEnd(35)} ${count.toString().padStart(5)} casts\n`;
+          }
+        }
+        
+        log += '\nENEMY EFFECTS:\n';
+        log += '-'.repeat(70) + '\n';
+        for(const [key, evts] of Object.entries(byType)){
+          if(!key.startsWith('enemy|')) continue;
+          const type = key.split('|')[1];
+          const byAbility = {};
+          for(const evt of evts){
+            byAbility[evt.ability] = (byAbility[evt.ability] || 0) + 1;
+          }
+          log += `  ${type.toUpperCase()}:\n`;
+          for(const [ability, count] of Object.entries(byAbility)){
+            log += `    ${ability.padEnd(35)} ${count.toString().padStart(5)} casts\n`;
+          }
+        }
+        
+        const blob = new Blob([log], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `effect-log-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        logs.push('Effect');
         count++;
       }
       
