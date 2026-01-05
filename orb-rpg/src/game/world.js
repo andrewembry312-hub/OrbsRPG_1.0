@@ -674,7 +674,7 @@ export function updateCapture(state, dt){
       s.damageState = 'undamaged';
       s._underAttackNotified = false;
       
-      const msg = capturingTeam === 'player' 
+      const msg = capturingTeam === 'player'
         ? `<b>${s.name}</b> captured! Friendlies will spawn to defend.`
         : `<span class="neg"><b>${s.name}</b> was captured by ${capturingTeam}.</span>`;
       state.ui.toast(msg);
@@ -682,7 +682,7 @@ export function updateCapture(state, dt){
       if(s.id && s.id.startsWith && s.id.startsWith('site_')){
         const baseR = s.r + 18;
         const sides = [];
-        for(let i=0;i<4;i++) sides.push({ hp: 60, maxHp: 60, destroyed: false, lastDamaged: -9999 });
+        for(let i=0;i<4;i++) sides.push({ hp: 200, maxHp: 200, destroyed: false, lastDamaged: -9999 });
         s.wall = { r: baseR, thickness: 10, gateSide: Math.floor(Math.random()*4), sides: sides, cornerR: 8, repairCooldown: 5.0 };
         s.wall.gateOpen = false;
       }
@@ -728,11 +728,110 @@ export function updateCapture(state, dt){
       if(s.id && s.id.startsWith && s.id.startsWith('site_')){
         const baseR = s.r + 18;
         const sides = [];
-        for(let i=0;i<4;i++) sides.push({ hp: 60, maxHp: 60, destroyed: false, lastDamaged: -9999 });
+        for(let i=0;i<4;i++) sides.push({ hp: 200, maxHp: 200, destroyed: false, lastDamaged: -9999 });
         s.wall = { r: baseR, thickness: 10, gateSide: Math.floor(Math.random()*4), sides: sides, cornerR: 8, repairCooldown: 5.0 };
         s.wall.gateOpen = false;
       }
       delete s._captureTeam;
+    }
+  }
+}
+
+// Update wall damage from proximity contact
+export function updateWallDamage(state, dt){
+  const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
+  
+  for(const s of state.sites){
+    // Only process sites with walls
+    if(!s.wall || !s.wall.sides) continue;
+    
+    // Process each wall side (Top=0, Right=1, Bottom=2, Left=3)
+    for(let sideIdx = 0; sideIdx < 4; sideIdx++){
+      const side = s.wall.sides[sideIdx];
+      if(!side || side.destroyed) continue;
+      
+      // Calculate wall side position
+      const midAng = (sideIdx + 0.5) * (Math.PI/2);
+      const wallX = s.x + Math.cos(midAng) * s.wall.r * 0.92;
+      const wallY = s.y + Math.sin(midAng) * s.wall.r * 0.92;
+      const wallRange = s.wall.thickness + 20; // Contact range for damaging wall
+      
+      let attackers = [];
+      
+      // Check enemies attacking this wall side
+      for(const e of state.enemies){
+        if(!e || e.dead || e.hp <= 0) continue;
+        if(s.owner === e.team) continue; // Don't attack own walls
+        const dist = Math.hypot(e.x - wallX, e.y - wallY);
+        if(dist <= wallRange){
+          attackers.push({ dmg: e.contactDmg || 10, unit: e });
+        }
+      }
+      
+      // Check friendlies attacking this wall side
+      for(const f of state.friendlies){
+        if(!f || f.respawnT > 0 || f.dead || f.hp <= 0) continue;
+        if(s.owner === 'player') continue; // Don't attack own walls
+        const dist = Math.hypot(f.x - wallX, f.y - wallY);
+        if(dist <= wallRange){
+          attackers.push({ dmg: f.contactDmg || f.dmg || 10, unit: f });
+        }
+      }
+      
+      // Check player attacking this wall side
+      if(state.player && !state.player.dead && state.player.hp > 0 && s.owner !== 'player'){
+        const dist = Math.hypot(state.player.x - wallX, state.player.y - wallY);
+        if(dist <= wallRange){
+          const st = state.currentStats || {atk: 10};
+          attackers.push({ dmg: st.atk || 10, unit: state.player });
+        }
+      }
+      
+      // Apply damage from all attackers
+      if(attackers.length > 0){
+        // 8 damage per second per attacker (balanced for siege)
+        const totalDamage = attackers.length * 8 * dt;
+        const oldHp = side.hp;
+        side.hp = Math.max(0, side.hp - totalDamage);
+        side.lastDamaged = Date.now();
+        
+        // Log wall damage periodically (5% sample for performance)
+        if(state.debugLog && Math.random() < 0.05){
+          const sideNames = ['North', 'East', 'South', 'West'];
+          state.debugLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'WALL_DAMAGE',
+            site: s.name || s.id,
+            side: sideNames[sideIdx],
+            attackers: attackers.length,
+            damage: Math.round(totalDamage * 100) / 100,
+            hpBefore: Math.round(oldHp),
+            hpAfter: Math.round(side.hp),
+            hpPercent: Math.round((side.hp / side.maxHp) * 100)
+          });
+        }
+        
+        // Destroy wall side when HP reaches 0
+        if(side.hp <= 0 && !side.destroyed){
+          side.destroyed = true;
+          side.hp = 0;
+          const sideNames = ['North', 'East', 'South', 'West'];
+          const msg = `<span class="neg">${sideNames[sideIdx]} wall destroyed at <b>${s.name || s.id}</b>!</span>`;
+          if(state.ui) state.ui.toast(msg);
+          
+          // Log wall destruction
+          if(state.debugLog){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: 'WALL_DESTROYED',
+              site: s.name || s.id,
+              side: sideNames[sideIdx],
+              attackers: attackers.length,
+              remainingWalls: s.wall.sides.filter(ws => ws && !ws.destroyed).length
+            });
+          }
+        }
+      }
     }
   }
 }

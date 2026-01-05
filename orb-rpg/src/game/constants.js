@@ -6,7 +6,7 @@ export const ARMOR_SLOTS=['weapon','helm','shoulders','chest','hands','belt','le
 export const SLOT_LABEL={
   weapon:'Weapon',
   helm:'Helm', shoulders:'Shoulders', chest:'Chest', hands:'Hands', belt:'Belt', legs:'Legs', feet:'Feet',
-  neck:'Necklace', accessory1:'Accessory 1', accessory2:'Accessory 2'
+  neck:'Necklace', accessory1:'Ring', accessory2:'Bracelet'
 };
 
 export const DEFAULT_BINDS = {

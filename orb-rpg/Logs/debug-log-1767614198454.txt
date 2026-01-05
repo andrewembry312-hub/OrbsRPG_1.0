@@ -1,0 +1,1022 @@
+Debug Diagnostic Log
+========================================================================================================================
+Generated: 1/5/2026, 6:56:38 AM
+Total Events: 7136
+Game Time: 149s
+
+CURRENT STATE:
+  Player Level: 2
+  Player HP: 173/173
+  Player Mana: 76/76
+  Player Stamina: 108/108
+  Player Shield: 0 (cap: 173)
+  Base Player MaxMana: 70
+  Stat Spends: {"vit":0,"int":0,"str":0,"def":0,"agi":0}
+
+
+======================================== undefined ========================================
+[133.35s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:3, max:60
+[133.35s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[133.35s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:11, max:40
+[133.37s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:1, reason:"damage_rotation"
+[133.37s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:5, max:40
+[133.43s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:3, reason:"healer_priority"
+[133.43s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[133.43s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[133.48s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[133.48s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[133.48s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[133.51s]  undefined | type:"MANA_STARVED", unit:"Warden Guard 5", kind:"friendly", ability:"heal_burst", required:18, current:5, max:60
+[133.51s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:1, max:40
+[133.51s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[133.51s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[133.53s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:31
+[133.53s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[133.53s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[133.56s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:2, reason:"damage_rotation"
+[133.60s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Warden 615", targetType:"friendly", distance:32
+[133.60s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[133.61s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[133.61s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[133.63s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:5, reason:"healer_priority"
+[133.68s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:3, max:40
+[133.70s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[133.78s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"piercing_lance", required:16, current:7, reason:"damage_rotation"
+[133.78s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[133.80s]  undefined | type:"MANA_STARVED", unit:"Mage 175", kind:"friendly", ability:"ward_barrier", required:22, current:13, max:60
+[133.80s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[133.80s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[133.83s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[133.83s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_shield_wall", required:16, current:12, max:40
+[133.85s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[133.86s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:31
+[133.86s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:4, reason:"damage_rotation"
+[133.88s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[133.88s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[133.93s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[133.93s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[133.95s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:0, reason:"damage_rotation"
+[133.95s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:40
+[133.95s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:60
+[133.95s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[133.96s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:187
+[133.96s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:12, max:40
+[134.00s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:3, max:40
+[134.01s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[134.01s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[134.03s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:9, max:40
+[134.03s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[134.06s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:13, max:60
+[134.06s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[134.08s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[134.09s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:1, reason:"damage_rotation"
+[134.09s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[134.09s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:2, reason:"damage_rotation"
+[134.09s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[134.11s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[134.13s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:4, reason:"damage_rotation"
+[134.13s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[134.16s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:187
+[134.16s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:9, max:40
+[134.16s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[134.18s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"East", attackers:1, damage:0.13, hpBefore:164, hpAfter:164, hpPercent:82
+[134.18s]  undefined | type:"MANA_STARVED", unit:"Knight 579", kind:"friendly", ability:"warcry", required:12, current:10, max:60
+[134.18s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:13, reason:"healer_priority"
+[134.19s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:9, reason:"healer_priority"
+[134.19s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[134.21s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:13, reason:"healer_priority"
+[134.21s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:187
+[134.24s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:32
+[134.24s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:40
+[134.24s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[134.29s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:6, max:60
+[134.33s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:2, reason:"damage_rotation"
+[134.33s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:5, max:40
+[134.34s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"East", attackers:1, damage:0.13, hpBefore:163, hpAfter:163, hpPercent:81
+[134.34s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[134.36s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[134.36s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[134.39s]  undefined | type:"MANA_STARVED", unit:"Knight 579", kind:"friendly", ability:"warcry", required:12, current:12, max:60
+[134.39s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[134.39s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:3, max:40
+[134.43s]  undefined | type:"MANA_STARVED", unit:"Warden Guard 5", kind:"friendly", ability:"tank_iron_skin", required:14, current:10, max:60
+[134.43s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[134.43s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[134.48s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:2, reason:"damage_rotation"
+[134.48s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:16, max:40
+[134.51s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"East", attackers:2, damage:0.27, hpBefore:161, hpAfter:161, hpPercent:80
+[134.51s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:31
+[134.53s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:2, reason:"damage_rotation"
+[134.56s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[134.61s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:40
+[134.63s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:4, reason:"damage_rotation"
+[134.66s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:13, reason:"healer_priority"
+[134.66s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[134.66s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[134.68s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[134.69s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:7, max:40
+[134.71s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:17, reason:"healer_priority"
+[134.71s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:193
+[134.74s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[134.76s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[134.78s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[134.78s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[134.81s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:60
+[134.84s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:60
+[134.84s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:8, max:40
+[134.86s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"East", attackers:1, damage:0.13, hpBefore:158, hpAfter:158, hpPercent:79
+[134.86s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:14, reason:"healer_priority"
+[134.86s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:12, max:40
+[134.89s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[134.92s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:1, max:40
+[134.92s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:25
+[134.94s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:7, max:40
+[134.97s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:31
+[134.97s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:25
+[134.97s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[135.02s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:5, max:40
+[135.04s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:10, reason:"damage_rotation"
+[135.04s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[135.07s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"ward_barrier", required:22, current:10, max:60
+[135.07s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:16, reason:"healer_priority"
+[135.07s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[135.09s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:2, max:40
+[135.11s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:11, max:60
+[135.11s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[135.14s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:196
+[135.14s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:14, max:40
+[135.17s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[135.19s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:1, reason:"healer_priority"
+[135.19s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[135.19s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:40
+[135.24s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:1, reason:"healer_priority"
+[135.26s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[135.27s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:6, max:40
+[135.27s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:10, max:40
+[135.29s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[135.29s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"piercing_lance", required:16, current:4, reason:"damage_rotation"
+[135.29s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[135.29s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[135.32s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[135.34s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:16, max:40
+[135.34s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:60
+[135.34s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[135.35s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:4, reason:"damage_rotation"
+[135.39s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[135.40s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:2, max:40
+[135.40s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:9, reason:"healer_priority"
+[135.42s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"North", attackers:1, damage:0.13, hpBefore:165, hpAfter:165, hpPercent:82
+[135.42s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[135.42s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[135.42s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[135.45s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:4, max:60
+[135.47s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[135.47s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[135.49s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"North", attackers:1, damage:0.13, hpBefore:165, hpAfter:164, hpPercent:82
+[135.49s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[135.49s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:5, max:40
+[135.49s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[135.52s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:14, max:60
+[135.54s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:10, max:60
+[135.54s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:194
+[135.57s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"North", attackers:1, damage:0.26, hpBefore:164, hpAfter:164, hpPercent:82
+[135.64s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:15, max:60
+[135.65s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:31
+[135.65s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:12, max:40
+[135.70s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"East", attackers:1, damage:0.13, hpBefore:155, hpAfter:155, hpPercent:78
+[135.70s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[135.70s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[135.74s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:16, max:60
+[135.74s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:5, reason:"healer_priority"
+[135.75s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_shield_wall", required:16, current:2, max:40
+[135.79s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:4, reason:"damage_rotation"
+[135.80s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"East", attackers:1, damage:0.13, hpBefore:155, hpAfter:154, hpPercent:77
+[135.82s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:5, max:60
+[135.84s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[135.89s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"East", attackers:1, damage:0.13, hpBefore:154, hpAfter:154, hpPercent:77
+[135.90s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:60
+[135.92s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[135.92s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[135.92s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:6, max:40
+[135.97s]  undefined | type:"MANA_STARVED", unit:"Knight 817", kind:"friendly", ability:"heal_burst", required:18, current:8, max:60
+[135.97s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:6, reason:"healer_priority"
+[136.00s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:17, max:40
+[136.03s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[136.08s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[136.10s]  undefined | type:"MANA_STARVED", unit:"Knight 817", kind:"friendly", ability:"heal_burst", required:18, current:9, max:60
+[136.15s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[136.15s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[136.22s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:4, max:60
+[136.22s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[136.22s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:9, max:40
+[136.25s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[136.25s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[136.28s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"piercing_lance", required:16, current:9, max:40
+[136.32s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[136.35s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[136.43s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:10, reason:"damage_rotation"
+[136.43s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:40
+[136.46s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[136.46s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:5, max:40
+[136.46s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:4, reason:"damage_rotation"
+[136.50s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:10, max:40
+[136.50s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[136.50s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[136.53s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[136.56s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[136.56s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:195
+[136.66s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[136.66s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[136.69s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:5, max:40
+[136.69s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:6, reason:"damage_rotation"
+[136.69s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:12, reason:"healer_priority"
+[136.69s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[136.71s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:32
+[136.71s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[136.74s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:31
+[136.74s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:6, reason:"damage_rotation"
+[136.74s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[136.74s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[136.74s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[136.76s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:31
+[136.76s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:10, max:40
+[136.76s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[136.78s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:7, max:40
+[136.78s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:5, max:40
+[136.78s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[136.78s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:14, max:40
+[136.79s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:31
+[136.79s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"warcry", required:12, current:8, max:40
+[136.83s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:32
+[136.83s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[136.84s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:12, reason:"damage_rotation"
+[136.88s]  undefined | type:"MANA_STARVED", unit:"Warden Guard 5", kind:"friendly", ability:"tank_anchor", required:10, current:9, max:60
+[136.91s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:15, reason:"healer_priority"
+[136.91s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:6, max:40
+[136.93s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[136.94s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:6, max:40
+[136.94s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:4, max:60
+[136.94s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[136.98s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:11, max:40
+[136.98s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[136.99s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[137.01s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:13, max:40
+[137.01s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[137.03s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:31
+[137.03s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[137.03s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[137.06s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[137.08s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"North", attackers:1, damage:0.13, hpBefore:155, hpAfter:155, hpPercent:77
+[137.16s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[137.16s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[137.19s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:5, max:40
+[137.21s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:5, max:40
+[137.21s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:23
+[137.21s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:13, max:40
+[137.21s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[137.24s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[137.27s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[137.27s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:16, reason:"healer_priority"
+[137.27s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:9, max:40
+[137.29s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:4, reason:"damage_rotation"
+[137.32s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:13, max:40
+[137.32s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[137.34s]  undefined | type:"MANA_STARVED", unit:"Mage 175", kind:"friendly", ability:"cleanse_wave", required:14, current:6, max:60
+[137.34s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:6, max:40
+[137.34s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:6, max:60
+[137.34s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[137.37s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:3, reason:"damage_rotation"
+[137.37s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:4, max:40
+[137.41s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:6, max:40
+[137.41s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"healer_priority"
+[137.44s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:3, reason:"damage_rotation"
+[137.44s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:18, reason:"healer_priority"
+[137.44s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[137.47s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:6, max:40
+[137.51s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:188
+[137.51s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:1, reason:"damage_rotation"
+[137.51s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:18, max:40
+[137.51s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[137.51s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:11, reason:"healer_priority"
+[137.54s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:32
+[137.54s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:6, max:40
+[137.59s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:8, reason:"healer_priority"
+[137.62s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[137.62s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:11, max:40
+[137.65s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:7, reason:"damage_rotation"
+[137.75s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[137.77s]  undefined | type:"PARTY_MACRO_CHANGE", previousState:"engage", newState:"stack", reason:"low_hp", playerHP:"0%"
+[137.77s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:7, reason:"damage_rotation"
+[137.79s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:4, max:60
+[137.82s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:9, max:40
+[137.82s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[137.82s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:7, max:40
+[137.82s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:8, max:40
+[137.85s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[137.85s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:40
+[137.85s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[137.85s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[137.85s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[137.85s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:10, max:40
+[137.85s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_shield_wall", required:16, current:2, max:40
+[137.87s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"healer_priority"
+[137.87s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:186
+[137.87s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:8, reason:"damage_rotation"
+[137.87s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[137.87s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:7, reason:"damage_rotation"
+[137.90s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:3, max:40
+[137.90s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[137.90s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:1, reason:"damage_rotation"
+[137.90s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:8, max:40
+[137.93s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"healer_priority"
+[137.93s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[137.95s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[137.98s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:4, max:40
+[137.98s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:2, reason:"damage_rotation"
+[138.02s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[138.05s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:11, reason:"healer_priority"
+[138.05s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:11, max:60
+[138.05s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[138.05s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:8, reason:"damage_rotation"
+[138.05s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[138.08s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:32
+[138.10s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:14, max:60
+[138.13s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:187
+[138.17s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:32
+[138.17s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:1, reason:"damage_rotation"
+[138.18s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:12, reason:"healer_priority"
+[138.22s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:2, max:60
+[138.22s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:13, reason:"healer_priority"
+[138.22s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:2, reason:"damage_rotation"
+[138.22s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[138.23s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:12, reason:"healer_priority"
+[138.23s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[138.23s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[138.27s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:2, max:40
+[138.28s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:6, max:60
+[138.28s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[138.28s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:0, reason:"healer_priority"
+[138.30s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[138.33s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:3, max:60
+[138.33s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:1, reason:"healer_priority"
+[138.36s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"ward_barrier", required:22, current:0, max:60
+[138.36s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:14, max:60
+[138.36s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[138.36s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[138.38s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[138.40s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:3, reason:"damage_rotation"
+[138.40s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[138.43s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[138.46s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[138.46s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[138.46s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:12, max:40
+[138.51s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:40
+[138.55s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[138.55s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[138.56s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[138.56s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[138.58s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:3, reason:"healer_priority"
+[138.61s]  undefined | type:"MANA_STARVED", unit:"Mage 175", kind:"friendly", ability:"ward_barrier", required:22, current:15, max:60
+[138.61s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:16, reason:"healer_priority"
+[138.65s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:15, reason:"healer_priority"
+[138.65s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:1, max:40
+[138.66s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:6, max:40
+[138.70s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:3, reason:"healer_priority"
+[138.71s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:0, max:40
+[138.73s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:40
+[138.73s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:6, reason:"damage_rotation"
+[138.73s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[138.78s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:17, reason:"healer_priority"
+[138.78s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"arc_bolt", required:10, current:6, max:40
+[138.80s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[138.81s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:4, reason:"healer_priority"
+[138.83s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"arc_bolt", required:10, current:6, reason:"damage_rotation"
+[138.83s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[138.86s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:1, reason:"damage_rotation"
+[138.88s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:18, reason:"healer_priority"
+[138.88s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:4, max:40
+[138.88s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[138.91s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:7, max:60
+[138.91s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:18, reason:"healer_priority"
+[138.93s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:1, max:40
+[138.93s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"arc_bolt", required:10, current:7, reason:"damage_rotation"
+[138.93s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:5, reason:"healer_priority"
+[138.93s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[138.96s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:31
+[138.98s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:6, max:60
+[138.98s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[138.98s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[139.01s]  undefined | type:"MANA_STARVED", unit:"Knight 579", kind:"friendly", ability:"heal_burst", required:18, current:15, max:60
+[139.01s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:7, max:40
+[139.03s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:8, max:60
+[139.03s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"slash", required:4, current:2, max:60
+[139.03s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:6, reason:"healer_priority"
+[139.18s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"arc_bolt", required:10, current:8, reason:"damage_rotation"
+[139.21s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:1, max:40
+[139.21s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[139.24s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:188
+[139.24s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:40
+[139.24s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:4, reason:"damage_rotation"
+[139.26s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:3, max:40
+[139.26s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:3, max:60
+[139.26s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[139.26s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:32
+[139.34s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:32
+[139.39s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:4, reason:"damage_rotation"
+[139.39s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:4, reason:"damage_rotation"
+[139.39s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[139.44s]  undefined | type:"MANA_STARVED", unit:"Warden Guard 5", kind:"friendly", ability:"heal_burst", required:18, current:13, max:60
+[139.44s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[139.44s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:193
+[139.51s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:9, max:60
+[139.54s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[139.54s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:10, reason:"damage_rotation"
+[139.54s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[139.57s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:5, max:40
+[139.57s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:5, max:40
+[139.57s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"healer_priority"
+[139.57s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:201
+[139.61s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_taunt", required:10, current:10, max:60
+[139.61s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:3, max:40
+[139.66s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[139.67s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[139.71s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:7, reason:"healer_priority"
+[139.71s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:31
+[139.71s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:40
+[139.72s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:5, max:60
+[139.72s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:11, reason:"healer_priority"
+[139.76s]  undefined | type:"PARTY_MACRO_CHANGE", previousState:"stack", newState:"engage", reason:"has_focus", playerHP:"NaN%"
+[139.76s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[139.79s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[139.81s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[139.84s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[139.84s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:5, max:40
+[139.87s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[139.90s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:9, reason:"healer_priority"
+[139.90s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:6, max:40
+[139.94s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:9, reason:"healer_priority"
+[139.94s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[139.94s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:13, reason:"healer_priority"
+[140.07s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:10, max:60
+[140.07s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:6, reason:"damage_rotation"
+[140.09s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:32
+[140.12s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:10, max:60
+[140.12s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:3, max:40
+[140.12s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[140.18s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[140.20s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:11, reason:"healer_priority"
+[140.23s]  undefined | type:"MANA_STARVED", unit:"Warden Guard 5", kind:"friendly", ability:"ward_barrier", required:22, current:18, max:60
+[140.23s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[140.25s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:22, max:40
+[140.28s]  undefined | type:"WALL_DAMAGE", site:"Flag 2", side:"East", attackers:1, damage:0.26, hpBefore:113, hpAfter:113, hpPercent:57
+[140.28s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:8, max:40
+[140.32s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:9, max:60
+[140.32s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[140.32s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[140.35s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[140.38s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[140.42s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[140.42s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:10, reason:"damage_rotation"
+[140.43s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:5, max:60
+[140.43s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:32
+[140.43s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[140.47s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:13, reason:"healer_priority"
+[140.47s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:32
+[140.51s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:13, reason:"healer_priority"
+[140.51s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:17, reason:"healer_priority"
+[140.55s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[140.55s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[140.58s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:10, max:40
+[140.61s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:2, max:60
+[140.61s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:4, reason:"damage_rotation"
+[140.61s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[140.68s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[140.71s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[140.78s]  undefined | type:"MANA_STARVED", unit:"Warden 620", kind:"friendly", ability:"ward_barrier", required:22, current:6, max:60
+[140.78s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_host", target:"Knight 817", targetType:"friendly", distance:32
+[140.81s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[140.88s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:40
+[140.91s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:3, reason:"damage_rotation"
+[140.91s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:15, max:40
+[140.94s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:12, max:40
+[141.04s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:60
+[141.04s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:12, max:60
+[141.04s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:40
+[141.08s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:187
+[141.08s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[141.08s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[141.11s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:10, max:40
+[141.14s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 4", targetOwner:"player", wallsIntact:4
+[141.16s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[141.19s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[141.21s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_walls", target:"Flag 4", targetOwner:"player", wallsIntact:4
+[141.22s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:5, max:40
+[141.31s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[141.31s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[141.34s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:5, max:60
+[141.34s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[141.37s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[141.41s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[141.42s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:6, reason:"damage_rotation"
+[141.42s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:6, max:40
+[141.47s]  undefined | type:"MANA_STARVED", unit:"Knight 641", kind:"friendly", ability:"heal_burst", required:18, current:7, max:60
+[141.52s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:9, reason:"damage_rotation"
+[141.52s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:9, max:40
+[141.54s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"cleanse_wave", required:14, current:6, max:60
+[141.54s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:6, max:40
+[141.54s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[141.57s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:6, reason:"healer_priority"
+[141.57s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:17, max:40
+[141.59s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 4", targetOwner:"player", wallsIntact:4
+[141.59s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:9, max:40
+[141.59s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[141.64s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[141.65s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:6, reason:"healer_priority"
+[141.65s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:31
+[141.65s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:1, max:60
+[141.70s]  undefined | type:"MANA_STARVED", unit:"Knight 641", kind:"friendly", ability:"heal_burst", required:18, current:8, max:60
+[141.70s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:4, max:60
+[141.70s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[141.72s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:1, reason:"damage_rotation"
+[141.75s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 4", targetOwner:"player", wallsIntact:4
+[141.75s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[141.75s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[141.75s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_bodyguard", required:16, current:16, max:40
+[141.77s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:190
+[141.77s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:3, max:40
+[141.80s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:32
+[141.80s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:60
+[141.85s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"slash", required:4, current:2, max:60
+[141.87s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:7, max:60
+[141.89s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:2, reason:"damage_rotation"
+[141.89s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:2, reason:"damage_rotation"
+[141.89s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[141.90s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[141.90s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:11, reason:"damage_rotation"
+[141.90s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[141.94s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"ward_barrier", required:22, current:9, max:60
+[141.94s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[141.95s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:9, reason:"healer_priority"
+[141.95s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:10, max:40
+[141.99s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:8, max:60
+[142.00s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_host", target:"Warden Guard 5", targetType:"friendly", distance:71
+[142.00s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[142.04s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_walls", target:"Flag 4", targetOwner:"player", wallsIntact:4
+[142.04s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:31
+[142.04s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[142.07s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:192
+[142.10s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[142.10s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:21, max:40
+[142.14s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:40
+[142.17s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:6, max:60
+[142.17s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:4, reason:"damage_rotation"
+[142.17s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:4, max:60
+[142.17s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[142.19s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:31
+[142.19s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[142.22s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[142.25s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:11, max:60
+[142.25s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:4, reason:"damage_rotation"
+[142.30s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[142.35s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:3, max:60
+[142.38s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:195
+[142.40s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"cleanse_wave", required:14, current:13, max:60
+[142.45s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:1, reason:"damage_rotation"
+[142.45s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[142.47s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Warden Guard 5", targetType:"friendly", distance:77
+[142.47s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[142.50s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:1, reason:"damage_rotation"
+[142.50s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:1, max:40
+[142.50s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:14, reason:"damage_rotation"
+[142.50s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[142.50s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:9, reason:"damage_rotation"
+[142.53s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[142.53s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:60
+[142.53s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[142.53s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:40
+[142.62s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[142.63s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:0, max:40
+[142.63s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:0, max:40
+[142.63s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[142.66s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_anchor", required:10, current:4, max:40
+[142.66s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:38
+[142.66s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:8, max:40
+[142.66s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:2, reason:"damage_rotation"
+[142.70s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:0, max:40
+[142.70s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[142.71s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:14, reason:"healer_priority"
+[142.75s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:13, reason:"healer_priority"
+[142.75s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:9, max:60
+[142.75s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:5, max:60
+[142.75s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:9, max:40
+[142.75s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:14, max:60
+[142.78s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:7, reason:"damage_rotation"
+[142.81s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[142.86s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[142.86s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[142.88s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:6, max:60
+[142.88s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:3, max:40
+[142.91s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:1, reason:"damage_rotation"
+[142.91s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[142.91s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[142.93s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:31
+[142.95s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[142.96s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:10, max:60
+[143.00s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:2, reason:"damage_rotation"
+[143.00s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:2, reason:"damage_rotation"
+[143.00s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[143.01s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[143.03s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[143.03s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[143.06s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:1, max:60
+[143.10s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[143.10s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[143.11s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:33
+[143.11s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[143.15s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"arc_bolt", required:10, current:3, reason:"damage_rotation"
+[143.16s]  undefined | type:"MANA_STARVED", unit:"Warden Guard 5", kind:"friendly", ability:"ward_barrier", required:22, current:16, max:60
+[143.16s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:16, reason:"healer_priority"
+[143.16s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[143.18s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[143.20s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:3, max:40
+[143.20s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[143.20s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[143.23s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:191
+[143.23s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[143.24s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[143.26s]  undefined | type:"MANA_STARVATION", unit:"Warrior 680", ability:"cleave", required:10, current:9, reason:"damage_rotation"
+[143.26s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[143.26s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:3, max:40
+[143.26s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_bodyguard", required:16, current:8, max:40
+[143.26s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:8, max:40
+[143.29s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[143.29s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:40
+[143.33s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:40
+[143.34s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:40
+[143.34s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:9, reason:"damage_rotation"
+[143.41s]  undefined | type:"MANA_STARVED", unit:"Warden Guard 5", kind:"friendly", ability:"ward_barrier", required:22, current:17, max:60
+[143.41s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[143.43s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:7, max:60
+[143.43s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[143.43s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[143.46s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[143.46s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_bodyguard", required:16, current:9, max:40
+[143.48s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:208
+[143.48s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:5, max:40
+[143.49s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:8, max:40
+[143.49s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:4, max:40
+[143.49s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:15, max:40
+[143.54s]  undefined | type:"MANA_STARVED", unit:"Warrior 680", kind:"friendly", ability:"warrior_fortitude", required:15, current:10, max:60
+[143.54s]  undefined | type:"MANA_STARVED", unit:"Warden 620", kind:"friendly", ability:"ward_barrier", required:22, current:21, max:60
+[143.54s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:5, reason:"damage_rotation"
+[143.56s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:156
+[143.58s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:31
+[143.58s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[143.59s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:3, max:40
+[143.59s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[143.63s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[143.66s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:6, max:40
+[143.68s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:16, max:60
+[143.68s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[143.68s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[143.68s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[143.71s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:60
+[143.71s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:5, max:40
+[143.71s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[143.78s]  undefined | type:"MANA_STARVED", unit:"Warrior 680", kind:"friendly", ability:"warrior_fortitude", required:15, current:11, max:60
+[143.78s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:6, max:40
+[143.78s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[143.81s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:6, max:40
+[143.83s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"ward_barrier", required:22, current:7, max:60
+[143.84s]  undefined | type:"MANA_STARVED", unit:"Warrior 680", kind:"friendly", ability:"warrior_fortitude", required:15, current:11, max:60
+[143.84s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:6, reason:"damage_rotation"
+[143.87s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:17, max:60
+[143.87s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[143.92s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[143.96s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:3, reason:"damage_rotation"
+[143.96s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:60
+[143.99s]  undefined | type:"MANA_STARVED", unit:"Warrior 680", kind:"friendly", ability:"warrior_fortitude", required:15, current:12, max:60
+[143.99s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:5, max:40
+[143.99s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:5, max:40
+[143.99s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[143.99s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_bodyguard", required:16, current:12, max:40
+[143.99s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:11, max:40
+[144.02s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[144.04s]  undefined | type:"MANA_STARVED", unit:"Warrior 680", kind:"friendly", ability:"warrior_fortitude", required:15, current:12, max:60
+[144.04s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[144.04s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:8, max:40
+[144.07s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:7, reason:"damage_rotation"
+[144.11s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:7, max:40
+[144.16s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:40
+[144.16s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:189
+[144.16s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[144.16s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:11, max:40
+[144.19s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_shield_wall", required:16, current:12, max:40
+[144.22s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:13, max:60
+[144.22s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[144.25s]  undefined | type:"MANA_STARVED", unit:"Warden 620", kind:"friendly", ability:"ward_barrier", required:22, current:9, max:60
+[144.25s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"slash", required:4, current:2, max:40
+[144.27s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:8, max:40
+[144.27s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[144.30s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:4, max:40
+[144.37s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[144.37s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[144.39s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"ward_barrier", required:22, current:12, max:60
+[144.39s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:2, max:40
+[144.44s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[144.44s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[144.44s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:194
+[144.47s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:8, max:40
+[144.47s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:14, max:60
+[144.47s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:9, max:40
+[144.52s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"attack_host", target:"Warden 620", targetType:"friendly", distance:31
+[144.52s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:0, reason:"damage_rotation"
+[144.52s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[144.52s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[144.60s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[144.64s]  undefined | type:"MANA_STARVATION", unit:"Mage Guard 2", ability:"mage_divine_touch", required:16, current:10, reason:"healer_priority"
+[144.64s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[144.67s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:198
+[144.70s]  undefined | type:"MANA_STARVED", unit:"Warrior 680", kind:"friendly", ability:"warrior_life_leech", required:8, current:1, max:60
+[144.73s]  undefined | type:"MANA_STARVATION", unit:"Warrior 680", ability:"slash", required:4, current:1, reason:"damage_rotation"
+[144.75s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:11, max:60
+[144.78s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:8, max:60
+[144.78s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[144.80s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:17, max:60
+[144.80s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:199
+[144.80s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[144.85s]  undefined | type:"MANA_STARVATION", unit:"Warrior 680", ability:"warrior_life_leech", required:8, current:2, reason:"damage_rotation"
+[144.85s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"piercing_lance", required:16, current:1, reason:"damage_rotation"
+[144.87s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:11, reason:"healer_priority"
+[144.87s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:3, max:60
+[144.87s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:2, max:40
+[144.87s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:8, reason:"damage_rotation"
+[144.87s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:6, reason:"damage_rotation"
+[144.90s]  undefined | type:"MANA_STARVATION", unit:"Warrior 680", ability:"slash", required:4, current:2, reason:"damage_rotation"
+[144.90s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:2, max:40
+[144.90s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"piercing_lance", required:16, current:1, reason:"damage_rotation"
+[144.90s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[144.93s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[144.93s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[145.00s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[145.03s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[145.03s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[145.07s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[145.10s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:3, reason:"damage_rotation"
+[145.10s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:9, reason:"healer_priority"
+[145.10s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:9, reason:"healer_priority"
+[145.13s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[145.20s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[145.20s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[145.23s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:10, max:40
+[145.23s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[145.25s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:10, reason:"healer_priority"
+[145.25s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"healer_priority"
+[145.25s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:3, reason:"damage_rotation"
+[145.28s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:3, max:40
+[145.31s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:190
+[145.35s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[145.35s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[145.38s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:13, max:40
+[145.38s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:4, max:40
+[145.38s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[145.40s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:5, max:40
+[145.40s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_shield_wall", required:16, current:6, max:40
+[145.41s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:15, max:60
+[145.45s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[145.45s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:4, max:40
+[145.45s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_taunt", required:10, current:7, max:40
+[145.46s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[145.49s]  undefined | type:"MANA_STARVATION", unit:"Warrior 680", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[145.49s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[145.51s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[145.56s]  undefined | type:"MANA_STARVED", unit:"Knight 641", kind:"friendly", ability:"heal_burst", required:18, current:3, max:60
+[145.56s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:12, reason:"healer_priority"
+[145.59s]  undefined | type:"MANA_STARVED", unit:"Warden Guard 5", kind:"friendly", ability:"tank_iron_skin", required:14, current:13, max:60
+[145.61s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:6, max:40
+[145.61s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[145.64s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[145.68s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[145.71s]  undefined | type:"MANA_STARVED", unit:"Warden Guard 5", kind:"friendly", ability:"tank_iron_skin", required:14, current:14, max:60
+[145.71s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[145.71s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:5, reason:"damage_rotation"
+[145.76s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_taunt", required:10, current:10, max:40
+[145.81s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:2, max:60
+[145.81s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[145.84s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[145.84s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[145.84s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[145.86s]  undefined | type:"MANA_STARVED", unit:"Knight 579", kind:"friendly", ability:"heal_burst", required:18, current:15, max:60
+[145.86s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:4, max:60
+[145.91s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[145.91s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:13, max:40
+[145.94s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:15, reason:"healer_priority"
+[145.99s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[145.99s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[145.99s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[146.01s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[146.01s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:10, max:40
+[146.02s]  undefined | type:"MANA_STARVATION", unit:"Warrior 680", ability:"warrior_cleave", required:9, current:7, reason:"damage_rotation"
+[146.06s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:8, reason:"damage_rotation"
+[146.06s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[146.07s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:7, max:40
+[146.09s]  undefined | type:"MANA_STARVED", unit:"Knight 641", kind:"friendly", ability:"heal_burst", required:18, current:6, max:60
+[146.12s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[146.12s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[146.14s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:18, max:60
+[146.14s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_bodyguard", required:16, current:4, max:60
+[146.14s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[146.17s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:2, reason:"damage_rotation"
+[146.19s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:1, reason:"damage_rotation"
+[146.19s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[146.19s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[146.21s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"slash", required:4, current:2, max:40
+[146.21s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:40
+[146.26s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:3, reason:"damage_rotation"
+[146.29s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:40
+[146.36s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[146.36s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:40
+[146.36s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[146.39s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:14, max:40
+[146.39s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:2, reason:"damage_rotation"
+[146.41s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[146.44s]  undefined | type:"MANA_STARVATION", unit:"Mage Guard 1", ability:"mage_divine_touch", required:16, current:7, reason:"healer_priority"
+[146.44s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:3, reason:"healer_priority"
+[146.44s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[146.45s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:4, reason:"damage_rotation"
+[146.45s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:10, max:40
+[146.45s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[146.50s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:4, reason:"damage_rotation"
+[146.50s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[146.52s]  undefined | type:"MANA_STARVED", unit:"Warrior 680", kind:"friendly", ability:"cleave", required:10, current:10, max:60
+[146.55s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_bodyguard", required:16, current:6, max:60
+[146.55s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:4, max:40
+[146.55s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[146.62s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:20, max:40
+[146.65s]  undefined | type:"MANA_STARVED", unit:"Knight 641", kind:"friendly", ability:"heal_burst", required:18, current:9, max:60
+[146.65s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:10, max:60
+[146.67s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"mage_divine_touch", required:16, current:9, max:60
+[146.67s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:11, max:40
+[146.70s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:1, reason:"damage_rotation"
+[146.72s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:189
+[146.72s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[146.72s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[146.75s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[146.77s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[146.80s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:11, reason:"healer_priority"
+[146.84s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:11, max:40
+[146.88s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:8, max:40
+[146.90s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:17, max:40
+[146.93s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"ward_barrier", required:22, current:17, max:60
+[146.95s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:12, reason:"healer_priority"
+[146.95s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:7, max:40
+[146.95s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_anchor", required:10, current:9, max:60
+[146.95s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[146.95s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[146.97s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:12, reason:"damage_rotation"
+[146.97s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[147.00s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[147.02s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[147.07s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:6, reason:"damage_rotation"
+[147.12s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[147.15s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:194
+[147.17s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:7, max:60
+[147.17s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[147.22s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:183
+[147.22s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[147.22s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_shield_wall", required:16, current:6, max:40
+[147.23s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"East", attackers:1, damage:0.13, hpBefore:149, hpAfter:149, hpPercent:75
+[147.27s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[147.28s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:189
+[147.28s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[147.32s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[147.33s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:4, max:40
+[147.33s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[147.33s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:163
+[147.37s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[147.38s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:164
+[147.38s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:193
+[147.41s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[147.43s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[147.46s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[147.46s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:15, max:60
+[147.53s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[147.53s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_shield_wall", required:16, current:8, max:40
+[147.58s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[147.60s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:9, reason:"damage_rotation"
+[147.60s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"attack_walls", target:"Flag 6", targetOwner:"teamC", wallsIntact:4
+[147.60s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[147.65s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:12, reason:"healer_priority"
+[147.65s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[147.66s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"attack_host", target:"Mage 602", targetType:"friendly", distance:31
+[147.66s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:5, max:60
+[147.70s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[147.73s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:4, reason:"damage_rotation"
+[147.73s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[147.76s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[147.78s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[147.88s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[147.91s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:6, reason:"damage_rotation"
+[147.91s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:0, reason:"damage_rotation"
+[147.91s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:21, max:40
+[147.91s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[147.94s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[148.01s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:7, reason:"damage_rotation"
+[148.04s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:15, max:40
+[148.14s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[148.27s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[148.31s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[148.31s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[148.31s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:194
+[148.36s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[148.39s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:1, reason:"damage_rotation"
+[148.39s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[148.39s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[148.41s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[148.42s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[148.46s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:40
+[148.46s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[148.46s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_shield_wall", required:16, current:1, max:40
+[148.47s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"North", attackers:1, damage:0.13, hpBefore:149, hpAfter:149, hpPercent:75
+[148.49s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:194
+[148.52s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:4, max:40
+[148.54s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:166
+[148.54s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[148.56s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"North", attackers:1, damage:0.13, hpBefore:149, hpAfter:149, hpPercent:74
+[148.56s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:14, max:40
+[148.56s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:4, max:60
+[148.59s]  undefined | type:"WALL_DAMAGE", site:"Flag 6", side:"North", attackers:1, damage:0.26, hpBefore:149, hpAfter:148, hpPercent:74
+[148.61s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:194
+[148.61s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[148.61s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[148.69s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:165
+[148.72s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:9, max:60
+[148.79s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:158
+[148.82s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[148.85s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[148.85s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:16, reason:"healer_priority"
+[148.89s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:4, max:40
+[148.95s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:159
+[148.95s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:6, reason:"damage_rotation"
+[148.99s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[148.99s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:17, reason:"healer_priority"
+[149.02s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:4, reason:"damage_rotation"
+[149.05s]  undefined | type:"MANA_STARVATION", unit:"Warrior 680", ability:"warrior_life_leech", required:8, current:4, reason:"damage_rotation"
+[149.05s]  undefined | type:"MANA_STARVED", unit:"Knight 641", kind:"friendly", ability:"heal_burst", required:18, current:10, max:60
+[149.08s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[149.08s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:192
+[149.10s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:13, max:40
+[149.13s]  undefined | type:"MANA_STARVATION", unit:"Warrior 680", ability:"slash", required:4, current:4, reason:"damage_rotation"
+[149.15s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"mage_divine_touch", required:16, current:15, max:60
+[149.15s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:164
+[149.20s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:2, reason:"damage_rotation"
+[149.20s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:8, max:40
+[149.23s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:1, reason:"damage_rotation"
+[149.23s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:4, reason:"damage_rotation"
+[149.23s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warden", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:167
+[149.28s]  undefined | type:"MANA_STARVED", unit:"Mage 175", kind:"friendly", ability:"ward_barrier", required:22, current:17, max:60
+[149.28s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:193
+[149.28s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 4", targetOwner:"player", distance:165
+[149.28s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:1, max:40
+[149.33s]  undefined | type:"ENEMY_AI_TARGET", enemy:"knight", decision:"outpost_focus", target:"Flag 6", targetOwner:"teamC", distance:166
+[149.35s]  undefined | type:"MANA_STARVATION", unit:"Warrior 680", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+
+======================================== DAMAGE ========================================
+[133.38s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:101.3593736601935, blocking:false, stamina:108
+[133.42s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:93.64221336893137, blocking:false, stamina:108
+[133.66s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:86.24985407766918, blocking:false, stamina:108
+[133.80s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:112.78339178640701, blocking:false, stamina:108
+[133.93s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:109.10027364077594, blocking:false, stamina:108
+[134.06s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:105.4167024951448, blocking:false, stamina:108
+[134.08s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:97.6749292038826, blocking:false, stamina:108
+[134.26s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:90.18381591262047, blocking:false, stamina:108
+[134.33s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:86.40058476698934, blocking:false, stamina:108
+[134.68s]  Damage attempt to player | rawDamage:12, currentShield:0, currentHP:79.15907447572728, blocking:false, stamina:108
+[134.71s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:67.55887203883414, blocking:false, stamina:108
+[134.74s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:59.841711747572006, blocking:false, stamina:108
+[134.84s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:52.22466445630985, blocking:false, stamina:108
+[134.94s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:48.49111231067886, blocking:false, stamina:108
+[135.01s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:78.8072771650478, blocking:false, stamina:108
+[135.27s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:71.44104087378567, blocking:true, stamina:108
+[135.39s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:69.67445330097021, blocking:true, stamina:105.20400000000109
+[135.40s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:65.81602415533919, blocking:true, stamina:100.51940000000175
+[135.69s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:62.35744300970817, blocking:true, stamina:100.86600000000216
+[135.87s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:58.74982486407713, blocking:true, stamina:99.33730000000236
+[135.95s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:56.93340729126159, blocking:true, stamina:95.91430000000236
+[136.05s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:55.14205571844602, blocking:true, stamina:92.80670000000191
+[136.08s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:51.30839057281495, blocking:true, stamina:88.4337000000019
+[136.28s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:47.72417742718399, blocking:true, stamina:87.19950000000321
+[136.35s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:45.88208985436845, blocking:true, stamina:83.4535000000032
+[136.69s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:42.52196070873735, blocking:true, stamina:85.03890000000271
+[136.74s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:38.71336156310634, blocking:true, stamina:80.98130000000337
+[136.88s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:70.0302434174752, blocking:true, stamina:78.50260000000249
+[136.98s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:68.23858984465961, blocking:true, stamina:75.39120000000182
+[137.03s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:66.37219127184412, blocking:true, stamina:71.33930000000225
+[137.29s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:42.887940126213174, blocking:true, stamina:71.36290000000378
+[137.41s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:41.120748553397604, blocking:true, stamina:68.55930000000332
+[137.75s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:3.760619407766503, blocking:true, stamina:70.14470000000283
+[140.65s]  Damage attempt to player | rawDamage:8, currentShield:0, currentHP:173, blocking:false, stamina:103.30699999999997
+[140.71s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:165.33266970873782, blocking:false, stamina:101.59099999999997
+
+========================================================================================================================
+END OF DEBUG LOG

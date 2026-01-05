@@ -3,7 +3,7 @@ import { INV_SIZE, LOOT_TTL, ARMOR_SLOTS, SLOT_LABEL, DEFAULT_BINDS } from "./co
 import { pickRarity, rarityClass, rarityTier } from "./rarity.js";
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, getAbilityById, DOT_REGISTRY, BUFF_REGISTRY, defaultAbilitySlots, defaultPassives, loadLoadout } from "./skills.js";
-import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, updateFlagHealth, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
+import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, updateWallDamage, updateFlagHealth, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
 import { META_LOADOUTS } from "./loadouts.js";
 import { LEVEL_CONFIG, getZoneForPosition, scaleAllyToPlayerLevel } from "./leveling.js";
 
@@ -655,9 +655,9 @@ function makeArmor(slot, rarity, itemLevel = 1){
       {name:'Charm of Fortune', buffs:{critChance: scaled(0.02,t,0.012), goldFind: scaled(0.05,t,0.03)}},
     ],
     accessory1: [
-      {name:'Signet of Power', buffs:{atk: scaled(2.2,t,1.4), critChance: scaled(0.012,t,0.008)}},
-      {name:'Band of Ward', buffs:{def: scaled(2.0,t,1.1), blockEff: scaled(0.02,t,0.012)}},
-      {name:'Loop of Haste', buffs:{speed: scaled(6,t,3), cdr: scaled(0.012,t,0.01)}},
+      {name:'Signet Ring of Power', buffs:{atk: scaled(2.2,t,1.4), critChance: scaled(0.012,t,0.008)}},
+      {name:'Ward Ring', buffs:{def: scaled(2.0,t,1.1), blockEff: scaled(0.02,t,0.012)}},
+      {name:'Haste Ring', buffs:{speed: scaled(6,t,3), cdr: scaled(0.012,t,0.01)}},
     ],
     accessory2: [
       {name:'Bracelet of Flow', buffs:{manaRegen: scaled(0.9,t,0.4), cdr: scaled(0.015,t,0.01)}},
@@ -6468,6 +6468,9 @@ export function updateGame(state, dt){
   }
 
   updateCapture(state, dt);
+  
+  // UPDATE WALL DAMAGE - All units can damage walls through contact
+  updateWallDamage(state, dt);
   
   // UPDATE FLAG HEALTH - Enemies can damage flags
   updateFlagHealth(state, dt);
