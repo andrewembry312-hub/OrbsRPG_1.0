@@ -1,0 +1,31 @@
+Ability Usage Log
+======================================================================
+Generated: 1/6/2026, 2:33:00 PM
+Game Time: 184s
+
+FRIENDLY ABILITIES:
+----------------------------------------------------------------------
+warrior_fortitude              Total:   175 | DPS:175 | CD: 8.0s (actual: 1.7s)
+ward_barrier                   Total:    53 | HEALER:17, GUARD_HEALER:25, TANK:11 | CD: 10.0s (actual: 4.1s)
+mage_radiant_aura              Total:    84 | DPS:12, GUARD_HEALER:30, HEALER:42 | CD: 8.0s (actual: 2.8s)
+mage_divine_touch              Total:   379 | HEALER:372, GUARD_HEALER:7 | CD: 4.5s (actual: 0.6s)
+heal_burst                     Total:   302 | HEALER:230, TANK:64, GUARD_HEALER:8 | CD: 7.5s (actual: 1.2s)
+meteor_slam                    Total:  5904 | GUARD_DPS:5904
+arc_bolt                       Total:    31 | DPS:31 | CD: 3.5s (actual: 4.7s)
+piercing_lance                 Total:    17 | DPS:17 | CD: 6.0s (actual: 8.3s)
+chain_light                    Total:     1 | DPS:1 | CD: 5.5s (actual: 0.0s)
+
+ENEMY ABILITIES:
+----------------------------------------------------------------------
+knight_taunt                   Total:   224 | TANK:224 | CD: 8.0s (actual: 1.6s)
+warcry                         Total:   220 | TANK:220 | CD: 8.0s (actual: 1.6s)
+knight_shield_wall             Total:   193 | TANK:193 | CD: 9.0s (actual: 1.7s)
+slash                          Total:   124 | DPS:124 | CD: 1.0s (actual: 1.4s)
+warrior_life_leech             Total:    37 | DPS:37 | CD: 4.0s (actual: 4.7s)
+warrior_cleave                 Total:    24 | DPS:24 | CD: 4.2s (actual: 7.4s)
+cleave                         Total:    28 | DPS:28 | CD: 3.2s (actual: 6.2s)
+tank_anchor                    Total:    34 | TANK:34 | CD: 9.0s (actual: 5.1s)
+tank_iron_skin                 Total:    29 | TANK:29 | CD: 10.0s (actual: 6.4s)
+tank_bodyguard                 Total:    31 | TANK:31 | CD: 11.0s (actual: 5.6s)
+knight_rally                   Total:    71 | TANK:71 | CD: 10.0s (actual: 2.8s)
+cleanse_wave                   Total:    33 | HEALER:33 | CD: 9.0s (actual: 3.3s)

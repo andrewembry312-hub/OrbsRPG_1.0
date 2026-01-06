@@ -2011,6 +2011,117 @@ function npcUpdateAbilities(state, u, dt, kind){
   const bb = state.party.blackboard;
   const focusTarget = bb.focusTargetId ? (state.enemies||[]).find(e=> (e.id||e._id)===bb.focusTargetId && !e.dead && e.hp>0) : null;
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // GUARD TACTICAL ABILITY PRIORITIES (Elite Combat AI)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if(u.guard){
+    const tryCast = (id)=>{ 
+      const i=u.npcAbilities.indexOf(id); 
+      const hasCd = i>=0 && u.npcCd[i] === 0;
+      const cost = ABILITY_META[id]?.cost||0;
+      const hasMana = u.mana >= cost;
+      if(hasCd && !hasMana && state.debugLog && Math.random() < 0.05){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'MANA_STARVATION',
+          unit: u.name || u.variant,
+          ability: id,
+          required: cost,
+          current: Math.round(u.mana ?? 0),
+          reason: 'guard_tactical'
+        });
+      }
+      return (hasCd && hasMana) ? i : -1; 
+    };
+    
+    const targetHpPct = target && target.maxHp ? (target.hp / target.maxHp) : 1.0;
+    const dist = bestD;
+    
+    // TANK GUARDS: Setup combos with CC
+    if(role === 'TANK' && targetHpPct > 0.5 && dist <= 140){
+      // Gravity well setup (high priority when target is healthy)
+      let idx = tryCast('gravity_well');
+      if(idx === -1) idx = tryCast('shoulder_charge');
+      if(idx === -1) idx = tryCast('knight_shield_wall');
+      
+      if(idx !== -1){
+        const abilityId = u.npcAbilities[idx];
+        const cdValue = ABILITY_META[abilityId]?.cd || 0;
+        const costValue = ABILITY_META[abilityId]?.cost || 0;
+        for(let i=0; i<u.npcAbilities.length; i++){
+          if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+        }
+        u.mana -= costValue;
+        npcCastSupportAbility(state,u,abilityId,target);
+        recordAI('cast-prio',{role:'GUARD_TANK',ability:abilityId,reason:'setup_cc'});
+        return;
+      }
+    }
+    
+    // DPS GUARDS: Burst damage when target is CC'd or below 70% HP
+    if((role === 'DPS' || role === 'TANK') && targetHpPct < 0.7 && dist <= 100){
+      // High damage followup
+      let idx = tryCast('meteor_slam');
+      if(idx === -1) idx = tryCast('chain_light');
+      if(idx === -1) idx = tryCast('arc_bolt');
+      if(idx === -1) idx = tryCast('warrior_cleave');
+      
+      if(idx !== -1){
+        const abilityId = u.npcAbilities[idx];
+        const cdValue = ABILITY_META[abilityId]?.cd || 0;
+        const costValue = ABILITY_META[abilityId]?.cost || 0;
+        for(let i=0; i<u.npcAbilities.length; i++){
+          if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+        }
+        u.mana -= costValue;
+        npcCastSupportAbility(state,u,abilityId,target);
+        recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'burst_execute'});
+        return;
+      }
+    }
+    
+    // HEALER GUARDS: Proactive healing and shields
+    if(role === 'HEALER'){
+      // Emergency healing (ally below 50%)
+      if(lowestAlly && lowestAllyHp < 0.5 && lowestDist <= 180){
+        let idx = tryCast('heal_burst');
+        if(idx === -1) idx = tryCast('mage_divine_touch');
+        
+        if(idx !== -1){
+          const abilityId = u.npcAbilities[idx];
+          const cdValue = ABILITY_META[abilityId]?.cd || 0;
+          const costValue = ABILITY_META[abilityId]?.cost || 0;
+          for(let i=0; i<u.npcAbilities.length; i++){
+            if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+          }
+          u.mana -= costValue;
+          npcCastSupportAbility(state,u,abilityId,lowestAlly);
+          recordAI('cast-prio',{role:'GUARD_HEALER',ability:abilityId,reason:'emergency_heal'});
+          return;
+        }
+      }
+      
+      // Preemptive shields (before combat, when ally is above 60% but target present)
+      if(lowestAlly && lowestAllyHp > 0.6 && lowestAllyHp < 0.9 && target && dist <= 280){
+        let idx = tryCast('ward_barrier');
+        if(idx === -1) idx = tryCast('mage_radiant_aura');
+        
+        if(idx !== -1){
+          const abilityId = u.npcAbilities[idx];
+          const cdValue = ABILITY_META[abilityId]?.cd || 0;
+          const costValue = ABILITY_META[abilityId]?.cost || 0;
+          for(let i=0; i<u.npcAbilities.length; i++){
+            if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+          }
+          u.mana -= costValue;
+          npcCastSupportAbility(state,u,abilityId,lowestAlly);
+          recordAI('cast-prio',{role:'GUARD_HEALER',ability:abilityId,reason:'preemptive_shield'});
+          return;
+        }
+      }
+    }
+  }
+
   // Healer priority: emergency save, then AoE stabilize, then pre-burst mitigation
   if(role==='HEALER'){
     const tryCast = (id)=>{ 
@@ -3460,9 +3571,9 @@ function updateFriendlies(state, dt){
       const FLAG_RADIUS = guardSite ? guardSite.r : 50;
       const DEFENSE_ENTER = FLAG_RADIUS + 100;  // 150 total
       const DEFENSE_EXIT = DEFENSE_ENTER + 30;  // 180 (hysteresis band)
-      const AGGRO_RANGE = 220;
-      const LEASH_RETREAT = 260;
-      const LEASH_HARD_STOP = 280;
+      const AGGRO_RANGE = 280;  // Increased from 220 for more aggressive engagement
+      const LEASH_RETREAT = 320; // Increased from 260 to chase deeper
+      const LEASH_HARD_STOP = 350; // Increased from 280 for extended pursuit
       
       // ─────────────────────────────────────────────────────────────────────────────
       // COMMIT TIMERS (Prevent Thrashing)
@@ -3492,17 +3603,17 @@ function updateFriendlies(state, dt){
         const dpsGuards = allGuards.filter(g => g.guardRole !== 'HEALER');
         const healerGuards = allGuards.filter(g => g.guardRole === 'HEALER');
         
-        // Assign formation slots (relative to flag spawn)
+        // Assign formation slots (relative to flag spawn) - TIGHTER for ball group cohesion
         if(a.guardRole === 'HEALER'){
           const healerIndex = healerGuards.indexOf(a);
-          if(healerIndex === 0) a._formationSlot = { offsetX: -60, offsetY: -80 }; // Rear-left
-          else if(healerIndex === 1) a._formationSlot = { offsetX: 60, offsetY: -80 }; // Rear-right
-          else a._formationSlot = { offsetX: 0, offsetY: -80 }; // Rear-center fallback
+          if(healerIndex === 0) a._formationSlot = { offsetX: -35, offsetY: -45 }; // Rear-left (tighter)
+          else if(healerIndex === 1) a._formationSlot = { offsetX: 35, offsetY: -45 }; // Rear-right (tighter)
+          else a._formationSlot = { offsetX: 0, offsetY: -45 }; // Rear-center fallback
         } else {
           const dpsIndex = dpsGuards.indexOf(a);
-          if(dpsIndex === 0) a._formationSlot = { offsetX: 0, offsetY: 40 };    // Front-center (LEADER)
-          else if(dpsIndex === 1) a._formationSlot = { offsetX: -50, offsetY: 20 }; // Front-left
-          else if(dpsIndex === 2) a._formationSlot = { offsetX: 50, offsetY: 20 };  // Front-right
+          if(dpsIndex === 0) a._formationSlot = { offsetX: 0, offsetY: 25 };    // Front-center (LEADER)
+          else if(dpsIndex === 1) a._formationSlot = { offsetX: -30, offsetY: 15 }; // Front-left (tighter)
+          else if(dpsIndex === 2) a._formationSlot = { offsetX: 30, offsetY: 15 };  // Front-right (tighter)
           else a._formationSlot = { offsetX: 0, offsetY: 0 }; // Center fallback
         }
         
@@ -3570,10 +3681,35 @@ function updateFriendlies(state, dt){
           }
         }
         
-        // Commit to new target
+        // Commit to new target and broadcast to squad for focus fire
         if(priorityTarget){
           a._committedTarget = priorityTarget.id || priorityTarget._id;
           a._targetCommitUntil = now + TARGET_COMMIT;
+          
+          // FOCUS FIRE: Broadcast primary target to all guards at this site
+          if(guardSite){
+            guardSite._sharedTarget = priorityTarget;
+            guardSite._sharedTargetId = priorityTarget.id || priorityTarget._id;
+            guardSite._sharedTargetUntil = now + TARGET_COMMIT;
+          }
+        }
+      }
+      
+      // FOCUS FIRE: If no personal target, check if squad has shared target
+      if(!priorityTarget && guardSite && guardSite._sharedTargetUntil > now){
+        const sharedTarget = state.enemies.find(e => 
+          (e.id || e._id) === guardSite._sharedTargetId && !e.dead && e.hp > 0
+        );
+        if(sharedTarget){
+          const distToShared = Math.hypot(sharedTarget.x - a.x, sharedTarget.y - a.y);
+          const distSharedFromSpawn = Math.hypot(sharedTarget.x - spawnX, sharedTarget.y - spawnY);
+          
+          // Join focus fire if target is in leash range
+          if(distSharedFromSpawn <= LEASH_HARD_STOP){
+            priorityTarget = sharedTarget;
+            targetDist = distToShared;
+            targetPriority = 90; // High priority for focus fire
+          }
         }
       }
       
@@ -3600,9 +3736,9 @@ function updateFriendlies(state, dt){
         }
       }
       else if(a._guardState === 'ACTIVE_DEFENSE'){
-        // Exit to idle only if no threat for 2+ seconds (sticky defense)
+        // Exit to idle only if no threat for 0.75s (fast re-engagement)
         const noThreatDuration = hasDefenseThreat ? 0 : (now - a._defenseActiveSince);
-        if(noThreatDuration >= 2.0 && !hasDefenseThreat){
+        if(noThreatDuration >= 0.75 && !hasDefenseThreat){
           a._guardState = 'IDLE_DEFENSE';
         } else if(shouldReturnToPost){
           a._guardState = 'RETURN_TO_POST';
@@ -4055,7 +4191,7 @@ function updateFriendlies(state, dt){
             // Follow nearest ally
             tx = nearestAlly.x;
             ty = nearestAlly.y;
-            decision = 'follow_ally';
+            decision = 'support_allies';
             targetInfo = nearestAlly.name || nearestAlly.variant || 'Ally';
           } else {
             // No allies to follow - patrol around base instead of standing still
@@ -4445,135 +4581,329 @@ function updateEnemies(state, dt){
     
     // COORDINATED GUARD AI - Aggressive flag defense with ball group tactics
     if(e.guard){
+      // ═══════════════════════════════════════════════════════════════════════════════
+      // ENEMY GUARD BALL GROUP AI - Phase 1 System (matches friendly guards)
+      // ═══════════════════════════════════════════════════════════════════════════════
+      
       const guardSite = e.homeSiteId ? state.sites.find(s => s.id === e.homeSiteId) : null;
-      const spawnX = e._spawnX || e.x;
-      const spawnY = e._spawnY || e.y;
-      if(!e._spawnX) { e._spawnX = spawnX; e._spawnY = spawnY; }
-      const distFromSpawn = Math.hypot(e.x - spawnX, e.y - spawnY);
+      const spawnX = (e._spawnX !== undefined) ? e._spawnX : e.x;
+      const spawnY = (e._spawnY !== undefined) ? e._spawnY : e.y;
+      const now = state.campaign?.time || 0;
       
-      // Guard ranges - extended for more aggressive behavior
+      // ─────────────────────────────────────────────────────────────────────────────
+      // LOCKED DEFENSE GEOMETRY (matches friendly guards)
+      // ─────────────────────────────────────────────────────────────────────────────
       const FLAG_RADIUS = guardSite ? guardSite.r : 50;
-      const INNER_DEFENSE = FLAG_RADIUS + 100;
-      const AGGRO_RANGE = 300; // Increased from 220
-      const LEASH_RADIUS = 350; // Increased from 280
+      const DEFENSE_ENTER = FLAG_RADIUS + 100;  // 150 total
+      const DEFENSE_EXIT = DEFENSE_ENTER + 30;  // 180 (hysteresis band)
+      const AGGRO_RANGE = 280;  // Increased from 220 for more aggressive engagement
+      const LEASH_RETREAT = 320; // Increased from 260 to chase deeper
+      const LEASH_HARD_STOP = 350; // Increased from 280 for extended pursuit
       
-      // Find allied guards - for ball group coordination
-      const allies = state.enemies.filter(en => 
-        en !== e && en.guard && en.homeSiteId === e.homeSiteId && (!en.dead && en.hp > 0)
-      );
+      // ─────────────────────────────────────────────────────────────────────────────
+      // COMMIT TIMERS (Prevent Thrashing)
+      // ─────────────────────────────────────────────────────────────────────────────
+      const TARGET_COMMIT = 1.5;
+      const MOVEMENT_COMMIT = 1.0;
+      const FORMATION_UPDATE = 0.75;
+      const MACRO_TICK = 0.75;
       
-      // Calculate ball group center (average position of all guards)
-      let ballCenterX = e.x, ballCenterY = e.y;
-      if(allies.length > 0){
-        let totalX = e.x, totalY = e.y;
-        for(const ally of allies){
-          totalX += ally.x;
-          totalY += ally.y;
+      // Initialize guard state
+      if(!e._guardState) e._guardState = 'IDLE_DEFENSE';
+      if(!e._lastMacroTick) e._lastMacroTick = 0;
+      if(!e._lastFormationUpdate) e._lastFormationUpdate = 0;
+      if(!e._targetCommitUntil) e._targetCommitUntil = 0;
+      if(!e._movementCommitUntil) e._movementCommitUntil = 0;
+      if(!e._defenseActiveSince) e._defenseActiveSince = 0;
+      if(!e._preFightBuffsTriggered) e._preFightBuffsTriggered = false;
+      
+      // ─────────────────────────────────────────────────────────────────────────────
+      // FORMATION SLOT ASSIGNMENT (Stable, Anchor-Based)
+      // ─────────────────────────────────────────────────────────────────────────────
+      if(!e._formationSlot || now - e._lastFormationUpdate >= FORMATION_UPDATE){
+        // Assign slots based on guard index and role
+        const allGuards = state.enemies.filter(en => 
+          en.guard && en.homeSiteId === e.homeSiteId && (!en.dead && en.hp > 0)
+        );
+        const dpsGuards = allGuards.filter(g => g.guardRole !== 'HEALER');
+        const healerGuards = allGuards.filter(g => g.guardRole === 'HEALER');
+        
+        // Assign formation slots (relative to flag spawn) - TIGHTER for ball group cohesion
+        if(e.guardRole === 'HEALER'){
+          const healerIndex = healerGuards.indexOf(e);
+          if(healerIndex === 0) e._formationSlot = { offsetX: -35, offsetY: -45 }; // Rear-left (tighter)
+          else if(healerIndex === 1) e._formationSlot = { offsetX: 35, offsetY: -45 }; // Rear-right (tighter)
+          else e._formationSlot = { offsetX: 0, offsetY: -45 }; // Rear-center fallback
+        } else {
+          const dpsIndex = dpsGuards.indexOf(e);
+          if(dpsIndex === 0) e._formationSlot = { offsetX: 0, offsetY: 25 };    // Front-center (LEADER)
+          else if(dpsIndex === 1) e._formationSlot = { offsetX: -30, offsetY: 15 }; // Front-left (tighter)
+          else if(dpsIndex === 2) e._formationSlot = { offsetX: 30, offsetY: 15 };  // Front-right (tighter)
+          else e._formationSlot = { offsetX: 0, offsetY: 0 }; // Center fallback
         }
-        ballCenterX = totalX / (allies.length + 1);
-        ballCenterY = totalY / (allies.length + 1);
+        
+        e._lastFormationUpdate = now;
       }
       
-      // PRIORITY TARGET SELECTION
+      // Calculate stable slot position (relative to flag spawn anchor)
+      const slotX = spawnX + e._formationSlot.offsetX;
+      const slotY = spawnY + e._formationSlot.offsetY;
+      const distFromSlot = Math.hypot(e.x - slotX, e.y - slotY);
+      const distFromSpawn = Math.hypot(e.x - spawnX, e.y - spawnY);
+      
+      // ─────────────────────────────────────────────────────────────────────────────
+      // TARGET SELECTION WITH COMMIT TIMER
+      // ─────────────────────────────────────────────────────────────────────────────
       let priorityTarget = null, targetPriority = 0, targetDist = Infinity;
       
-      // Check player
-      if(!state.player.dead && state.player.hp > 0){
-        const distToPlayer = Math.hypot(state.player.x - e.x, state.player.y - e.y);
-        const distPlayerFromFlag = guardSite ? Math.hypot(state.player.x - guardSite.x, state.player.y - guardSite.y) : Infinity;
-        const distPlayerFromSpawn = Math.hypot(state.player.x - spawnX, state.player.y - spawnY);
+      // Check if we should commit to existing target
+      if(e._committedTarget && now < e._targetCommitUntil){
+        // Look for committed target in player or friendlies
+        let committed = null;
+        if(!state.player.dead && state.player.hp > 0 && 
+           (state.player.id || state.player._id) === e._committedTarget){
+          committed = state.player;
+        } else {
+          committed = state.friendlies.find(f => 
+            (f.id || f._id) === e._committedTarget && f.respawnT <= 0
+          );
+        }
         
-        if(distPlayerFromSpawn <= LEASH_RADIUS){
-          let priority = 0;
-          if(distPlayerFromFlag <= FLAG_RADIUS) priority = 100; // On flag = highest priority
-          else if(distPlayerFromFlag <= INNER_DEFENSE) priority = 80; // Near flag
-          else if(distToPlayer <= AGGRO_RANGE) priority = 60; // In aggro range
+        if(committed){
+          const distToCommitted = Math.hypot(committed.x - e.x, committed.y - e.y);
+          const distCommittedFromSpawn = Math.hypot(committed.x - spawnX, committed.y - spawnY);
           
-          if(priority > 0){
-            targetPriority = priority;
-            targetDist = distToPlayer;
-            priorityTarget = state.player;
+          // Only keep commitment if target is still in leash and reasonably close
+          if(distCommittedFromSpawn <= LEASH_HARD_STOP && distToCommitted <= AGGRO_RANGE + 60){
+            priorityTarget = committed;
+            targetDist = distToCommitted;
+            targetPriority = 100; // Override scoring, we're committed
           }
         }
       }
       
-      // Check friendlies
-      for(const f of state.friendlies){
-        if(f.respawnT > 0) continue;
-        const distToFriendly = Math.hypot(f.x - e.x, f.y - e.y);
-        const distFriendlyFromFlag = guardSite ? Math.hypot(f.x - guardSite.x, f.y - guardSite.y) : Infinity;
-        const distFriendlyFromSpawn = Math.hypot(f.x - spawnX, f.y - spawnY);
+      // If no committed target or commitment expired, find new target
+      if(!priorityTarget && now - e._lastMacroTick >= MACRO_TICK){
+        e._lastMacroTick = now;
         
-        if(distFriendlyFromSpawn > LEASH_RADIUS) continue;
+        // Check player
+        if(!state.player.dead && state.player.hp > 0){
+          const distToPlayer = Math.hypot(state.player.x - e.x, state.player.y - e.y);
+          const distPlayerFromFlag = guardSite ? Math.hypot(state.player.x - guardSite.x, state.player.y - guardSite.y) : Infinity;
+          const distPlayerFromSpawn = Math.hypot(state.player.x - spawnX, state.player.y - spawnY);
+          
+          // Skip if player beyond leash
+          if(distPlayerFromSpawn <= LEASH_HARD_STOP){
+            let priority = 0;
+            // Zone-based priority scoring
+            if(distPlayerFromFlag <= FLAG_RADIUS) priority = 100;           // Sacred ground
+            else if(distPlayerFromFlag <= DEFENSE_ENTER) priority = 80;    // Defense zone
+            else if(distToPlayer <= AGGRO_RANGE) priority = 60;             // Aggro range
+            
+            if(priority > targetPriority || (priority === targetPriority && distToPlayer < targetDist)){
+              targetPriority = priority;
+              targetDist = distToPlayer;
+              priorityTarget = state.player;
+            }
+          }
+        }
         
-        let priority = 0;
-        if(distFriendlyFromFlag <= FLAG_RADIUS) priority = 100;
-        else if(distFriendlyFromFlag <= INNER_DEFENSE) priority = 80;
-        else if(distToFriendly <= AGGRO_RANGE) priority = 60;
+        // Check friendlies
+        for(const f of state.friendlies){
+          if(f.respawnT > 0) continue;
+          const distToFriendly = Math.hypot(f.x - e.x, f.y - e.y);
+          const distFriendlyFromFlag = guardSite ? Math.hypot(f.x - guardSite.x, f.y - guardSite.y) : Infinity;
+          const distFriendlyFromSpawn = Math.hypot(f.x - spawnX, f.y - spawnY);
+          
+          // Skip if friendly beyond leash
+          if(distFriendlyFromSpawn > LEASH_HARD_STOP) continue;
+          
+          let priority = 0;
+          // Zone-based priority scoring
+          if(distFriendlyFromFlag <= FLAG_RADIUS) priority = 100;           // Sacred ground
+          else if(distFriendlyFromFlag <= DEFENSE_ENTER) priority = 80;    // Defense zone
+          else if(distToFriendly <= AGGRO_RANGE) priority = 60;             // Aggro range
+          
+          // Bonus for attacking guards
+          if(f.attacked && f._hostTarget?.guard && f._hostTarget?.homeSiteId === e.homeSiteId){
+            priority += 50;
+          }
+          
+          // Select highest priority, closest if tied
+          if(priority > targetPriority || (priority === targetPriority && distToFriendly < targetDist)){
+            targetPriority = priority;
+            targetDist = distToFriendly;
+            priorityTarget = f;
+          }
+        }
         
-        if(priority > targetPriority || (priority === targetPriority && distToFriendly < targetDist)){
-          targetPriority = priority;
-          targetDist = distToFriendly;
-          priorityTarget = f;
+        // Commit to new target and broadcast to squad for focus fire
+        if(priorityTarget){
+          e._committedTarget = priorityTarget.id || priorityTarget._id;
+          e._targetCommitUntil = now + TARGET_COMMIT;
+          
+          // FOCUS FIRE: Broadcast primary target to all guards at this site
+          if(guardSite){
+            guardSite._sharedTarget = priorityTarget;
+            guardSite._sharedTargetId = priorityTarget.id || priorityTarget._id;
+            guardSite._sharedTargetUntil = now + TARGET_COMMIT;
+          }
         }
       }
       
-      if(priorityTarget){
-        // SIMPLIFIED COORDINATED ENGAGEMENT (removed complex ball group formula)
+      // FOCUS FIRE: If no personal target, check if squad has shared target
+      if(!priorityTarget && guardSite && guardSite._sharedTargetUntil > now){
+        // Look for shared target in player or friendlies
+        let sharedTarget = null;
+        if(!state.player.dead && state.player.hp > 0 && 
+           (state.player.id || state.player._id) === guardSite._sharedTargetId){
+          sharedTarget = state.player;
+        } else {
+          sharedTarget = state.friendlies.find(f => 
+            (f.id || f._id) === guardSite._sharedTargetId && f.respawnT <= 0
+          );
+        }
+        
+        if(sharedTarget){
+          const distToShared = Math.hypot(sharedTarget.x - e.x, sharedTarget.y - e.y);
+          const distSharedFromSpawn = Math.hypot(sharedTarget.x - spawnX, sharedTarget.y - spawnY);
+          
+          // Join focus fire if target is in leash range
+          if(distSharedFromSpawn <= LEASH_HARD_STOP){
+            priorityTarget = sharedTarget;
+            targetDist = distToShared;
+            targetPriority = 90; // High priority for focus fire
+          }
+        }
+      }
+      
+      // ─────────────────────────────────────────────────────────────────────────────
+      // GUARD STATE MACHINE (3 States Only)
+      // ─────────────────────────────────────────────────────────────────────────────
+      const hasDefenseThreat = priorityTarget && (
+        targetPriority >= 80 || // Inside defense zone or flag radius
+        (targetDist <= AGGRO_RANGE && targetPriority >= 60)
+      );
+      
+      const shouldReturnToPost = distFromSpawn > LEASH_RETREAT || (
+        e._guardState === 'RETURN_TO_POST' && distFromSlot > 25
+      );
+      
+      // STATE TRANSITIONS
+      if(e._guardState === 'IDLE_DEFENSE'){
+        if(hasDefenseThreat){
+          e._guardState = 'ACTIVE_DEFENSE';
+          e._defenseActiveSince = now;
+          e._preFightBuffsTriggered = false; // Reset buff trigger
+        } else if(shouldReturnToPost){
+          e._guardState = 'RETURN_TO_POST';
+        }
+      }
+      else if(e._guardState === 'ACTIVE_DEFENSE'){
+        // Exit to idle only if no threat for 0.75s (fast re-engagement)
+        const noThreatDuration = hasDefenseThreat ? 0 : (now - e._defenseActiveSince);
+        if(noThreatDuration >= 0.75 && !hasDefenseThreat){
+          e._guardState = 'IDLE_DEFENSE';
+        } else if(shouldReturnToPost){
+          e._guardState = 'RETURN_TO_POST';
+        }
+      }
+      else if(e._guardState === 'RETURN_TO_POST'){
+        if(hasDefenseThreat && distFromSpawn <= LEASH_RETREAT){
+          e._guardState = 'ACTIVE_DEFENSE';
+          e._defenseActiveSince = now;
+        } else if(distFromSlot <= 25 && !hasDefenseThreat){
+          e._guardState = 'IDLE_DEFENSE';
+        }
+      }
+      
+      // ─────────────────────────────────────────────────────────────────────────────
+      // STATE EXECUTION
+      // ─────────────────────────────────────────────────────────────────────────────
+      
+      if(e._guardState === 'ACTIVE_DEFENSE' && priorityTarget){
+        // ═══ ACTIVE DEFENSE STATE ═══
         e.attacked = true;
         const isHealer = (e.guardRole === 'HEALER');
         
-        if(isHealer){
-          // Healers stay at optimal distance with HYSTERESIS
-          const optimalDist = 120;
-          const currentlyMoving = e.speed > 50;
-          const closeThreshold = currentlyMoving ? 90 : 110;  // 90 to stop backing, 110 to start backing
-          const farThreshold = currentlyMoving ? 140 : 160;   // 140 to stop closing, 160 to start closing
+        // PRE-FIGHT BUFFS (Trigger at aggro range, once per engagement)
+        if(!e._preFightBuffsTriggered && targetDist <= AGGRO_RANGE){
+          // Mark as triggered for this engagement
+          e._preFightBuffsTriggered = true;
           
-          if(targetDist > farThreshold){
-            // Too far, move closer
-            e.speed = 100;
-            tx = priorityTarget.x;
-            ty = priorityTarget.y;
-          } else if(targetDist < closeThreshold){
-            // Too close, back up
-            e.speed = 100;
+          // Queue pre-fight shield abilities (healers trigger ward_barrier + radiant_aura)
+          if(isHealer && e.npcAbilities && e.npcCd){
+            const wardIdx = e.npcAbilities.indexOf('ward_barrier');
+            const auraIdx = e.npcAbilities.indexOf('radiant_aura');
+            if(wardIdx >= 0 && e.npcCd[wardIdx] === 0) e.npcCd[wardIdx] = 0.1; // Trigger ASAP
+            if(auraIdx >= 0 && e.npcCd[auraIdx] === 0) e.npcCd[auraIdx] = 0.1;
+          }
+        }
+        
+        // ROLE-SPECIFIC COMBAT POSITIONING
+        if(isHealer){
+          // Healers: Maintain safe distance behind DPS line
+          const HEALER_MIN_DIST = 110;
+          const HEALER_MAX_DIST = 190;
+          const HEALER_OPTIMAL = 140;
+          
+          if(targetDist < HEALER_MIN_DIST){
+            // Too close - retreat toward slot position
             const angle = Math.atan2(e.y - priorityTarget.y, e.x - priorityTarget.x);
             tx = e.x + Math.cos(angle) * 60;
             ty = e.y + Math.sin(angle) * 60;
+            e.speed = 90;
+          } else if(targetDist > HEALER_MAX_DIST){
+            // Too far - advance to maintain heal range
+            tx = priorityTarget.x;
+            ty = priorityTarget.y;
+            e.speed = 75;
           } else {
-            // Good distance, minimal movement
-            e.speed = 30;
-            tx = e.x;
-            ty = e.y;
+            // Good range - stay at slot, minimal movement
+            tx = slotX;
+            ty = slotY;
+            e.speed = 40;
           }
         } else {
-          // DPS/Tank guards: SIMPLIFIED - direct chase (removed ball group complexity)
-          e.speed = 140;
+          // DPS/TANK guards: Aggressive direct engagement
           tx = priorityTarget.x;
           ty = priorityTarget.y;
+          e.speed = 130;
         }
       }
-      else if(e.attacked || distFromSpawn > 30){
-        // No targets - return to spawn position
+      else if(e._guardState === 'RETURN_TO_POST'){
+        // ═══ RETURN TO POST STATE ═══
         e.attacked = false;
+        tx = slotX;
+        ty = slotY;
         e.speed = 110;
-        tx = spawnX;
-        ty = spawnY;
-        const dd = Math.hypot(tx - e.x, ty - e.y);
-        if(dd <= 20){
+        
+        // Snap to slot when very close
+        if(distFromSlot <= 8){
+          e.x = slotX;
+          e.y = slotY;
           e.speed = 0;
-          e.x = spawnX;
-          e.y = spawnY;
-          continue;
         }
-      } else {
-        // Idle at spawn
-        e.speed = 0;
-        continue;
+      }
+      else {
+        // ═══ IDLE DEFENSE STATE ═══
+        e.attacked = false;
+        tx = slotX;
+        ty = slotY;
+        
+        // Gentle drift toward slot
+        if(distFromSlot > 10){
+          e.speed = 30;
+        } else {
+          e.speed = 0;
+          e.x = slotX;
+          e.y = slotY;
+        }
       }
       
-      // Guard movement - apply the target position set above
+      // ─────────────────────────────────────────────────────────────────────────────
+      // MOVEMENT EXECUTION
+      // ─────────────────────────────────────────────────────────────────────────────
       const cc = getCcState(e);
       if(e.speed > 0){
         const slowFactor = (e.inWater ? 0.45 : 1.0) * ((cc.rooted||cc.stunned) ? 0 : Math.max(0, 1 + cc.speedMod));
@@ -4584,387 +4914,125 @@ function updateEnemies(state, dt){
       // (continue removed so guards can execute attack code below)
     }
     
-    // NON-GUARD ENEMY AI
+    // NON-GUARD ENEMY AI - Uses same role-based system as friendly AI
     if(!e.guard) {
-      const dp = Math.hypot(state.player.x - e.x, state.player.y - e.y);
-      const dh = home ? Math.hypot(home.x - e.x, home.y - e.y) : Infinity;
-
-      // check for nearest hostile (player, friendlies, or enemies of other teams)
-      let nearestHost = null, nearestHD = Infinity, hostType = null;
-      if(!state.player.dead){ const d = Math.hypot(state.player.x - e.x, state.player.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = state.player; hostType='player'; } }
-      for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x - e.x, f.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = f; hostType='friendly'; } }
-      // Only attack other teams if emperor logic allows it
-      for(const other of state.enemies){ if(other===e) continue; if(!other.team || !e.team) continue; if(other.team === e.team) continue; if(!shouldAttackTeam(e.team, other.team, state)) continue; const d = Math.hypot(other.x - e.x, other.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = other; hostType='enemy'; } }
-
-      // Determine enemy role first
-      const role = (e.role || (e.variant === 'mage' ? 'HEALER' : (e.variant === 'warden' || e.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
-      
-      // Log AI state for debugging (sample rate 0.5%)
-      if(state.debugLog && Math.random() < 0.005){
-        state.debugLog.push({
-          time: (state.campaign?.time || 0).toFixed(2),
-          type: 'ENEMY_AI_STATE',
-          enemy: e.name || e.variant,
-          role: role,
-          hp: Math.round(e.hp),
-          mana: Math.round(e.mana),
-          position: {x: Math.round(e.x), y: Math.round(e.y)},
-          speed: e.speed,
-          hitCd: e.hitCd.toFixed(2),
-          attacked: e.attacked,
-          inWater: e.inWater,
-          nearestHostDist: nearestHD ? Math.round(nearestHD) : null,
-          hasSpawnTarget: !!spawnTarget,
-          team: e.team
-        });
+      // Find nearest enemy (player or friendlies)
+      const near = {e: null, d: Infinity};
+      if(!state.player.dead){
+        const d = Math.hypot(state.player.x - e.x, state.player.y - e.y);
+        if(d < near.d){ near.d = d; near.e = state.player; }
       }
-
-      // Outpost focus: if an enemy-controlled outpost is in range, ignore host aggro until it is destroyed
-      const OUTPOST_FOCUS_RANGE = 220;
-      let outpostTx = null, outpostTy = null;
-      let outpostFocus = false;
-      if(spawnTarget && spawnTarget.owner && spawnTarget.owner !== e.team){
-        const distToFlag = Math.hypot(spawnTarget.x - e.x, spawnTarget.y - e.y);
-        const attackRange = e.r + spawnTarget.r + 80;
-        if(distToFlag > attackRange){
-          const dxs = (spawnTarget.x - e.x);
-          const dys = (spawnTarget.y - e.y);
-          const dts = Math.hypot(dxs, dys) || 1;
-          const approach = Math.max(spawnTarget.r + 60, 50);
-          outpostTx = spawnTarget.x - (dxs/dts) * approach;
-          outpostTy = spawnTarget.y - (dys/dts) * approach;
-        } else {
-          outpostTx = e.x;
-          outpostTy = e.y;
+      for(const f of state.friendlies){
+        if(f.respawnT > 0) continue;
+        const d = Math.hypot(f.x - e.x, f.y - e.y);
+        if(d < near.d){ near.d = d; near.e = f; }
+      }
+      
+      // Find hostile creatures (same as friendly AI)
+      let nearCreature = null, nearCreatureD = Infinity;
+      for(const c of state.creatures){
+        if(!c.attacked) continue;
+        const isHostile = state.enemies.includes(c.target) || c.target === e;
+        if(!isHostile) continue;
+        const d = Math.hypot(c.x - e.x, c.y - e.y);
+        if(d < nearCreatureD){ nearCreatureD = d; nearCreature = c; }
+      }
+      
+      // Find ALL capturable flags and sort by distance (same as friendly AI)
+      let allFlags = [];
+      for(const s of state.sites){
+        if(s.id && s.id.startsWith && s.id.startsWith('site_')){
+          const d = Math.hypot(s.x - e.x, s.y - e.y);
+          allFlags.push({site: s, dist: d});
         }
-        if(distToFlag <= OUTPOST_FOCUS_RANGE) outpostFocus = true;
       }
-
-      const AGGRO_DIST = ENEMY_AGGRO_DIST;
+      allFlags.sort((a, b) => a.dist - b.dist);
       
-      // Store last decision for hysteresis
-      e._lastDecision = e._lastDecision || 'idle';
+      // Find closest objective flag (not owned by this enemy's team)
+      let objectiveFlags = [];
+      for(const flagData of allFlags){
+        const s = flagData.site;
+        if(s.owner !== e.team){
+          objectiveFlags.push(flagData);
+        }
+      }
+      const closestObjective = objectiveFlags.length > 0 ? objectiveFlags[0].site : null;
       
-      // TANK ROLE PRIORITY: Attack walls even during outpost focus (with hysteresis)
-      if(role === 'TANK' && spawnTarget && spawnTarget.wall && spawnTarget.wall.sides && outpostFocus){
-        const intactWalls = spawnTarget.wall.sides.filter(s => s && !s.destroyed);
+      // Check for walls to attack at closest objective (same as friendly AI)
+      let wallTarget = null;
+      if(closestObjective && closestObjective.wall && closestObjective.wall.sides){
+        const intactWalls = closestObjective.wall.sides.filter(s => s && !s.destroyed);
         if(intactWalls.length > 0){
-          // Find nearest wall side
           let bestIdx = -1, bestD = Infinity;
           for(let si = 0; si < 4; si++){
-            const side = spawnTarget.wall.sides[si];
+            const side = closestObjective.wall.sides[si];
             if(!side || side.destroyed) continue;
             const midAng = (si + 0.5) * (Math.PI/2);
-            const px = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
-            const py = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
+            const px = closestObjective.x + Math.cos(midAng) * closestObjective.wall.r * 0.92;
+            const py = closestObjective.y + Math.sin(midAng) * closestObjective.wall.r * 0.92;
             const d = Math.hypot(px - e.x, py - e.y);
             if(d < bestD){ bestD = d; bestIdx = si; }
           }
           if(bestIdx !== -1){
             const midAng = (bestIdx + 0.5) * (Math.PI/2);
-            tx = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
-            ty = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
-            e.attacked = true;
-            e._hostTarget = null;
-            
-            if(state.debugLog && Math.random() < 0.02){
-              state.debugLog.push({
-                time: (state.campaign?.time || 0).toFixed(2),
-                type: 'ENEMY_ROLE_TARGET',
-                enemy: e.name || e.variant,
-                role: role,
-                decision: 'tank_walls_outpost',
-                target: spawnTarget?.name || 'unknown',
-                side: ['North','East','South','West'][bestIdx],
-                wallHP: Math.round(spawnTarget.wall.sides[bestIdx].hp || 0),
-                distance: Math.round(bestD),
-                intactWalls: intactWalls.length,
-                nearbyHostiles: nearestHost ? 1 : 0
-              });
-            }
-          } else {
-            // No walls left, do normal outpost focus
-            tx = outpostTx;
-            ty = outpostTy;
-            e.attacked = true;
+            wallTarget = {
+              x: closestObjective.x + Math.cos(midAng) * closestObjective.wall.r * 0.92,
+              y: closestObjective.y + Math.sin(midAng) * closestObjective.wall.r * 0.92,
+              site: closestObjective,
+              side: bestIdx
+            };
           }
-        } else {
-          // No walls left, do normal outpost focus
-          tx = outpostTx;
-          ty = outpostTy;
-          e.attacked = true;
         }
       }
-      else if(outpostFocus){
-        tx = outpostTx;
-        ty = outpostTy;
+      
+      // Determine enemy role
+      const role = (e.role || (e.variant === 'mage' ? 'HEALER' : (e.variant === 'warden' || e.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
+      
+      // Use shared role-based AI decision system (same as friendly AI)
+      const AGGRO_RANGE = 80; // Base aggro range for enemies (matches friendly behavior)
+      const aiDecision = getRoleBasedDecision(e, state, near, nearCreature, nearCreatureD, closestObjective, wallTarget, role, AGGRO_RANGE);
+      
+      tx = aiDecision.tx;
+      ty = aiDecision.ty;
+      const decision = aiDecision.decision;
+      const targetInfo = aiDecision.targetInfo;
+      
+      // Set attacked flag if engaging enemies
+      if(decision === 'attack_enemy' || decision === 'attack_wall' || decision === 'attack_creature'){
         e.attacked = true;
-        // Log enemy targeting decision
-        if(state.debugLog && Math.random() < 0.02){ // 2% sample rate to avoid spam
-          state.debugLog.push({
-            time: (state.campaign?.time || 0).toFixed(2),
-            type: 'ENEMY_AI_TARGET',
-            enemy: e.name || e.variant,
-            decision: 'outpost_focus',
-            target: spawnTarget?.name || 'unknown',
-            targetOwner: spawnTarget?.owner || 'none',
-            distance: Math.round(Math.hypot(spawnTarget.x - e.x, spawnTarget.y - e.y))
-          });
-        }
-      } else if(nearestHost && !e.inWater){
-        // ROLE-BASED TARGETING for enemies with HYSTERESIS
-        const role = (e.role || (e.variant === 'mage' ? 'HEALER' : (e.variant === 'warden' || e.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
-        
-        // HYSTERESIS: Different thresholds for engage vs disengage
-        const currentlyAttacking = (e._lastDecision && e._lastDecision.includes('attack'));
-        const aggroThreshold = currentlyAttacking ? AGGRO_DIST * 1.2 : AGGRO_DIST * 0.85; // 264 disengage / 187 engage
-        
-        if(nearestHD <= aggroThreshold){
-          let finalTarget = nearestHost;
-          let decision = 'attack_host';
-        
-          // TANK: Prioritize walls even during combat
-          if(role === 'TANK' && spawnTarget && spawnTarget.wall && spawnTarget.wall.sides){
-            const intactWalls = spawnTarget.wall.sides.filter(s => s && !s.destroyed);
-          if(intactWalls.length > 0){
-            // Attack walls instead of host
-            let bestIdx = -1, bestD = Infinity;
-            for(let si = 0; si < 4; si++){
-              const side = spawnTarget.wall.sides[si];
-              if(!side || side.destroyed) continue;
-              const midAng = (si + 0.5) * (Math.PI/2);
-              const px = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
-              const py = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
-              const d = Math.hypot(px - e.x, py - e.y);
-              if(d < bestD){ bestD = d; bestIdx = si; }
-            }
-            if(bestIdx !== -1){
-              const midAng = (bestIdx + 0.5) * (Math.PI/2);
-              tx = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
-              ty = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
-              decision = 'tank_walls_combat';
-              e.attacked = true;
-              e._hostTarget = null;
-              
-              if(state.debugLog && Math.random() < 0.02){
-                state.debugLog.push({
-                  time: (state.campaign?.time || 0).toFixed(2),
-                  type: 'ENEMY_ROLE_TARGET',
-                  enemy: e.name || e.variant,
-                  role: role,
-                  decision: decision,
-                  target: spawnTarget?.name || 'unknown',
-                  side: ['North','East','South','West'][bestIdx]
-                });
-              }
-            } else {
-              // No walls, attack host normally
-              tx = nearestHost.x;
-              ty = nearestHost.y;
-              e.attacked = true;
-              e._hostTarget = nearestHost;
-            }
-          } else {
-            tx = nearestHost.x;
-            ty = nearestHost.y;
-            e.attacked = true;
-            e._hostTarget = nearestHost;
-          }
-        }
-        // DPS: Focus enemies first, walls only when clear
-        else if(role === 'DPS'){
-          tx = nearestHost.x;
-          ty = nearestHost.y;
-          e.attacked = true;
-          e._hostTarget = nearestHost;
-          decision = 'dps_attack_host';
-          
-          if(state.debugLog && Math.random() < 0.02){
-            state.debugLog.push({
-              time: (state.campaign?.time || 0).toFixed(2),
-              type: 'ENEMY_ROLE_TARGET',
-              enemy: e.name || e.variant,
-              role: role,
-              decision: decision,
-              target: nearestHost.name || nearestHost.variant || 'unknown',
-              targetType: hostType,
-              distance: Math.round(nearestHD)
-            });
-          }
-        }
-        // HEALER: Stay at range, support position
-        else if(role === 'HEALER'){
-          // Find allied cluster
-          let allyX = 0, allyY = 0, allyCount = 0;
-          for(const other of state.enemies){
-            if(other === e || other.dead || other.hp <= 0 || !other.team || other.team !== e.team) continue;
-            allyX += other.x;
-            allyY += other.y;
-            allyCount++;
-          }
-          
-          if(allyCount > 0){
-            allyX /= allyCount;
-            allyY /= allyCount;
-            const distToAllies = Math.hypot(e.x - allyX, e.y - allyY);
-            
-            // Stay near allies at safe range
-            if(distToAllies > 120){
-              tx = allyX;
-              ty = allyY;
-              decision = 'healer_support_position';
-            } else {
-              // Good position, attack from range
-              tx = nearestHost.x;
-              ty = nearestHost.y;
-              decision = 'healer_attack_safe';
-            }
-          } else {
-            tx = nearestHost.x;
-            ty = nearestHost.y;
-            decision = 'healer_attack_solo';
-          }
-          
-          e.attacked = true;
-          e._hostTarget = nearestHost;
-          
-          if(state.debugLog && Math.random() < 0.02){
-            state.debugLog.push({
-              time: (state.campaign?.time || 0).toFixed(2),
-              type: 'ENEMY_ROLE_TARGET',
-              enemy: e.name || e.variant,
-              role: role,
-              decision: decision,
-              target: nearestHost.name || nearestHost.variant || 'unknown',
-              targetType: hostType,
-              distance: Math.round(nearestHD)
-            });
-          }
-        }
-        else {
-          // Default behavior
-          tx = nearestHost.x;
-          ty = nearestHost.y;
-          e.attacked = true;
-          e._hostTarget = nearestHost;
-          
-          if(state.debugLog && Math.random() < 0.02){
-            state.debugLog.push({
-              time: (state.campaign?.time || 0).toFixed(2),
-              type: 'ENEMY_AI_TARGET',
-              enemy: e.name || e.variant,
-              decision: 'attack_host',
-              target: nearestHost.name || nearestHost.variant || 'unknown',
-              targetType: hostType,
-              distance: Math.round(nearestHD)
-            });
-          }
-        }
-        
-        // Store last decision for hysteresis
-        e._lastDecision = decision;
-      } else if(spawnTarget){
-        // PRIORITY: Check if walls exist before trying to capture flag
-        if(spawnTarget.owner && spawnTarget.owner !== e.team){
-          // If there are intact walls, attack those FIRST
-          if(spawnTarget.wall && spawnTarget.wall.sides && spawnTarget.wall.sides.some(side => side && !side.destroyed)){
-            // Attack walls - target nearest intact wall
-            let bestIdx = -1, bestD = Infinity;
-            for(let si=0; si<4; si++){
-              const side = spawnTarget.wall.sides && spawnTarget.wall.sides[si];
-              if(!side || side.destroyed) continue;
-              const midAng = (si + 0.5) * (Math.PI/2);
-              const px = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
-              const py = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
-              const d = Math.hypot(px - e.x, py - e.y);
-              if(d < bestD){ bestD = d; bestIdx = si; }
-            }
-            if(bestIdx !== -1){
-              const midAng = (bestIdx + 0.5) * (Math.PI/2);
-              tx = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
-              ty = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
-            } else {
-              tx = outpostTx || spawnTarget.x;
-              ty = outpostTy || spawnTarget.y;
-            }
-            // Log wall targeting
-            if(state.debugLog && Math.random() < 0.02){
-              state.debugLog.push({
-                time: (state.campaign?.time || 0).toFixed(2),
-                type: 'ENEMY_AI_TARGET',
-                enemy: e.name || e.variant,
-                decision: 'attack_walls',
-                target: spawnTarget?.name || 'unknown',
-                targetOwner: spawnTarget?.owner || 'none',
-                wallsIntact: spawnTarget.wall.sides.filter(s => s && !s.destroyed).length
-              });
-            }
-          } else {
-            // No walls or all destroyed - can now attack flag
-            tx = outpostTx || spawnTarget.x;
-            ty = outpostTy || spawnTarget.y;
-            // Log flag capture attempt
-            if(state.debugLog && Math.random() < 0.02){
-              state.debugLog.push({
-                time: (state.campaign?.time || 0).toFixed(2),
-                type: 'ENEMY_AI_TARGET',
-                enemy: e.name || e.variant,
-                decision: 'capture_flag',
-                target: spawnTarget?.name || 'unknown',
-                targetOwner: spawnTarget?.owner || 'none',
-                hasWalls: !!spawnTarget.wall
-              });
-            }
-          }
-        }
-        // If flag is neutral or destroyed but has walls, attack walls
-        else if(spawnTarget.wall && (!spawnTarget.owner || spawnTarget.health <= 0)){
-          // choose the nearest intact wall side and move to a point on the ring there
-          let bestIdx = -1, bestD = Infinity;
-          for(let si=0; si<4; si++){
-            const side = spawnTarget.wall.sides && spawnTarget.wall.sides[si];
-            if(!side || side.destroyed) continue;
-            const midAng = (si + 0.5) * (Math.PI/2);
-            const px = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
-            const py = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
-            const d = Math.hypot(px - e.x, py - e.y);
-            if(d < bestD){ bestD = d; bestIdx = si; }
-          }
-          if(bestIdx === -1){
-            const g = spawnTarget.wall.gateSide || 0;
-            const midAng = (g + 0.5) * (Math.PI/2);
-            tx = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
-            ty = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
-          } else {
-            const midAng = (bestIdx + 0.5) * (Math.PI/2);
-            tx = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
-            ty = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
-          }
-        } else {
-          const dxs = (spawnTarget.x - e.x); const dys = (spawnTarget.y - e.y);
-          const dts = Math.hypot(dxs,dys) || 1;
-          const approach = Math.max(spawnTarget.r - 18, spawnTarget.r * 0.6, 18);
-          tx = spawnTarget.x - (dxs/dts) * approach;
-          ty = spawnTarget.y - (dys/dts) * approach;
-        }
-      } else if(dp <= CHASE_DISTANCE && dh <= CHASE_FROM_HOME_MAX){
-        // chase player but only if not too far from home
-        tx = state.player.x; ty = state.player.y;
-      } else if(home && dh > 12){
-        // return to home
-        tx = home.x; ty = home.y;
-      } else {
-        // patrol around home (stay near)
-        if(home){ tx = home.x + Math.cos((e._patrolAngle||0))*DEFEND_RADIUS*0.45; ty = home.y + Math.sin((e._patrolAngle||0))*DEFEND_RADIUS*0.45; e._patrolAngle = (e._patrolAngle||0) + dt*0.6; }
-        else { tx = state.player.x; ty = state.player.y; }
       }
+      
+      // Store last decision for hysteresis
+      e._lastDecision = decision;
+      
+      // Debug logging (matches friendly AI format)
+      if(state.debugLog && Math.random() < 0.05){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'ENEMY_ROLE_TARGET',
+          enemy: e.name || e.variant,
+          role: role,
+          decision: decision,
+          target: targetInfo,
+          distance: tx && ty ? Math.round(Math.hypot(tx - e.x, ty - e.y)) : 0,
+          hp: Math.round(e.hp || 0),
+          mana: Math.round(e.mana || 0),
+          speed: e.speed
+        });
+      }
+      
+      // Fallback: if no decision made, idle at current position
+      if(!tx || !ty){
+        tx = e.x;
+        ty = e.y;
+      }
+    } // End of non-guard enemy AI block
 
-      const cc = getCcState(e);
-      // move towards target using avoidance helper (includes trees/mountains/walls and unit separation)
-      if(e.speed > 0){
-        const slowFactor = (e.inWater ? 0.45 : 1.0) * ((cc.rooted||cc.stunned) ? 0 : Math.max(0, 1 + cc.speedMod));
-        if(slowFactor>0) moveWithAvoidance(e, tx, ty, state, dt, { slowFactor });
-      }
+    const cc = getCcState(e);
+    // move towards target using avoidance helper (includes trees/mountains/walls and unit separation)
+    if(e.speed > 0){
+      const slowFactor = (e.inWater ? 0.45 : 1.0) * ((cc.rooted||cc.stunned) ? 0 : Math.max(0, 1 + cc.speedMod));
+      if(slowFactor>0) moveWithAvoidance(e, tx, ty, state, dt, { slowFactor });
     }
 
     // contact attack: attempt to hit nearest hostile (player, friendly, enemy of other teams, or hostile creature)
@@ -5068,7 +5136,6 @@ function updateEnemies(state, dt){
         });
       }
     }
-    } // End NON-GUARD ENEMY AI block
 
     // simple ability casting for enemies (respect silence/stun)
     const cc2 = getCcState(e);

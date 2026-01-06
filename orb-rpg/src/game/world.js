@@ -480,9 +480,32 @@ export function spawnGuardsForSite(state, site, count=5){
         guardFormation: true, // Enable coordinated group behavior
         guardIndex: pi
       };
+      // Force weapon for guards: warriors get Destruction Staff, mages get Healing Staff
+      if (v === 'warrior') {
+        friendlyGuard.weaponType = 'Destruction Staff';
+        if (friendlyGuard.weapons) friendlyGuard.weapons = [friendlyGuard.weapons.find(w => w.weaponType === 'Destruction Staff')];
+      } else if (v === 'mage') {
+        friendlyGuard.weaponType = 'Healing Staff';
+        if (friendlyGuard.weapons) friendlyGuard.weapons = [friendlyGuard.weapons.find(w => w.weaponType === 'Healing Staff')];
+      }
       // Apply class stats and initialize abilities with weapon
       if(applyClassToUnit) applyClassToUnit(friendlyGuard, v);
       if(npcInitAbilities) npcInitAbilities(friendlyGuard);
+      // Force tactical abilities for DPS warriors
+      if (v === 'warrior' && Array.isArray(friendlyGuard.npcAbilities)) {
+        const tacticals = ['gravity_well','meteor_slam','shoulder_charge'];
+        // Remove if already present, then unshift to front
+        friendlyGuard.npcAbilities = [
+          ...tacticals,
+          ...friendlyGuard.npcAbilities.filter(a => !tacticals.includes(a))
+        ].slice(0,5);
+        if (state.debugLog) state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'GUARD_ABILITY_ASSIGN',
+          unit: friendlyGuard.name,
+          abilities: friendlyGuard.npcAbilities
+        });
+      }
       
       // Apply gear based on site progression
       assignGuardGear(friendlyGuard, site.guardProgression?.gearRarity || 'common');
@@ -499,10 +522,30 @@ export function spawnGuardsForSite(state, site, count=5){
       guardObj.guardIndex = pi;
       guardObj._spawnX = guardObj.x; // Set spawn position for return behavior
       guardObj._spawnY = guardObj.y; // Set spawn position for return behavior
-      
-      // Apply class stats to enemy guards (this sets proper speed and HP)
+      // Force weapon for guards: warriors get Destruction Staff, mages get Healing Staff
+      if (v === 'warrior') {
+        guardObj.weaponType = 'Destruction Staff';
+        if (guardObj.weapons) guardObj.weapons = [guardObj.weapons.find(w => w.weaponType === 'Destruction Staff')];
+      } else if (v === 'mage') {
+        guardObj.weaponType = 'Healing Staff';
+        if (guardObj.weapons) guardObj.weapons = [guardObj.weapons.find(w => w.weaponType === 'Healing Staff')];
+      }
       if(applyClassToUnit) applyClassToUnit(guardObj, v);
       if(npcInitAbilities) npcInitAbilities(guardObj);
+      // Force tactical abilities for DPS warriors
+      if (v === 'warrior' && Array.isArray(guardObj.npcAbilities)) {
+        const tacticals = ['gravity_well','meteor_slam','shoulder_charge'];
+        guardObj.npcAbilities = [
+          ...tacticals,
+          ...guardObj.npcAbilities.filter(a => !tacticals.includes(a))
+        ].slice(0,5);
+        if (state.debugLog) state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'GUARD_ABILITY_ASSIGN',
+          unit: guardObj.name || guardObj.variant,
+          abilities: guardObj.npcAbilities
+        });
+      }
       // Guards start stationary but AI will set speed when needed
       guardObj.speed = 0;
       

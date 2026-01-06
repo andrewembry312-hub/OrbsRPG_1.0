@@ -17,8 +17,16 @@ export const META_LOADOUTS = {
       { kind:'weapon', slot:'weapon', weaponType:'Dagger', rarity:COMMON_RARITY, name:'Common Dagger', buffs:{atk:4, speed:5, critChance:0.05} },
       { kind:'weapon', slot:'weapon', weaponType:'Greatsword', rarity:COMMON_RARITY, name:'Common Greatsword', buffs:{atk:9, speed:-3} }
     ],
-    abilitiesMagic: ['arc_bolt','piercing_lance','chain_light','warrior_fortitude','mage_radiant_aura'], // 3 attacks + 2 buffs for staff
-    abilitiesMelee: ['slash','cleave','warrior_cleave','warrior_fortitude','warrior_life_leech'] // 3 attacks + 2 buffs for melee
+    abilitiesMagic: [
+      'arc_bolt','piercing_lance','chain_light','warrior_fortitude','mage_radiant_aura',
+      // Tactical abilities
+      'meteor_slam','gravity_well','shoulder_charge'
+    ], // 3 attacks + 2 buffs for staff + tactical
+    abilitiesMelee: [
+      'slash','cleave','warrior_cleave','warrior_fortitude','warrior_life_leech',
+      // Tactical abilities
+      'meteor_slam','gravity_well','shoulder_charge'
+    ] // 3 attacks + 2 buffs for melee + tactical
   },
   
   // KNIGHT -> TANK role (can use any weapon, preferably sword/axe for thematic fit)
@@ -28,7 +36,11 @@ export const META_LOADOUTS = {
       { kind:'weapon', slot:'weapon', weaponType:'Axe', rarity:COMMON_RARITY, name:'Common Axe', buffs:{atk:7, def:2, maxHp:12} },
       { kind:'weapon', slot:'weapon', weaponType:'Greatsword', rarity:COMMON_RARITY, name:'Common Greatsword', buffs:{atk:8, def:2, maxHp:10} }
     ],
-    abilities: ['knight_shield_wall','knight_taunt','knight_rally','warcry','heal_burst'] // All buffs/heals for tank role
+    abilities: [
+      'knight_shield_wall','knight_taunt','knight_rally','warcry','heal_burst',
+      // Tactical abilities
+      'gravity_well','shoulder_charge','meteor_slam'
+    ] // All buffs/heals for tank role + tactical
   },
   
   // TANK -> TANK role (can use any weapon)
