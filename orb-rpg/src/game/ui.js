@@ -1,7 +1,7 @@
 import { saveJson, loadJson, clamp } from "../engine/util.js";
 import { DEFAULT_BINDS, ACTION_LABELS, INV_SIZE, ARMOR_SLOTS, SLOT_LABEL } from "./constants.js";
 import { rarityClass } from "./rarity.js";
-import { currentStats, exportSave, importSave, applyClassToUnit, downloadErrorLog, downloadCombatLog, downloadPlayerLog, downloadDebugLog, initConsoleErrorLogger } from "./game.js";
+import { currentStats, exportSave, importSave, applyClassToUnit, downloadErrorLog, downloadCombatLog, downloadPlayerLog, downloadDebugLog, downloadAIBehaviorLog, initConsoleErrorLogger } from "./game.js";
 import { LEVEL_CONFIG, getItemLevelColor } from "./leveling.js";
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
@@ -437,57 +437,86 @@ export function buildUI(state){
               <!-- Row 2: HP, Mana, Stamina HORIZONTAL with Bars AND +/- Controls -->
               <div id="levelResourcesRow" style="padding-bottom:8px; border-bottom:1px solid #d4af37; margin-bottom:8px;">
                 <!-- Unspent Points -->
-                <div id="levelPointsDisplay" style="font-size:12px; color:#d4af37; margin-bottom:8px; text-align:center;">
-                  Unspent Points: <b id="lvlPts">0</b>
+                <div id="levelPointsDisplay" style="font-size:13px; color:#d4af37; margin-bottom:10px; text-align:center; font-weight:bold;">
+                  Available Stat Points: <span id="lvlPts" style="font-size:16px; color:#4a9eff;">0</span>
                 </div>
                 
-                <!-- Resources in horizontal layout -->
-                <div style="display:flex; justify-content:space-evenly; padding:0 12px;">
-                  <!-- HP Column -->
-                  <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                    <div style="font-size:12px; color:#f55; font-weight:bold;">HP</div>
-                    <div style="width:140px;">
-                      <div style="font-size:12px; color:#f55; margin-bottom:2px; text-align:center;"><span id="levelHpValue">0/0</span></div>
-                      <div style="width:100%; height:8px; background:rgba(0,0,0,0.5); border:1px solid #d4af37; border-radius:2px; overflow:hidden;">
-                        <div id="levelHpBar" style="height:100%; background:linear-gradient(90deg, #f55, #f77); width:100%; transition:width 0.3s;"></div>
-                      </div>
-                    </div>
-                    <div style="display:flex; gap:4px; align-items:center;">
-                      <button id="hpDec" class="secondary" style="border-color:#f55; color:#f55; padding:3px 8px; font-size:12px; min-width:28px;">◀</button>
-                      <div id="hpSpend" style="width:32px; text-align:center; color:#f55; font-weight:bold; font-size:13px;">0</div>
-                      <button id="hpInc" style="border-color:#f55; background:rgba(255,85,85,0.2); color:#f55; padding:3px 8px; font-size:12px; min-width:28px;">▶</button>
+                <!-- All 5 Stats in compact 2-row grid -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:0 8px; margin-bottom:8px;">
+                  <!-- VIT (Vitality) - HP -->
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(255,85,85,0.1); padding:6px; border-radius:4px; border:1px solid rgba(255,85,85,0.3);">
+                    <div style="font-size:10px; color:#f88; font-weight:bold;">VITALITY</div>
+                    <div style="font-size:11px; color:#f55;">+HP/Regen</div>
+                    <div style="display:flex; gap:4px; align-items:center; margin-top:2px;">
+                      <button id="hpDec" class="secondary" style="border-color:#f55; color:#f55; padding:2px 6px; font-size:11px; min-width:24px;">◀</button>
+                      <div id="hpSpend" style="width:28px; text-align:center; color:#f55; font-weight:bold; font-size:14px;">0</div>
+                      <button id="hpInc" style="border-color:#f55; background:rgba(255,85,85,0.2); color:#f55; padding:2px 6px; font-size:11px; min-width:24px;">▶</button>
                     </div>
                   </div>
                   
-                  <!-- Mana Column -->
-                  <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                    <div style="font-size:12px; color:#5af; font-weight:bold;">Mana</div>
-                    <div style="width:140px;">
-                      <div style="font-size:12px; color:#5af; margin-bottom:2px; text-align:center;"><span id="levelManaValue">0/0</span></div>
-                      <div style="width:100%; height:8px; background:rgba(0,0,0,0.5); border:1px solid #d4af37; border-radius:2px; overflow:hidden;">
-                        <div id="levelManaBar" style="height:100%; background:linear-gradient(90deg, #5af, #7cf); width:100%; transition:width 0.3s;"></div>
-                      </div>
-                    </div>
-                    <div style="display:flex; gap:4px; align-items:center;">
-                      <button id="manaDec" class="secondary" style="border-color:#5af; color:#5af; padding:3px 8px; font-size:12px; min-width:28px;">◀</button>
-                      <div id="manaSpend" style="width:32px; text-align:center; color:#5af; font-weight:bold; font-size:13px;">0</div>
-                      <button id="manaInc" style="border-color:#5af; background:rgba(85,170,255,0.2); color:#5af; padding:3px 8px; font-size:12px; min-width:28px;">▶</button>
+                  <!-- INT (Intelligence) - Mana -->
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(85,170,255,0.1); padding:6px; border-radius:4px; border:1px solid rgba(85,170,255,0.3);">
+                    <div style="font-size:10px; color:#7cf; font-weight:bold;">INTELLIGENCE</div>
+                    <div style="font-size:11px; color:#5af;">+Mana/CDR</div>
+                    <div style="display:flex; gap:4px; align-items:center; margin-top:2px;">
+                      <button id="manaDec" class="secondary" style="border-color:#5af; color:#5af; padding:2px 6px; font-size:11px; min-width:24px;">◀</button>
+                      <div id="manaSpend" style="width:28px; text-align:center; color:#5af; font-weight:bold; font-size:14px;">0</div>
+                      <button id="manaInc" style="border-color:#5af; background:rgba(85,170,255,0.2); color:#5af; padding:2px 6px; font-size:11px; min-width:24px;">▶</button>
                     </div>
                   </div>
                   
-                  <!-- Stamina Column -->
-                  <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                    <div style="font-size:12px; color:#5f5; font-weight:bold;">Stamina</div>
-                    <div style="width:140px;">
-                      <div style="font-size:12px; color:#5f5; margin-bottom:2px; text-align:center;"><span id="levelStamValue">0/0</span></div>
-                      <div style="width:100%; height:8px; background:rgba(0,0,0,0.5); border:1px solid #d4af37; border-radius:2px; overflow:hidden;">
-                        <div id="levelStamBar" style="height:100%; background:linear-gradient(90deg, #5f5, #7f7); width:100%; transition:width 0.3s;"></div>
-                      </div>
+                  <!-- STR (Strength) - Attack -->
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(255,150,50,0.1); padding:6px; border-radius:4px; border:1px solid rgba(255,150,50,0.3);">
+                    <div style="font-size:10px; color:#fb7; font-weight:bold;">STRENGTH</div>
+                    <div style="font-size:11px; color:#f96;">+Attack/Crit</div>
+                    <div style="display:flex; gap:4px; align-items:center; margin-top:2px;">
+                      <button id="strDec" class="secondary" style="border-color:#f96; color:#f96; padding:2px 6px; font-size:11px; min-width:24px;">◀</button>
+                      <div id="strSpend" style="width:28px; text-align:center; color:#f96; font-weight:bold; font-size:14px;">0</div>
+                      <button id="strInc" style="border-color:#f96; background:rgba(255,150,50,0.2); color:#f96; padding:2px 6px; font-size:11px; min-width:24px;">▶</button>
                     </div>
-                    <div style="display:flex; gap:4px; align-items:center;">
-                      <button id="stamDec" class="secondary" style="border-color:#5f5; color:#5f5; padding:3px 8px; font-size:12px; min-width:28px;">◀</button>
-                      <div id="stamSpend" style="width:32px; text-align:center; color:#5f5; font-weight:bold; font-size:13px;">0</div>
-                      <button id="stamInc" style="border-color:#5f5; background:rgba(85,255,85,0.2); color:#5f5; padding:3px 8px; font-size:12px; min-width:28px;">▶</button>
+                  </div>
+                  
+                  <!-- DEF (Defense) -->
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(150,150,150,0.1); padding:6px; border-radius:4px; border:1px solid rgba(150,150,150,0.3);">
+                    <div style="font-size:10px; color:#ccc; font-weight:bold;">DEFENSE</div>
+                    <div style="font-size:11px; color:#aaa;">+Defense</div>
+                    <div style="display:flex; gap:4px; align-items:center; margin-top:2px;">
+                      <button id="defDec" class="secondary" style="border-color:#aaa; color:#aaa; padding:2px 6px; font-size:11px; min-width:24px;">◀</button>
+                      <div id="defSpend" style="width:28px; text-align:center; color:#aaa; font-weight:bold; font-size:14px;">0</div>
+                      <button id="defInc" style="border-color:#aaa; background:rgba(150,150,150,0.2); color:#aaa; padding:2px 6px; font-size:11px; min-width:24px;">▶</button>
+                    </div>
+                  </div>
+                  
+                  <!-- AGI (Agility) - Speed/Stamina -->
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:3px; background:rgba(85,255,85,0.1); padding:6px; border-radius:4px; border:1px solid rgba(85,255,85,0.3);">
+                    <div style="font-size:10px; color:#7f7; font-weight:bold;">AGILITY</div>
+                    <div style="font-size:11px; color:#5f5;">+Speed/Stam</div>
+                    <div style="display:flex; gap:4px; align-items:center; margin-top:2px;">
+                      <button id="stamDec" class="secondary" style="border-color:#5f5; color:#5f5; padding:2px 6px; font-size:11px; min-width:24px;">◀</button>
+                      <div id="stamSpend" style="width:28px; text-align:center; color:#5f5; font-weight:bold; font-size:14px;">0</div>
+                      <button id="stamInc" style="border-color:#5f5; background:rgba(85,255,85,0.2); color:#5f5; padding:2px 6px; font-size:11px; min-width:24px;">▶</button>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Current Resources Display (HP/Mana/Stamina bars) -->
+                <div style="display:flex; justify-content:space-between; gap:8px; padding:0 12px; margin-bottom:8px;">
+                  <div style="flex:1;">
+                    <div style="font-size:10px; color:#f55; margin-bottom:2px;">HP: <span id="levelHpValue">0/0</span></div>
+                    <div style="width:100%; height:6px; background:rgba(0,0,0,0.5); border:1px solid #f55; border-radius:2px; overflow:hidden;">
+                      <div id="levelHpBar" style="height:100%; background:#f55; width:100%;"></div>
+                    </div>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="font-size:10px; color:#5af; margin-bottom:2px;">Mana: <span id="levelManaValue">0/0</span></div>
+                    <div style="width:100%; height:6px; background:rgba(0,0,0,0.5); border:1px solid #5af; border-radius:2px; overflow:hidden;">
+                      <div id="levelManaBar" style="height:100%; background:#5af; width:100%;"></div>
+                    </div>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="font-size:10px; color:#5f5; margin-bottom:2px;">Stam: <span id="levelStamValue">0/0</span></div>
+                    <div style="width:100%; height:6px; background:rgba(0,0,0,0.5); border:1px solid #5f5; border-radius:2px; overflow:hidden;">
+                      <div id="levelStamBar" style="height:100%; background:#5f5; width:100%;"></div>
                     </div>
                   </div>
                 </div>
@@ -1247,6 +1276,12 @@ export function buildUI(state){
                 <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Track all buffs, shields, heals, and HOTs cast by friendlies and enemies</div>
                 
                 <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="enableAIBehaviorLog" checked style="cursor:pointer;">
+                  <span class="small" style="color:#fc6;">AI Behavior Tracking</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Track AI decision changes, target switches, behavior changes, and stuck loops</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
                   <input type="checkbox" id="enableConsoleLog" checked style="cursor:pointer;">
                   <span class="small" style="color:#fa3;">Console Errors</span>
                 </label>
@@ -1524,6 +1559,7 @@ function bindUI(state){
     enableDamageLog:$('enableDamageLog'),
     enableAbilityLog:$('enableAbilityLog'),
     enableEffectLog:$('enableEffectLog'),
+    enableAIBehaviorLog:$('enableAIBehaviorLog'),
     enableConsoleLog:$('enableConsoleLog'),
     btnDownloadAllLogs:$('btnDownloadAllLogs'),
     optShowAim:$('optShowAim'),
@@ -1562,7 +1598,8 @@ function bindUI(state){
     invArmorStars:$('invArmorStars'), invArmorText:$('invArmorText'),
     lvlPts:$('lvlPts'),
     hpInc:$('hpInc'), hpDec:$('hpDec'), manaInc:$('manaInc'), manaDec:$('manaDec'), stamInc:$('stamInc'), stamDec:$('stamDec'),
-    hpSpend:$('hpSpend'), manaSpend:$('manaSpend'), stamSpend:$('stamSpend'),
+    strInc:$('strInc'), strDec:$('strDec'), defInc:$('defInc'), defDec:$('defDec'),
+    hpSpend:$('hpSpend'), manaSpend:$('manaSpend'), stamSpend:$('stamSpend'), strSpend:$('strSpend'), defSpend:$('defSpend'),
     levelSwitchToPlayer:$('levelSwitchToPlayer'),
     levelCharName:$('levelCharName'), levelCharRole:$('levelCharRole'), levelArmorRating:$('levelArmorRating'),
     levelArmorStars:$('levelArmorStars'),
@@ -1586,6 +1623,8 @@ function bindUI(state){
   const getItemImage = (item) => {
     return getItemIcon(item); // Use the new comprehensive icon mapping
   };
+  // Expose getItemImage for use in other modules (e.g., weapon preview)
+  ui.getItemImage = getItemImage;
 
   // Sticky header shadow on inventory scroll
   ui._bindInvRightScroll = ()=>{
@@ -2462,7 +2501,7 @@ function bindUI(state){
       {item: {kind:'armor', slot:'chest', rarity:commonRarity, name:'Common Chestplate', desc:'Basic chest armor', buffs:{maxHp:12, def:3}}, price:60, stock:'unlimited'},
       {item: {kind:'armor', slot:'hands', rarity:commonRarity, name:'Common Gloves', desc:'Basic hand protection', buffs:{atk:2, def:1}}, price:40, stock:'unlimited'},
       {item: {kind:'armor', slot:'belt', rarity:commonRarity, name:'Common Belt', desc:'Basic belt', buffs:{maxHp:5, def:1}}, price:35, stock:'unlimited'},
-      {item: {kind:'armor', slot:'legs', rarity:commonRarity, name:'Common Leggings', desc:'Basic leg armor', buffs:{maxHp:10, def:2}}, price:50, stock:'unlimited'},
+      {item: {kind:'armor', slot:'legs', rarity:commonRarity, name:'Common Legs', desc:'Basic leg armor', buffs:{maxHp:10, def:2}}, price:50, stock:'unlimited'},
       {item: {kind:'armor', slot:'feet', rarity:commonRarity, name:'Common Boots', desc:'Basic footwear', buffs:{speed:5, def:1}}, price:40, stock:'unlimited'},
       {item: {kind:'armor', slot:'neck', rarity:commonRarity, name:'Common Necklace', desc:'Simple necklace', buffs:{maxHp:6, maxMana:6}}, price:45, stock:'unlimited'},
       {item: {kind:'armor', slot:'accessory1', rarity:commonRarity, name:'Common Ring', desc:'Simple ring', buffs:{maxMana:8}}, price:35, stock:'unlimited'},
@@ -3162,7 +3201,9 @@ function bindUI(state){
     // Populate data
     ui.unitName.textContent = u.name || (type === 'enemy' ? 'Enemy' : type === 'friendly' ? 'Ally' : 'Creature');
     if(type === 'enemy'){
-      ui.unitTeam.textContent = `Team: ${u.team || 'Unknown'} | Enemy`;
+      const heroType = (u.variant || 'warrior').charAt(0).toUpperCase() + (u.variant || 'warrior').slice(1);
+      const role = (u.role || (u.variant === 'mage' ? 'HEALER' : (u.variant === 'warden' || u.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
+      ui.unitTeam.textContent = `Enemy Unit • Type: ${heroType} • Role: ${role} • Team: ${u.team || 'Unknown'}`;
       ui.unitLevel.textContent = (u.level || 1);
       ui.allyControlPanel.style.display = 'none';
       if(ui.allyBehaviorDesc) ui.allyBehaviorDesc.style.display = 'none';
@@ -3180,6 +3221,12 @@ function bindUI(state){
         ui.btnEditTarget.disabled = !inGroup;
         ui.btnEditTarget.classList.toggle('secondary', !inGroup);
         ui.btnEditTarget.textContent = inGroup ? 'Edit Equipment & Abilities' : 'Invite to group to edit';
+      }
+      // Update Invite/Kick button based on group membership
+      if(ui.btnInviteToGroup){
+        const inGroup = state.group.members.includes(u.id);
+        ui.btnInviteToGroup.textContent = inGroup ? 'Kick from Group' : 'Invite to Group';
+        ui.btnInviteToGroup.classList.toggle('secondary', inGroup);
       }
       // Set button visual states based on current behavior
       const currentBehavior = u.behavior || 'neutral';
@@ -3278,7 +3325,7 @@ function bindUI(state){
     ui.btnInviteToGroup.onclick = ()=>{
       if(!state.selectedUnit || state.selectedUnit.type !== 'friendly') return;
       const friendly = state.selectedUnit.unit;
-      if(!friendly) { console.warn('[GROUP] Cannot invite: no unit'); return; }
+      if(!friendly) { console.warn('[GROUP] Cannot invite/kick: no unit'); return; }
       if(!friendly.id){
         try{
           // Assign a stable ID and name if missing
@@ -3286,12 +3333,33 @@ function bindUI(state){
           if(!friendly.name){ const base = friendly.variant||'ally'; friendly.name = `${String(base).charAt(0).toUpperCase()+String(base).slice(1)} ${Math.floor(Math.random()*999)+1}`; }
         }catch(e){ console.warn('[GROUP] Failed to assign id/name', e); }
       }
-      ui.inviteToGroup(friendly);
-      if(ui.btnEditTarget){
-        ui.btnEditTarget.disabled = false;
-        ui.btnEditTarget.classList.remove('secondary');
-        ui.btnEditTarget.textContent = 'Edit Equipment & Abilities';
-        ui.btnEditTarget.style.display = 'block';
+      
+      const inGroup = state.group.members.includes(friendly.id);
+      
+      if(inGroup){
+        // Kick from group
+        ui.removeFromGroup(friendly.id);
+        ui.toast(`${friendly.name || 'Ally'} removed from group.`);
+        // Update buttons
+        ui.btnInviteToGroup.textContent = 'Invite to Group';
+        ui.btnInviteToGroup.classList.remove('secondary');
+        if(ui.btnEditTarget){
+          ui.btnEditTarget.disabled = true;
+          ui.btnEditTarget.classList.add('secondary');
+          ui.btnEditTarget.textContent = 'Invite to group to edit';
+        }
+      } else {
+        // Invite to group
+        ui.inviteToGroup(friendly);
+        // Update buttons
+        ui.btnInviteToGroup.textContent = 'Kick from Group';
+        ui.btnInviteToGroup.classList.add('secondary');
+        if(ui.btnEditTarget){
+          ui.btnEditTarget.disabled = false;
+          ui.btnEditTarget.classList.remove('secondary');
+          ui.btnEditTarget.textContent = 'Edit Equipment & Abilities';
+          ui.btnEditTarget.style.display = 'block';
+        }
       }
     };
   }
@@ -3334,6 +3402,12 @@ function bindUI(state){
       } else {
         ui.btnEditTarget.style.display = 'none';
       }
+    }
+    // Update Invite/Kick button
+    if(ui.btnInviteToGroup && type === 'friendly'){
+      const inGroup = state.group.members.includes(unit.id);
+      ui.btnInviteToGroup.textContent = inGroup ? 'Kick from Group' : 'Invite to Group';
+      ui.btnInviteToGroup.classList.toggle('secondary', inGroup);
     }
 
     // Update active abilities (from npcAbilities)
@@ -3622,9 +3696,8 @@ function bindUI(state){
     'common_chest': 'assets/items/Common Chest.png',
     'uncommon_chest': 'assets/items/Uncommon Chest.png',
     'rare_chest': 'assets/items/Rare Chest.png',
-    // NOTE: epic_chest and legendary_chest files are missing from assets/items
-    // 'epic_chest': 'assets/items/Epic Chest.png',
-    // 'legendary_chest': 'assets/items/Legendary Chest.png',
+    'epic_chest': 'assets/items/Epic Chest.png',
+    'legendary_chest': 'assets/items/Legendary Chest.png',
     // Armor - Shoulders
     'common_shoulders': 'assets/items/common shoulders.png',
     'uncommon_shoulders': 'assets/items/uncommon shoulders.png',
@@ -3637,12 +3710,12 @@ function bindUI(state){
     'rare_hands': 'assets/items/rare hands.png',
     'epic_hands': 'assets/items/epic hands.png',
     'legendary_hands': 'assets/items/legendary hands.png',
-    // Armor - Leggings
-    'common_legs': 'assets/items/common leggings.png',
-    'uncommon_legs': 'assets/items/uncommon leggings.png',
-    'rare_legs': 'assets/items/rare leggings.png',
-    'epic_legs': 'assets/items/epic leggings.png',
-    'legendary_legs': 'assets/items/legendary leggings.png',
+    // Armor - Legs
+    'common_legs': 'assets/items/common legs.png',
+    'uncommon_legs': 'assets/items/uncommon legs.png',
+    'rare_legs': 'assets/items/rare legs.png',
+    'epic_legs': 'assets/items/epic legs.png',
+    'legendary_legs': 'assets/items/legendary legs.png',
     // Armor - Feet
     'common_feet': 'assets/items/common feet.png',
     'uncommon_feet': 'assets/items/uncommon feet.png',
@@ -3694,7 +3767,9 @@ function bindUI(state){
     }
     
     // Handle weapons and armor
-    const rarity = (item.rarity?.key || 'common').toLowerCase();
+    let rarity = (item.rarity?.key || 'common').toLowerCase();
+    // Map 'legend' to 'legendary' for image filenames (ITEM_ICON_MAP uses 'legendary_' prefix)
+    if(rarity === 'legend') rarity = 'legendary';
     let itemType = '';
     
     if(item.kind === 'weapon' && item.weaponType){
@@ -3895,13 +3970,21 @@ function bindUI(state){
     // Potion slot (left of abilities)
     const potionEl = document.createElement('div');
     potionEl.className = 'abilSlot';
+    potionEl.style.position = 'relative';
+    potionEl.style.padding = '0';
     const potion = state.player.potion;
-    potionEl.innerHTML = `
-      <div class="abilKey">${nice(state.binds['potion'])}</div>
-      <div class="abilName">${potion ? potion.name : 'No Potion'}</div>
-      <div class="abilMeta">${potion ? `x${potion.count || 1}` : 'Equip from Inventory'}</div>
-      <div class="cdOverlay" id="cdOvPotion"></div>
-    `;
+    const potionIcon = potion ? getItemIcon(potion) : null;
+    
+    potionEl.innerHTML = potionIcon
+      ? `<img src="${potionIcon}" style="width:100%; height:100%; object-fit:contain; pointer-events:none; position:absolute; top:0; left:0;" />
+         <div class="abilKey" style="position:absolute; top:4px; left:4px; text-shadow:0 0 4px rgba(0,0,0,0.9);">${nice(state.binds['potion'])}</div>
+         <div class="abilName" style="position:absolute; bottom:16px; left:0; right:0; text-align:center; text-shadow:0 0 4px rgba(0,0,0,0.9);">${potion.name}</div>
+         <div class="abilMeta" style="position:absolute; bottom:2px; left:0; right:0; text-align:center; font-size:9px; text-shadow:0 0 4px rgba(0,0,0,0.9);">x${potion.count || 1}</div>
+         <div class="cdOverlay" id="cdOvPotion"></div>`
+      : `<div class="abilKey">${nice(state.binds['potion'])}</div>
+         <div class="abilName">No Potion</div>
+         <div class="abilMeta">Equip from Inventory</div>
+         <div class="cdOverlay" id="cdOvPotion"></div>`;
     
     if(potion){
       potionEl.addEventListener('mouseenter', ()=>{
@@ -4045,13 +4128,13 @@ function bindUI(state){
       ui.equipCircle.appendChild(el);
     });
 
-    // All slots right-aligned in one row: Weapon | Neck | Acc1 | Acc2
+    // All slots right-aligned in one row: Weapon | Neck | Ring | Potion
     // Using flexbox for even spacing
     const allSlots = [
       { key: 'weapon', item: equipTarget['weapon'] },
       { key: 'neck', item: equipTarget['neck'] },
       { key: 'accessory1', item: equipTarget['accessory1'] },
-      { key: 'accessory2', item: equipTarget['accessory2'] }
+      { key: 'potion', item: state.player.potion }
     ];
     
     allSlots.forEach(({ key, item })=>{
@@ -4059,14 +4142,30 @@ function bindUI(state){
       el.className = 'equipSlot' + (state.selectedEquipSlot === key ? ' active' : '');
       el.style.position = 'relative';
       el.title = SLOT_LABEL[key];
-      const imgPath = item ? getItemImage(item) : null;
-      if(item && imgPath){
-        el.innerHTML = `<img src="${imgPath}" alt="${item.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
-      } else if(item){
-        el.innerHTML = `<div style="text-align:center"><div style="color:${item.rarity.color}">${SLOT_LABEL[key]}</div><div class="${rarityClass(item.rarity.key)}" style="font-size:10px">${item.name}</div></div>`;
+      
+      // Special handling for potion slot
+      if(key === 'potion'){
+        const potionIcon = item ? getItemIcon(item) : null;
+        if(item && potionIcon){
+          el.innerHTML = `<img src="${potionIcon}" alt="${item.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>
+                          <div style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.7); padding:2px 4px; border-radius:3px; font-size:10px; color:#fff;">x${item.count || 1}</div>`;
+        } else if(item){
+          el.innerHTML = `<div style="text-align:center"><div style="color:${item.rarity?.color || '#fff'}">${SLOT_LABEL[key]}</div><div class="${rarityClass(item.rarity?.key || 'common')}" style="font-size:10px">${item.name}</div></div>`;
+        } else {
+          el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[key]}</div><div class="small" style="color:#aaa">None</div></div>`;
+        }
       } else {
-        el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[key]}</div><div class="small" style="color:#aaa">None</div></div>`;
+        // Normal equipment handling
+        const imgPath = item ? getItemImage(item) : null;
+        if(item && imgPath){
+          el.innerHTML = `<img src="${imgPath}" alt="${item.name}" style="width:100%; height:100%; object-fit:contain; border-radius:4px;"/>`;
+        } else if(item){
+          el.innerHTML = `<div style="text-align:center"><div style="color:${item.rarity.color}">${SLOT_LABEL[key]}</div><div class="${rarityClass(item.rarity.key)}" style="font-size:10px">${item.name}</div></div>`;
+        } else {
+          el.innerHTML = `<div style="text-align:center"><div>${SLOT_LABEL[key]}</div><div class="small" style="color:#aaa">None</div></div>`;
+        }
       }
+      
       el.onclick = ()=>{
         const now = performance.now ? performance.now() : Date.now();
         const clickKey = `equip-${key}`;
@@ -5206,6 +5305,12 @@ function bindUI(state){
       if(ui.manaInc) ui.manaInc.style.display = 'inline-block';
       if(ui.manaDec) ui.manaDec.style.display = 'inline-block';
       if(ui.manaSpend) ui.manaSpend.style.display = 'block';
+      if(ui.strInc) ui.strInc.style.display = 'inline-block';
+      if(ui.strDec) ui.strDec.style.display = 'inline-block';
+      if(ui.strSpend) ui.strSpend.style.display = 'block';
+      if(ui.defInc) ui.defInc.style.display = 'inline-block';
+      if(ui.defDec) ui.defDec.style.display = 'inline-block';
+      if(ui.defSpend) ui.defSpend.style.display = 'block';
       if(ui.stamInc) ui.stamInc.style.display = 'inline-block';
       if(ui.stamDec) ui.stamDec.style.display = 'inline-block';
       if(ui.stamSpend) ui.stamSpend.style.display = 'block';
@@ -5216,6 +5321,8 @@ function bindUI(state){
       if(ui.lvlPts) ui.lvlPts.textContent = sp;
       if(ui.hpSpend) ui.hpSpend.textContent = (state.progression.spends.vit|0);
       if(ui.manaSpend) ui.manaSpend.textContent = (state.progression.spends.int|0);
+      if(ui.strSpend) ui.strSpend.textContent = (state.progression.spends.str|0);
+      if(ui.defSpend) ui.defSpend.textContent = (state.progression.spends.def|0);
       if(ui.stamSpend) ui.stamSpend.textContent = (state.progression.spends.agi|0);
     }
     
@@ -5413,6 +5520,10 @@ function bindUI(state){
   ui.hpDec.onclick=()=>trySpend('vit', -1);
   ui.manaInc.onclick=()=>trySpend('int', +1);
   ui.manaDec.onclick=()=>trySpend('int', -1);
+  ui.strInc.onclick=()=>trySpend('str', +1);
+  ui.strDec.onclick=()=>trySpend('str', -1);
+  ui.defInc.onclick=()=>trySpend('def', +1);
+  ui.defDec.onclick=()=>trySpend('def', -1);
   ui.stamInc.onclick=()=>trySpend('agi', +1);
   ui.stamDec.onclick=()=>trySpend('agi', -1);
 
@@ -5698,6 +5809,12 @@ function bindUI(state){
       if(ui.enableDebugLog.checked){
         downloadDebugLog(state);
         logs.push('Debug');
+        count++;
+      }
+      
+      if(ui.enableAIBehaviorLog.checked){
+        downloadAIBehaviorLog(state);
+        logs.push('AI Behavior');
         count++;
       }
       

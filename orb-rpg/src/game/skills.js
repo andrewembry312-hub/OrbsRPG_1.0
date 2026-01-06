@@ -196,6 +196,9 @@ export const BUFF_REGISTRY = {
   'weakness': { name:'Weakness', desc:'-40% attack damage', duration:8, stats:{atk:-0.40}, debuff:true, maxStacks:3 },
   'vulnerability': { name:'Vulnerability', desc:'+50% damage taken', duration:6, stats:{damageTaken:0.50}, debuff:true, maxStacks:3 },
   
+  // EMPEROR POWER - Special permanent buff
+  'emperor_power': { name:'Power of the Emperor', desc:'Control all flags: +3x HP/Mana/Stamina, +50% CDR', duration:Infinity, stats:{maxHp:2.0, maxMana:2.0, maxStam:2.0, cdr:0.50} },
+  
   // DEBUFFS - Hard Penalties (low stack caps, longer duration)
   'curse': { name:'Curse', desc:'-30% all stats, takes shadow damage over time', duration:12, stats:{allStats:-0.30}, ticks:{damage:10, interval:1.5, type:'shadow'}, debuff:true, maxStacks:2 },
 };

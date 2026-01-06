@@ -18,6 +18,120 @@ let ui; // Will be initialized after all imports complete
 // Expose state for debugging console commands
 window.state = state;
 
+// Console command to get all items for testing images
+window.giveAllItems = function() {
+  const rarities = [
+    {key:'common', name:'Common', color:'var(--common)'},
+    {key:'uncommon', name:'Uncommon', color:'var(--uncommon)'},
+    {key:'rare', name:'Rare', color:'var(--rare)'},
+    {key:'epic', name:'Epic', color:'var(--epic)'},
+    {key:'legend', name:'Legendary', color:'var(--legend)'}  // Fixed: 'legend' not 'legendary'
+  ];
+  
+  const weaponTypes = ['Destruction Staff', 'Healing Staff', 'Axe', 'Sword', 'Dagger', 'Greatsword'];
+  const armorSlots = ['helm', 'chest', 'shoulders', 'hands', 'belt', 'legs', 'feet', 'neck', 'accessory1', 'accessory2'];
+  
+  let itemCount = 0;
+  
+  // Add one of each weapon at each rarity
+  weaponTypes.forEach(weaponType => {
+    rarities.forEach(rarity => {
+      const item = state._itemGen.makeWeapon(weaponType, rarity, 1);
+      state.inventory.push(item);
+      itemCount++;
+    });
+  });
+  
+  // Add one of each armor slot at each rarity
+  armorSlots.forEach(slot => {
+    rarities.forEach(rarity => {
+      const item = state._itemGen.makeArmor(slot, rarity, 1);
+      state.inventory.push(item);
+      itemCount++;
+    });
+  });
+  
+  // Add potions
+  const potionItem = state._itemGen.makePotion('hp', rarities[2], 1);
+  state.inventory.push(potionItem);
+  const manaPotion = state._itemGen.makePotion('mana', rarities[2], 1);
+  state.inventory.push(manaPotion);
+  itemCount += 2;
+  
+  // Refresh inventory UI
+  if(state.ui && state.ui.updateInventory){
+    state.ui.updateInventory();
+  }
+  
+  console.log(`✓ Added ${itemCount} items to inventory (${weaponTypes.length * rarities.length} weapons, ${armorSlots.length * rarities.length} armor, 2 potions)`);
+  console.log('Check your inventory to verify all item images are displaying correctly!');
+  return itemCount;
+};
+
+// Console command to apply all buffs to player
+window.giveAllBuffs = function() {
+  const buffIds = [
+    // Combat Buffs
+    'healing_empowerment', 'blessed', 'radiance', 'temporal_flux', 'berserker_rage',
+    'iron_will', 'swift_strikes', 'arcane_power', 'battle_fury', 'guardian_stance',
+    // Sustain Buffs
+    'regeneration', 'mana_surge', 'vigor', 'spirit', 'endurance',
+    'fortified', 'lifesteal_boost',
+    // Mobility Buffs
+    'haste', 'sprint', 'flight',
+    // Utility Buffs
+    'focus', 'clarity', 'stealth', 'divine_shield', 'lucky', 'berserk',
+    // Special
+    'emperor_power'
+  ];
+  
+  let appliedCount = 0;
+  buffIds.forEach(buffId => {
+    if(state._applyBuff) {
+      state._applyBuff(state.player, buffId);
+      appliedCount++;
+    }
+  });
+  
+  console.log(`✓ Applied ${appliedCount} buffs to player!`);
+  console.log('All positive buffs are now active (including Emperor Power). Check your character stats and buff bar!');
+  return appliedCount;
+};
+
+// Console command to apply all effects (buffs + debuffs) to player
+window.giveAllEffects = function() {
+  const allEffectIds = [
+    // Combat Buffs
+    'healing_empowerment', 'blessed', 'radiance', 'temporal_flux', 'berserker_rage',
+    'iron_will', 'swift_strikes', 'arcane_power', 'battle_fury', 'guardian_stance',
+    // Sustain Buffs
+    'regeneration', 'mana_surge', 'vigor', 'spirit', 'endurance',
+    'fortified', 'lifesteal_boost',
+    // Mobility Buffs
+    'haste', 'sprint', 'flight',
+    // Utility Buffs
+    'focus', 'clarity', 'stealth', 'divine_shield', 'lucky', 'berserk',
+    // Special
+    'emperor_power',
+    // Debuffs (for testing)
+    'slow', 'root', 'silence', 'stun', 'poison', 'bleed', 'burn',
+    'arcane_burn', 'weakness', 'vulnerability', 'curse', 'frozen', 'shocked'
+  ];
+  
+  let appliedCount = 0;
+  allEffectIds.forEach(effectId => {
+    if(state._applyBuff) {
+      state._applyBuff(state.player, effectId);
+      appliedCount++;
+    }
+  });
+  
+  console.log(`✓ Applied ${appliedCount} effects (buffs + debuffs) to player!`);
+  console.log('WARNING: This includes debuffs like stun, root, and poison for testing purposes.');
+  console.log('Includes Emperor Power: +3x HP/Mana/Stamina, 50% CDR');
+  return appliedCount;
+};
+
 // Initialize UI after all modules are loaded
 async function initializeApp() {
   ui = buildUI(state);

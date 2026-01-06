@@ -26,6 +26,9 @@ export function hardResetGameState(state){
   // Initialize combat log for debugging
   if(!state.combatLog) state.combatLog = [];
   
+  // Initialize comprehensive AI behavior tracking
+  if(!state.aiBehaviorLog) state.aiBehaviorLog = [];
+  
   // Reset progression to level 1
   state.progression = { level:1, xp:0, statPoints:1, spends:{vit:0,int:0,str:0,def:0,agi:0} };
   
@@ -86,6 +89,17 @@ export function hardResetGameState(state){
   state.projectiles = [];
   state.loot = [];
   state.inventory = [];
+  
+  // Expose item generation functions for console commands
+  state._itemGen = {
+    makeWeapon,
+    makeArmor,
+    makePotion
+  };
+  
+  // Expose buff application function for console commands
+  state._applyBuff = applyBuffTo;
+  
   state.effects = state.effects || {};
   state.effects.heals = [];
   state.effects.wells = [];
@@ -126,6 +140,9 @@ export async function initGame(state){
   
   // Initialize combat log for debugging
   if(!state.combatLog) state.combatLog = [];
+  
+  // Initialize comprehensive AI behavior tracking
+  if(!state.aiBehaviorLog) state.aiBehaviorLog = [];
   
   // ALWAYS clear ability slots on new game - simple and explicit
   state.abilitySlots = [null, null, null, null, null];
@@ -336,6 +353,13 @@ export async function initGame(state){
 
 export function currentStats(state){
   const base={...state.basePlayer};
+  
+  // Apply permanent stat bonuses from leveling (flat bonuses)
+  if(state.progression?.baseStats) {
+    base.maxHp += state.progression.baseStats.maxHp || 0;
+    base.maxMana += state.progression.baseStats.maxMana || 0;
+    base.maxStam += state.progression.baseStats.maxStam || 0;
+  }
   
   // Apply level scaling to base stats (MMO-style progression)
   const playerLevel = state.progression?.level || 1;
@@ -851,7 +875,36 @@ function siteAllowsPassage(site, entity, state){
     }
     // Allow allies to pass through their own flag
     if(entityTeam === site.owner) return true;
-    // Block enemies from passing through
+    
+    // Check if trying to cross through a wall
+    if(site.wall && site.wall.sides){
+      // Determine which side of the wall the entity is crossing
+      const dx = entity.x - site.x;
+      const dy = entity.y - site.y;
+      const angle = Math.atan2(dy, dx);
+      const normalizedAngle = ((angle + Math.PI * 2) % (Math.PI * 2)); // 0 to 2π
+      
+      // Map angle to wall side: 0=East, 1=South, 2=West, 3=North
+      // Angles: East (0), South (π/2), West (π), North (3π/2)
+      let sideIdx;
+      if(normalizedAngle < Math.PI / 4 || normalizedAngle >= 7 * Math.PI / 4){
+        sideIdx = 0; // East/Right
+      } else if(normalizedAngle < 3 * Math.PI / 4){
+        sideIdx = 1; // South/Bottom
+      } else if(normalizedAngle < 5 * Math.PI / 4){
+        sideIdx = 2; // West/Left
+      } else {
+        sideIdx = 3; // North/Top
+      }
+      
+      const side = site.wall.sides[sideIdx];
+      // If this specific wall side is destroyed, allow passage
+      if(side && side.destroyed){
+        return true;
+      }
+    }
+    
+    // Block enemies from passing through intact walls
     return false;
   }
   // No walls or destroyed flags - allow all passage
@@ -874,25 +927,9 @@ function applyDamageToEnemy(e,dmg,st,state,fromPlayer=false){
   const crit=rollCrit(st||{critChance:0});
   const final=crit?(dmg*(st?.critMult||1.5)):dmg;
   
-  // LOG: Track damage to player
-  if(e === state.player){
-    console.log('[DAMAGE TO PLAYER]', final.toFixed(2), 'from', fromPlayer ? 'PLAYER' : 'ENEMY', 'hp before:', e.hp.toFixed(2));
-    // Add to combat log
-    if(state.combatLog){
-      state.combatLog.push({
-        time: (state.campaign?.time || 0).toFixed(2),
-        type: 'DAMAGE',
-        target: 'Player',
-        source: fromPlayer ? 'Player' : 'Enemy',
-        amount: final.toFixed(2),
-        hpBefore: e.hp.toFixed(2),
-        hpAfter: (e.hp - final).toFixed(2),
-        crit: crit
-      });
-    }
-  }
-  
+  const hpBefore = e.hp;
   e.hp-=final;
+  e.hp = Math.max(0, e.hp); // Clamp to 0 minimum
   
   // Track damage dealt and received
   e._damageReceived = (e._damageReceived || 0) + final;
@@ -900,9 +937,19 @@ function applyDamageToEnemy(e,dmg,st,state,fromPlayer=false){
     state.player._damageDealt = (state.player._damageDealt || 0) + final;
   }
   
-  // LOG: Track damage result for player
-  if(e === state.player){
-    console.log('[DAMAGE TO PLAYER RESULT] hp after:', e.hp.toFixed(2), 'damage:', final.toFixed(2));
+  // Log enemy damage (1% sample rate)
+  if(state?.debugLog && Math.random() < 0.01){
+    state.debugLog.push({
+      time: (state.campaign?.time || 0).toFixed(2),
+      type: 'ENEMY_DAMAGE',
+      enemy: e.name || e.variant,
+      role: e.role || 'unknown',
+      damage: final.toFixed(1),
+      crit: crit,
+      hpBefore: hpBefore.toFixed(1),
+      hpAfter: e.hp.toFixed(1),
+      fromPlayer: fromPlayer
+    });
   }
   
   // spawn floating damage number above target only when player deals damage
@@ -928,9 +975,19 @@ function lifestealFrom(state, dealt, st){
   if(ls<=0 || dealt<=0) return;
   const heal=dealt*ls;
   state.player.hp=clamp(state.player.hp+heal,0,st.maxHp);
+  
+  // Log lifesteal healing
+  logPlayerEvent(state, 'HEAL', {
+    source: 'lifesteal',
+    amount: heal.toFixed(1),
+    lifestealPercent: (ls * 100).toFixed(1) + '%',
+    damageDealt: dealt.toFixed(1),
+    newHP: state.player.hp.toFixed(1),
+    maxHP: st.maxHp
+  });
 }
 
-function applyDamageToPlayer(state, raw, st){
+function applyDamageToPlayer(state, raw, st, attacker=null){
   const hpBefore = state.player.hp;
   const shieldBefore = state.player.shield;
   
@@ -1010,6 +1067,11 @@ function applyDamageToPlayer(state, raw, st){
     // Track damage taken timestamp for combat music (use Date.now() for reliable timing)
     state.lastDamageTakenTimestamp = Date.now();
     
+    // Track damage dealt by attacker
+    if(attacker){
+      attacker._damageDealt = (attacker._damageDealt || 0) + dmg;
+    }
+    
     // Log damage taken to player event log
     logPlayerEvent(state, 'DAMAGE_TAKEN', {
       raw,
@@ -1020,6 +1082,23 @@ function applyDamageToPlayer(state, raw, st){
       hpBefore,
       hpAfter
     });
+    
+    // Enhanced combat log for damage mitigation analysis
+    if(state.debugLog && Math.random() < 0.03){
+      state.debugLog.push({
+        time: (state.campaign?.time || 0).toFixed(2),
+        type: 'DAMAGE_MITIGATION',
+        target: 'Player',
+        attacker: attacker ? (attacker.name || attacker.variant || 'unknown') : 'unknown',
+        rawDamage: raw.toFixed(1),
+        shieldMitigated: shieldDamage.toFixed(1),
+        blockMitigated: blockedAmount.toFixed(1),
+        defMitigated: defReduced.toFixed(1),
+        finalDamage: dmg.toFixed(1),
+        mitigationPercent: ((1 - dmg/raw) * 100).toFixed(1),
+        hpPercent: ((hpAfter / st.maxHp) * 100).toFixed(1)
+      });
+    }
     
     // Log to combat log (even if damage was absorbed by shield)
     if(state.combatLog){
@@ -1078,6 +1157,26 @@ function applyShieldedDamage(state, entity, amount, attacker=null){
   entity._damageReceived = (entity._damageReceived || 0) + amount;
   if(attacker){
     attacker._damageDealt = (attacker._damageDealt || 0) + amount;
+  }
+  
+  // Log shielded damage events for debugging
+  if(state?.debugLog && Math.random() < 0.02 && amount > 0){
+    const shieldUsed = Math.min((entity.shield || 0) + remain, amount);
+    const isFriendly = state?.friendlies?.includes(entity);
+    const isEnemy = state?.enemies?.includes(entity);
+    const timeVal = state.campaign?.time ?? 0;
+    state.debugLog.push({
+      time: timeVal.toFixed(2),
+      type: 'SHIELDED_DAMAGE',
+      attacker: attacker ? (attacker.name || attacker.variant || 'unknown') : 'unknown',
+      target: entity.name || entity.variant || 'unknown',
+      targetType: isFriendly ? 'friendly' : (isEnemy ? 'enemy' : 'unknown'),
+      shieldBefore: ((entity.shield || 0) + shieldUsed).toFixed(1),
+      shieldAfter: (entity.shield || 0).toFixed(1),
+      hpLoss: remain.toFixed(1),
+      totalDamage: amount.toFixed(1),
+      targetHP: Math.round(entity.hp || 0)
+    });
   }
 }
 
@@ -1203,18 +1302,36 @@ function playOutpostFireSound(state, site){
   if(pct > 0.70) return;
   const now = Date.now();
   if(site._lastFireSound && now - site._lastFireSound < 4000) return;
-  playPositionalSound(state, 'fireDamage', site.x, site.y, 900, 0.6);
+  
+  const playerDist = Math.hypot(site.x - state.player.x, site.y - state.player.y);
+  const maxHearDistance = 900;
+  if(playerDist > maxHearDistance) return;
+  
+  // Calculate volume based on distance
+  const volumeFactor = 1 - (playerDist / maxHearDistance);
+  const volume = 0.6 * Math.max(0, volumeFactor);
+  if(volume <= 0) return;
+  
+  // Clone audio and track it for this site so we can stop it later
+  const audio = state.sounds.fireDamage.cloneNode();
+  audio.volume = volume;
+  audio.play().catch(e => {});
+  
+  // Store the active audio instance so we can stop it immediately when captured
+  site._activeFireAudio = audio;
   site._lastFireSound = now;
 }
 
 function stopOutpostFireSound(state, site){
-  if(!state.sounds?.fireDamage) return;
   if(!site) return;
-  // Stop any ongoing fire sound for this site by resetting the timer
-  try{
-    state.sounds.fireDamage.pause?.();
-    state.sounds.fireDamage.currentTime = 0;
-  }catch(e){}
+  // Stop the actively playing fire sound for this site immediately
+  if(site._activeFireAudio){
+    try{
+      site._activeFireAudio.pause();
+      site._activeFireAudio.currentTime = 0;
+      site._activeFireAudio = null;
+    }catch(e){}
+  }
   site._lastFireSound = 0; // Reset timer to prevent future sounds
 }
 
@@ -1251,6 +1368,15 @@ function awardXP(state, amount){
     state.progression.level += 1;
     newLevel = state.progression.level;
     state.progression.statPoints += 2; // Always 2 stat points per level
+    
+    // PERMANENT STAT INCREASES PER LEVEL (RPG best practice)
+    if(!state.progression.baseStats) {
+      state.progression.baseStats = {maxHp: 0, maxMana: 0, maxStam: 0};
+    }
+    state.progression.baseStats.maxHp += 10;  // +10 HP per level
+    state.progression.baseStats.maxMana += 5;  // +5 Mana per level
+    state.progression.baseStats.maxStam += 5;  // +5 Stamina per level
+    
     leveled=true;
     
     // Milestone rewards (ESO/WoW style)
@@ -1362,7 +1488,7 @@ const COMMON_RARITY = { key:'common', tier: 1, name: 'Common', color: '#c8c8c8' 
 const UNCOMMON_RARITY = { key:'uncommon', tier: 2, name: 'Uncommon', color: '#8fd' };
 const RARE_RARITY = { key:'rare', tier: 3, name: 'Rare', color: '#9cf' };
 const EPIC_RARITY = { key:'epic', tier: 4, name: 'Epic', color: '#c9f' };
-const LEGENDARY_RARITY = { key:'legendary', tier: 5, name: 'Legendary', color: '#f9c' };
+const LEGENDARY_RARITY = { key:'legend', tier: 5, name: 'Legendary', color: '#f9c' };
 
 function rarityMult(r){
   const t = r?.tier || 1;
@@ -1370,7 +1496,9 @@ function rarityMult(r){
 }
 
 function makeArmorItem(slot, rarity, buffs, name){
-  return { kind:'armor', slot, rarity, name: name || `${rarity.name} ${slot.charAt(0).toUpperCase()+slot.slice(1)}`, desc:`${rarity.name} ${slot}`, buffs };
+  // Use lowercase slot for image path matching (e.g., 'legs.png' not 'Legs.png')
+  const displayName = SLOT_LABEL[slot] || (slot.charAt(0).toUpperCase() + slot.slice(1));
+  return { kind:'armor', slot, rarity, name: name || `${rarity.name} ${displayName}`, desc:`${rarity.name} ${slot}`, buffs };
 }
 
 function roleArmorSet(role, rarity){
@@ -1481,7 +1609,22 @@ function npcHealPulse(state, cx, cy, radius, amount, caster=null){
     if(!ent) return;
     const maxHp = ent===state.player ? st.maxHp : ent.maxHp || st.maxHp;
     const healAmt = amount * mult;
+    const oldHP = ent.hp || 0;
     ent.hp = clamp((ent.hp||0) + healAmt, 0, maxHp);
+    
+    // Log player healing from NPC abilities
+    if(ent === state.player){
+      const casterName = caster ? (caster.name || caster.variant || 'Unknown') : 'Unknown';
+      logPlayerEvent(state, 'HEAL', {
+        source: 'ally_ability',
+        caster: casterName,
+        amount: healAmt.toFixed(1),
+        oldHP: oldHP.toFixed(1),
+        newHP: ent.hp.toFixed(1),
+        maxHP: maxHp
+      });
+    }
+    
     // Track healing done
     if(caster && caster._healingDone !== undefined){
       caster._healingDone = (caster._healingDone || 0) + healAmt;
@@ -1762,7 +1905,9 @@ export function npcInitAbilities(u){
 function npcUpdateAbilities(state, u, dt, kind){
   if(u.respawnT>0) return;
   if(!u.npcAbilities || !u.npcCd) return;
-  for(let i=0;i<u.npcCd.length;i++) u.npcCd[i] = Math.max(0, (u.npcCd[i]||0) - dt);
+  // Clamp dt to prevent cooldown skipping from lag spikes (max 0.1s per frame)
+  const safeDt = Math.min(dt, 0.1);
+  for(let i=0;i<u.npcCd.length;i++) u.npcCd[i] = Math.max(0, (u.npcCd[i]||0) - safeDt);
   // Check if AI debug is enabled for this unit's kind
   const debugAI = (kind === 'friendly' && state.options?.showDebugAI) ||
                   (kind === 'enemy' && state.options?.showDebugAIEnemies);
@@ -1870,7 +2015,8 @@ function npcUpdateAbilities(state, u, dt, kind){
   if(role==='HEALER'){
     const tryCast = (id)=>{ 
       const i=u.npcAbilities.indexOf(id); 
-      const hasCd = i>=0 && u.npcCd[i]<=0;
+      // Require cooldown to be FULLY at 0 (not just <=0.5s) to prevent spam
+      const hasCd = i>=0 && u.npcCd[i] === 0;
       const cost = ABILITY_META[id]?.cost||0;
       const hasMana = u.mana >= cost;
       
@@ -1891,34 +2037,102 @@ function npcUpdateAbilities(state, u, dt, kind){
     };
     if(lowestAlly && lowestAllyHp < 0.40){
       let idx = tryCast('mage_divine_touch'); if(idx===-1) idx = tryCast('heal_burst');
-      if(idx!==-1){ u.npcCd[idx]=ABILITY_META[u.npcAbilities[idx]].cd; u.mana-=ABILITY_META[u.npcAbilities[idx]].cost; npcCastSupportAbility(state,u,u.npcAbilities[idx],lowestAlly); recordAI('cast-prio',{role,ability:u.npcAbilities[idx]}); return; }
+      if(idx!==-1){ 
+        const abilityId = u.npcAbilities[idx];
+        const cdValue = ABILITY_META[abilityId]?.cd || 0;
+        const costValue = ABILITY_META[abilityId]?.cost || 0;
+        
+        // Set cooldown for ALL slots containing this ability (fix duplicate ability spam)
+        for(let i=0; i<u.npcAbilities.length; i++){
+          if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+        }
+        u.mana -= costValue;
+        npcCastSupportAbility(state,u,abilityId,lowestAlly);
+        recordAI('cast-prio',{role,ability:abilityId});
+        return;
+      }
     }
     // multiple allies low: use AoE heals
     const wounded = allies.filter(a=>a && a.hp!==undefined && (a.hp / Math.max(1, (a.maxHp||currentStats(state).maxHp))) < 0.75 && Math.hypot((a.x||0)-u.x,(a.y||0)-u.y) <= 160);
     if(wounded.length >= 3){
-      let idx = tryCast('heal_burst'); if(idx===-1) idx = tryCast('beacon_of_light'); if(idx!==-1){ u.npcCd[idx]=ABILITY_META[u.npcAbilities[idx]].cd; u.mana-=ABILITY_META[u.npcAbilities[idx]].cost; npcCastSupportAbility(state,u,u.npcAbilities[idx],u); recordAI('cast-prio',{role,ability:u.npcAbilities[idx]}); return; }
+      let idx = tryCast('heal_burst'); if(idx===-1) idx = tryCast('beacon_of_light');
+      if(idx!==-1){
+        const abilityId = u.npcAbilities[idx];
+        const cdValue = ABILITY_META[abilityId]?.cd || 0;
+        const costValue = ABILITY_META[abilityId]?.cost || 0;
+        // Set cooldown for ALL duplicate slots
+        for(let i=0; i<u.npcAbilities.length; i++){
+          if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+        }
+        u.mana -= costValue;
+        npcCastSupportAbility(state,u,abilityId,u);
+        recordAI('cast-prio',{role,ability:abilityId});
+        return;
+      }
     }
     // pre-burst mitigation
     if(state.party.macroState==='burst'){
-      const idx = tryCast('ward_barrier'); if(idx!==-1){ u.npcCd[idx]=ABILITY_META[u.npcAbilities[idx]].cd; u.mana-=ABILITY_META[u.npcAbilities[idx]].cost; npcCastSupportAbility(state,u,'ward_barrier',u); recordAI('cast-prio',{role,ability:'ward_barrier'}); return; }
+      const idx = tryCast('ward_barrier');
+      if(idx!==-1){
+        const cdValue = ABILITY_META['ward_barrier']?.cd || 0;
+        const costValue = ABILITY_META['ward_barrier']?.cost || 0;
+        // Set cooldown for ALL duplicate slots
+        for(let i=0; i<u.npcAbilities.length; i++){
+          if(u.npcAbilities[i] === 'ward_barrier') u.npcCd[i] = cdValue;
+        }
+        u.mana -= costValue;
+        npcCastSupportAbility(state,u,'ward_barrier',u);
+        recordAI('cast-prio',{role,ability:'ward_barrier'});
+        return;
+      }
     }
   }
 
   // Tank priority: peel healer, stop capture, burst CC on focus
   if(role==='TANK'){
     const healer = allies.find(a=> a && (a.role==='HEALER' || a===state.player && false));
-    const tryCast = (id)=>{ const i=u.npcAbilities.indexOf(id); return (i>=0 && u.npcCd[i]<=0 && u.mana >= (ABILITY_META[id]?.cost||0)) ? i : -1; };
+    const tryCast = (id)=>{ const i=u.npcAbilities.indexOf(id); return (i>=0 && u.npcCd[i] === 0 && u.mana >= (ABILITY_META[id]?.cost||0)) ? i : -1; };
     if(healer){
       const threat = (state.enemies||[]).find(e=>!e.dead && e.hp>0 && Math.hypot((e.x||0)-(healer.x||0),(e.y||0)-(healer.y||0)) <= 140);
-      if(threat){ let idx = tryCast('knight_taunt'); if(idx===-1) idx = tryCast('warcry'); if(idx===-1) idx = tryCast('knight_shield_wall'); if(idx!==-1){ u.npcCd[idx]=ABILITY_META[u.npcAbilities[idx]].cd; u.mana-=ABILITY_META[u.npcAbilities[idx]].cost; npcCastSupportAbility(state,u,u.npcAbilities[idx],u); recordAI('cast-prio',{role,ability:u.npcAbilities[idx]}); return; } }
+      if(threat){
+        let idx = tryCast('knight_taunt'); if(idx===-1) idx = tryCast('warcry'); if(idx===-1) idx = tryCast('knight_shield_wall');
+        if(idx!==-1){
+          const abilityId = u.npcAbilities[idx];
+          const cdValue = ABILITY_META[abilityId]?.cd || 0;
+          const costValue = ABILITY_META[abilityId]?.cost || 0;
+          // Set cooldown for ALL duplicate slots
+          for(let i=0; i<u.npcAbilities.length; i++){
+            if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+          }
+          u.mana -= costValue;
+          npcCastSupportAbility(state,u,abilityId,u);
+          recordAI('cast-prio',{role,ability:abilityId});
+          return;
+        }
+      }
     }
     // burst CC on focus target
-    if(state.party.macroState==='burst' && focusTarget){ let idx = tryCast('knight_taunt'); if(idx===-1) idx = tryCast('warcry'); if(idx!==-1){ u.npcCd[idx]=ABILITY_META[u.npcAbilities[idx]].cd; u.mana-=ABILITY_META[u.npcAbilities[idx]].cost; npcCastSupportAbility(state,u,u.npcAbilities[idx],u); recordAI('cast-prio',{role,ability:u.npcAbilities[idx]}); return; } }
+    if(state.party.macroState==='burst' && focusTarget){
+      let idx = tryCast('knight_taunt'); if(idx===-1) idx = tryCast('warcry');
+      if(idx!==-1){
+        const abilityId = u.npcAbilities[idx];
+        const cdValue = ABILITY_META[abilityId]?.cd || 0;
+        const costValue = ABILITY_META[abilityId]?.cost || 0;
+        // Set cooldown for ALL duplicate slots
+        for(let i=0; i<u.npcAbilities.length; i++){
+          if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+        }
+        u.mana -= costValue;
+        npcCastSupportAbility(state,u,abilityId,u);
+        recordAI('cast-prio',{role,ability:abilityId});
+        return;
+      }
+    }
   }
 
   // DPS ROTATION SYSTEM: Maintain buffs 100%, then damage abilities by priority, weave light attacks
   if(role==='DPS'){
-    const tryCast = (id)=>{ const i=u.npcAbilities.indexOf(id); return (i>=0 && u.npcCd[i]<=0 && u.mana >= (ABILITY_META[id]?.cost||0)) ? i : -1; };
+    const tryCast = (id)=>{ const i=u.npcAbilities.indexOf(id); return (i>=0 && u.npcCd[i] === 0 && u.mana >= (ABILITY_META[id]?.cost||0)) ? i : -1; };
     
     // PRIORITY 1: Maintain buff uptime (recast when < 3s remaining) - but don't return, continue to damage rotation
     if(!u._buffTimers) u._buffTimers = {};
@@ -1931,7 +2145,10 @@ function npcUpdateAbilities(state, u, dt, kind){
         if(timeLeft < 3.0){
           const idx = tryCast(id);
           if(idx !== -1){
-            u.npcCd[idx] = meta.cd;
+            // Set cooldown for ALL duplicate slots
+            for(let i=0; i<u.npcAbilities.length; i++){
+              if(u.npcAbilities[i] === id) u.npcCd[i] = meta.cd;
+            }
             u.mana -= meta.cost;
             npcCastSupportAbility(state, u, id, u);
             u._buffTimers[id] = 12.0; // Assume 12s duration
@@ -1953,7 +2170,7 @@ function npcUpdateAbilities(state, u, dt, kind){
         if(meta && !meta.filler && meta.dmg){
           const cost = meta.cost || 0;
           const hasMana = u.mana >= cost;
-          const hasCd = u.npcCd[i] <= 0;
+          const hasCd = u.npcCd[i] === 0; // Require exactly 0, not <=0
           
           // Log mana starvation for damage abilities (2% sample)
           if(hasCd && !hasMana && state.debugLog && Math.random() < 0.02){
@@ -1981,7 +2198,10 @@ function npcUpdateAbilities(state, u, dt, kind){
       
       if(damageAbilities.length > 0){
         const chosen = damageAbilities[0];
-        u.npcCd[chosen.idx] = chosen.meta.cd;
+        // Set cooldown for ALL duplicate slots
+        for(let i=0; i<u.npcAbilities.length; i++){
+          if(u.npcAbilities[i] === chosen.id) u.npcCd[i] = chosen.meta.cd;
+        }
         u.mana -= chosen.meta.cost;
         const ang = Math.atan2(target.y-u.y, target.x-u.x);
         
@@ -2026,7 +2246,7 @@ function npcUpdateAbilities(state, u, dt, kind){
   let bestIdx = -1, bestScore = -Infinity, bestSupportTarget=null;
   for(let i=0;i<u.npcAbilities.length;i++){
     const id = u.npcAbilities[i];
-    const cdReady = u.npcCd[i] <= 0;
+    const cdReady = u.npcCd[i] === 0;
     const meta = ABILITY_META[id];
     if(!cdReady || !meta) continue;
     if(u.mana < meta.cost){
@@ -2088,6 +2308,8 @@ function npcUpdateAbilities(state, u, dt, kind){
         aimAng = Math.atan2(leadY - u.y, leadX - u.x);
       }
       spawnProjectile(state, u.x, u.y, aimAng, meta.speed||420, 5, meta.dmg, meta.pierce||0, fromPlayer, { shooter: u });
+      recordAI('cast', { ability:id, score:Number(bestScore.toFixed(2)), dist:Math.round(bestD), mana:Math.round(u.mana), target:u._lockId||target.id||'?' });
+      return; // CRITICAL: Return after projectile cast to respect cooldown
     } else {
       // Melee attack with visual slash effect
       const range = meta.range;
@@ -2120,8 +2342,8 @@ function npcUpdateAbilities(state, u, dt, kind){
         }
       }
     }
-    if(debugAI){ console.log('[NPC AI] cast', id, 'score', bestScore.toFixed(2), 'target', u._lockId||target.id||'?'); }
     recordAI('cast', { ability:id, score:Number(bestScore.toFixed(2)), dist:Math.round(bestD), mana:Math.round(u.mana), target:u._lockId||target.id||'?' });
+    return; // CRITICAL: Return after melee cast to respect cooldown
     return;
   }
 
@@ -2147,19 +2369,26 @@ function npcUpdateAbilities(state, u, dt, kind){
       
       state.effects.slashes.push({t:0.1, arc, range, dir:ang, x:u.x, y:u.y, color:slashColor, dmg:5});
       
+      let hitCount = 0;
       for(let ei=targets.length-1; ei>=0; ei--){
         const e=targets[ei];
         const dx=e.x-u.x, dy=e.y-u.y; const d=Math.hypot(dx,dy); if(d>range) continue;
         const ea=Math.atan2(dy,dx); let diff=Math.abs(ea-ang); diff=Math.min(diff, Math.PI*2-diff);
-        if(diff<=arc/2 && e.hp!==undefined){ e.hp-=5; }
+        if(diff<=arc/2 && e.hp!==undefined){ 
+          applyShieldedDamage(state, e, 5, u);
+          hitCount++;
+        }
       }
-      recordAI('light_attack', {type:'melee', dist:Math.round(bestD)});
+      recordAI('light_attack', {type:'melee', dist:Math.round(bestD), hits:hitCount});
     }
     return;
   }
 
   // filler ranged light for staff users when not casting
-  if(isStaff && bestD<=340 && u.hitCd<=0){
+  if(!u._lastLightAttack) u._lastLightAttack = 0;
+  const timeSinceLastFiller = (state.campaign?.time || 0) - u._lastLightAttack;
+  if(isStaff && bestD<=340 && u.hitCd<=0 && timeSinceLastFiller >= lightAttackCd){
+    u._lastLightAttack = state.campaign?.time || 0;
     u.hitCd = 0.65;
     const ang = Math.atan2(target.y - u.y, target.x - u.x);
     spawnProjectile(state, u.x, u.y, ang, 420, 5, Math.max(8, u.dmg||8), 0, fromPlayer);
@@ -2271,13 +2500,24 @@ function spawnCreatures(state){
 function spawnCreatureAt(state, x, y, type){
   const names = CREATURE_NAMES[type.key] || [];
   const name = names[Math.floor(Math.random() * names.length)];
+  
+  // Level scaling: creatures match player level ±2 for variety
+  const playerLevel = state.progression?.level || 1;
+  const creatureLevel = Math.max(1, playerLevel + randi(-2, 2));
+  
+  // Apply level scaling to creature stats (8% per level, same as player)
+  const levelMult = 1 + (creatureLevel - 1) * 0.08;
+  const scaledHp = Math.round(type.hp * levelMult);
+  const scaledDmg = Math.round(type.dmg * levelMult);
+  
   const creature = {
     x, y,
     r: type.r,
-    maxHp: type.hp,
-    hp: type.hp,
+    level: creatureLevel,  // Add level property
+    maxHp: scaledHp,       // Scale HP by level
+    hp: scaledHp,
     speed: type.speed,
-    contactDmg: type.dmg,
+    contactDmg: scaledDmg,  // Scale damage by level
     color: type.color,
     key: type.key,
     variant: type.variant,
@@ -2301,7 +2541,30 @@ function spawnBossCreature(state){
   const worldH = state.mapHeight || state.engine.canvas.height;
   const x = rand(80, worldW-80);
   const y = rand(80, worldH-80);
-  state.creatures.push({ x,y, r: 24, maxHp: 520, hp: 520, speed: 72, contactDmg: 16, color: cssVar('--legend'), key:'boss', boss:true, attacked:false, hitCd: 0, wander:{ t: rand(0.5,1.6), ang: Math.random()*Math.PI*2 }, target:null });
+  
+  // Boss level: player level + 5 for challenge
+  const playerLevel = state.progression?.level || 1;
+  const bossLevel = playerLevel + 5;
+  const levelMult = 1 + (bossLevel - 1) * 0.08;
+  const bossHp = Math.round(520 * levelMult);
+  const bossDmg = Math.round(16 * levelMult);
+  
+  state.creatures.push({ 
+    x, y, 
+    r: 24, 
+    level: bossLevel,
+    maxHp: bossHp, 
+    hp: bossHp, 
+    speed: 72, 
+    contactDmg: bossDmg, 
+    color: cssVar('--legend'), 
+    key:'boss', 
+    boss:true, 
+    attacked:false, 
+    hitCd: 0, 
+    wander:{ t: rand(0.5,1.6), ang: Math.random()*Math.PI*2 }, 
+    target:null 
+  });
 }
 
 function killCreature(state, index){
@@ -2321,8 +2584,28 @@ function killCreature(state, index){
 }
 
 function applyDamageToCreature(c, dmg, state){
+  const hpBefore = c.hp;
   c.hp -= dmg;
+  c.hp = Math.max(0, c.hp); // Clamp to 0 minimum
   c.attacked = true;
+  
+  // Track damage received by creature
+  c._damageReceived = (c._damageReceived || 0) + dmg;
+  
+  // Log creature damage for debugging (2% sample rate)
+  if(state?.debugLog && Math.random() < 0.02){
+    state.debugLog.push({
+      time: (state.campaign?.time || 0).toFixed(2),
+      type: 'CREATURE_DAMAGE',
+      creature: c.key || 'unknown',
+      boss: c.boss || false,
+      damage: dmg.toFixed(1),
+      hpBefore: hpBefore.toFixed(1),
+      hpAfter: c.hp.toFixed(1),
+      willDie: c.hp <= 0
+    });
+  }
+  
   if(c.hp <= 0) return true;
   return false;
 }
@@ -2352,6 +2635,7 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
   const dist = Math.hypot(dx,dy);
   if(dist < 1e-4) return;
   const maxMove = speed * dt * (opts.slowFactor||1);
+  
   // desired angle
   const baseAng = Math.atan2(dy,dx);
   const tryAngles = [0,15, -15, 30, -30, 45, -45, 60, -60, 90, -90, 120, -120, 150, -150, 180].map(a=>baseAng + a*(Math.PI/180));
@@ -2393,11 +2677,16 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
       }
     }
     // check collisions with trees, mountains, rocks (all use same overlap buffer as trees)
+    // Allow fighters to pass through environment objects if stuck for too long (not making progress for 2 seconds)
+    // But force collision back on after 4 seconds total to prevent permanent passthrough
+    const ignoreEnvironment = (entity._stuckT || 0) > 2.0 && (entity._stuckT || 0) < 4.0;
     let blocked=false;
-    for(const t of state.trees||[]){ if(Math.hypot(nx - t.x, ny - t.y) <= (entity.r + t.r + 2)) { blocked=true; blockedBy = {x:t.x,y:t.y}; break; } }
+    if(!ignoreEnvironment){
+      for(const t of state.trees||[]){ if(Math.hypot(nx - t.x, ny - t.y) <= (entity.r + t.r + 2)) { blocked=true; blockedBy = {x:t.x,y:t.y}; break; } }
+    }
     if(blocked){
       // slide along obstacle tangent to avoid getting pinned
-      if(blockedBy){
+      if(blockedBy && !ignoreEnvironment){
         const dx = nx - blockedBy.x;
         const dy = ny - blockedBy.y;
         const len = Math.hypot(dx, dy) || 1;
@@ -2453,14 +2742,16 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
       }
       continue;
     }
-    for(const mc of state.mountainCircles||[]){ if(Math.hypot(nx - mc.x, ny - mc.y) <= (entity.r + mc.r + 2)) { blocked=true; blockedBy = {x:mc.x,y:mc.y}; break; } }
-    if(blocked) continue;
-    for(const rc of state.rockCircles||[]){ if(Math.hypot(nx - rc.x, ny - rc.y) <= (entity.r + rc.r + 2)) { blocked=true; blockedBy = {x:rc.x,y:rc.y}; break; } }
-    if(blocked) continue;
-    for(const wc of state.waterCircles||[]){ if(Math.hypot(nx - wc.x, ny - wc.y) <= (entity.r + wc.r + 2)) { blocked=true; blockedBy = {x:wc.x,y:wc.y}; break; } }
-    if(blocked) continue;
-    for(const dc of state.decorativeCircles||[]){ if(Math.hypot(nx - dc.x, ny - dc.y) <= (entity.r + dc.r + 2)) { blocked=true; blockedBy = {x:dc.x,y:dc.y}; break; } }
-    if(blocked) continue;
+    if(!ignoreEnvironment){
+      for(const mc of state.mountainCircles||[]){ if(Math.hypot(nx - mc.x, ny - mc.y) <= (entity.r + mc.r + 2)) { blocked=true; blockedBy = {x:mc.x,y:mc.y}; break; } }
+      if(blocked) continue;
+      for(const rc of state.rockCircles||[]){ if(Math.hypot(nx - rc.x, ny - rc.y) <= (entity.r + rc.r + 2)) { blocked=true; blockedBy = {x:rc.x,y:rc.y}; break; } }
+      if(blocked) continue;
+      for(const wc of state.waterCircles||[]){ if(Math.hypot(nx - wc.x, ny - wc.y) <= (entity.r + wc.r + 2)) { blocked=true; blockedBy = {x:wc.x,y:wc.y}; break; } }
+      if(blocked) continue;
+      for(const dc of state.decorativeCircles||[]){ if(Math.hypot(nx - dc.x, ny - dc.y) <= (entity.r + dc.r + 2)) { blocked=true; blockedBy = {x:dc.x,y:dc.y}; break; } }
+      if(blocked) continue;
+    }
     // captured flags with health act as collision obstacles for enemies
     for(const s of state.sites){
       if(s.id && s.id.startsWith('site_') && s.owner && s.health > 0){
@@ -2513,9 +2804,28 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
       if(Math.hypot(nx - f.x, ny - f.y) <= (entity.r + f.r + 6)) { blocked=true; break; }
     }
     if(blocked) continue;
-    // ok to move
+    // ok to move - check if making progress toward goal
+    const oldX = entity.x, oldY = entity.y;
     entity.x = nx; entity.y = ny;
-    entity._stuckT = 0;
+    
+    // Track distance to goal - if making ANY progress, reset stuck timer
+    const newDist = Math.hypot(wantX - nx, wantY - ny);
+    const prevDist = entity._lastDistToGoal;
+    entity._lastDistToGoal = newDist;
+    
+    // Reset stuck timer if: making progress OR in combat (hitCd active) OR very close to goal
+    const inCombat = entity.hitCd && entity.hitCd > 0;
+    const atGoal = newDist < 20;
+    
+    if(inCombat || atGoal || (prevDist !== undefined && newDist < prevDist - 0.1)){
+      entity._stuckT = 0; // Making progress or legitimately stopped
+    } else if(prevDist !== undefined){
+      entity._stuckT = (entity._stuckT || 0) + dt; // Not making progress and not fighting
+      // Force reset after 4 seconds to prevent permanent passthrough
+      if(entity._stuckT > 4.0){
+        entity._stuckT = 0;
+      }
+    }
     return;
   }
   // all sampled angles blocked: apply small jitter nudge after short stuck time to escape corners/trees
@@ -2526,11 +2836,15 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
     const nx = entity.x + Math.cos(jitterAng)*mv;
     const ny = entity.y + Math.sin(jitterAng)*mv;
     let blocked=false;
-    for(const t of state.trees||[]){ if(Math.hypot(nx - t.x, ny - t.y) <= (entity.r + t.r + 2)) { blocked=true; break; } }
-    if(!blocked) for(const mc of state.mountainCircles||[]){ if(Math.hypot(nx - mc.x, ny - mc.y) <= (entity.r + mc.r + 2)) { blocked=true; break; } }
-    if(!blocked) for(const rc of state.rockCircles||[]){ if(Math.hypot(nx - rc.x, ny - rc.y) <= (entity.r + rc.r + 2)) { blocked=true; break; } }
-    if(!blocked) for(const wc of state.waterCircles||[]){ if(Math.hypot(nx - wc.x, ny - wc.y) <= (entity.r + wc.r + 2)) { blocked=true; break; } }
-    if(!blocked) for(const dc of state.decorativeCircles||[]){ if(Math.hypot(nx - dc.x, ny - dc.y) <= (entity.r + dc.r + 2)) { blocked=true; break; } }
+    // If stuck for >2s, ignore environment collision to escape (but auto-revert after 4s total)
+    const ignoreEnvironment = entity._stuckT > 2.0 && entity._stuckT < 4.0;
+    if(!ignoreEnvironment){
+      for(const t of state.trees||[]){ if(Math.hypot(nx - t.x, ny - t.y) <= (entity.r + t.r + 2)) { blocked=true; break; } }
+      if(!blocked) for(const mc of state.mountainCircles||[]){ if(Math.hypot(nx - mc.x, ny - mc.y) <= (entity.r + mc.r + 2)) { blocked=true; break; } }
+      if(!blocked) for(const rc of state.rockCircles||[]){ if(Math.hypot(nx - rc.x, ny - rc.y) <= (entity.r + rc.r + 2)) { blocked=true; break; } }
+      if(!blocked) for(const wc of state.waterCircles||[]){ if(Math.hypot(nx - wc.x, ny - wc.y) <= (entity.r + wc.r + 2)) { blocked=true; break; } }
+      if(!blocked) for(const dc of state.decorativeCircles||[]){ if(Math.hypot(nx - dc.x, ny - dc.y) <= (entity.r + dc.r + 2)) { blocked=true; break; } }
+    }
     if(!blocked){
       // Check flag collision during jitter
       for(const s of state.sites){
@@ -2562,7 +2876,170 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
   return;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SHARED ROLE-BASED AI DECISION SYSTEM
+// Used by both friendlies and enemies for consistent behavior
+// ═══════════════════════════════════════════════════════════════════════════════
+function getRoleBasedDecision(unit, state, near, nearCreature, nearCreatureD, closestObjective, wallTarget, role, AGGRO_RANGE){
+  let tx = null, ty = null, decision = 'idle', targetInfo = '';
+  
+  if(role === 'TANK'){
+    // TANK PRIORITY: Move to objectives > Attack walls in range > Attack nearby enemies
+    
+    // EXCEPTION: Attack walls when in range (highest priority)
+    if(wallTarget){
+      const distToWall = Math.hypot(unit.x - wallTarget.x, unit.y - wallTarget.y);
+      if(distToWall <= 150){
+        tx = wallTarget.x;
+        ty = wallTarget.y;
+        decision = 'attack_wall';
+        targetInfo = `${wallTarget.site.name || wallTarget.site.id} wall`;
+      }
+    }
+    
+    // Move to closest objective when not attacking walls
+    if(decision === 'idle' && closestObjective){
+      tx = closestObjective.x;
+      ty = closestObjective.y;
+      decision = 'capture_objective';
+      targetInfo = closestObjective.name || closestObjective.id;
+    }
+    
+    // Fallback: Attack nearby enemies
+    if(decision === 'idle' && near.e && near.d <= AGGRO_RANGE * 0.8){
+      tx = near.e.x;
+      ty = near.e.y;
+      decision = 'attack_enemy';
+      targetInfo = `${near.e.name || near.e.variant} (defensive)`;
+    }
+  }
+  else if(role === 'DPS'){
+    // DPS PRIORITY: Enemies > Creatures > Objectives
+    // HYSTERESIS: Sticky zones prevent rapid decision flipping
+    
+    const currentlyAttacking = (unit._lastDecision === 'attack_enemy');
+    const aggroThreshold = currentlyAttacking ? AGGRO_RANGE * 1.15 : AGGRO_RANGE * 0.85;
+    
+    if(near.e && near.d <= aggroThreshold){
+      tx = near.e.x;
+      ty = near.e.y;
+      decision = 'attack_enemy';
+      targetInfo = near.e.name || near.e.variant || 'Unknown';
+    } else if(nearCreature && nearCreatureD <= AGGRO_RANGE){
+      tx = nearCreature.x;
+      ty = nearCreature.y;
+      decision = 'attack_creature';
+      targetInfo = 'Creature';
+    } else if(wallTarget){
+      tx = wallTarget.x;
+      ty = wallTarget.y;
+      decision = 'attack_objective';
+      targetInfo = wallTarget.site.name || wallTarget.site.id;
+    } else if(closestObjective){
+      tx = closestObjective.x;
+      ty = closestObjective.y;
+      decision = 'capture_objective';
+      targetInfo = closestObjective.name || closestObjective.id;
+    }
+  }
+  else if(role === 'HEALER'){
+    // HEALER PRIORITY: Stay near allies (cached position to reduce recalculation)
+    
+    // Cache cluster center calculation (only recalc every 1 second)
+    const now = state.campaign?.time || 0;
+    if(!unit._clusterCacheTime || now - unit._clusterCacheTime > 1.0){
+      let allyX = 0, allyY = 0, allyCount = 0;
+      
+      // Get allies based on unit type (friendly vs enemy)
+      const isFriendly = state.friendlies.includes(unit);
+      const allies = isFriendly ? state.friendlies : state.enemies;
+      const player = isFriendly ? state.player : null;
+      
+      for(const f of allies){
+        if(f === unit) continue;
+        if(isFriendly && f.respawnT > 0) continue;
+        if(!isFriendly && (f.dead || f.hp <= 0)) continue;
+        allyX += f.x;
+        allyY += f.y;
+        allyCount++;
+      }
+      
+      if(player && !player.dead){
+        allyX += player.x;
+        allyY += player.y;
+        allyCount++;
+      }
+      
+      if(allyCount > 0){
+        allyX /= allyCount;
+        allyY /= allyCount;
+        
+        // Add jitter to prevent stacking
+        const healerID = unit.id || unit._id || 0;
+        const jitterAngle = (healerID * 2.4) % (Math.PI * 2);
+        const jitterDist = 25 + (healerID % 20);
+        unit._cachedClusterX = allyX + Math.cos(jitterAngle) * jitterDist;
+        unit._cachedClusterY = allyY + Math.sin(jitterAngle) * jitterDist;
+        unit._cachedAllyCount = allyCount;
+      } else {
+        unit._cachedClusterX = null;
+        unit._cachedAllyCount = 0;
+      }
+      unit._clusterCacheTime = now;
+    }
+    
+    // Use cached cluster position
+    if(unit._cachedClusterX !== null && unit._cachedClusterX !== undefined){
+      const distToCluster = Math.hypot(unit.x - unit._cachedClusterX, unit.y - unit._cachedClusterY);
+      
+      // HYSTERESIS: Different thresholds for moving vs staying
+      const isCurrentlyMoving = (unit._lastDecision === 'support_allies');
+      const moveThreshold = isCurrentlyMoving ? 120 : 160;
+      
+      if(distToCluster > moveThreshold){
+        tx = unit._cachedClusterX;
+        ty = unit._cachedClusterY;
+        decision = 'support_allies';
+        targetInfo = `Allied cluster (${unit._cachedAllyCount} units)`;
+      } else if(near.e && near.d <= AGGRO_RANGE * 0.6 && distToCluster <= 100){
+        // Only attack when very safe and very close to allies
+        tx = near.e.x;
+        ty = near.e.y;
+        decision = 'attack_enemy';
+        targetInfo = `${near.e.name || near.e.variant} (safe)`;
+      } else if(closestObjective && !near.e){
+        tx = closestObjective.x;
+        ty = closestObjective.y;
+        decision = 'capture_objective';
+        targetInfo = closestObjective.name || closestObjective.id;
+      } else {
+        // Stay in position
+        tx = unit._cachedClusterX;
+        ty = unit._cachedClusterY;
+        decision = 'support_allies';
+        targetInfo = 'Maintaining position';
+      }
+    } else {
+      // No allies - move to objective cautiously
+      if(closestObjective){
+        tx = closestObjective.x;
+        ty = closestObjective.y;
+        decision = 'capture_objective';
+        targetInfo = closestObjective.name || closestObjective.id;
+      }
+    }
+  }
+  
+  return {tx, ty, decision, targetInfo};
+}
+
 function spawnFriendlyAt(state, site, forceVariant=null){
+  // Safety check: Ensure site has valid coordinates
+  if(!site || site.x === undefined || site.y === undefined){
+    console.error('[SPAWN ERROR] Cannot spawn friendly - invalid site:', site);
+    return null;
+  }
+  
   const VARS = ['warrior','mage','knight','warden'];
   const v = forceVariant || VARS[randi(0, VARS.length-1)];
   const nameOptions = { warrior: 'Warrior', mage: 'Mage', knight: 'Knight', warden: 'Warden' };
@@ -2700,6 +3177,13 @@ function updateFriendlies(state, dt){
         }
         
         if(respawnSite){
+          // Safety check: Ensure respawn site has valid coordinates
+          if(respawnSite.x === undefined || respawnSite.y === undefined){
+            console.error('[RESPAWN ERROR] Respawn site has invalid coordinates:', respawnSite);
+            state.friendlies.splice(i,1); // Remove unit if can't respawn
+            continue;
+          }
+          
           a.hp=a.maxHp;
           a.dead=false;
           a.siteId = respawnSite.id; // Update siteId to respawn location
@@ -2894,12 +3378,18 @@ function updateFriendlies(state, dt){
           tx = anchorX; ty = anchorY;
           a.speed = distAnchor > roleLeash * 1.2 ? 165 : 135;
         } else {
-          // Role-based formation offsets: Tank slightly ahead, Healer slightly inside
+          // Role-based formation offsets: Tank slightly ahead, Healer slightly inside WITH SPREAD
           let offX=0, offY=0;
           const focus = bb.focusTargetId ? state.enemies.find(e => (e.id||e._id)===bb.focusTargetId && !e.dead && e.hp>0) : null;
           const faceAng = focus ? Math.atan2(focus.y - anchorY, focus.x - anchorX) : 0;
           if(role==='TANK'){ offX += Math.cos(faceAng) * 22; offY += Math.sin(faceAng) * 22; }
-          if(role==='HEALER'){ const toCenterX = anchorX - desiredX, toCenterY = anchorY - desiredY; const len=Math.hypot(toCenterX,toCenterY)||1; offX += (toCenterX/len)*16; offY += (toCenterY/len)*16; }
+          if(role==='HEALER'){ 
+            const toCenterX = anchorX - desiredX, toCenterY = anchorY - desiredY; 
+            const len=Math.hypot(toCenterX,toCenterY)||1; 
+            // Increased to 20 to prevent mages from stacking
+            offX += (toCenterX/len)*20; 
+            offY += (toCenterY/len)*20; 
+          }
           tx = desiredX + offX; ty = desiredY + offY;
           const distDesired = Math.hypot(a.x - desiredX, a.y - desiredY);
           if(distDesired > 40) a.speed = 120;
@@ -2955,118 +3445,260 @@ function updateFriendlies(state, dt){
       } // close if(!a.garrisonSiteId) - normal group behavior block
     } // close if(isGroupMember)
     else if(a.guard){
-      // COORDINATED GUARD AI - Aggressive flag defense with ball group tactics
+      // ═══════════════════════════════════════════════════════════════════════════════
+      // STABLE GUARD BALL GROUP AI - Flag Defense with Formation Slots
+      // ═══════════════════════════════════════════════════════════════════════════════
+      
       const guardSite = a.homeSiteId ? state.sites.find(s => s.id === a.homeSiteId) : null;
-      const spawnX = (a._spawnX!==undefined)?a._spawnX:a.x;
-      const spawnY = (a._spawnY!==undefined)?a._spawnY:a.y;
-      const distFromSpawn = Math.hypot(a.x - spawnX, a.y - spawnY);
+      const spawnX = (a._spawnX !== undefined) ? a._spawnX : a.x;
+      const spawnY = (a._spawnY !== undefined) ? a._spawnY : a.y;
+      const now = state.campaign?.time || 0;
       
-      // Guard ranges for aggressive defense
-      const FLAG_RADIUS = guardSite ? guardSite.r : 50; // Flag capture radius
-      const INNER_DEFENSE = FLAG_RADIUS + 80; // Priority zone around flag
-      const AGGRO_RANGE = 220; // Extended aggro range - very aggressive
-      const LEASH_RADIUS = 280; // Don't chase beyond this
+      // ─────────────────────────────────────────────────────────────────────────────
+      // LOCKED DEFENSE GEOMETRY
+      // ─────────────────────────────────────────────────────────────────────────────
+      const FLAG_RADIUS = guardSite ? guardSite.r : 50;
+      const DEFENSE_ENTER = FLAG_RADIUS + 100;  // 150 total
+      const DEFENSE_EXIT = DEFENSE_ENTER + 30;  // 180 (hysteresis band)
+      const AGGRO_RANGE = 220;
+      const LEASH_RETREAT = 260;
+      const LEASH_HARD_STOP = 280;
       
-      // Find all allies (other guards at same site) for coordination
-      const allies = state.friendlies.filter(f => 
-        f.guard && f.homeSiteId === a.homeSiteId && f !== a && f.respawnT <= 0
-      );
+      // ─────────────────────────────────────────────────────────────────────────────
+      // COMMIT TIMERS (Prevent Thrashing)
+      // ─────────────────────────────────────────────────────────────────────────────
+      const TARGET_COMMIT = 1.5;
+      const MOVEMENT_COMMIT = 1.0;
+      const FORMATION_UPDATE = 0.75;
+      const MACRO_TICK = 0.75;
       
-      // PRIORITY TARGET SELECTION
-      // 1st: Enemies inside flag radius (contesting)
-      // 2nd: Enemies in inner defense zone
-      // 3rd: Any enemy in aggro range
-      // 4th: Enemies attacking guards
-      let priorityTarget = null, targetPriority = 0, targetDist = Infinity;
+      // Initialize guard state
+      if(!a._guardState) a._guardState = 'IDLE_DEFENSE';
+      if(!a._lastMacroTick) a._lastMacroTick = 0;
+      if(!a._lastFormationUpdate) a._lastFormationUpdate = 0;
+      if(!a._targetCommitUntil) a._targetCommitUntil = 0;
+      if(!a._movementCommitUntil) a._movementCommitUntil = 0;
+      if(!a._defenseActiveSince) a._defenseActiveSince = 0;
+      if(!a._preFightBuffsTriggered) a._preFightBuffsTriggered = false;
       
-      for(const e of state.enemies){
-        if(e.dead || e.hp <= 0) continue;
-        const distToEnemy = Math.hypot(e.x - a.x, e.y - a.y);
-        const distEnemyFromFlag = guardSite ? Math.hypot(e.x - guardSite.x, e.y - guardSite.y) : Infinity;
-        const distEnemyFromSpawn = Math.hypot(e.x - spawnX, e.y - spawnY);
+      // ─────────────────────────────────────────────────────────────────────────────
+      // FORMATION SLOT ASSIGNMENT (Stable, Anchor-Based)
+      // ─────────────────────────────────────────────────────────────────────────────
+      if(!a._formationSlot || now - a._lastFormationUpdate >= FORMATION_UPDATE){
+        // Assign slots based on guard index and role
+        const allGuards = state.friendlies.filter(f => 
+          f.guard && f.homeSiteId === a.homeSiteId && f.respawnT <= 0
+        );
+        const dpsGuards = allGuards.filter(g => g.guardRole !== 'HEALER');
+        const healerGuards = allGuards.filter(g => g.guardRole === 'HEALER');
         
-        // Skip if enemy is way beyond leash
-        if(distEnemyFromSpawn > LEASH_RADIUS) continue;
-        
-        let priority = 0;
-        // Priority 1: Inside flag radius (HIGHEST - defending capture)
-        if(distEnemyFromFlag <= FLAG_RADIUS) priority = 100;
-        // Priority 2: In inner defense zone
-        else if(distEnemyFromFlag <= INNER_DEFENSE) priority = 80;
-        // Priority 3: In aggro range
-        else if(distToEnemy <= AGGRO_RANGE) priority = 60;
-        // Priority 4: Attacking this guard or allies
-        if(e.attacked && (e._hostTarget === a || allies.some(ally => e._hostTarget === ally))){
-          priority += 50; // Boost priority significantly
+        // Assign formation slots (relative to flag spawn)
+        if(a.guardRole === 'HEALER'){
+          const healerIndex = healerGuards.indexOf(a);
+          if(healerIndex === 0) a._formationSlot = { offsetX: -60, offsetY: -80 }; // Rear-left
+          else if(healerIndex === 1) a._formationSlot = { offsetX: 60, offsetY: -80 }; // Rear-right
+          else a._formationSlot = { offsetX: 0, offsetY: -80 }; // Rear-center fallback
+        } else {
+          const dpsIndex = dpsGuards.indexOf(a);
+          if(dpsIndex === 0) a._formationSlot = { offsetX: 0, offsetY: 40 };    // Front-center (LEADER)
+          else if(dpsIndex === 1) a._formationSlot = { offsetX: -50, offsetY: 20 }; // Front-left
+          else if(dpsIndex === 2) a._formationSlot = { offsetX: 50, offsetY: 20 };  // Front-right
+          else a._formationSlot = { offsetX: 0, offsetY: 0 }; // Center fallback
         }
         
-        // Select highest priority, or closest if tied
-        if(priority > targetPriority || (priority === targetPriority && distToEnemy < targetDist)){
-          targetPriority = priority;
-          targetDist = distToEnemy;
-          priorityTarget = e;
+        a._lastFormationUpdate = now;
+      }
+      
+      // Calculate stable slot position (relative to flag spawn anchor)
+      const slotX = spawnX + a._formationSlot.offsetX;
+      const slotY = spawnY + a._formationSlot.offsetY;
+      const distFromSlot = Math.hypot(a.x - slotX, a.y - slotY);
+      const distFromSpawn = Math.hypot(a.x - spawnX, a.y - spawnY);
+      
+      // ─────────────────────────────────────────────────────────────────────────────
+      // TARGET SELECTION WITH COMMIT TIMER
+      // ─────────────────────────────────────────────────────────────────────────────
+      let priorityTarget = null, targetPriority = 0, targetDist = Infinity;
+      
+      // Check if we should commit to existing target
+      if(a._committedTarget && now < a._targetCommitUntil){
+        const committed = state.enemies.find(e => 
+          (e.id || e._id) === a._committedTarget && !e.dead && e.hp > 0
+        );
+        if(committed){
+          const distToCommitted = Math.hypot(committed.x - a.x, committed.y - a.y);
+          const distCommittedFromSpawn = Math.hypot(committed.x - spawnX, committed.y - spawnY);
+          
+          // Only keep commitment if target is still in leash and reasonably close
+          if(distCommittedFromSpawn <= LEASH_HARD_STOP && distToCommitted <= AGGRO_RANGE + 60){
+            priorityTarget = committed;
+            targetDist = distToCommitted;
+            targetPriority = 100; // Override scoring, we're committed
+          }
         }
       }
       
-      if(priorityTarget){
-        // AGGRESSIVE ENGAGEMENT
+      // If no committed target or commitment expired, find new target
+      if(!priorityTarget && now - a._lastMacroTick >= MACRO_TICK){
+        a._lastMacroTick = now;
+        
+        for(const e of state.enemies){
+          if(e.dead || e.hp <= 0) continue;
+          const distToEnemy = Math.hypot(e.x - a.x, e.y - a.y);
+          const distEnemyFromFlag = guardSite ? Math.hypot(e.x - guardSite.x, e.y - guardSite.y) : Infinity;
+          const distEnemyFromSpawn = Math.hypot(e.x - spawnX, e.y - spawnY);
+          
+          // Skip if enemy beyond leash
+          if(distEnemyFromSpawn > LEASH_HARD_STOP) continue;
+          
+          let priority = 0;
+          // Zone-based priority scoring
+          if(distEnemyFromFlag <= FLAG_RADIUS) priority = 100;           // Sacred ground
+          else if(distEnemyFromFlag <= DEFENSE_ENTER) priority = 80;    // Defense zone
+          else if(distToEnemy <= AGGRO_RANGE) priority = 60;             // Aggro range
+          
+          // Bonus for attacking guards
+          if(e.attacked && e._hostTarget?.guard && e._hostTarget?.homeSiteId === a.homeSiteId){
+            priority += 50;
+          }
+          
+          // Select highest priority, closest if tied
+          if(priority > targetPriority || (priority === targetPriority && distToEnemy < targetDist)){
+            targetPriority = priority;
+            targetDist = distToEnemy;
+            priorityTarget = e;
+          }
+        }
+        
+        // Commit to new target
+        if(priorityTarget){
+          a._committedTarget = priorityTarget.id || priorityTarget._id;
+          a._targetCommitUntil = now + TARGET_COMMIT;
+        }
+      }
+      
+      // ─────────────────────────────────────────────────────────────────────────────
+      // GUARD STATE MACHINE (3 States Only)
+      // ─────────────────────────────────────────────────────────────────────────────
+      const hasDefenseThreat = priorityTarget && (
+        targetPriority >= 80 || // Inside defense zone or flag radius
+        (targetDist <= AGGRO_RANGE && targetPriority >= 60) // Changed from DEFENSE_ENTER to AGGRO_RANGE (220)
+      );
+      
+      const shouldReturnToPost = distFromSpawn > LEASH_RETREAT || (
+        a._guardState === 'RETURN_TO_POST' && distFromSlot > 25
+      );
+      
+      // STATE TRANSITIONS
+      if(a._guardState === 'IDLE_DEFENSE'){
+        if(hasDefenseThreat){
+          a._guardState = 'ACTIVE_DEFENSE';
+          a._defenseActiveSince = now;
+          a._preFightBuffsTriggered = false; // Reset buff trigger
+        } else if(shouldReturnToPost){
+          a._guardState = 'RETURN_TO_POST';
+        }
+      }
+      else if(a._guardState === 'ACTIVE_DEFENSE'){
+        // Exit to idle only if no threat for 2+ seconds (sticky defense)
+        const noThreatDuration = hasDefenseThreat ? 0 : (now - a._defenseActiveSince);
+        if(noThreatDuration >= 2.0 && !hasDefenseThreat){
+          a._guardState = 'IDLE_DEFENSE';
+        } else if(shouldReturnToPost){
+          a._guardState = 'RETURN_TO_POST';
+        }
+      }
+      else if(a._guardState === 'RETURN_TO_POST'){
+        if(hasDefenseThreat && distFromSpawn <= LEASH_RETREAT){
+          a._guardState = 'ACTIVE_DEFENSE';
+          a._defenseActiveSince = now;
+        } else if(distFromSlot <= 25 && !hasDefenseThreat){
+          a._guardState = 'IDLE_DEFENSE';
+        }
+      }
+      
+      // ─────────────────────────────────────────────────────────────────────────────
+      // STATE EXECUTION
+      // ─────────────────────────────────────────────────────────────────────────────
+      
+      if(a._guardState === 'ACTIVE_DEFENSE' && priorityTarget){
+        // ═══ ACTIVE DEFENSE STATE ═══
         a.attacked = true;
         const isHealer = (a.guardRole === 'HEALER');
         
+        // PRE-FIGHT BUFFS (Trigger at aggro range, once per engagement)
+        if(!a._preFightBuffsTriggered && targetDist <= AGGRO_RANGE){
+          // Mark as triggered for this engagement
+          a._preFightBuffsTriggered = true;
+          
+          // Queue pre-fight shield abilities (healers trigger ward_barrier + radiant_aura)
+          if(isHealer && a.npcAbilities && a.npcCd){
+            const wardIdx = a.npcAbilities.indexOf('ward_barrier');
+            const auraIdx = a.npcAbilities.indexOf('radiant_aura');
+            if(wardIdx >= 0 && a.npcCd[wardIdx] === 0) a.npcCd[wardIdx] = 0.1; // Trigger ASAP
+            if(auraIdx >= 0 && a.npcCd[auraIdx] === 0) a.npcCd[auraIdx] = 0.1;
+          }
+        }
+        
+        // ROLE-SPECIFIC COMBAT POSITIONING
         if(isHealer){
-          // Healers: Stay back but support allies
-          const optimalDist = 100; // Stay at range
-          if(targetDist > optimalDist + 20){
-            // Move closer but maintain range
-            a.speed = 110;
-            tx = priorityTarget.x;
-            ty = priorityTarget.y;
-          } else if(targetDist < optimalDist - 20){
-            // Kite back
-            a.speed = 110;
+          // Healers: Maintain safe distance behind DPS line
+          const HEALER_MIN_DIST = 110;
+          const HEALER_MAX_DIST = 190;
+          const HEALER_OPTIMAL = 140;
+          
+          if(targetDist < HEALER_MIN_DIST){
+            // Too close, kite back toward slot
+            a.speed = 100;
             const angle = Math.atan2(a.y - priorityTarget.y, a.x - priorityTarget.x);
             tx = a.x + Math.cos(angle) * 40;
             ty = a.y + Math.sin(angle) * 40;
+          } else if(targetDist > HEALER_MAX_DIST){
+            // Too far, move toward target but stop at optimal
+            a.speed = 90;
+            const angle = Math.atan2(priorityTarget.y - a.y, priorityTarget.x - a.x);
+            tx = a.x + Math.cos(angle) * 30;
+            ty = a.y + Math.sin(angle) * 30;
           } else {
-            // At good range, hold position
-            a.speed = 0;
-            tx = a.x;
-            ty = a.y;
+            // Good range, minimal adjustment toward slot
+            a.speed = 40;
+            if(distFromSlot > 25){
+              tx = slotX;
+              ty = slotY;
+            } else {
+              tx = a.x;
+              ty = a.y;
+            }
           }
         } else {
-          // DPS: Aggressive chase, coordinate with allies
-          a.speed = 140; // Fast pursuit
-          
-          // Ball group coordination: move toward ally center of mass while chasing
-          if(a.guardFormation && allies.length > 0){
-            let allyX = 0, allyY = 0, allyCount = 0;
-            for(const ally of allies){
-              allyX += ally.x;
-              allyY += ally.y;
-              allyCount++;
-            }
-            if(allyCount > 0){
-              allyX /= allyCount;
-              allyY /= allyCount;
-              // Blend: 70% chase target, 30% stay with group
-              tx = priorityTarget.x * 0.7 + allyX * 0.3;
-              ty = priorityTarget.y * 0.7 + allyY * 0.3;
-            } else {
-              tx = priorityTarget.x;
-              ty = priorityTarget.y;
-            }
-          } else {
-            tx = priorityTarget.x;
-            ty = priorityTarget.y;
-          }
+          // DPS: Aggressive engagement but within leash
+          a.speed = 130;
+          tx = priorityTarget.x;
+          ty = priorityTarget.y;
         }
       }
-      else {
-        // NO THREATS or IDLE - Always stay at guard post
+      else if(a._guardState === 'RETURN_TO_POST'){
+        // ═══ RETURN TO POST STATE ═══
         a.attacked = false;
-        a.speed = 0;
-        tx = a.x = spawnX;
-        ty = a.y = spawnY;
+        a.speed = 110;
+        tx = slotX;
+        ty = slotY;
+      }
+      else {
+        // ═══ IDLE DEFENSE STATE ═══
+        a.attacked = false;
+        
+        // Return to formation slot with deadband (ignore small drift)
+        if(distFromSlot > 25){
+          a.speed = 80;
+          tx = slotX;
+          ty = slotY;
+        } else {
+          // At slot, minimal movement
+          a.speed = 0;
+          tx = a.x;
+          ty = a.y;
+        }
       }
     } else {
       // non-guard friendlies: check for garrison assignment first
@@ -3135,8 +3767,9 @@ function updateFriendlies(state, dt){
           }
         }
       } else {
-        // Non-garrisoned friendlies: behavior-aware objective handling
+        // Non-garrisoned friendlies: ROLE-BASED TARGETING PRIORITIES
         const behavior = a.behavior || 'neutral';
+        const role = (a.role || 'DPS').toUpperCase();
         const AGGRO_RANGE = behavior === 'aggressive' ? 140 : 80;
         
         // Find ALL capturable flags and sort by distance
@@ -3149,47 +3782,367 @@ function updateFriendlies(state, dt){
         }
         allFlags.sort((a, b) => a.dist - b.dist); // Sort by distance
         
-        // Behavior: engage enemies more readily when aggressive
-        if(near.e && near.d <= AGGRO_RANGE){
-          console.log(`%c[ALLY] ${a.name}: TARGET = Enemy (${near.e.name || 'Unknown'}) at distance ${Math.round(near.d)}`, 'color: red; font-weight: bold;');
-          tx = near.e.x; ty = near.e.y;
-        } else if(nearCreature && nearCreatureD <= AGGRO_RANGE){
-          console.log(`%c[ALLY] ${a.name}: TARGET = Creature at distance ${Math.round(nearCreatureD)}`, 'color: red; font-weight: bold;');
-          tx = nearCreature.x; ty = nearCreature.y;
-        } else if(allFlags.length > 0){
-          // HARDCODED PRIORITY #1: Non-grouped allies ALWAYS go to closest uncapped/enemy flag
-          // Build list of only non-player flags (uncapped or enemy-owned), preserving distance sorting
-          let objectiveFlags = [];
-          for(const flagData of allFlags){
-            const s = flagData.site;
-            // Only include uncapped or enemy-owned flags - NEVER player-owned
-            if(!s.owner || s.owner !== 'player'){
-              objectiveFlags.push(flagData); // Keep the {site, dist} object for sorting
+        // Find closest objective flag (enemy/neutral owned)
+        let objectiveFlags = [];
+        for(const flagData of allFlags){
+          const s = flagData.site;
+          if(!s.owner || s.owner !== 'player'){
+            objectiveFlags.push(flagData);
+          }
+        }
+        const closestObjective = objectiveFlags.length > 0 ? objectiveFlags[0].site : null;
+        
+        // Check for walls to attack at closest objective
+        let wallTarget = null;
+        if(closestObjective && closestObjective.wall && closestObjective.wall.sides){
+          const intactWalls = closestObjective.wall.sides.filter(s => s && !s.destroyed);
+          if(intactWalls.length > 0){
+            // Find nearest wall side
+            let bestIdx = -1, bestD = Infinity;
+            for(let si = 0; si < 4; si++){
+              const side = closestObjective.wall.sides[si];
+              if(!side || side.destroyed) continue;
+              const midAng = (si + 0.5) * (Math.PI/2);
+              const px = closestObjective.x + Math.cos(midAng) * closestObjective.wall.r * 0.92;
+              const py = closestObjective.y + Math.sin(midAng) * closestObjective.wall.r * 0.92;
+              const d = Math.hypot(px - a.x, py - a.y);
+              if(d < bestD){ bestD = d; bestIdx = si; }
+            }
+            if(bestIdx !== -1){
+              const midAng = (bestIdx + 0.5) * (Math.PI/2);
+              wallTarget = {
+                x: closestObjective.x + Math.cos(midAng) * closestObjective.wall.r * 0.92,
+                y: closestObjective.y + Math.sin(midAng) * closestObjective.wall.r * 0.92,
+                site: closestObjective,
+                side: bestIdx
+              };
+            }
+          }
+        }
+        
+        // ROLE-BASED PRIORITY SYSTEM
+        let decision = 'idle';
+        let targetInfo = '';
+        
+        // Clear garrison idle targets (tx=a.x, ty=a.y from garrison AI)
+        // Only reset if targeting current position (idle state carryover)
+        if(tx === a.x && ty === a.y){
+          tx = null;
+          ty = null;
+        }
+        
+        if(role === 'TANK'){
+          // TANK PRIORITY: Move to objectives > Attack walls in range > Stay near allies when threatened
+          
+          // Debug: Log tank AI activation (temporary)
+          if(state.debugLog && Math.random() < 0.15){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: 'TANK_AI_START',
+              tank: a.name || a.variant,
+              position: {x: Math.round(a.x), y: Math.round(a.y)},
+              closestObjective: closestObjective ? (closestObjective.name || closestObjective.id) : 'NULL',
+              closestObjectivePos: closestObjective ? {x: Math.round(closestObjective.x), y: Math.round(closestObjective.y)} : null,
+              wallTarget: wallTarget ? 'YES' : 'NO',
+              initialDecision: decision
+            });
+          }
+          
+          // EXCEPTION: Attack walls when in range (highest priority)
+          if(wallTarget){
+            const distToWall = Math.hypot(a.x - wallTarget.x, a.y - wallTarget.y);
+            if(distToWall <= 150){
+              tx = wallTarget.x;
+              ty = wallTarget.y;
+              decision = 'attack_wall';
+              targetInfo = `${wallTarget.site.name || wallTarget.site.id} wall`;
             }
           }
           
-          // Target the closest objective flag if any exist (already sorted by distance)
-          if(objectiveFlags.length > 0){
-            const targetFlag = objectiveFlags[0].site;
-            const ownerText = targetFlag.owner ? `Enemy (${targetFlag.owner})` : 'Uncapped';
-            console.log(`%c[ALLY] ${a.name}: TARGET = Flag ${targetFlag.name} (${ownerText}) at distance ${Math.round(objectiveFlags[0].dist)}`, 'color: red; font-weight: bold;');
-            // Move to flag: destroy outposts first, then capture
-            tx = targetFlag.x; ty = targetFlag.y;
-          } else {
-            // All flags are player-owned - return to player base to idle
-            const playerBase = state.sites.find(s => s.id === 'player_base');
-            if(playerBase){
-              console.log(`%c[ALLY] ${a.name}: TARGET = Player Base (all flags captured)`, 'color: red; font-weight: bold;');
-              tx = playerBase.x; ty = playerBase.y;
+          // Move to closest objective when not attacking walls
+          if(decision === 'idle' && closestObjective){
+            tx = closestObjective.x;
+            ty = closestObjective.y;
+            decision = 'capture_objective';
+            targetInfo = closestObjective.name || closestObjective.id;
+            
+            // Debug: Log tank movement decision
+            if(state.debugLog && Math.random() < 0.05){
+              state.debugLog.push({
+                time: (state.campaign?.time || 0).toFixed(2),
+                type: 'TANK_DECISION',
+                tank: a.name || a.variant,
+                decision: decision,
+                target: targetInfo,
+                hasPosition: a.x !== undefined && a.x !== null
+              });
+            }
+            
+            // Debug: Log objective targeting
+            if(state.debugLog && Math.random() < 0.1){
+              state.debugLog.push({
+                time: (state.campaign?.time || 0).toFixed(2),
+                type: 'TANK_OBJECTIVE_SET',
+                tank: a.name || a.variant,
+                objective: closestObjective.name || closestObjective.id,
+                objectivePos: {x: Math.round(closestObjective.x), y: Math.round(closestObjective.y)},
+                tankPos: {x: Math.round(a.x), y: Math.round(a.y)},
+                distance: Math.round(Math.hypot(closestObjective.x - a.x, closestObjective.y - a.y))
+              });
             }
           }
-        } else {
-          // No flags found, return to player base
-          const playerBase = state.sites.find(s => s.id === 'player_base');
-          if(playerBase){
-            console.log(`%c[ALLY] ${a.name}: TARGET = Player Base (no flags found)`, 'color: red; font-weight: bold;');
-            tx = playerBase.x; ty = playerBase.y;
+          
+          // Fallback: Attack nearby enemies
+          if(decision === 'idle' && near.e && near.d <= AGGRO_RANGE * 0.8){
+            tx = near.e.x;
+            ty = near.e.y;
+            decision = 'attack_enemy';
+            targetInfo = `${near.e.name || near.e.variant} (defensive)`;
           }
+        }
+        else if(role === 'DPS'){
+          // DPS PRIORITY: Enemies > Creatures > Objectives
+          // HYSTERESIS: Sticky zones prevent rapid decision flipping
+          
+          const currentlyAttacking = (a._lastDecision === 'attack_enemy');
+          const aggroThreshold = currentlyAttacking ? AGGRO_RANGE * 1.15 : AGGRO_RANGE * 0.85; // 253 disengage / 187 engage
+          
+          if(near.e && near.d <= aggroThreshold){
+            tx = near.e.x;
+            ty = near.e.y;
+            decision = 'attack_enemy';
+            targetInfo = near.e.name || near.e.variant || 'Unknown';
+          } else if(nearCreature && nearCreatureD <= AGGRO_RANGE){
+            tx = nearCreature.x;
+            ty = nearCreature.y;
+            decision = 'attack_creature';
+            targetInfo = 'Creature';
+          } else if(wallTarget){
+            tx = wallTarget.x;
+            ty = wallTarget.y;
+            decision = 'attack_objective';
+            targetInfo = wallTarget.site.name || wallTarget.site.id;
+          } else if(closestObjective){
+            tx = closestObjective.x;
+            ty = closestObjective.y;
+            decision = 'capture_objective';
+            targetInfo = closestObjective.name || closestObjective.id;
+          }
+        }
+        else if(role === 'HEALER'){
+          // HEALER PRIORITY: Stay near allies (cached position to reduce recalculation)
+          
+          // Cache cluster center calculation (only recalc every 1 second)
+          const now = state.campaign?.time || 0;
+          if(!a._clusterCacheTime || now - a._clusterCacheTime > 1.0){
+            let allyX = 0, allyY = 0, allyCount = 0;
+            for(const f of state.friendlies){
+              if(f === a || f.respawnT > 0) continue;
+              allyX += f.x;
+              allyY += f.y;
+              allyCount++;
+            }
+            if(state.player && !state.player.dead){
+              allyX += state.player.x;
+              allyY += state.player.y;
+              allyCount++;
+            }
+            
+            if(allyCount > 0){
+              allyX /= allyCount;
+              allyY /= allyCount;
+              
+              // Add jitter to prevent stacking
+              const healerID = a.id || a._id || 0;
+              const jitterAngle = (healerID * 2.4) % (Math.PI * 2);
+              const jitterDist = 25 + (healerID % 20);
+              a._cachedClusterX = allyX + Math.cos(jitterAngle) * jitterDist;
+              a._cachedClusterY = allyY + Math.sin(jitterAngle) * jitterDist;
+              a._cachedAllyCount = allyCount;
+            } else {
+              a._cachedClusterX = null;
+              a._cachedAllyCount = 0;
+            }
+            a._clusterCacheTime = now;
+          }
+          
+          // Use cached cluster position
+          if(a._cachedClusterX !== null && a._cachedClusterX !== undefined){
+            const distToCluster = Math.hypot(a.x - a._cachedClusterX, a.y - a._cachedClusterY);
+            
+            // HYSTERESIS: Different thresholds for moving vs staying
+            const isCurrentlyMoving = (a._lastDecision === 'support_allies');
+            const moveThreshold = isCurrentlyMoving ? 120 : 160; // 120 to stop, 160 to start
+            
+            if(distToCluster > moveThreshold){
+              tx = a._cachedClusterX;
+              ty = a._cachedClusterY;
+              decision = 'support_allies';
+              targetInfo = `Allied cluster (${a._cachedAllyCount} units)`;
+            } else if(near.e && near.d <= AGGRO_RANGE * 0.6 && distToCluster <= 100){
+              // Only attack when very safe and very close to allies
+              tx = near.e.x;
+              ty = near.e.y;
+              decision = 'attack_enemy';
+              targetInfo = `${near.e.name || near.e.variant} (safe)`;
+            } else if(closestObjective && !near.e){
+              tx = closestObjective.x;
+              ty = closestObjective.y;
+              decision = 'capture_objective';
+              targetInfo = closestObjective.name || closestObjective.id;
+            } else {
+              // Stay in position
+              tx = a._cachedClusterX;
+              ty = a._cachedClusterY;
+              decision = 'support_allies';
+              targetInfo = 'Maintaining position';
+            }
+          } else {
+            // No allies - move to objective cautiously
+            if(closestObjective){
+              tx = closestObjective.x;
+              ty = closestObjective.y;
+              decision = 'capture_objective';
+              targetInfo = closestObjective.name || closestObjective.id;
+            }
+          }
+        }
+        else {
+          // DEFAULT (no role): Standard behavior
+          if(near.e && near.d <= AGGRO_RANGE){
+            tx = near.e.x;
+            ty = near.e.y;
+            decision = 'attack_enemy';
+            targetInfo = near.e.name || near.e.variant || 'Unknown';
+          } else if(nearCreature && nearCreatureD <= AGGRO_RANGE){
+            tx = nearCreature.x;
+            ty = nearCreature.y;
+            decision = 'attack_creature';
+            targetInfo = 'Creature';
+          } else if(closestObjective){
+            tx = closestObjective.x;
+            ty = closestObjective.y;
+            decision = 'capture_objective';
+            targetInfo = closestObjective.name || closestObjective.id;
+          }
+        }
+        
+        // Fallback: Follow allies or patrol base (NEVER stand idle)
+        if(!tx && !ty){
+          // SAFEGUARD: Find nearest ally to follow (healers should stick with group)
+          let nearestAlly = null;
+          let nearestAllyDist = Infinity;
+          
+          for(const f of state.friendlies){
+            if(f === a || f.respawnT > 0) continue;
+            const dist = Math.hypot(f.x - a.x, f.y - a.y);
+            if(dist < nearestAllyDist && dist > 50){ // Must be >50 units away to follow
+              nearestAllyDist = dist;
+              nearestAlly = f;
+            }
+          }
+          
+          // Check player too
+          if(state.player && !state.player.dead){
+            const distToPlayer = Math.hypot(state.player.x - a.x, state.player.y - a.y);
+            if(distToPlayer < nearestAllyDist && distToPlayer > 50){
+              nearestAllyDist = distToPlayer;
+              nearestAlly = state.player;
+            }
+          }
+          
+          if(nearestAlly){
+            // Follow nearest ally
+            tx = nearestAlly.x;
+            ty = nearestAlly.y;
+            decision = 'follow_ally';
+            targetInfo = nearestAlly.name || nearestAlly.variant || 'Ally';
+          } else {
+            // No allies to follow - patrol around base instead of standing still
+            const playerBase = state.sites.find(s => s.id === 'player_base');
+            if(playerBase){
+              const distToBase = Math.hypot(playerBase.x - a.x, playerBase.y - a.y);
+              
+              // If already at base (< 80 units), patrol around it
+              if(distToBase < 80){
+                const patrolAngle = (state.campaign.time * 0.3 + (a.id || 0)) % (Math.PI * 2);
+                const patrolRadius = 60 + ((a.id || 0) % 40);
+                tx = playerBase.x + Math.cos(patrolAngle) * patrolRadius;
+                ty = playerBase.y + Math.sin(patrolAngle) * patrolRadius;
+                decision = 'patrol_base';
+                targetInfo = 'Patrolling base';
+              } else {
+                // Return to base if far away
+                tx = playerBase.x;
+                ty = playerBase.y;
+                decision = 'return_base';
+                targetInfo = 'Player Base';
+              }
+            }
+          }
+        }
+        
+        // SAFEGUARD: Prevent targeting current position (infinite loop fix)
+        // Only apply wander behavior if no meaningful decision was made
+        if(tx && ty && (!decision || decision === 'idle' || decision === 'wander')){
+          const distToTarget = Math.hypot(tx - a.x, ty - a.y);
+          
+          // Debug safeguard trigger
+          if(state.debugLog && Math.random() < 0.15 && role === 'TANK'){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: 'TANK_SAFEGUARD_CHECK',
+              tank: a.name || a.variant,
+              decision: decision,
+              distToTarget: Math.round(distToTarget),
+              willTrigger: distToTarget < 20,
+              targetPos: {x: Math.round(tx), y: Math.round(ty)},
+              tankPos: {x: Math.round(a.x), y: Math.round(a.y)}
+            });
+          }
+          
+          if(distToTarget < 20){
+            // Too close to target - pick a new patrol destination
+            const randomAngle = Math.random() * Math.PI * 2;
+            const randomDist = 80 + Math.random() * 60;
+            tx = a.x + Math.cos(randomAngle) * randomDist;
+            ty = a.y + Math.sin(randomAngle) * randomDist;
+            decision = 'wander';
+            targetInfo = 'Wandering';
+          }
+        }
+        
+        // Track decision changes for AI behavior analysis
+        logAIBehavior(state, a, 'decision_change', {
+          newDecision: decision,
+          target: targetInfo,
+          targetPos: tx && ty ? { x: Math.round(tx), y: Math.round(ty) } : null,
+          distance: tx && ty ? Math.round(Math.hypot(tx - a.x, ty - a.y)) : 0
+        });
+        
+        // Check for stuck/looping behavior (position tracking)
+        logAIBehavior(state, a, 'position_check', {
+          isMoving: (tx !== a.x || ty !== a.y),
+          decision: decision
+        });
+        
+        // Store last decision on unit for hysteresis checks (used by distance thresholds)
+        a._lastDecision = decision;
+        
+        // Debug logging for role-based decisions (5% sample rate)
+        if(state.debugLog && Math.random() < 0.05){
+          state.debugLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'FRIENDLY_ROLE_TARGET',
+            friendly: a.name || a.variant,
+            role: role,
+            decision: decision,
+            target: targetInfo,
+            distance: tx && ty ? Math.round(Math.hypot(tx - a.x, ty - a.y)) : 0,
+            hp: Math.round(a.hp || 0),
+            mana: Math.round(a.mana || 0),
+            speed: a.speed
+          });
         }
         
         // set speed for non-guards
@@ -3257,12 +4210,48 @@ function updateFriendlies(state, dt){
       if(hasStaff && d>hitDist && d<=320 && a.hitCd<=0){
         a.hitCd = 0.70;
         const ang = Math.atan2(contactTarget.y - a.y, contactTarget.x - a.x);
-        spawnProjectile(state, a.x, a.y, ang, 420, 5, Math.max(8, a.dmg*0.95), 0, true);
+        const proj = spawnProjectile(state, a.x, a.y, ang, 420, 5, Math.max(8, a.dmg*0.95), 0, true);
+        
+        // Tag projectile with shooter for damage tracking
+        if(proj) proj.shooter = a;
+        
+        // Log friendly ranged attack (3% sample rate)
+        if(state.debugLog && Math.random() < 0.03){
+          state.debugLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'FRIENDLY_RANGED_ATTACK',
+            attacker: a.name || a.variant,
+            attackerRole: a.role || 'unknown',
+            target: contactTarget.name || contactTarget.variant || 'creature',
+            targetType: state.enemies.includes(contactTarget) ? 'enemy' : 'creature',
+            damage: Math.max(8, a.dmg*0.95),
+            distance: d.toFixed(1)
+          });
+        }
       }
       else if(d<=hitDist && a.hitCd<=0){
         a.hitCd=0.55;
+        
+        // Log friendly contact attack (5% sample rate)
+        if(state.debugLog && Math.random() < 0.05){
+          state.debugLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'FRIENDLY_CONTACT_ATTACK',
+            attacker: a.name || a.variant,
+            attackerRole: a.role || 'unknown',
+            target: contactTarget.name || contactTarget.variant || 'creature',
+            targetType: state.enemies.includes(contactTarget) ? 'enemy' : 'creature',
+            damage: a.dmg,
+            distance: d.toFixed(1)
+          });
+        }
+        
         const stLite = { critChance: 0, critMult: 1 };
         const res = applyDamageToEnemy(contactTarget, a.dmg, stLite, state);
+        
+        // Track damage dealt by friendly
+        a._damageDealt = (a._damageDealt || 0) + (res?.dealt || a.dmg);
+        
         if(contactTarget.hp<=0){
           const idx = state.enemies.indexOf(contactTarget);
           if(idx>=0) killEnemy(state, idx, false);
@@ -3277,6 +4266,10 @@ function updateFriendlies(state, dt){
       if(d <= hitDist && a.hitCd<=0){
         a.hitCd = 0.55;
         const dead = applyDamageToCreature(c, a.dmg, state);
+        
+        // Track friendly damage to creature
+        a._damageDealt = (a._damageDealt || 0) + a.dmg;
+        
         c.target = a;
         if(dead) killCreature(state, ci);
       }
@@ -3372,10 +4365,19 @@ function findNearestPlayerFlag(state, x, y){
 }
 
 // Check if a team should attack another team based on emperor status
+// EMPEROR ALLIANCE SYSTEM:
+// - When NO emperor: teams attack each other normally (teamA vs teamB vs teamC)
+// - When emperor exists: ALL non-emperor teams become ALLIES and only attack the emperor team
+// - Emperor team attacks all other teams (now all allied against them)
 function shouldAttackTeam(attackerTeam, targetTeam, state){
-  if(!state.emperorTeam) return attackerTeam !== targetTeam; // Normal: only attack different teams
-  if(state.emperorTeam === attackerTeam) return targetTeam !== attackerTeam; // Emperor team fights only non-emperor teams
-  return targetTeam === state.emperorTeam; // Non-emperor teams only attack emperor team
+  // No emperor: normal team vs team combat
+  if(!state.emperorTeam) return attackerTeam !== targetTeam;
+  
+  // Emperor attacks anyone who isn't emperor
+  if(state.emperorTeam === attackerTeam) return targetTeam !== attackerTeam;
+  
+  // Non-emperor teams ONLY attack the emperor team (they're allied with each other)
+  return targetTeam === state.emperorTeam;
 }
 
 function updateEnemies(state, dt){
@@ -3517,50 +4519,39 @@ function updateEnemies(state, dt){
       }
       
       if(priorityTarget){
-        // AGGRESSIVE COORDINATED ENGAGEMENT
+        // SIMPLIFIED COORDINATED ENGAGEMENT (removed complex ball group formula)
         e.attacked = true;
         const isHealer = (e.guardRole === 'HEALER');
         
         if(isHealer){
-          // Healers stay mid-range and position near ball group center
+          // Healers stay at optimal distance with HYSTERESIS
           const optimalDist = 120;
-          e.speed = 100;
+          const currentlyMoving = e.speed > 50;
+          const closeThreshold = currentlyMoving ? 90 : 110;  // 90 to stop backing, 110 to start backing
+          const farThreshold = currentlyMoving ? 140 : 160;   // 140 to stop closing, 160 to start closing
           
-          // Move toward ball group center while maintaining healing range
-          const distToBallCenter = Math.hypot(e.x - ballCenterX, e.y - ballCenterY);
-          if(distToBallCenter > 60){
-            // Too far from group, move toward center
-            tx = ballCenterX;
-            ty = ballCenterY;
-          } else if(targetDist > optimalDist + 30){
-            // Move closer to target while staying near group
-            tx = priorityTarget.x * 0.6 + ballCenterX * 0.4;
-            ty = priorityTarget.y * 0.6 + ballCenterY * 0.4;
-          } else if(targetDist < optimalDist - 30){
-            // Too close, back up toward group center
+          if(targetDist > farThreshold){
+            // Too far, move closer
+            e.speed = 100;
+            tx = priorityTarget.x;
+            ty = priorityTarget.y;
+          } else if(targetDist < closeThreshold){
+            // Too close, back up
+            e.speed = 100;
             const angle = Math.atan2(e.y - priorityTarget.y, e.x - priorityTarget.x);
-            tx = e.x + Math.cos(angle) * 50;
-            ty = e.y + Math.sin(angle) * 50;
+            tx = e.x + Math.cos(angle) * 60;
+            ty = e.y + Math.sin(angle) * 60;
           } else {
-            // Good position, minimal movement
+            // Good distance, minimal movement
             e.speed = 30;
             tx = e.x;
             ty = e.y;
           }
         } else {
-          // DPS guards: aggressive ball group tactics
-          e.speed = 140; // Fast and aggressive
-          
-          if(e.guardFormation && allies.length > 0){
-            // Ball group: move as a coordinated unit
-            // 70% toward target, 30% toward ball center for cohesion
-            tx = priorityTarget.x * 0.75 + ballCenterX * 0.25;
-            ty = priorityTarget.y * 0.75 + ballCenterY * 0.25;
-          } else {
-            // Solo guard or no allies - direct engagement
-            tx = priorityTarget.x;
-            ty = priorityTarget.y;
-          }
+          // DPS/Tank guards: SIMPLIFIED - direct chase (removed ball group complexity)
+          e.speed = 140;
+          tx = priorityTarget.x;
+          ty = priorityTarget.y;
         }
       }
       else if(e.attacked || distFromSpawn > 30){
@@ -3589,9 +4580,12 @@ function updateEnemies(state, dt){
         if(slowFactor>0) moveWithAvoidance(e, tx, ty, state, dt, { slowFactor });
       }
       
-      // Guards handled - skip normal enemy AI
-      // Jump to contact attack
-    } else {
+      // Guards handled - skip normal enemy AI pathfinding but continue to combat
+      // (continue removed so guards can execute attack code below)
+    }
+    
+    // NON-GUARD ENEMY AI
+    if(!e.guard) {
       const dp = Math.hypot(state.player.x - e.x, state.player.y - e.y);
       const dh = home ? Math.hypot(home.x - e.x, home.y - e.y) : Infinity;
 
@@ -3601,6 +4595,29 @@ function updateEnemies(state, dt){
       for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x - e.x, f.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = f; hostType='friendly'; } }
       // Only attack other teams if emperor logic allows it
       for(const other of state.enemies){ if(other===e) continue; if(!other.team || !e.team) continue; if(other.team === e.team) continue; if(!shouldAttackTeam(e.team, other.team, state)) continue; const d = Math.hypot(other.x - e.x, other.y - e.y); if(d < nearestHD){ nearestHD = d; nearestHost = other; hostType='enemy'; } }
+
+      // Determine enemy role first
+      const role = (e.role || (e.variant === 'mage' ? 'HEALER' : (e.variant === 'warden' || e.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
+      
+      // Log AI state for debugging (sample rate 0.5%)
+      if(state.debugLog && Math.random() < 0.005){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'ENEMY_AI_STATE',
+          enemy: e.name || e.variant,
+          role: role,
+          hp: Math.round(e.hp),
+          mana: Math.round(e.mana),
+          position: {x: Math.round(e.x), y: Math.round(e.y)},
+          speed: e.speed,
+          hitCd: e.hitCd.toFixed(2),
+          attacked: e.attacked,
+          inWater: e.inWater,
+          nearestHostDist: nearestHD ? Math.round(nearestHD) : null,
+          hasSpawnTarget: !!spawnTarget,
+          team: e.team
+        });
+      }
 
       // Outpost focus: if an enemy-controlled outpost is in range, ignore host aggro until it is destroyed
       const OUTPOST_FOCUS_RANGE = 220;
@@ -3624,7 +4641,61 @@ function updateEnemies(state, dt){
       }
 
       const AGGRO_DIST = ENEMY_AGGRO_DIST;
-      if(outpostFocus){
+      
+      // Store last decision for hysteresis
+      e._lastDecision = e._lastDecision || 'idle';
+      
+      // TANK ROLE PRIORITY: Attack walls even during outpost focus (with hysteresis)
+      if(role === 'TANK' && spawnTarget && spawnTarget.wall && spawnTarget.wall.sides && outpostFocus){
+        const intactWalls = spawnTarget.wall.sides.filter(s => s && !s.destroyed);
+        if(intactWalls.length > 0){
+          // Find nearest wall side
+          let bestIdx = -1, bestD = Infinity;
+          for(let si = 0; si < 4; si++){
+            const side = spawnTarget.wall.sides[si];
+            if(!side || side.destroyed) continue;
+            const midAng = (si + 0.5) * (Math.PI/2);
+            const px = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
+            const py = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
+            const d = Math.hypot(px - e.x, py - e.y);
+            if(d < bestD){ bestD = d; bestIdx = si; }
+          }
+          if(bestIdx !== -1){
+            const midAng = (bestIdx + 0.5) * (Math.PI/2);
+            tx = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
+            ty = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
+            e.attacked = true;
+            e._hostTarget = null;
+            
+            if(state.debugLog && Math.random() < 0.02){
+              state.debugLog.push({
+                time: (state.campaign?.time || 0).toFixed(2),
+                type: 'ENEMY_ROLE_TARGET',
+                enemy: e.name || e.variant,
+                role: role,
+                decision: 'tank_walls_outpost',
+                target: spawnTarget?.name || 'unknown',
+                side: ['North','East','South','West'][bestIdx],
+                wallHP: Math.round(spawnTarget.wall.sides[bestIdx].hp || 0),
+                distance: Math.round(bestD),
+                intactWalls: intactWalls.length,
+                nearbyHostiles: nearestHost ? 1 : 0
+              });
+            }
+          } else {
+            // No walls left, do normal outpost focus
+            tx = outpostTx;
+            ty = outpostTy;
+            e.attacked = true;
+          }
+        } else {
+          // No walls left, do normal outpost focus
+          tx = outpostTx;
+          ty = outpostTy;
+          e.attacked = true;
+        }
+      }
+      else if(outpostFocus){
         tx = outpostTx;
         ty = outpostTy;
         e.attacked = true;
@@ -3640,23 +4711,158 @@ function updateEnemies(state, dt){
             distance: Math.round(Math.hypot(spawnTarget.x - e.x, spawnTarget.y - e.y))
           });
         }
-      } else if(nearestHost && nearestHD <= AGGRO_DIST && !e.inWater){
-        // prioritize attacking the nearest hostile
-        tx = nearestHost.x; ty = nearestHost.y;
-        e.attacked = true;
-        e._hostTarget = nearestHost;
-        // Log enemy targeting decision
-        if(state.debugLog && Math.random() < 0.02){
-          state.debugLog.push({
-            time: (state.campaign?.time || 0).toFixed(2),
-            type: 'ENEMY_AI_TARGET',
-            enemy: e.name || e.variant,
-            decision: 'attack_host',
-            target: nearestHost.name || nearestHost.variant || 'unknown',
-            targetType: hostType,
-            distance: Math.round(nearestHD)
-          });
+      } else if(nearestHost && !e.inWater){
+        // ROLE-BASED TARGETING for enemies with HYSTERESIS
+        const role = (e.role || (e.variant === 'mage' ? 'HEALER' : (e.variant === 'warden' || e.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
+        
+        // HYSTERESIS: Different thresholds for engage vs disengage
+        const currentlyAttacking = (e._lastDecision && e._lastDecision.includes('attack'));
+        const aggroThreshold = currentlyAttacking ? AGGRO_DIST * 1.2 : AGGRO_DIST * 0.85; // 264 disengage / 187 engage
+        
+        if(nearestHD <= aggroThreshold){
+          let finalTarget = nearestHost;
+          let decision = 'attack_host';
+        
+          // TANK: Prioritize walls even during combat
+          if(role === 'TANK' && spawnTarget && spawnTarget.wall && spawnTarget.wall.sides){
+            const intactWalls = spawnTarget.wall.sides.filter(s => s && !s.destroyed);
+          if(intactWalls.length > 0){
+            // Attack walls instead of host
+            let bestIdx = -1, bestD = Infinity;
+            for(let si = 0; si < 4; si++){
+              const side = spawnTarget.wall.sides[si];
+              if(!side || side.destroyed) continue;
+              const midAng = (si + 0.5) * (Math.PI/2);
+              const px = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
+              const py = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
+              const d = Math.hypot(px - e.x, py - e.y);
+              if(d < bestD){ bestD = d; bestIdx = si; }
+            }
+            if(bestIdx !== -1){
+              const midAng = (bestIdx + 0.5) * (Math.PI/2);
+              tx = spawnTarget.x + Math.cos(midAng) * spawnTarget.wall.r * 0.92;
+              ty = spawnTarget.y + Math.sin(midAng) * spawnTarget.wall.r * 0.92;
+              decision = 'tank_walls_combat';
+              e.attacked = true;
+              e._hostTarget = null;
+              
+              if(state.debugLog && Math.random() < 0.02){
+                state.debugLog.push({
+                  time: (state.campaign?.time || 0).toFixed(2),
+                  type: 'ENEMY_ROLE_TARGET',
+                  enemy: e.name || e.variant,
+                  role: role,
+                  decision: decision,
+                  target: spawnTarget?.name || 'unknown',
+                  side: ['North','East','South','West'][bestIdx]
+                });
+              }
+            } else {
+              // No walls, attack host normally
+              tx = nearestHost.x;
+              ty = nearestHost.y;
+              e.attacked = true;
+              e._hostTarget = nearestHost;
+            }
+          } else {
+            tx = nearestHost.x;
+            ty = nearestHost.y;
+            e.attacked = true;
+            e._hostTarget = nearestHost;
+          }
         }
+        // DPS: Focus enemies first, walls only when clear
+        else if(role === 'DPS'){
+          tx = nearestHost.x;
+          ty = nearestHost.y;
+          e.attacked = true;
+          e._hostTarget = nearestHost;
+          decision = 'dps_attack_host';
+          
+          if(state.debugLog && Math.random() < 0.02){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: 'ENEMY_ROLE_TARGET',
+              enemy: e.name || e.variant,
+              role: role,
+              decision: decision,
+              target: nearestHost.name || nearestHost.variant || 'unknown',
+              targetType: hostType,
+              distance: Math.round(nearestHD)
+            });
+          }
+        }
+        // HEALER: Stay at range, support position
+        else if(role === 'HEALER'){
+          // Find allied cluster
+          let allyX = 0, allyY = 0, allyCount = 0;
+          for(const other of state.enemies){
+            if(other === e || other.dead || other.hp <= 0 || !other.team || other.team !== e.team) continue;
+            allyX += other.x;
+            allyY += other.y;
+            allyCount++;
+          }
+          
+          if(allyCount > 0){
+            allyX /= allyCount;
+            allyY /= allyCount;
+            const distToAllies = Math.hypot(e.x - allyX, e.y - allyY);
+            
+            // Stay near allies at safe range
+            if(distToAllies > 120){
+              tx = allyX;
+              ty = allyY;
+              decision = 'healer_support_position';
+            } else {
+              // Good position, attack from range
+              tx = nearestHost.x;
+              ty = nearestHost.y;
+              decision = 'healer_attack_safe';
+            }
+          } else {
+            tx = nearestHost.x;
+            ty = nearestHost.y;
+            decision = 'healer_attack_solo';
+          }
+          
+          e.attacked = true;
+          e._hostTarget = nearestHost;
+          
+          if(state.debugLog && Math.random() < 0.02){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: 'ENEMY_ROLE_TARGET',
+              enemy: e.name || e.variant,
+              role: role,
+              decision: decision,
+              target: nearestHost.name || nearestHost.variant || 'unknown',
+              targetType: hostType,
+              distance: Math.round(nearestHD)
+            });
+          }
+        }
+        else {
+          // Default behavior
+          tx = nearestHost.x;
+          ty = nearestHost.y;
+          e.attacked = true;
+          e._hostTarget = nearestHost;
+          
+          if(state.debugLog && Math.random() < 0.02){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: 'ENEMY_AI_TARGET',
+              enemy: e.name || e.variant,
+              decision: 'attack_host',
+              target: nearestHost.name || nearestHost.variant || 'unknown',
+              targetType: hostType,
+              distance: Math.round(nearestHD)
+            });
+          }
+        }
+        
+        // Store last decision for hysteresis
+        e._lastDecision = decision;
       } else if(spawnTarget){
         // PRIORITY: Check if walls exist before trying to capture flag
         if(spawnTarget.owner && spawnTarget.owner !== e.team){
@@ -3785,21 +4991,40 @@ function updateEnemies(state, dt){
         if(bestD <= hitDist && !e.inWater){
           e.hitCd = 0.65;
           e.attacked = true;
+          
+          // Log successful contact attack
+          if(state.debugLog && Math.random() < 0.05){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: 'ENEMY_CONTACT_ATTACK',
+              attacker: e.name || e.variant,
+              attackerRole: e.role || 'unknown',
+              target: bestTarget.name || bestTarget.variant || bestType,
+              targetType: bestType,
+              distance: Math.round(bestD),
+              damage: e.contactDmg,
+              targetHP: Math.round(bestTarget.hp || 0)
+            });
+          }
+          
           if(bestType === 'player'){
-            applyDamageToPlayer(state, e.contactDmg, st);
+            applyDamageToPlayer(state, e.contactDmg, st, e);
           } else if(bestType === 'friendly'){
-            applyShieldedDamage(state, bestTarget, e.contactDmg);
+            applyShieldedDamage(state, bestTarget, e.contactDmg, e);
             if(bestTarget.hp<=0){ killFriendly(state, state.friendlies.indexOf(bestTarget), true); }
           } else if(bestType === 'enemy'){
             // damage other enemy and kill if needed
             const stLite = { critChance: 0, critMult: 1 };
             const res = applyDamageToEnemy(bestTarget, e.contactDmg, stLite, state);
+            // Track damage dealt by this enemy
+            e._damageDealt = (e._damageDealt || 0) + (res?.dealt || e.contactDmg);
             if(bestTarget.hp<=0){
               const tgtIdx = state.enemies.findIndex(x=>x===bestTarget);
               if(tgtIdx!==-1) killEnemy(state, tgtIdx, true);
             }
           } else if(bestType === 'creature'){
             const dead = applyDamageToCreature(bestTarget, e.contactDmg, state);
+            e._damageDealt = (e._damageDealt || 0) + e.contactDmg;
             bestTarget.target = e;
             if(dead){ const ci = state.creatures.indexOf(bestTarget); if(ci!==-1) killCreature(state, ci); }
           }
@@ -3810,16 +5035,46 @@ function updateEnemies(state, dt){
             const cdst = e.r + (c.r||12) + 4;
             if(dc <= cdst && !e.inWater){
               const dead = applyDamageToCreature(c, e.contactDmg, state);
+              e._damageDealt = (e._damageDealt || 0) + e.contactDmg;
               c.target = e;
               if(dead) killCreature(state, ci);
             }
           }
+        } else {
+          // Log when target is out of melee range
+          if(state.debugLog && Math.random() < 0.01){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: 'ENEMY_ATTACK_OUT_OF_RANGE',
+              attacker: e.name || e.variant,
+              target: bestTarget.name || bestTarget.variant || bestType,
+              distance: Math.round(bestD),
+              requiredRange: Math.round(hitDist),
+              inWater: e.inWater
+            });
+          }
         }
       }
+    } else {
+      // Log when attack blocked by cooldown or CC
+      if(state.debugLog && Math.random() < 0.005){
+        const cc = getCcState(e);
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'ENEMY_ATTACK_BLOCKED',
+          attacker: e.name || e.variant,
+          reason: cc.stunned ? 'stunned' : (e.hitCd > 0 ? 'cooldown' : 'unknown'),
+          cooldownRemaining: e.hitCd.toFixed(2)
+        });
+      }
     }
+    } // End NON-GUARD ENEMY AI block
 
     // simple ability casting for enemies (respect silence/stun)
     const cc2 = getCcState(e);
+    
+    // Track ability attempt for debugging
+    const attemptedAbility = e._lastAbilityAttempt || null;
     if(!cc2.stunned && !cc2.silenced) npcUpdateAbilities(state, e, dt, 'enemy');
 
     // passive auto-level catch-up to player progression over time (no faction tech to avoid compounding)
@@ -3962,7 +5217,17 @@ function respawn(state){
   if(!hb) hb = playerHome(state) || flags[0];
   const st=currentStats(state);
   state.player.x=hb.x; state.player.y=hb.y;
+  const oldHP = state.player.hp;
   state.player.hp=st.maxHp; state.player.mana=st.maxMana; state.player.stam=st.maxStam;
+  
+  logPlayerEvent(state, 'HEAL', {
+    source: 'respawn',
+    amount: (st.maxHp - oldHP).toFixed(1),
+    oldHP: oldHP.toFixed(1),
+    newHP: st.maxHp,
+    maxHP: st.maxHp
+  });
+  
   state.player.shield=0;
   state.player.dead=false;
   state.ui.toast(`Respawned at <b>${hb.name||'flag'}</b>.`);
@@ -3974,16 +5239,25 @@ function tryCastSlot(state, idx){
   if(!sk || sk.type!=='active') return;
   const weaponType = (state.player.equip?.weapon?.weaponType || '').toLowerCase();
   const isStaff = weaponType.includes('staff');
-  if(sk.category && sk.category.includes('Healing Staff') && !weaponType.includes('healing staff')){
+  const isDestructionStaff = weaponType.includes('destruction staff');
+  const isHealingStaff = weaponType.includes('healing staff');
+  
+  // Log ability usage with weapon type for debugging
+  console.log(`[ABILITY] ${sk.id} | WeaponType: "${weaponType || 'none'}" | Category: "${sk.category || 'none'}"`);
+  
+  // Weapon requirement checks
+  if(sk.category && sk.category.includes('Healing Staff') && !isHealingStaff){
     state.ui.toast('Equip a Healing Staff to cast this.');
     return;
   }
-  if(sk.category && sk.category.includes('Destruction Staff') && !isStaff){
-    state.ui.toast('Equip a staff to use destruction spells.');
+  if(sk.category && sk.category.includes('Destruction Staff') && !isDestructionStaff){
+    state.ui.toast('Equip a Destruction Staff to use this.');
     return;
   }
-  if(sk.targetType === 'projectile' && !isStaff){
-    state.ui.toast('Ranged abilities require a staff equipped.');
+  // NOTE: Hero-exclusive abilities (Warrior/Mage/Knight/Tank) are restricted by UI
+  // They can only be slotted by the matching hero class, so no runtime check needed here
+  if(sk.targetType === 'projectile' && !isDestructionStaff){
+    state.ui.toast('Ranged abilities require a Destruction Staff.');
     return;
   }
   if(state.player.cd[idx]>0) return;
@@ -4034,9 +5308,24 @@ function tryCastSlot(state, idx){
       }
     }
   };
-  const healSelf = (amount)=>{ state.player.hp = clamp(state.player.hp + amount, 0, st.maxHp); };
+  const healSelf = (amount)=>{ 
+    const oldHP = state.player.hp;
+    state.player.hp = clamp(state.player.hp + amount, 0, st.maxHp); 
+    
+    logPlayerEvent(state, 'HEAL', {
+      source: 'ability_heal',
+      amount: amount.toFixed(1),
+      oldHP: oldHP.toFixed(1),
+      newHP: state.player.hp.toFixed(1),
+      maxHP: st.maxHp
+    });
+  };
   const healAlliesAround = (cx,cy,radius,amount)=>{
+    const oldHP = state.player.hp;
     healSelf(amount);
+    
+    // Note: healSelf already logs, so no need to log again
+    
     for(const f of state.friendlies){ if(f.respawnT>0) continue; if(Math.hypot(f.x-cx,f.y-cy)<=radius){ f.hp = clamp(f.hp + amount, 0, f.maxHp||80); } }
   };
   const shieldAlliesAround = (cx,cy,radius,amount)=>{
@@ -4100,6 +5389,7 @@ function tryCastSlot(state, idx){
       areaDamage(x,y,radius,dmg,'burn','slow');
       state.effects.flashes.push({ x, y, r: radius, life: 0.9, color: '#ff9a3c' });
       state.effects.slashes.push({ x, y, range: radius, arc: Math.PI*2, dir: 0, t: 0, color: '#ff4500' });
+      logEffect(state, 'aoe_damage', 'meteor_slam', state.player, 'player', 'aoe');
       playPositionalSound(state, 'meteorSlam', x, y, 700, 0.5);
       state.ui.toast('Meteor Slam');
       break;
@@ -4107,6 +5397,7 @@ function tryCastSlot(state, idx){
     case 'piercing_lance':{
       playPositionalSound(state, 'magicSpell6005', state.player.x, state.player.y, 650, 0.45);
       spawnProjectile(state, state.player.x,state.player.y,a,560,6,20+st.atk*1.3,3,true,{ dotId:'bleed', team:'player', element:'arcane', maxRange:350 });
+      logEffect(state, 'piercing_projectile', 'piercing_lance', state.player, 'player', 1);
       state.ui.toast('Piercing Lance');
       break;
     }
@@ -4117,6 +5408,7 @@ function tryCastSlot(state, idx){
       const y = target ? target.y : wm.y;
       state.effects.wells.push({x,y,r:150,timeLeft:3.6,tick:0.5,tickLeft:0.5,dmgPerTick:6+st.atk*0.35,pull:98,color:'#9b7bff'});
       state.effects.flashes.push({ x, y, r: 150, life: 0.6, color: '#9b7bff' });
+      logEffect(state, 'aoe_dot', 'gravity_well', state.player, 'player', 'aoe');
       playPositionalSound(state, 'magicalRockSpellAlt', x, y, 650, 0.45);
       state.ui.toast('Gravity Well');
       break;
@@ -4182,6 +5474,7 @@ function tryCastSlot(state, idx){
     // Melee Weapons
     case 'slash':{
       const slash = pushSlashEffect(state, {t:0.12,arc:1.15,range:64,dmg:6+st.atk*0.75,dir:a});
+      logEffect(state, 'melee_slash', 'slash', state.player, 'player', 1);
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.35);
       break;
     }
@@ -4189,11 +5482,13 @@ function tryCastSlot(state, idx){
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
       state.effects.storms.push({t:2.6, tick:0.25, tl:0.25, r:120, dmg:4+st.atk*0.45, dotId:'bleed'});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 120, life: 0.5, color: '#9b7bff' });
+      logEffect(state, 'aoe_storm', 'blade_storm', state.player, 'player', 'aoe');
       state.ui.toast('Blade Storm');
       break;
     }
     case 'cleave':{
       pushSlashEffect(state, {t:0.18,arc:1.6,range:86,dmg:10+st.atk*1.1, dotId:'bleed',dir:a});
+      logEffect(state, 'melee_cleave', 'cleave', state.player, 'player', 1);
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.35);
       break;
     }
@@ -4212,6 +5507,7 @@ function tryCastSlot(state, idx){
         const dmg = 16+st.atk*1.2;
         applyDamageToEnemy(e, dmg, currentStats(state), state, true);
       }
+      logEffect(state, 'aoe_leap', 'leap_strike', state.player, 'player', enemiesToHit.length);
       playPositionalSound(state, 'magicalWhooshFast', state.player.x, state.player.y, 650, 0.5);
       state.ui.toast('Leap Strike');
       break;
@@ -4572,7 +5868,20 @@ function updateSlashes(state, dt){
         if(diff<=s.arc/2){
           const res=applyDamageToEnemy(e,s.dmg,st,state,true);
           lifestealFrom(state,res.dealt,st);
-          if(s.leech){ state.player.hp = clamp(state.player.hp + res.dealt*0.5, 0, st.maxHp); }
+          if(s.leech){ 
+            const leechHeal = res.dealt * 0.5;
+            const oldHP = state.player.hp;
+            state.player.hp = clamp(state.player.hp + leechHeal, 0, st.maxHp);
+            
+            logPlayerEvent(state, 'HEAL', {
+              source: 'leech',
+              amount: leechHeal.toFixed(1),
+              damageDealt: res.dealt.toFixed(1),
+              oldHP: oldHP.toFixed(1),
+              newHP: state.player.hp.toFixed(1),
+              maxHP: st.maxHp
+            });
+          }
           if(s.dotId) applyDotTo(e, s.dotId);
           if(e.hp<=0) killEnemy(state, ei, true);
         }
@@ -4744,6 +6053,12 @@ function updateProjectiles(state, dt){
         if(Math.hypot(p.x-e.x,p.y-e.y)<=e.r+p.r){
           const res=applyDamageToEnemy(e,p.dmg,st,state,true);
           lifestealFrom(state,res.dealt,st);
+          
+          // Track damage dealt by friendly projectile shooter
+          if(p.shooter && p.shooter !== state.player){
+            p.shooter._damageDealt = (p.shooter._damageDealt || 0) + (res?.dealt || p.dmg);
+          }
+          
           if(p.dotId) applyDotTo(e, p.dotId);
           if(e.hp<=0) killEnemy(state, ei, true);
           if(p.pierce>0) p.pierce-=1;
@@ -4783,6 +6098,12 @@ function updateProjectiles(state, dt){
         const c = state.creatures[ci];
         if(Math.hypot(p.x-c.x, p.y-c.y) <= (c.r||12) + p.r){
           const dead = applyDamageToCreature(c, p.dmg, state);
+          
+          // Track damage dealt by friendly projectile shooter
+          if(p.shooter && p.shooter !== state.player){
+            p.shooter._damageDealt = (p.shooter._damageDealt || 0) + p.dmg;
+          }
+          
           c.target = state.player;
           if(dead) killCreature(state, ci);
           if(p.pierce>0) p.pierce-=1; else { state.projectiles.splice(pi,1); break; }
@@ -4802,11 +6123,7 @@ function updateProjectiles(state, dt){
       }
       if(pi>=state.projectiles.length) continue; // removed by friendly hit
       if(!state.player.dead && Math.hypot(p.x-state.player.x,p.y-state.player.y)<=state.player.r+p.r){
-        applyDamageToPlayer(state, p.dmg, st);
-        // Track damage dealt by shooter if available
-        if(p.shooter){
-          p.shooter._damageDealt = (p.shooter._damageDealt || 0) + p.dmg;
-        }
+        applyDamageToPlayer(state, p.dmg, st, p.shooter);
         // potential enemy projectile DoTs could be applied here similarly
         state.projectiles.splice(pi,1);
       }
@@ -4858,7 +6175,7 @@ function updateDots(state, dt){
         const dmg = base * (1 - resist) * (d.stacks || 1);
         if(dmg>0){
           if(unit === state.player){
-            applyDamageToPlayer(state, dmg, st);
+            applyDamageToPlayer(state, dmg, st, d.source);
           } else if(state.enemies.includes(unit)){
             const res = applyDamageToEnemy(unit, dmg, st, state, true);
             if(unit.hp <= 0){ const idx = state.enemies.indexOf(unit); if(idx!==-1) killEnemy(state, idx, true); }
@@ -4973,11 +6290,19 @@ function getCcState(unit){
 function updateBuffs(state, dt){
   const tickBuffs = (unit)=>{
     if(!unit || !unit.buffs || unit.buffs.length===0) return;
+    // Don't process buff ticks on dead player
+    if(unit === state.player && state.player.dead) return;
+    
     for(let bi=unit.buffs.length-1; bi>=0; bi--){
       const b = unit.buffs[bi];
       const meta = BUFF_REGISTRY?.[b.id];
       const interval = meta?.ticks?.interval ?? 0;
-      b.t = Math.max(0, (b.t ?? 0) - dt);
+      
+      // Only decrement timer if not infinite duration (like emperor_power)
+      if(b.duration !== Infinity && b.t !== Infinity){
+        b.t = Math.max(0, (b.t ?? 0) - dt);
+      }
+      
       if(interval>0){ b.tl = (b.tl ?? interval) - dt; if(b.tl<=0){
         // process tick effects
         const hp = meta?.ticks?.hp ?? 0;
@@ -4986,13 +6311,26 @@ function updateBuffs(state, dt){
         
         // HP ticks: positive = healing, negative = damage (treat as damage to respect shields/resistances)
         if(hp>0){ 
-          unit.hp = clamp((unit.hp ?? 0) + hp, 0, unit.maxHp ?? 9999); 
+          const oldHP = unit.hp;
+          unit.hp = clamp((unit.hp ?? 0) + hp, 0, unit.maxHp ?? 9999);
+          
+          // Log buff healing for player
+          if(unit === state.player){
+            logPlayerEvent(state, 'HEAL', {
+              source: 'buff_tick',
+              buffName: b.id,
+              amount: hp.toFixed(1),
+              oldHP: oldHP.toFixed(1),
+              newHP: unit.hp.toFixed(1),
+              maxHP: unit.maxHp
+            });
+          }
         } else if(hp<0){
           // Negative HP should be treated as damage (go through damage system)
           const absDmg = Math.abs(hp);
           if(unit === state.player){
             const st = currentStats(state);
-            applyDamageToPlayer(state, absDmg, st);
+            applyDamageToPlayer(state, absDmg, st, buff.source);
           } else if(state.enemies.includes(unit)){
             const st = currentStats(state);
             const res = applyDamageToEnemy(unit, absDmg, st, state, false);
@@ -5339,6 +6677,20 @@ export function handleHotkeys(state, dt){
   }
   if(!loadout3Down) state._loadout3Latch = false;
 
+  // Download Logs (default: ` backtick) - works anytime, not just in menu
+  const downloadLogsDown = state.input.keysDown.has(state.binds.downloadLogs);
+  if(downloadLogsDown && !state._downloadLogsLatch){
+    state._downloadLogsLatch = true;
+    // Trigger the download logs button click
+    if(state.ui && state.ui.btnDownloadAllLogs){
+      console.log('📥 Hotkey pressed: Downloading logs...');
+      state.ui.btnDownloadAllLogs.click();
+    } else {
+      console.warn('⚠️ Download logs button not found');
+    }
+  }
+  if(!downloadLogsDown) state._downloadLogsLatch = false;
+
   // Tab navigation keybinds (optional - unassigned by default)
   // Tab 0: Inventory
   if(state.binds.tabInventory && state.binds.tabInventory !== ''){
@@ -5588,7 +6940,7 @@ export function handleHotkeys(state, dt){
 
   // Potion use (only when NOT in inventory)
   const potionDown = state.input.keysDown.has(state.binds.potion);
-  if(potionDown && !state._potionLatch && !state.paused && !state.inMenu && !state.showInventory && state.player.potion){
+  if(potionDown && !state._potionLatch && !state.paused && !state.inMenu && !state.showInventory && state.player.potion && !state.player.dead){
     state._potionLatch = true;
     const potion = state.player.potion;
     const st = currentStats(state);
@@ -5607,6 +6959,15 @@ export function handleHotkeys(state, dt){
         const heal = Math.round(st.maxHp * potion.data.pct);
         state.player.hp = clamp(state.player.hp + heal, 0, st.maxHp);
         state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${heal} HP`);
+        
+        // Log potion healing
+        logPlayerEvent(state, 'HEAL', {
+          source: 'potion',
+          potionName: potion.name,
+          amount: heal,
+          newHP: state.player.hp.toFixed(1),
+          maxHP: st.maxHp
+        });
       } else {
         const gain = Math.round(st.maxMana * potion.data.pct);
         state.player.mana = clamp(state.player.mana + gain, 0, st.maxMana);
@@ -5618,6 +6979,15 @@ export function handleHotkeys(state, dt){
         const heal = potion.buffs.hpRegen * 20; // Convert regen to instant heal
         state.player.hp = clamp(state.player.hp + heal, 0, st.maxHp);
         state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${heal} HP`);
+        
+        // Log potion healing
+        logPlayerEvent(state, 'HEAL', {
+          source: 'potion',
+          potionName: potion.name,
+          amount: heal,
+          newHP: state.player.hp.toFixed(1),
+          maxHP: st.maxHp
+        });
       } else if(potion.type === 'mana' && potion.buffs.manaRegen){
         const gain = potion.buffs.manaRegen * 20; // Convert regen to instant mana
         state.player.mana = clamp(state.player.mana + gain, 0, st.maxMana);
@@ -5756,22 +7126,9 @@ export function handleHotkeys(state, dt){
           ? state.inventory[state.selectedIndex]
           : (state.selectedEquipSlot && state.player.equip ? state.player.equip[state.selectedEquipSlot] : null);
         
-        if(selectedItem && (selectedItem.kind === 'weapon' || selectedItem.kind === 'potion')){
-          let imagePath = '';
-          
-          // Build image path based on item type
-          if(selectedItem.kind === 'weapon'){
-            // Build image path: assets/items/{Rarity} {WeaponType}.png
-            // Map rarity key to display name for file path (legend -> Legendary)
-            let rarityName = selectedItem.rarity?.name || 'Common';
-            if(selectedItem.rarity?.key === 'legend') rarityName = 'Legendary';
-            const weaponType = selectedItem.weaponType || 'Sword';
-            imagePath = `assets/items/${rarityName} ${weaponType}.png`;
-          } else if(selectedItem.kind === 'potion'){
-            // Potion image path
-            if(selectedItem.type === 'hp') imagePath = 'assets/items/HP Potion.png';
-            else if(selectedItem.type === 'mana') imagePath = 'assets/items/Mana Potion.png';
-          }
+        if(selectedItem && (selectedItem.kind === 'weapon' || selectedItem.kind === 'armor' || selectedItem.kind === 'potion')){
+          // Use the same image mapping as inventory (from ui.js getItemImage function)
+          const imagePath = state.ui.getItemImage ? state.ui.getItemImage(selectedItem) : null;
           
           // Build stats display with full details
           let statsHtml = '';
@@ -5819,27 +7176,43 @@ export function handleHotkeys(state, dt){
             });
           }
           
-          // Try to load the image
-          const testImg = new Image();
-          testImg.onload = () => {
-            previewImage.src = imagePath;
-            previewImage.style.display = 'block';
-            previewError.style.display = 'none';
-            previewTitle.textContent = selectedItem.name;
-            previewTitle.className = rarityClass(selectedItem.rarity.key);
-            if(previewStats && statsHtml){
-              previewStatsContent.innerHTML = statsHtml;
-              previewStats.style.display = 'block';
-            } else if(previewStats){
-              previewStats.style.display = 'none';
-            }
-            previewOverlay.style.display = 'flex';
-          };
-          testImg.onerror = () => {
+          // Try to load the image if path exists
+          if(imagePath){
+            const testImg = new Image();
+            testImg.onload = () => {
+              previewImage.src = imagePath;
+              previewImage.style.display = 'block';
+              previewError.style.display = 'none';
+              previewTitle.textContent = selectedItem.name;
+              previewTitle.className = rarityClass(selectedItem.rarity.key);
+              if(previewStats && statsHtml){
+                previewStatsContent.innerHTML = statsHtml;
+                previewStats.style.display = 'block';
+              } else if(previewStats){
+                previewStats.style.display = 'none';
+              }
+              previewOverlay.style.display = 'flex';
+            };
+            testImg.onerror = () => {
+              previewImage.style.display = 'none';
+              previewError.style.display = 'block';
+              previewTitle.textContent = selectedItem.name;
+              previewTitle.className = rarityClass(selectedItem.rarity.key);
+              if(previewStats && statsHtml){
+                previewStatsContent.innerHTML = statsHtml;
+                previewStats.style.display = 'block';
+              } else if(previewStats){
+                previewStats.style.display = 'none';
+              }
+              previewOverlay.style.display = 'flex';
+            };
+            testImg.src = imagePath;
+          } else {
+            // No image mapping available for this item
             previewImage.style.display = 'none';
             previewError.style.display = 'block';
             previewTitle.textContent = selectedItem.name;
-            previewTitle.className = rarityClass(selectedItem.rarity.key);
+            previewTitle.className = rarityClass(selectedItem.rarity?.key || 'common');
             if(previewStats && statsHtml){
               previewStatsContent.innerHTML = statsHtml;
               previewStats.style.display = 'block';
@@ -5847,16 +7220,7 @@ export function handleHotkeys(state, dt){
               previewStats.style.display = 'none';
             }
             previewOverlay.style.display = 'flex';
-          };
-          testImg.src = imagePath;
-        } else if(selectedItem) {
-          // Not a weapon - show no preview available
-          previewImage.style.display = 'none';
-          previewError.style.display = 'block';
-          previewTitle.textContent = selectedItem.name;
-          previewTitle.className = rarityClass(selectedItem.rarity?.key || 'common');
-          if(previewStats) previewStats.style.display = 'none';
-          previewOverlay.style.display = 'flex';
+          }
         }
       }
     }
@@ -6109,6 +7473,60 @@ export function updateGame(state, dt){
     const hpBefore = state.player.hp;
     state.player.hp=clamp(state.player.hp+st.hpRegen*dt,0,st.maxHp);
     const hpAfter = state.player.hp;
+    
+    // Track HP changes for detecting unexplained jumps
+    if(!state._lastLoggedHP) state._lastLoggedHP = hpBefore;
+    if(!state._hpSnapshotTimer) state._hpSnapshotTimer = 0;
+    
+    state._hpSnapshotTimer += dt;
+    
+    // Log periodic HP snapshots every 2 seconds to track HP over time
+    if(state._hpSnapshotTimer >= 2.0){
+      state._hpSnapshotTimer = 0;
+      logPlayerEvent(state, 'HP_SNAPSHOT', {
+        hp: state.player.hp.toFixed(1),
+        maxHP: st.maxHp,
+        shield: state.player.shield.toFixed(1),
+        inCombat: state.inCombatMode || false,
+        regenRate: st.hpRegen.toFixed(2)
+      });
+    }
+    
+    // Log passive HP regen if significant
+    if(hpAfter > hpBefore && hpAfter - hpBefore > 0.1){
+      logPlayerEvent(state, 'HEAL', {
+        source: 'passive_regen',
+        amount: (hpAfter - hpBefore).toFixed(2),
+        regenRate: st.hpRegen.toFixed(2) + '/sec',
+        oldHP: hpBefore.toFixed(1),
+        newHP: hpAfter.toFixed(1),
+        maxHP: st.maxHp
+      });
+    }
+    
+    // Detect unexplained HP jumps (more than expected from regen)
+    const expectedHPChange = st.hpRegen * dt;
+    const actualHPChange = hpAfter - state._lastLoggedHP;
+    const unexplainedChange = actualHPChange - expectedHPChange;
+    
+    // If HP jumped significantly more than regen would explain, log it
+    if(unexplainedChange > 5){
+      console.error('%c[UNEXPLAINED HP JUMP]', 'color: #f0f; font-weight: bold;', 
+        'HP jumped by', actualHPChange.toFixed(1), 
+        'but regen only accounts for', expectedHPChange.toFixed(1),
+        'UNEXPLAINED:', unexplainedChange.toFixed(1));
+      
+      logPlayerEvent(state, 'UNEXPLAINED_HP_JUMP', {
+        hpBefore: state._lastLoggedHP.toFixed(1),
+        hpAfter: hpAfter.toFixed(1),
+        actualChange: actualHPChange.toFixed(1),
+        expectedRegen: expectedHPChange.toFixed(1),
+        unexplained: unexplainedChange.toFixed(1),
+        regenRate: st.hpRegen.toFixed(2)
+      });
+    }
+    
+    state._lastLoggedHP = hpAfter;
     
     // Debug excessive regen
     if(st.hpRegen > 50){
@@ -6369,7 +7787,7 @@ export function updateGame(state, dt){
             uncommon: { key:'uncommon', tier: 2, name: 'Uncommon', color: '#8fd' },
             rare: { key:'rare', tier: 3, name: 'Rare', color: '#9cf' },
             epic: { key:'epic', tier: 4, name: 'Epic', color: '#c9f' },
-            legendary: { key:'legendary', tier: 5, name: 'Legendary', color: '#f9c' }
+            legendary: { key:'legend', tier: 5, name: 'Legendary', color: '#f9c' }
           };
           
           const newRarity = RARITIES[prog.gearRarity];
@@ -6463,7 +7881,15 @@ export function updateGame(state, dt){
       state.player.dead = true;
       die(state);
     }
-    if(state.player.dead){ state.player.respawnT -= dt; if(state.player.respawnT<=0) respawn(state); }
+    if(state.player.dead){ 
+      state.player.respawnT -= dt; 
+      // Keep all bars at 0 during death
+      state.player.hp = 0;
+      state.player.mana = 0;
+      state.player.stam = 0;
+      state.player.shield = 0;
+      if(state.player.respawnT<=0) respawn(state); 
+    }
     return;
   }
 
@@ -6471,6 +7897,31 @@ export function updateGame(state, dt){
   
   // UPDATE WALL DAMAGE - All units can damage walls through contact
   updateWallDamage(state, dt);
+  
+  // Play fire sounds for damaged outposts (from wall or flag damage)
+  for(const site of state.sites){
+    if(!site.id || !site.id.startsWith('site_')) continue;
+    if(!site.owner || site.health <= 0) continue;
+    
+    // Check if any walls are damaged (below 70% health)
+    let anyWallDamaged = false;
+    if(site.wall && site.wall.sides){
+      for(const side of site.wall.sides){
+        if(side && !side.destroyed && side.hp / side.maxHp <= 0.70){
+          anyWallDamaged = true;
+          break;
+        }
+      }
+    }
+    
+    // Play fire sound if walls or flag are damaged
+    const flagHealthPct = site.health / (site.maxHealth || 500);
+    if(anyWallDamaged || flagHealthPct <= 0.70){
+      playOutpostFireSound(state, site);
+    } else {
+      stopOutpostFireSound(state, site);
+    }
+  }
   
   // UPDATE FLAG HEALTH - Enemies can damage flags
   updateFlagHealth(state, dt);
@@ -6717,6 +8168,23 @@ function updateCreatures(state, dt){
   }
   for(let i=state.creatures.length-1;i>=0;i--){
     const c = state.creatures[i];
+    
+    // CRITICAL: Check if creature died (hp <= 0) and kill it
+    if(c.hp <= 0){
+      if(state.debugLog){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'CREATURE_DEATH',
+          creature: c.key || 'unknown',
+          boss: c.boss || false,
+          hp: c.hp.toFixed(1),
+          damageReceived: (c._damageReceived || 0).toFixed(1)
+        });
+      }
+      killCreature(state, i);
+      continue;
+    }
+    
     // update hit cooldown
     c.hitCd = Math.max(0, (c.hitCd || 0) - dt);
     
@@ -6743,6 +8211,21 @@ function updateCreatures(state, dt){
       c.attacked = true;
       tx = nearest.x;
       ty = nearest.y;
+      
+      // Log creature AI state (0.5% sample rate)
+      if(state.debugLog && Math.random() < 0.005){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'CREATURE_AI_STATE',
+          creature: c.key || 'unknown',
+          boss: c.boss || false,
+          hp: Math.round(c.hp),
+          target: c.target.name || c.target.variant || (c.target === state.player ? 'Player' : 'unknown'),
+          distance: Math.round(nearestD),
+          hitCd: (c.hitCd || 0).toFixed(2),
+          attacked: c.attacked
+        });
+      }
     }
     
     const slowFactor = c.inWater ? 0.45 : 1.0;
@@ -6755,6 +8238,19 @@ function updateCreatures(state, dt){
       if(d <= hitDist){
         c.hitCd = 0.65; // Same cooldown as enemies
         
+        // Log creature attack (2% sample rate)
+        if(state.debugLog && Math.random() < 0.02){
+          state.debugLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'CREATURE_ATTACK',
+            creature: c.key || 'unknown',
+            boss: c.boss || false,
+            target: c.target.name || c.target.variant || (c.target === state.player ? 'Player' : 'unknown'),
+            damage: c.contactDmg || 6,
+            distance: d.toFixed(1)
+          });
+        }
+        
         // Play creature attack sound based on type
         if(c.key === 'goblin'){
           playPositionalSound(state, 'goblinAttack', c.x, c.y, 500, 0.35);
@@ -6762,7 +8258,7 @@ function updateCreatures(state, dt){
           playPositionalSound(state, 'wolfAttack', c.x, c.y, 500, 0.35);
         }
         
-        if(c.target === state.player){ applyDamageToPlayer(state, c.contactDmg||6, currentStats(state)); }
+        if(c.target === state.player){ applyDamageToPlayer(state, c.contactDmg||6, currentStats(state), c); }
         // friendlies/enemies take direct damage
         else {
           // try friendly list
@@ -6914,15 +8410,23 @@ function checkEmperorStatus(state){
   // If emperor status changed, handle transitions
   if(newEmperorTeam && previousEmperor !== newEmperorTeam){
     // New emperor crowned
+    console.log(`%c[EMPEROR] ${newEmperorTeam} CROWNED! Controls ${totalFlags}/${totalFlags} flags`, 'color: #ffd700; font-weight: bold; font-size: 14px');
+    // logDebugEvent(state, `EMPEROR_CROWNED: ${newEmperorTeam} now controls ALL ${totalFlags} flags`);
+    
     if(newEmperorTeam === 'player'){
-      state.ui.toast('<b>POWER OF THE EMPEROR!</b> You control all flags! All other teams are now allies.');
+      state.ui.toast(`<b>⚜️ POWER OF THE EMPEROR! ⚜️</b><br>All ${totalFlags} flags controlled!<br>🔱 All enemy teams are now ALLIED against you!`);
+      console.log('%c[EMPEROR] Player received emperor buff: +3x HP/Mana/Stamina, +50% CDR', 'color: #ffd700');
+      // logDebugEvent(state, `EMPEROR_BUFF_APPLIED: Player gains emperor power (+3x resources, +50% CDR)`);
       addEmperorEffect(state); // Add visible effect to player
     }
     state.emperorSince = state.campaign.time;
   } else if(!newEmperorTeam && previousEmperor){
-    // Emperor dethroned
+    // Emperor dethroned (lost ALL flags)
+    console.log(`%c[EMPEROR] ${previousEmperor} DETHRONED - No longer controls all flags`, 'color: #ff6b6b; font-weight: bold');
+    // logDebugEvent(state, `EMPEROR_DETHRONED: ${previousEmperor} lost control of all flags`);
+    
     if(previousEmperor === 'player'){
-      state.ui.toast('You have lost the Emperor power. An enemy team holds the throne.');
+      state.ui.toast('⚔️ <b>DETHRONED!</b> Enemy captured a flag. Emperor power removed.');
       removeEmperorEffect(state); // Remove effect from player
     }
   }
@@ -6930,14 +8434,21 @@ function checkEmperorStatus(state){
 
 // Check for victory condition: time-based (10 min) or when emperor team has no flags left
 function checkEmperorVictory(state){
-  // Victory 1: Emperor team lost all flags
+  // Victory 1: Emperor team lost ALL flags (when flag count reaches ZERO)
   if(state.emperorTeam && state.emperorTeam === 'player'){
     const playerFlags = state.sites.filter(s => s.owner === 'player' && s.id.startsWith('site_')).length;
+    const totalFlags = state.sites.filter(s => s.id && s.id.startsWith('site_')).length;
+    
+    // Only remove emperor when player has ZERO flags (lost ALL flags)
     if(playerFlags === 0 && !state.campaignEnded){
-      // Player lost emperor status
-      state.ui.toast('<b>You have been dethroned!</b> The enemy is now Emperor.');
+      console.log(`%c[EMPEROR] Player DETHRONED - Lost ALL flags (${playerFlags}/${totalFlags})`, 'color: #ff6b6b; font-weight: bold');
+      logDebugEvent(state, `EMPEROR_LOST: Player had ${playerFlags}/${totalFlags} flags - DETHRONED`);
+      state.ui.toast(`<b>DETHRONED!</b> You lost ALL ${totalFlags} flags. Emperor power removed.`);
       removeEmperorEffect(state);
       state.emperorTeam = null;
+    } else if(playerFlags < totalFlags && playerFlags > 0){
+      // Player still has some flags - emperor power persists
+      console.log(`%c[EMPEROR] Emperor power persists - Holding ${playerFlags}/${totalFlags} flags`, 'color: #ffd700');
     }
   }
   
@@ -6958,13 +8469,31 @@ function addEmperorEffect(state){
       name: 'Power of the Emperor',
       duration: Infinity,
       applied: state.campaign.time,
-      icon: '🔱'
+      icon: '🔱',
+      t: Infinity // Ensure timer never decrements
+    });
+    console.log(`%c[BUFF] Emperor power added to player.buffs (${state.player.buffs.length} total active effects)`, 'color: #4a9eff');
+    logEffectEvent(state, 'BUFF_APPLIED', {
+      unit: 'player',
+      buffId: 'emperor_power',
+      duration: 'Infinity',
+      stats: '+3x HP/Mana/Stamina, +50% CDR'
     });
     // Restore player to full health/mana/stamina when becoming emperor
     const st = currentStats(state);
+    const oldHP = state.player.hp;
     state.player.hp = st.maxHp;
     state.player.mana = st.maxMana;
     state.player.stam = st.maxStam;
+    
+    // Log the emperor heal
+    logPlayerEvent(state, 'HEAL', {
+      source: 'emperor_buff',
+      amount: (st.maxHp - oldHP).toFixed(1),
+      oldHP: oldHP.toFixed(1),
+      newHP: st.maxHp,
+      maxHP: st.maxHp
+    });
     // Show big screen notification
     if(state.ui?.showEmperor){
       state.ui.showEmperor();
@@ -6979,7 +8508,18 @@ function addEmperorEffect(state){
 // Remove Emperor effect from player's active effects
 function removeEmperorEffect(state){
   if(!state.player.buffs) return;
+  const hadEmperor = state.player.buffs.some(b => b.id === 'emperor_power');
   state.player.buffs = state.player.buffs.filter(b => b.id !== 'emperor_power');
+  
+  if(hadEmperor){
+    console.log(`%c[BUFF] Emperor power removed from player.buffs (${state.player.buffs.length} remaining effects)`, 'color: #ff6b6b');
+    logEffectEvent(state, 'BUFF_REMOVED', {
+      unit: 'player',
+      buffId: 'emperor_power',
+      reason: 'Lost all flags'
+    });
+  }
+  
   // Force UI updates to remove the buff from display
   if(state.ui?.renderInventory) state.ui.renderInventory();
   if(state.ui?.renderLevel) state.ui.renderLevel();
@@ -7072,9 +8612,20 @@ window.testEmperorBuff = function(){
       icon: '🔱'
     });
     const st = currentStats(state);
+    const oldHP = state.player.hp;
     state.player.hp = st.maxHp;
     state.player.mana = st.maxMana;
     state.player.stam = st.maxStam;
+    
+    // Log the emperor heal
+    logPlayerEvent(state, 'HEAL', {
+      source: 'emperor_buff_debug',
+      amount: (st.maxHp - oldHP).toFixed(1),
+      oldHP: oldHP.toFixed(1),
+      newHP: st.maxHp,
+      maxHP: st.maxHp
+    });
+    
     state.ui.toast('✅ Emperor buff ADDED - Check all 3 locations!');
     console.log('%c✓ Emperor buff added to state.player.buffs:', 'color: gold; font-size: 14px; font-weight: bold;', state.player.buffs);
   }
@@ -7205,6 +8756,189 @@ function logDebug(state, category, message, data = {}){
     state.debugLog.shift();
   }
 }
+
+// ================== COMPREHENSIVE AI BEHAVIOR TRACKING ==================
+// Tracks AI decision changes, target switches, behavior changes, and position loops
+function logAIBehavior(state, unit, eventType, data = {}){
+  if(!state.aiBehaviorLog) state.aiBehaviorLog = [];
+  
+  const unitId = unit.id || unit._id;
+  const unitName = unit.name || unit.variant || 'unknown';
+  const kind = unit.team === 'player' ? 'friendly' : 'enemy';
+  const now = state.campaign?.time || 0;
+  
+  // Track previous state for change detection
+  if(!unit._aiState) unit._aiState = {
+    lastDecision: null,
+    lastTarget: null,
+    lastBehavior: null,
+    lastPosition: { x: unit.x, y: unit.y, time: now },
+    positionHistory: [],
+    decisionChangeCount: 0,
+    targetChangeCount: 0,
+    stuckWarnings: 0,
+    lastCheckTime: 0  // For throttling stuck loop checks
+  };
+  
+  const aiState = unit._aiState;
+  let shouldLog = false;
+  let eventData = {
+    time: now.toFixed(2),
+    timestamp: Date.now(),
+    unitId,
+    unitName,
+    kind,
+    team: unit.team,
+    role: unit.role || unit.guardRole || 'DPS',
+    behavior: unit.behavior || 'neutral',
+    eventType,
+    position: { x: Math.round(unit.x), y: Math.round(unit.y) },
+    hp: unit.hp ? Math.round(unit.hp) : 0,
+    ...data
+  };
+  
+  // DECISION CHANGE TRACKING (with 2s commit duration to prevent thrashing)
+  if(eventType === 'decision_change'){
+    // DECISION COMMIT DURATION: Force minimum 2s commitment to decisions
+    // This prevents rapid flip-flopping between states
+    const timeSinceLastChange = now - (aiState._lastDecisionChange || 0);
+    const isEmergency = data.emergency || false; // Allow instant override for emergencies
+    const minCommitTime = isEmergency ? 0 : 2.0; // 2 second minimum commitment
+    const canChange = timeSinceLastChange >= minCommitTime;
+    
+    if(data.newDecision !== aiState.lastDecision){
+      if(canChange){
+        aiState.lastDecision = data.newDecision;
+        aiState.decisionChangeCount++;
+        aiState._lastDecisionChange = now;
+        
+        // Only log decision changes once every 0.5 seconds (max 2 per second)
+        const timeSinceLastLog = now - (aiState._lastDecisionLog || 0);
+        if(timeSinceLastLog >= 0.5){
+          shouldLog = true;
+          aiState._lastDecisionLog = now;
+        }
+        
+        // Warn if decision thrashing (changing too frequently)
+        if(aiState.decisionChangeCount > 30 && now - (aiState._lastDecisionWarn || 0) > 15){
+          eventData.warning = 'DECISION_THRASHING';
+          eventData.changeCount = aiState.decisionChangeCount;
+          aiState._lastDecisionWarn = now;
+          shouldLog = true; // Always log warnings
+        }
+      } else {
+        // Decision blocked by commit duration - log for debugging if needed
+        if(state.options?.showDebugAI && Math.random() < 0.01){
+          eventData.blocked = true;
+          eventData.timeRemaining = (minCommitTime - timeSinceLastChange).toFixed(2);
+          shouldLog = true;
+        }
+      }
+    }
+  }
+  
+  // TARGET CHANGE TRACKING
+  else if(eventType === 'target_change'){
+    const newTargetId = data.newTarget ? (data.newTarget.id || data.newTarget._id) : null;
+    if(newTargetId !== aiState.lastTarget){
+      aiState.lastTarget = newTargetId;
+      aiState.targetChangeCount++;
+      shouldLog = true;
+      
+      // Add target details
+      if(data.newTarget){
+        eventData.targetName = data.newTarget.name || data.newTarget.variant || 'unknown';
+        eventData.targetHP = data.newTarget.hp ? Math.round(data.newTarget.hp) : 0;
+        eventData.targetDist = data.distance ? Math.round(data.distance) : null;
+      }
+      
+      // Warn if target thrashing
+      if(aiState.targetChangeCount > 15 && now - (aiState._lastTargetWarn || 0) > 10){
+        eventData.warning = 'TARGET_THRASHING';
+        eventData.changeCount = aiState.targetChangeCount;
+        aiState._lastTargetWarn = now;
+      }
+    }
+  }
+  
+  // BEHAVIOR CHANGE TRACKING (aggressive ↔ neutral)
+  else if(eventType === 'behavior_change'){
+    if(data.newBehavior !== aiState.lastBehavior){
+      aiState.lastBehavior = data.newBehavior;
+      shouldLog = true;
+      eventData.oldBehavior = data.oldBehavior;
+    }
+  }
+  
+  // POSITION LOOP DETECTION (stuck detection)
+  else if(eventType === 'position_check'){
+    // Track position every ~2 seconds
+    const timeSinceLastCheck = now - aiState.lastPosition.time;
+    if(timeSinceLastCheck >= 2.0){
+      const distMoved = Math.hypot(unit.x - aiState.lastPosition.x, unit.y - aiState.lastPosition.y);
+      
+      // Store position in history
+      aiState.positionHistory.push({
+        x: unit.x,
+        y: unit.y,
+        time: now,
+        distMoved
+      });
+      
+      // Keep only last 10 positions
+      if(aiState.positionHistory.length > 10){
+        aiState.positionHistory.shift();
+      }
+      
+      // Check for stuck loop (minimal movement over time) - throttle to every 3s
+      if(aiState.positionHistory.length >= 5 && now - aiState.lastCheckTime >= 3.0){
+        const last5 = aiState.positionHistory.slice(-5);
+        const totalDist = last5.reduce((sum, p) => sum + (p.distMoved || 0), 0);
+        const avgDist = totalDist / 5;
+        
+        // If average movement < 20 units over 10 seconds while trying to move, likely stuck
+        // Using 20 units as threshold - higher values catch wandering behavior as "stuck"
+        if(avgDist < 20 && data.isMoving){
+          shouldLog = true;
+          aiState.stuckWarnings++;
+          eventData.warning = 'STUCK_LOOP_DETECTED';
+          eventData.avgMovement = avgDist.toFixed(1);
+          eventData.stuckCount = aiState.stuckWarnings;
+          eventData.positionHistory = last5.map(p => `(${Math.round(p.x)},${Math.round(p.y)})`);
+        }
+        aiState.lastCheckTime = now;
+      }
+      
+      aiState.lastPosition = { x: unit.x, y: unit.y, time: now };
+    }
+  }
+  
+  // PRIORITY CHANGE TRACKING
+  else if(eventType === 'priority_shift'){
+    shouldLog = true;
+  }
+  
+  // COMBAT ENGAGEMENT TRACKING (throttled to prevent spam)
+  else if(eventType === 'combat_engage' || eventType === 'combat_disengage'){
+    // Only log combat engage once per second to prevent spam (50 events/sec fills buffer in 10s)
+    const timeSinceLastLog = now - (aiState._lastCombatLog || 0);
+    if(timeSinceLastLog >= 1.0){
+      shouldLog = true;
+      aiState._lastCombatLog = now;
+    }
+  }
+  
+  // Log event if it's significant
+  if(shouldLog){
+    state.aiBehaviorLog.push(eventData);
+    
+    // Keep only last 500 events to prevent memory bloat
+    if(state.aiBehaviorLog.length > 500){
+      state.aiBehaviorLog.shift();
+    }
+  }
+}
+
 
 // Download player event log
 export function downloadPlayerLog(state){
@@ -7450,6 +9184,79 @@ export function downloadDebugLog(state){
   URL.revokeObjectURL(url);
 }
 
+// Download AI behavior tracking log
+export function downloadAIBehaviorLog(state){
+  if(!state.aiBehaviorLog || state.aiBehaviorLog.length === 0){
+    alert('No AI behavior events logged yet. Play for a bit and try again.');
+    return;
+  }
+
+  let txt = 'AI Behavior Tracking Log\n';
+  txt += '='.repeat(120) + '\n';
+  txt += `Generated: ${new Date().toLocaleString()}\n`;
+  txt += `Total Events: ${state.aiBehaviorLog.length}\n`;
+  txt += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
+  
+  txt += 'This log tracks:\n';
+  txt += '  • Decision changes (when AI switches between actions)\n';
+  txt += '  • Target changes (when AI switches targets)\n';
+  txt += '  • Behavior changes (aggressive ↔ neutral)\n';
+  txt += '  • Position loops (stuck detection)\n';
+  txt += '  • Combat engagement/disengagement\n\n';
+
+  // Group by unit for easier reading
+  const unitEvents = {};
+  for(const ev of state.aiBehaviorLog){
+    const key = `${ev.unitName} (${ev.kind})`;
+    if(!unitEvents[key]) unitEvents[key] = [];
+    unitEvents[key].push(ev);
+  }
+
+  for(const [unitName, events] of Object.entries(unitEvents)){
+    txt += `\n${'='.repeat(50)} ${unitName} ${'='.repeat(50)}\n`;
+    txt += `Total Events: ${events.length}\n`;
+    txt += `Role: ${events[0].role}\n`;
+    txt += `Team: ${events[0].team}\n\n`;
+    
+    for(const ev of events){
+      const time = `[${ev.time}s]`.padEnd(10);
+      let msg = `${time} ${ev.eventType.toUpperCase()}`;
+      
+      if(ev.eventType === 'decision_change'){
+        msg += ` → ${ev.newDecision} (target: ${ev.target || 'none'}, dist: ${ev.distance || 0})`;
+      } else if(ev.eventType === 'target_change'){
+        msg += ` → ${ev.targetName || 'none'} (HP: ${ev.targetHP || 0}, dist: ${ev.targetDist || 0})`;
+      } else if(ev.eventType === 'behavior_change'){
+        msg += ` → ${ev.oldBehavior} → ${ev.behavior}`;
+      } else if(ev.eventType === 'combat_engage'){
+        msg += ` → ${ev.target} (HP: ${ev.targetHP}, dist: ${ev.distance}, priority: ${ev.priority || 'N/A'})`;
+      } else if(ev.eventType === 'combat_disengage'){
+        msg += ` → ${ev.reason || 'unknown'}`;
+      }
+      
+      if(ev.warning){
+        msg += ` ⚠️ ${ev.warning}`;
+        if(ev.changeCount) msg += ` (${ev.changeCount} changes)`;
+        if(ev.stuckCount) msg += ` (${ev.stuckCount} stuck warnings)`;
+        if(ev.avgMovement) msg += ` (avg movement: ${ev.avgMovement})`;
+      }
+      
+      txt += msg + '\n';
+    }
+  }
+
+  txt += '\n' + '='.repeat(120) + '\n';
+  txt += 'END OF AI BEHAVIOR LOG\n';
+
+  const blob = new Blob([txt], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ai-behavior-log-${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // Expose player log download as console command
 window.downloadPlayerLog = function(){
   const state = window.state;
@@ -7480,6 +9287,17 @@ window.downloadDebugLog = function(){
   downloadDebugLog(state);
 };
 
+// Expose AI behavior log download as console command
+window.downloadAIBehaviorLog = function(){
+  const state = window.state;
+  if(!state){
+    console.error('❌ State not found. Make sure the game is loaded.');
+    return;
+  }
+  downloadAIBehaviorLog(state);
+};
+
 console.log('💾 Player logging enabled. Use window.downloadPlayerLog() to download detailed player event log.');
 console.log('⚔️ Combat logging available. Use window.downloadCombatLog() to download combat event log.');
 console.log('🔧 Debug logging available. Use window.downloadDebugLog() to download diagnostic log.');
+console.log('🤖 AI behavior tracking enabled. Use window.downloadAIBehaviorLog() to download AI behavior analysis.');

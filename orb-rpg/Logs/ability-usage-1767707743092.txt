@@ -1,0 +1,30 @@
+Ability Usage Log
+======================================================================
+Generated: 1/6/2026, 8:55:43 AM
+Game Time: 177s
+
+FRIENDLY ABILITIES:
+----------------------------------------------------------------------
+warrior_fortitude              Total:   223 | DPS:223 | CD: 8.0s (actual: 1.0s)
+mage_radiant_aura              Total:   162 | DPS:38, HEALER:124 | CD: 8.0s (actual: 1.3s)
+piercing_lance                 Total:    26 | DPS:26 | CD: 6.0s (actual: 6.5s)
+arc_bolt                       Total:    48 | DPS:48 | CD: 3.5s (actual: 3.6s)
+chain_light                    Total:     4 | DPS:4 | CD: 5.5s (actual: 41.0s)
+tank_bodyguard                 Total:    70 | TANK:70 | CD: 11.0s (actual: 2.2s)
+heal_burst                     Total:   327 | HEALER:230, TANK:97 | CD: 7.5s (actual: 0.5s)
+tank_anchor                    Total:    78 | TANK:78 | CD: 9.0s (actual: 2.1s)
+tank_iron_skin                 Total:    58 | TANK:58 | CD: 10.0s (actual: 2.8s)
+cleanse_wave                   Total:   119 | HEALER:119 | CD: 9.0s (actual: 1.4s)
+ward_barrier                   Total:    46 | TANK:27, HEALER:19 | CD: 10.0s (actual: 3.5s)
+
+ENEMY ABILITIES:
+----------------------------------------------------------------------
+knight_taunt                   Total:   197 | TANK:197 | CD: 8.0s (actual: 1.6s)
+warcry                         Total:   192 | TANK:192 | CD: 8.0s (actual: 1.2s)
+knight_shield_wall             Total:   168 | TANK:168 | CD: 9.0s (actual: 1.3s)
+warrior_cleave                 Total:    33 | DPS:33 | CD: 4.2s (actual: 5.2s)
+cleave                         Total:    37 | DPS:37 | CD: 3.2s (actual: 4.6s)
+warrior_life_leech             Total:   108 | DPS:108 | CD: 4.0s (actual: 1.6s)
+slash                          Total:   419 | DPS:419 | CD: 1.0s (actual: 0.4s)
+knight_rally                   Total:    59 | TANK:59 | CD: 10.0s (actual: 2.7s)
+mage_divine_touch              Total:   384 | HEALER:384 | CD: 4.5s (actual: 0.4s)

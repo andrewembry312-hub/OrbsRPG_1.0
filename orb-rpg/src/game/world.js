@@ -381,7 +381,7 @@ function assignGuardGear(guard, rarityKey){
     uncommon: { key:'uncommon', tier: 2, name: 'Uncommon', color: '#8fd' },
     rare: { key:'rare', tier: 3, name: 'Rare', color: '#9cf' },
     epic: { key:'epic', tier: 4, name: 'Epic', color: '#c9f' },
-    legendary: { key:'legendary', tier: 5, name: 'Legendary', color: '#f9c' }
+    legendary: { key:'legend', tier: 5, name: 'Legendary', color: '#f9c' }
   };
   
   const rarity = RARITIES[rarityKey] || RARITIES.common;
@@ -439,8 +439,8 @@ export function spawnGuardsForSite(state, site, count=5){
     }
   }
 
-  // Coordinated guard composition: 2 Healers (mage) + 3 DPS (warrior, knight, warden)
-  const GUARD_COMPOSITION = ['mage', 'mage', 'warrior', 'knight', 'warden'];
+  // Coordinated guard composition: 2 Healers (mage) + 3 DPS (warrior)
+  const GUARD_COMPOSITION = ['mage', 'mage', 'warrior', 'warrior', 'warrior'];
   
   // spawn from fixed positions with defined roles
   let spawned=0;
@@ -795,15 +795,60 @@ export function updateWallDamage(state, dt){
         side.hp = Math.max(0, side.hp - totalDamage);
         side.lastDamaged = Date.now();
         
+        // Update site damage state based on wall health (for visual effects and fire sounds)
+        const wallHealthPct = side.hp / side.maxHp;
+        if(wallHealthPct <= 0.70 && s.damageState === 'undamaged'){
+          s.damageState = 'damaged';
+          s._lastDamageTime = Date.now(); // Track damage time for fire sounds
+        }
+        
         // Log wall damage periodically (5% sample for performance)
         if(state.debugLog && Math.random() < 0.05){
           const sideNames = ['North', 'East', 'South', 'West'];
+          
+          // Build attacker details with roles
+          const attackerDetails = attackers.map(a => {
+            const u = a.unit;
+            if(!u) return 'unknown';
+            
+            // Determine unit type and role
+            let unitType = 'unknown';
+            let role = 'UNKNOWN';
+            
+            if(u === state.player){
+              unitType = 'player';
+              role = 'PLAYER';
+            } else if(state.enemies.includes(u)){
+              unitType = 'enemy';
+              role = (u.role || (u.variant === 'mage' ? 'HEALER' : (u.variant === 'warden' || u.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
+            } else if(state.friendlies.includes(u)){
+              unitType = 'friendly';
+              role = (u.role || (u.variant === 'mage' ? 'HEALER' : (u.variant === 'warden' || u.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
+            }
+            
+            const name = u.name || u.variant || 'unknown';
+            return `${name}(${role})`;
+          });
+          
+          // Count roles
+          const roleCounts = {};
+          attackers.forEach(a => {
+            const u = a.unit;
+            if(!u) return;
+            const role = (u === state.player ? 'PLAYER' : 
+                         (u.role || (u.variant === 'mage' ? 'HEALER' : 
+                                    (u.variant === 'warden' || u.variant === 'knight' ? 'TANK' : 'DPS')))).toUpperCase();
+            roleCounts[role] = (roleCounts[role] || 0) + 1;
+          });
+          
           state.debugLog.push({
             time: (state.campaign?.time || 0).toFixed(2),
             type: 'WALL_DAMAGE',
             site: s.name || s.id,
             side: sideNames[sideIdx],
             attackers: attackers.length,
+            attackerList: attackerDetails.join(', '),
+            roleCounts: roleCounts,
             damage: Math.round(totalDamage * 100) / 100,
             hpBefore: Math.round(oldHp),
             hpAfter: Math.round(side.hp),
@@ -821,12 +866,47 @@ export function updateWallDamage(state, dt){
           
           // Log wall destruction
           if(state.debugLog){
+            // Build detailed attacker info for destruction event
+            const destroyerDetails = attackers.map(a => {
+              const u = a.unit;
+              if(!u) return 'unknown';
+              
+              let unitType = 'unknown';
+              let role = 'UNKNOWN';
+              
+              if(u === state.player){
+                unitType = 'player';
+                role = 'PLAYER';
+              } else if(state.enemies.includes(u)){
+                unitType = 'enemy';
+                role = (u.role || (u.variant === 'mage' ? 'HEALER' : (u.variant === 'warden' || u.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
+              } else if(state.friendlies.includes(u)){
+                unitType = 'friendly';
+                role = (u.role || (u.variant === 'mage' ? 'HEALER' : (u.variant === 'warden' || u.variant === 'knight' ? 'TANK' : 'DPS'))).toUpperCase();
+              }
+              
+              return `${u.name || u.variant || 'unknown'}(${role},${unitType})`;
+            });
+            
+            // Count roles for destruction
+            const destroyerRoles = {};
+            attackers.forEach(a => {
+              const u = a.unit;
+              if(!u) return;
+              const role = (u === state.player ? 'PLAYER' : 
+                           (u.role || (u.variant === 'mage' ? 'HEALER' : 
+                                      (u.variant === 'warden' || u.variant === 'knight' ? 'TANK' : 'DPS')))).toUpperCase();
+              destroyerRoles[role] = (destroyerRoles[role] || 0) + 1;
+            });
+            
             state.debugLog.push({
               time: (state.campaign?.time || 0).toFixed(2),
               type: 'WALL_DESTROYED',
               site: s.name || s.id,
               side: sideNames[sideIdx],
               attackers: attackers.length,
+              destroyerList: destroyerDetails.join(', '),
+              destroyerRoles: destroyerRoles,
               remainingWalls: s.wall.sides.filter(ws => ws && !ws.destroyed).length
             });
           }

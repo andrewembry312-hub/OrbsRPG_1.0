@@ -539,7 +539,7 @@ export function render(state){
       const size = Math.max(16, Math.floor(e.r*1.6));
       ctx.drawImage(img, e.x - size/2, e.y - size/2, size, size);
     }
-    drawHpBar(ctx, e.x, e.y-e.r-14, 34, 6, Math.max(0, (e.hp||0)/(e.maxHp||1)));
+    drawHpBar(ctx, e.x, e.y-e.r-18, 34, 6, Math.max(0, (e.hp||0)/(e.maxHp||1)), e.level);
     // draw shield indicator (blue shield ring for enemy shields)
     if(e.shield && e.shield > 0){
       const shieldRatio = Math.min(1, e.shield / (e.maxShield || 100));
@@ -569,7 +569,7 @@ export function render(state){
         ctx.drawImage(img, c.x - size/2, c.y - size/2, size, size);
       }
       // small HP bar
-      drawHpBar(ctx, c.x, c.y - (c.r||12) - 12, 26, 5, Math.max(0, (c.hp||0)/(c.maxHp||1)));
+      drawHpBar(ctx, c.x, c.y - (c.r||12) - 16, 26, 5, Math.max(0, (c.hp||0)/(c.maxHp||1)), c.level);
       // name label (small text above creature)
       if(c.name){
         ctx.font = '11px system-ui';
@@ -596,7 +596,7 @@ export function render(state){
     const p = `assets/char/${v}.svg`;
     const im = loadCachedImage(state, p);
     if(im){ const sz = Math.max(14, Math.floor(a.r*1.6)); ctx.drawImage(im, a.x - sz/2, a.y - sz/2, sz, sz); }
-    drawHpBar(ctx, a.x, a.y-a.r-12, 28, 5, a.hp/a.maxHp);
+    drawHpBar(ctx, a.x, a.y-a.r-16, 28, 5, a.hp/a.maxHp, a.level);
     // draw shield indicator (orange shield ring)
     if(a.shield && a.shield > 0){
       const shieldRatio = Math.min(1, a.shield / (a.maxShield || 100));
@@ -650,15 +650,19 @@ export function render(state){
     ctx.beginPath(); ctx.arc(state.player.x,state.player.y,state.player.r+14,0,Math.PI*2); ctx.stroke();
     ctx.globalAlpha = 1;
   }
-  // draw player orb first
+  // draw player orb
   const pOrb = cssVar('--player');
-  ctx.globalAlpha = 0.96; ctx.fillStyle = pOrb; ctx.beginPath(); ctx.arc(state.player.x,state.player.y,state.player.r+3,0,Math.PI*2); ctx.fill(); ctx.globalAlpha = 1;
-  // try draw player image from selected class on top of orb
+  ctx.globalAlpha = 0.96;
+  ctx.fillStyle = pOrb;
+  ctx.beginPath(); ctx.arc(state.player.x,state.player.y,state.player.r,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(state.player.x,state.player.y,state.player.r,0,Math.PI*2); ctx.stroke();
+  ctx.globalAlpha=1;
+  // draw class image in the center of the player orb
   const pClass = state.player.class || 'warrior';
   const pPath = `assets/char/${pClass}.svg`;
   const pImg = loadCachedImage(state, pPath);
   if(pImg){
-    const size = Math.max(20, Math.floor(state.player.r*1.8));
+    const size = Math.max(16, Math.floor(state.player.r * 1.4));
     ctx.drawImage(pImg, state.player.x - size/2, state.player.y - size/2, size, size);
   }
   // draw gold crown emoji above player orb
@@ -822,10 +826,47 @@ function drawTriangle(ctx,x,y,size,color){
   ctx.stroke();
 }
 
-function drawHpBar(ctx, x,y,w,h,pct){
+function drawHpBar(ctx, x,y,w,h,pct,level){
   const p=clamp(pct,0,1);
-  ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fillRect(x-w/2,y,w,h);
-  ctx.fillStyle='#7dff9b'; ctx.fillRect(x-w/2,y,w*p,h);
+  
+  // If level is provided, draw level circle at the start
+  let barStartX = x - w/2;
+  if(level !== undefined && level !== null){
+    const circleR = h + 2; // Circle radius slightly larger than bar height
+    const circleX = barStartX - circleR - 2; // Position to the left of bar
+    const circleY = y + h/2; // Center vertically with bar
+    
+    // Gold circle background
+    ctx.fillStyle = '#d4af37';
+    ctx.beginPath();
+    ctx.arc(circleX, circleY, circleR, 0, Math.PI*2);
+    ctx.fill();
+    
+    // Gold border
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    // Level text
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 10px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(level.toString(), circleX, circleY);
+  }
+  
+  // Gold outline around health bar
+  ctx.strokeStyle = '#d4af37';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x-w/2, y, w, h);
+  
+  // Background
+  ctx.fillStyle='rgba(0,0,0,.45)';
+  ctx.fillRect(x-w/2,y,w,h);
+  
+  // Health fill
+  ctx.fillStyle='#7dff9b';
+  ctx.fillRect(x-w/2,y,w*p,h);
 }
 
 function drawSite(ctx, s, state){
@@ -833,6 +874,7 @@ function drawSite(ctx, s, state){
   const ownerColor = s.owner ? (teamColor(s.owner) || cssVar('--enemy')) : cssVar('--enemy');
   if(isBase){
     // Draw home base image in circular crop
+    let imageDrawn = false;
     try{
       const homeBaseImg = loadCachedImage(state, 'assets/structure/Home Base.png');
       if(homeBaseImg){
@@ -846,8 +888,22 @@ function drawSite(ctx, s, state){
         const imgSize = (s.r + 18) * 2;
         ctx.drawImage(homeBaseImg, s.x - imgSize/2, s.y - imgSize/2, imgSize, imgSize);
         ctx.restore();
+        imageDrawn = true;
       }
     }catch(e){}
+    
+    // If image failed, draw castle emoji as fallback
+    if(!imageDrawn){
+      // Draw castle emoji 🏰
+      ctx.font = `${s.r * 1.6}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 4;
+      ctx.fillText('🏰', s.x, s.y);
+      ctx.shadowBlur = 0;
+    }
     
     // draw a colored ring around the base
     ctx.globalAlpha = 0.92;
@@ -948,6 +1004,10 @@ function drawSite(ctx, s, state){
 function drawMiniMap(ctx, canvas, state){
   const mw=200, mh=120; const pad=10;
   const x=canvas.width-mw-pad, y=pad;
+  // Gold border
+  ctx.strokeStyle='#d4af37';
+  ctx.lineWidth=3;
+  ctx.strokeRect(x-2,y-2,mw+4,mh+4);
   ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.fillRect(x-2,y-2,mw+4,mh+4);
   ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(x,y,mw,mh);
   const mapW = state.mapWidth || canvas.width; const mapH = state.mapHeight || canvas.height;
@@ -955,10 +1015,90 @@ function drawMiniMap(ctx, canvas, state){
   // background
   ctx.fillStyle='#446b3e'; ctx.fillRect(x,y,mw,mh);
   // draw sites
-  for(const s of state.sites){ if(!s.id.startsWith('site_') && !s.id.endsWith('_base')) continue; const sx = x + (s.x/mapW)*mw; const sy = y + (s.y/mapH)*mh; ctx.fillStyle = (s.owner ? (teamColor(s.owner) || cssVar('--enemy')) : cssVar('--enemy')); ctx.beginPath(); ctx.arc(sx,sy,4,0,Math.PI*2); ctx.fill(); }
-  // player dot
+  for(const s of state.sites){ 
+    if(!s.id.startsWith('site_') && !s.id.endsWith('_base')) continue; 
+    const sx = x + (s.x/mapW)*mw; 
+    const sy = y + (s.y/mapH)*mh; 
+    const isBase = s.id.endsWith('_base');
+    const siteColor = (s.owner ? (teamColor(s.owner) || cssVar('--enemy')) : cssVar('--enemy'));
+    
+    // Draw emoji for bases and outposts
+    if(isBase){
+      // Castle for bases 🏰
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Team-colored border
+      ctx.strokeStyle = siteColor;
+      ctx.lineWidth = 2;
+      ctx.fillStyle = siteColor;
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath(); 
+      ctx.arc(sx, sy, 7, 0, Math.PI*2); 
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); 
+      ctx.arc(sx, sy, 7, 0, Math.PI*2); 
+      ctx.stroke();
+      
+      ctx.fillStyle = '#fff';
+      ctx.fillText('🏰', sx, sy);
+      
+      // Label for base
+      ctx.font = '8px system-ui';
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(sx - 20, sy + 10, 40, 12);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(s.id.replace('_', ' '), sx, sy + 16);
+    } else {
+      // Flag for outposts 🏴
+      ctx.font = '10px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Team-colored border
+      ctx.strokeStyle = siteColor;
+      ctx.lineWidth = 1.5;
+      ctx.fillStyle = siteColor;
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath(); 
+      ctx.arc(sx, sy, 5, 0, Math.PI*2); 
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); 
+      ctx.arc(sx, sy, 5, 0, Math.PI*2); 
+      ctx.stroke();
+      
+      ctx.fillStyle = '#fff';
+      ctx.fillText('🏴', sx, sy);
+      
+      // Label for outpost
+      ctx.font = '7px system-ui';
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(sx - 15, sy + 7, 30, 10);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(s.name || s.id, sx, sy + 12);
+    }
+  }
+  // player arrow (pointing in movement direction)
   const px = x + (state.player.x/mapW)*mw; const py = y + (state.player.y/mapH)*mh;
-  ctx.fillStyle = cssVar('--player'); ctx.beginPath(); ctx.arc(px,py,3,0,Math.PI*2); ctx.fill();
+  const playerAngle = Math.atan2(state.player.vy || 0, state.player.vx || 0) || 0;
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(playerAngle);
+  ctx.fillStyle = cssVar('--player');
+  ctx.beginPath();
+  // Arrow shape: point at (5,0), back corners at (-3,3) and (-3,-3)
+  ctx.moveTo(5, 0);
+  ctx.lineTo(-3, 3);
+  ctx.lineTo(-3, -3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+  ctx.restore();
   // friendly dots
   if(state.friendlies){
     for(const f of state.friendlies){
@@ -967,9 +1107,39 @@ function drawMiniMap(ctx, canvas, state){
       ctx.fillStyle = '#4a9eff'; ctx.beginPath(); ctx.arc(fx,fy,2.5,0,Math.PI*2); ctx.fill();
     }
   }
-  // dungeon dots
+  // dungeon icons
   if(state.dungeons){
-    for(const d of state.dungeons){ const dx = x + (d.x/mapW)*mw; const dy = y + (d.y/mapH)*mh; drawTriangle(ctx, dx, dy-2, 6, d.cleared ? 'rgba(80,60,40,0.6)' : '#8B5A2B'); }
+    for(const d of state.dungeons){ 
+      const dx = x + (d.x/mapW)*mw; 
+      const dy = y + (d.y/mapH)*mh; 
+      
+      // Icon background
+      ctx.fillStyle = d.cleared ? 'rgba(80,60,40,0.5)' : 'rgba(139,90,43,0.5)';
+      ctx.beginPath(); 
+      ctx.arc(dx, dy, 5, 0, Math.PI*2); 
+      ctx.fill();
+      ctx.strokeStyle = d.cleared ? '#8B7355' : '#FF6B35';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); 
+      ctx.arc(dx, dy, 5, 0, Math.PI*2); 
+      ctx.stroke();
+      
+      // Dungeon icon
+      ctx.font = '9px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = d.cleared ? '#A0826D' : '#FFD700';
+      ctx.fillText(d.cleared ? '🗡️' : '⚔️', dx, dy);
+      
+      // Label
+      ctx.font = '7px system-ui';
+      const label = d.name || `Lvl ${d.level || '?'}`;
+      const labelWidth = ctx.measureText(label).width + 6;
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(dx - labelWidth/2, dy + 7, labelWidth, 10);
+      ctx.fillStyle = d.cleared ? '#A0A0A0' : '#FFD700';
+      ctx.fillText(label, dx, dy + 12);
+    }
   }
 }
 
@@ -978,6 +1148,10 @@ function drawFullMap(ctx, canvas, state){
   const h = Math.min(canvas.height*0.9, state.mapHeight*0.6);
   const x = (canvas.width-w)/2, y = (canvas.height-h)/2;
   ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  // Gold border around map
+  ctx.strokeStyle='#d4af37';
+  ctx.lineWidth=4;
+  ctx.strokeRect(x-2,y-2,w+4,h+4);
   ctx.fillStyle='#062'; ctx.fillRect(x,y,w,h);
   const mapW = state.mapWidth||canvas.width, mapH = state.mapHeight||canvas.height;
   const scale = Math.min(w/mapW, h/mapH);
@@ -987,15 +1161,95 @@ function drawFullMap(ctx, canvas, state){
   let hoverDist = 99999;
   for(const s of state.sites){
     const sx = x + s.x*scale; const sy = y + s.y*scale;
-    ctx.fillStyle = (s.owner ? (teamColor(s.owner) || cssVar('--enemy')) : cssVar('--enemy'));
-    ctx.beginPath(); ctx.arc(sx,sy,6,0,Math.PI*2); ctx.fill();
+    const isBase = s.id && s.id.endsWith('_base');
+    const siteColor = (s.owner ? (teamColor(s.owner) || cssVar('--enemy')) : cssVar('--enemy'));
+    
+    if(isBase){
+      // Castle for bases 🏰
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Team-colored border
+      ctx.strokeStyle = siteColor;
+      ctx.lineWidth = 3;
+      ctx.fillStyle = siteColor;
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath(); 
+      ctx.arc(sx, sy, 12, 0, Math.PI*2); 
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); 
+      ctx.arc(sx, sy, 12, 0, Math.PI*2); 
+      ctx.stroke();
+      
+      ctx.fillStyle = '#fff';
+      ctx.fillText('🏰', sx, sy);
+      
+      // Label for base
+      ctx.font = 'bold 12px system-ui';
+      const baseLabel = s.id.replace('_', ' ').toUpperCase();
+      const baseLabelWidth = ctx.measureText(baseLabel).width + 8;
+      ctx.fillStyle = 'rgba(0,0,0,0.85)';
+      ctx.fillRect(sx - baseLabelWidth/2, sy + 18, baseLabelWidth, 16);
+      ctx.fillStyle = siteColor;
+      ctx.fillText(baseLabel, sx, sy + 26);
+    } else {
+      // Flag for outposts 🏴
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Team-colored border
+      ctx.strokeStyle = siteColor;
+      ctx.lineWidth = 2;
+      ctx.fillStyle = siteColor;
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath(); 
+      ctx.arc(sx, sy, 9, 0, Math.PI*2); 
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); 
+      ctx.arc(sx, sy, 9, 0, Math.PI*2); 
+      ctx.stroke();
+      
+      ctx.fillStyle = '#fff';
+      ctx.fillText('🏴', sx, sy);
+      
+      // Label for outpost
+      ctx.font = '11px system-ui';
+      const outpostLabel = s.id.toUpperCase();
+      const outpostLabelWidth = ctx.measureText(outpostLabel).width + 6;
+      ctx.fillStyle = 'rgba(0,0,0,0.85)';
+      ctx.fillRect(sx - outpostLabelWidth/2, sy + 14, outpostLabelWidth, 14);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(outpostLabel, sx, sy + 21);
+    }
+    
     // only consider clickable player-owned sites
     if(s.owner==='player'){
       const dx = mouse.x - sx, dy = mouse.y - sy; const d = Math.sqrt(dx*dx+dy*dy);
       if(d < 12 && d < hoverDist){ hoverDist = d; hoverSite = { site: s, sx, sy }; }
     }
   }
-  const px = x + state.player.x*scale; const py = y + state.player.y*scale; ctx.fillStyle=cssVar('--player'); ctx.beginPath(); ctx.arc(px,py,6,0,Math.PI*2); ctx.fill();
+  // player arrow (pointing in movement direction)
+  const px = x + state.player.x*scale; const py = y + state.player.y*scale;
+  const playerAngle = Math.atan2(state.player.vy || 0, state.player.vx || 0) || 0;
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(playerAngle);
+  ctx.fillStyle = cssVar('--player');
+  ctx.beginPath();
+  // Arrow shape: point at (8,0), back corners at (-5,5) and (-5,-5)
+  ctx.moveTo(8, 0);
+  ctx.lineTo(-5, 5);
+  ctx.lineTo(-5, -5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.restore();
   // friendly dots
   if(state.friendlies){
     for(const f of state.friendlies){
@@ -1019,5 +1273,37 @@ function drawFullMap(ctx, canvas, state){
   // instructions
   ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.font='14px system-ui'; ctx.fillText('Press M to close map. +/- to zoom. Arrow keys to pan.', x+8, y+h-12);
   // draw dungeons on full map
-  if(state.dungeons){ for(const d of state.dungeons){ const dx = x + d.x*scale; const dy = y + d.y*scale; ctx.fillStyle = d.cleared ? 'rgba(80,60,40,0.6)' : '#8B5A2B'; ctx.beginPath(); ctx.arc(dx,dy,8,0,Math.PI*2); ctx.fill(); } }
+  if(state.dungeons){ 
+    for(const d of state.dungeons){ 
+      const dx = x + d.x*scale; 
+      const dy = y + d.y*scale; 
+      
+      // Icon background
+      ctx.fillStyle = d.cleared ? 'rgba(80,60,40,0.5)' : 'rgba(139,90,43,0.5)';
+      ctx.beginPath(); 
+      ctx.arc(dx, dy, 10, 0, Math.PI*2); 
+      ctx.fill();
+      ctx.strokeStyle = d.cleared ? '#8B7355' : '#FF6B35';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); 
+      ctx.arc(dx, dy, 10, 0, Math.PI*2); 
+      ctx.stroke();
+      
+      // Dungeon icon
+      ctx.font = '18px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = d.cleared ? '#A0826D' : '#FFD700';
+      ctx.fillText(d.cleared ? '🗡️' : '⚔️', dx, dy);
+      
+      // Label
+      ctx.font = 'bold 11px system-ui';
+      const label = d.name || `DUNGEON LVL ${d.level || '?'}`;
+      const labelWidth = ctx.measureText(label).width + 8;
+      ctx.fillStyle = 'rgba(0,0,0,0.85)';
+      ctx.fillRect(dx - labelWidth/2, dy + 16, labelWidth, 15);
+      ctx.fillStyle = d.cleared ? '#A0A0A0' : '#FFD700';
+      ctx.fillText(label, dx, dy + 23);
+    } 
+  }
 }

@@ -1,0 +1,1022 @@
+Debug Diagnostic Log
+========================================================================================================================
+Generated: 1/6/2026, 8:55:43 AM
+Total Events: 22017
+Game Time: 177s
+
+CURRENT STATE:
+  Player Level: 2
+  Player HP: 184/184
+  Player Mana: 81/81
+  Player Stamina: 113/113
+  Player Shield: 157 (cap: 184)
+  Base Player MaxMana: 70
+  Stat Spends: {"vit":0,"int":0,"str":0,"def":0,"agi":0}
+
+
+======================================== undefined ========================================
+[170.36s]  undefined | type:"ENEMY_AI_STATE", enemy:"warrior", role:"DPS", hp:119, mana:40, position:{"x":4453,"y":1902}, speed:90, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:32, hasSpawnTarget:true, team:"teamC"
+[170.36s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[170.39s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:1.06, hpBefore:120, hpAfter:119, hpPercent:60
+[170.39s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:59, mana:18, speed:110
+[170.39s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:145, intactWalls:4, nearbyHostiles:1
+[170.39s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:133, intactWalls:4, nearbyHostiles:1
+[170.42s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:51, hp:34, mana:4, speed:110
+[170.42s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4344,"y":2027}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.42s]  undefined | type:"ENEMY_AI_STATE", enemy:"knight", role:"TANK", hp:327, mana:30, position:{"x":4549,"y":1914}, speed:77, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:62, hasSpawnTarget:true, team:"teamB"
+[170.45s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:50, hp:34, mana:4, speed:110
+[170.45s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2046}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.45s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:15, max:40
+[170.45s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"piercing_lance", required:16, current:12, max:60
+[170.45s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Mage Guard 1", distance:31, requiredRange:29, inWater:false
+[170.47s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4317,"y":2051}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.50s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4346,"y":2026}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.50s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:77, requiredRange:30, inWater:false
+[170.50s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:1, reason:"damage_rotation"
+[170.52s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1360, hp:63, mana:24, speed:110
+[170.52s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:1, reason:"damage_rotation"
+[170.54s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4349,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.54s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Mage 320", distance:38, requiredRange:29, inWater:false
+[170.55s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4346,"y":2026}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.55s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:115, hp:50, mana:3, speed:110
+[170.55s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:194, mana:2, position:{"x":1020,"y":2268}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:42, hasSpawnTarget:true, team:"teamA"
+[170.57s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:31, requiredRange:29, inWater:false
+[170.57s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:6, reason:"damage_rotation"
+[170.57s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"slash", required:4, current:1, max:40
+[170.60s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:81, mana:2, speed:110
+[170.60s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:3, reason:"healer_priority"
+[170.60s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:138, intactWalls:4, nearbyHostiles:1
+[170.62s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"knight", targetType:"enemy", distance:33
+[170.62s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:6, reason:"damage_rotation"
+[170.64s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[170.64s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[170.69s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:4, max:60
+[170.69s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:135, intactWalls:4, nearbyHostiles:1
+[170.70s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4345,"y":2025}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.70s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4344,"y":2028}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.70s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2066}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.70s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:52, hp:81, mana:17, speed:110
+[170.70s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:139, intactWalls:4, nearbyHostiles:1
+[170.70s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[170.72s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1359, hp:63, mana:25, speed:110
+[170.72s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:50, hp:50, mana:4, speed:110
+[170.72s]  undefined | type:"CREATURE_DEATH", creature:"wolf", boss:false, hp:"0.0", damageReceived:"63.0"
+[170.75s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:12, max:40
+[170.75s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[170.75s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:218
+[170.75s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:220
+[170.75s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:74, requiredRange:30, inWater:false
+[170.75s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:56, requiredRange:30, inWater:false
+[170.75s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:7, reason:"damage_rotation"
+[170.75s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:218
+[170.80s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2076}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.80s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4347,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.80s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[170.80s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Mage 320", distance:64, requiredRange:29, inWater:false
+[170.82s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4345,"y":2026}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.85s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4346,"y":2025}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.85s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4345,"y":2025}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.85s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:64, hp:81, mana:18, speed:110
+[170.85s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4348,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.85s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"attack_walls", target:"Flag 2", targetOwner:"teamB", wallsIntact:4
+[170.85s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[170.85s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:3, reason:"damage_rotation"
+[170.87s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:32, requiredRange:30, inWater:false
+[170.87s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:1, reason:"damage_rotation"
+[170.87s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:137, intactWalls:4, nearbyHostiles:1
+[170.89s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"ward_barrier", required:22, current:7, max:60
+[170.89s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:68, hp:81, mana:18, speed:110
+[170.92s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"heal_burst", required:18, current:9, max:60
+[170.92s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:465, hp:63, mana:6, speed:110
+[170.92s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4319,"y":2087}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.92s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:34, requiredRange:29, inWater:false
+[170.92s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:13, max:40
+[170.92s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:15, max:60
+[170.92s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:15, max:60
+[170.92s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:216
+[170.92s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:5, max:40
+[170.92s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:17, max:40
+[170.94s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4348,"y":2025}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.95s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4349,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.95s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4349,"y":2024}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.95s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:32
+[170.97s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4346,"y":2024}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.97s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage 508", distance:50, hp:50, mana:6, speed:110
+[170.97s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4350,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[170.97s]  undefined | type:"CREATURE_AI_STATE", creature:"goblin", boss:false, hp:50, target:"knight", distance:30, hitCd:"0.00", attacked:true
+[171.00s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"cleanse_wave", required:14, current:8, max:60
+[171.00s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:74, mana:5, speed:110
+[171.00s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:52, mana:18, speed:110
+[171.00s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:14, max:40
+[171.02s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.53, hpBefore:100, hpAfter:99, hpPercent:50
+[171.02s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"heal_burst", required:18, current:8, max:60
+[171.02s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4346,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.02s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:32, requiredRange:30, inWater:false
+[171.03s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"slash", required:4, current:4, max:40
+[171.05s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4349,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.05s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:6, max:40
+[171.05s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"warden", targetType:"enemy", distance:32
+[171.05s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:34, requiredRange:30, inWater:false
+[171.07s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"warrior_cleave", required:9, current:3, reason:"damage_rotation"
+[171.07s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage 508", distance:51, hp:50, mana:7, speed:110
+[171.07s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"piercing_lance", required:16, current:15, reason:"damage_rotation"
+[171.07s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:137, intactWalls:4, nearbyHostiles:1
+[171.07s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:4, max:40
+[171.10s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:17, max:40
+[171.10s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:2, reason:"damage_rotation"
+[171.10s]  undefined | type:"ENEMY_AI_STATE", enemy:"knight", role:"TANK", hp:239, mana:15, position:{"x":945,"y":2350}, speed:77, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:70, hasSpawnTarget:true, team:"teamA"
+[171.12s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:115, hp:50, mana:5, speed:110
+[171.12s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:0, max:40
+[171.13s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4349,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.13s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:50, hp:50, mana:5, speed:110
+[171.13s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:133, intactWalls:4, nearbyHostiles:1
+[171.15s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4353,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.15s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4349,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.15s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:51, hp:43, mana:8, speed:110
+[171.15s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:5, max:40
+[171.20s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4353,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.20s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4354,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.20s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warden", distance:32, requiredRange:30, inWater:false
+[171.20s]  undefined | type:"ENEMY_AI_STATE", enemy:"warden", role:"TANK", hp:241, mana:40, position:{"x":4907,"y":1419}, speed:65, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:32, hasSpawnTarget:true, team:"teamC"
+[171.22s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"heal_burst", required:18, current:11, max:60
+[171.22s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Mage 320", distance:50, hp:50, mana:6, speed:110
+[171.22s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:7, reason:"healer_priority"
+[171.22s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:144, intactWalls:4, nearbyHostiles:1
+[171.23s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1358, hp:63, mana:13, speed:110
+[171.27s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:7, hp:52, mana:20, speed:110
+[171.27s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:145, intactWalls:4, nearbyHostiles:1
+[171.27s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:1, max:40
+[171.27s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:32
+[171.27s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:34, requiredRange:30, inWater:false
+[171.27s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:135, intactWalls:4, nearbyHostiles:1
+[171.28s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.53, hpBefore:91, hpAfter:91, hpPercent:45
+[171.28s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:9, hp:52, mana:23, speed:110
+[171.28s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4355,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.28s]  undefined | type:"MANA_STARVED", unit:"Mage 508", kind:"friendly", ability:"mage_divine_touch", required:16, current:7, max:60
+[171.28s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:218
+[171.28s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:6, max:40
+[171.30s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4350,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.30s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:6, reason:"damage_rotation"
+[171.32s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:145, intactWalls:4, nearbyHostiles:1
+[171.33s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1360, hp:63, mana:14, speed:110
+[171.33s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2134}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.33s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_attack_safe", target:"warden", targetType:"enemy", distance:35
+[171.33s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:1, max:40
+[171.35s]  undefined | type:"MANA_STARVATION", unit:"Warrior 894", ability:"warrior_cleave", required:9, current:8, reason:"damage_rotation"
+[171.35s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"teamC", distance:217
+[171.35s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:139, intactWalls:4, nearbyHostiles:1
+[171.38s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:52, mana:24, speed:110
+[171.38s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:410, hp:63, mana:8, speed:110
+[171.38s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:34, hp:81, mana:21, speed:110
+[171.40s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:6, reason:"damage_rotation"
+[171.42s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4319,"y":2142}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.42s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:4, reason:"damage_rotation"
+[171.42s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:142, intactWalls:4, nearbyHostiles:1
+[171.43s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:94, mana:39, position:{"x":4846,"y":1509}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:77, hasSpawnTarget:true, team:"teamC"
+[171.45s]  undefined | type:"MANA_STARVATION", unit:"Warrior 912", ability:"piercing_lance", required:16, current:14, reason:"damage_rotation"
+[171.45s]  undefined | type:"MANA_STARVATION", unit:"Warrior 912", ability:"chain_light", required:18, current:14, reason:"damage_rotation"
+[171.45s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:4, max:60
+[171.47s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.53, hpBefore:85, hpAfter:85, hpPercent:42
+[171.47s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4351,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.47s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4319,"y":2148}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.47s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4351,"y":2019}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.47s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:6, reason:"damage_rotation"
+[171.50s]  undefined | type:"MANA_STARVED", unit:"Warrior 894", kind:"friendly", ability:"warrior_cleave", required:9, current:9, max:60
+[171.50s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:77, requiredRange:30, inWater:false
+[171.50s]  undefined | type:"ENEMY_AI_STATE", enemy:"warrior", role:"DPS", hp:224, mana:29, position:{"x":4866,"y":1429}, speed:90, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamB"
+[171.52s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4346,"y":2017}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.52s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1361, hp:63, mana:14, speed:110
+[171.52s]  undefined | type:"MANA_STARVATION", unit:"Warrior 912", ability:"chain_light", required:18, current:14, reason:"damage_rotation"
+[171.52s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2153}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.52s]  undefined | type:"MANA_STARVED", unit:"Warden 359", kind:"friendly", ability:"ward_barrier", required:22, current:21, max:60
+[171.55s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4346,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.55s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:52, mana:60, speed:110
+[171.55s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:2, max:60
+[171.55s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:5, max:60
+[171.55s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:77, requiredRange:30, inWater:false
+[171.58s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:6, hp:52, mana:21, speed:110
+[171.58s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2155}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.58s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4350,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.63s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:116, hp:43, mana:11, speed:110
+[171.63s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:7, reason:"damage_rotation"
+[171.66s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:32, requiredRange:30, inWater:false
+[171.66s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:5, max:40
+[171.70s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:52, mana:26, speed:110
+[171.70s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2150}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.70s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"arc_bolt", required:10, current:3, reason:"damage_rotation"
+[171.73s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4345,"y":2024}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.73s]  undefined | type:"ENEMY_AI_STATE", enemy:"warden", role:"TANK", hp:283, mana:40, position:{"x":4493,"y":1882}, speed:65, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:65, hasSpawnTarget:true, team:"teamB"
+[171.73s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:8, max:40
+[171.76s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4349,"y":2019}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.76s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:140, mana:25, position:{"x":4860,"y":1375}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamC"
+[171.76s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:8, max:40
+[171.80s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4350,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.80s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:86, mana:9, speed:110
+[171.80s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:136, intactWalls:4, nearbyHostiles:1
+[171.80s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:135, intactWalls:4, nearbyHostiles:1
+[171.83s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"piercing_lance", required:16, current:11, reason:"damage_rotation"
+[171.85s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:345, hp:63, mana:10, speed:110
+[171.85s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:55, hp:42, mana:0, speed:110
+[171.85s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4319,"y":2139}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[171.85s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:220
+[171.85s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:32
+[171.85s]  undefined | type:"ENEMY_AI_STATE", enemy:"warrior", role:"DPS", hp:105, mana:0, position:{"x":993,"y":2314}, speed:90, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:32, hasSpawnTarget:true, team:"teamA"
+[171.86s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:64, mana:7, speed:110
+[171.90s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Mage 320", distance:32, requiredRange:29, inWater:false
+[171.91s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:114, hp:49, mana:11, speed:110
+[171.91s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"attack_walls", target:"Flag 4", targetOwner:"teamC", wallsIntact:4
+[171.93s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"heal_burst", required:18, current:1, max:60
+[171.93s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:3, hp:57, mana:60, speed:110
+[171.95s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:334, hp:63, mana:11, speed:110
+[171.95s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:3, hp:57, mana:60, speed:110
+[171.98s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:332, hp:63, mana:11, speed:110
+[171.98s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:79, mana:10, speed:110
+[171.98s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:145, intactWalls:4, nearbyHostiles:1
+[171.98s]  undefined | type:"ENEMY_AI_STATE", enemy:"knight", role:"TANK", hp:222, mana:19, position:{"x":4463,"y":1871}, speed:77, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:107, hasSpawnTarget:true, team:"teamB"
+[172.01s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.53, hpBefore:68, hpAfter:67, hpPercent:34
+[172.01s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:220
+[172.03s]  undefined | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"cleave", required:10, current:4, max:60
+[172.03s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4350,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.03s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:136, intactWalls:4, nearbyHostiles:1
+[172.05s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4349,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.05s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 1", side:"South", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[172.06s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:41, hp:93, mana:2, speed:110
+[172.06s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:1, max:40
+[172.10s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:57, mana:8, speed:110
+[172.10s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:39, requiredRange:30, inWater:false
+[172.10s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:3, max:60
+[172.10s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:139, intactWalls:4, nearbyHostiles:1
+[172.10s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[172.10s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[172.10s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:1, max:40
+[172.11s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4342,"y":2027}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.11s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4316,"y":2123}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.11s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4347,"y":2025}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.11s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"arc_bolt", required:10, current:5, max:60
+[172.13s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1355, hp:63, mana:18, speed:110
+[172.13s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2123}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.13s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:115, hp:50, mana:13, speed:110
+[172.13s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:5, max:60
+[172.13s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:158, intactWalls:4, nearbyHostiles:1
+[172.13s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:42, requiredRange:29, inWater:false
+[172.13s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[172.15s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[172.15s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[172.15s]  undefined | type:"CREATURE_AI_STATE", creature:"goblin", boss:false, hp:50, target:"warden", distance:30, hitCd:"0.00", attacked:true
+[172.18s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"arc_bolt", required:10, current:5, max:60
+[172.18s]  undefined | type:"ENEMY_AI_STATE", enemy:"knight", role:"TANK", hp:239, mana:11, position:{"x":945,"y":2350}, speed:77, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:69, hasSpawnTarget:true, team:"teamA"
+[172.18s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[172.20s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:9, hp:57, mana:16, speed:110
+[172.20s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:55, hp:50, mana:3, speed:110
+[172.20s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"arc_bolt", required:10, current:5, max:60
+[172.20s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:32
+[172.23s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:1.06, hpBefore:61, hpAfter:60, hpPercent:30
+[172.23s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4343,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.23s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:154, intactWalls:4, nearbyHostiles:1
+[172.23s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:1, max:40
+[172.24s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1355, hp:63, mana:18, speed:110
+[172.24s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4313,"y":2130}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.24s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"piercing_lance", required:16, current:13, reason:"damage_rotation"
+[172.28s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1361, hp:63, mana:18, speed:110
+[172.28s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"teamC", distance:217
+[172.28s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warden", distance:32, requiredRange:30, inWater:false
+[172.29s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:57, mana:17, speed:110
+[172.29s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:6, hp:57, mana:60, speed:110
+[172.31s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4347,"y":2024}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.31s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:2, reason:"damage_rotation"
+[172.36s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4347,"y":2024}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.36s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:154, intactWalls:4, nearbyHostiles:1
+[172.36s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:5, max:60
+[172.38s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"warrior_life_leech", required:8, current:6, reason:"damage_rotation"
+[172.38s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4349,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.39s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:51, hp:50, mana:17, speed:110
+[172.39s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4319,"y":2143}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.39s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:16, reason:"healer_priority"
+[172.41s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[172.41s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:154, intactWalls:4, nearbyHostiles:1
+[172.41s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:6, max:60
+[172.41s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:3, max:40
+[172.43s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4350,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.43s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:281, hp:63, mana:13, speed:110
+[172.44s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:8, hp:79, mana:13, speed:110
+[172.48s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:1.06, hpBefore:53, hpAfter:52, hpPercent:26
+[172.48s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"warrior_life_leech", required:8, current:6, reason:"damage_rotation"
+[172.48s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:218
+[172.48s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[172.49s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4348,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.49s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1359, hp:63, mana:19, speed:110
+[172.49s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:57, mana:60, speed:110
+[172.49s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:7, reason:"damage_rotation"
+[172.49s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"warden", targetType:"enemy", distance:33
+[172.51s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.53, hpBefore:52, hpAfter:51, hpPercent:26
+[172.51s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:57, mana:18, speed:110
+[172.51s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:57, mana:10, speed:110
+[172.54s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:1.06, hpBefore:51, hpAfter:50, hpPercent:25
+[172.54s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"attack_walls", target:"Flag 2", targetOwner:"teamB", wallsIntact:4
+[172.54s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:35, requiredRange:29, inWater:false
+[172.56s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:117, hp:50, mana:18, speed:110
+[172.56s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4347,"y":2020}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.56s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"arc_bolt", required:10, current:7, reason:"damage_rotation"
+[172.56s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[172.56s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"attack_walls", target:"Flag 4", targetOwner:"teamC", wallsIntact:4
+[172.56s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:17, reason:"healer_priority"
+[172.58s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2163}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.58s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[172.58s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[172.58s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:144, intactWalls:4, nearbyHostiles:1
+[172.59s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[172.59s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:139, intactWalls:4, nearbyHostiles:1
+[172.61s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4348,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.61s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:32, requiredRange:30, inWater:false
+[172.64s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4347,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.64s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"warden", targetType:"enemy", distance:33
+[172.66s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4319,"y":2172}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.68s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4318,"y":2174}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.68s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:95, requiredRange:30, inWater:false
+[172.69s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4319,"y":2176}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.69s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:45, hp:93, mana:6, speed:110
+[172.69s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:1, reason:"damage_rotation"
+[172.69s]  undefined | type:"CREATURE_AI_STATE", creature:"bear", boss:false, hp:134, target:"Warrior Guard 3", distance:34, hitCd:"0.00", attacked:true
+[172.73s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4348,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.73s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:57, mana:19, speed:110
+[172.73s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:83, requiredRange:30, inWater:false
+[172.74s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 1", side:"South", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[172.74s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[172.74s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:218
+[172.74s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:32, requiredRange:30, inWater:false
+[172.81s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4353,"y":2019}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.81s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4331,"y":2177}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.81s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4348,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.81s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:145, intactWalls:4, nearbyHostiles:1
+[172.81s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:138, intactWalls:4, nearbyHostiles:1
+[172.81s]  undefined | type:"CREATURE_AI_STATE", creature:"bear", boss:false, hp:134, target:"Warrior Guard 3", distance:34, hitCd:"0.00", attacked:true
+[172.83s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:94, requiredRange:30, inWater:false
+[172.83s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:142, intactWalls:4, nearbyHostiles:1
+[172.83s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:139, intactWalls:4, nearbyHostiles:1
+[172.83s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Zag", distance:30, requiredRange:28, inWater:false
+[172.86s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:216
+[172.86s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:5, max:40
+[172.88s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.53, hpBefore:40, hpAfter:40, hpPercent:20
+[172.88s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4352,"y":2017}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.88s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:8, hp:57, mana:20, speed:110
+[172.88s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:154, intactWalls:4, nearbyHostiles:1
+[172.88s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:138, intactWalls:4, nearbyHostiles:1
+[172.89s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:52, hp:50, mana:8, speed:110
+[172.89s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4350,"y":2019}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.89s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"warden", targetType:"enemy", distance:34
+[172.92s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[172.92s]  undefined | type:"CREATURE_AI_STATE", creature:"bear", boss:false, hp:134, target:"Warrior Guard 3", distance:34, hitCd:"0.00", attacked:true
+[172.94s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4351,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.94s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4355,"y":2016}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.94s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:113, hp:50, mana:19, speed:110
+[172.94s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:216
+[172.94s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[172.96s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4349,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.96s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:50, mana:21, speed:110
+[172.96s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:52, requiredRange:30, inWater:false
+[172.96s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:32, requiredRange:30, inWater:false
+[172.97s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.53, hpBefore:37, hpAfter:36, hpPercent:18
+[172.97s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4349,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.97s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4348,"y":2177}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.97s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4354,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[172.99s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:50, mana:21, speed:110
+[173.02s]  undefined | type:"MANA_STARVED", unit:"Mage 320", kind:"friendly", ability:"ward_barrier", required:22, current:22, max:60
+[173.02s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"teamC", distance:217
+[173.02s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:2, max:40
+[173.04s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:52, hp:50, mana:9, speed:110
+[173.04s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4349,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.06s]  undefined | type:"ENEMY_AI_STATE", enemy:"warrior", role:"DPS", hp:119, mana:40, position:{"x":4538,"y":1870}, speed:90, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamC"
+[173.09s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:51, hp:50, mana:22, speed:110
+[173.11s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4352,"y":2020}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.11s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4348,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.11s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:15, max:40
+[173.11s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:34, requiredRange:30, inWater:false
+[173.12s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:66, mana:50, speed:110
+[173.12s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[173.12s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warden", distance:32, requiredRange:30, inWater:false
+[173.14s]  undefined | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"warrior_fortitude", required:15, current:2, max:60
+[173.14s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4350,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.14s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Mage 320", distance:36, requiredRange:29, inWater:false
+[173.17s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4350,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.17s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:66, mana:50, speed:110
+[173.17s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:32, requiredRange:30, inWater:false
+[173.17s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:7, max:40
+[173.17s]  undefined | type:"ENEMY_DAMAGE", enemy:"warden", role:"TANK", damage:"9.5", crit:false, hpBefore:"184.6", hpAfter:"175.1", fromPlayer:true
+[173.21s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:1.06, hpBefore:30, hpAfter:29, hpPercent:15
+[173.21s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4349,"y":2017}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.21s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4371,"y":2177}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.21s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:33, requiredRange:29, inWater:false
+[173.21s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[173.24s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:192, hp:63, mana:17, speed:110
+[173.24s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4351,"y":2020}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.27s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4351,"y":2020}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.27s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:33, requiredRange:30, inWater:false
+[173.27s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[173.29s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:144, intactWalls:4, nearbyHostiles:1
+[173.32s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:2, max:60
+[173.32s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:144, mana:35, position:{"x":4881,"y":1400}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamC"
+[173.36s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4352,"y":2019}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.36s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:6, hp:77, mana:7, speed:110
+[173.36s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:7, hp:99, mana:18, speed:110
+[173.36s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4387,"y":2178}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.36s]  undefined | type:"ENEMY_AI_STATE", enemy:"warden", role:"TANK", hp:338, mana:7, position:{"x":954,"y":2317}, speed:65, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:63, hasSpawnTarget:true, team:"teamA"
+[173.36s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:6, reason:"damage_rotation"
+[173.37s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4350,"y":2019}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.37s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:177, hp:63, mana:18, speed:110
+[173.37s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:7, hp:77, mana:15, speed:110
+[173.37s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage 508", distance:50, hp:50, mana:6, speed:110
+[173.37s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4349,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.37s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"warrior", targetType:"enemy", distance:75
+[173.37s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:32, requiredRange:30, inWater:false
+[173.41s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[173.44s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4348,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.44s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4352,"y":2018}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.44s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:154, intactWalls:4, nearbyHostiles:1
+[173.44s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:1, max:60
+[173.44s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"arc_bolt", required:10, current:3, max:60
+[173.47s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:55, hp:50, mana:12, speed:110
+[173.47s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4347,"y":2019}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.47s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4400,"y":2179}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.47s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[173.49s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:140, mana:38, position:{"x":4860,"y":1375}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:32, hasSpawnTarget:true, team:"teamC"
+[173.49s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:142, intactWalls:4, nearbyHostiles:1
+[173.49s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"warrior", targetType:"enemy", distance:76
+[173.49s]  undefined | type:"ENEMY_AI_STATE", enemy:"knight", role:"TANK", hp:239, mana:6, position:{"x":945,"y":2350}, speed:77, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:69, hasSpawnTarget:true, team:"teamA"
+[173.52s]  undefined | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"slash", required:4, current:4, max:60
+[173.52s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:220
+[173.54s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4349,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.60s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:7, hp:102, mana:19, speed:110
+[173.60s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:16, reason:"healer_priority"
+[173.64s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:138, intactWalls:4, nearbyHostiles:1
+[173.67s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4348,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.67s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4347,"y":2024}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.67s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_attack_safe", target:"Mage Guard 1", targetType:"friendly", distance:43
+[173.67s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[173.70s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4344,"y":2026}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.70s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4350,"y":2022}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.70s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[173.70s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:137, mana:36, position:{"x":4521,"y":1898}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamB"
+[173.75s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.53, hpBefore:12, hpAfter:12, hpPercent:6
+[173.75s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4345,"y":2026}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.75s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:51, hp:102, mana:12, speed:110
+[173.75s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4344,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.75s]  undefined | type:"ENEMY_AI_STATE", enemy:"knight", role:"TANK", hp:327, mana:32, position:{"x":5113,"y":1435}, speed:77, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:83, hasSpawnTarget:true, team:"teamC"
+[173.75s]  undefined | type:"ENEMY_AI_STATE", enemy:"knight", role:"TANK", hp:327, mana:32, position:{"x":4549,"y":1914}, speed:77, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:32, hasSpawnTarget:true, team:"teamB"
+[173.79s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:32, requiredRange:30, inWater:false
+[173.80s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:7, hp:80, mana:9, speed:110
+[173.80s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"heal_burst", required:18, current:15, max:60
+[173.80s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:47, hp:102, mana:12, speed:110
+[173.80s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:8, max:60
+[173.84s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"cleave", required:10, current:1, reason:"damage_rotation"
+[173.84s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"heal_burst", required:18, current:15, max:60
+[173.84s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:80, mana:18, speed:110
+[173.84s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:32, requiredRange:30, inWater:false
+[173.84s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"arc_bolt", required:10, current:5, reason:"damage_rotation"
+[173.87s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:117, hp:50, mana:10, speed:110
+[173.90s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4348,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.90s]  undefined | type:"FRIENDLY_RANGED_ATTACK", attacker:"Mage 773", attackerRole:"HEALER", target:"warden", targetType:"enemy", damage:8, distance:"56.3"
+[173.90s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warden", distance:426, requiredRange:30, inWater:false
+[173.93s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_attack_safe", target:"Mage Guard 1", targetType:"friendly", distance:43
+[173.97s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4453,"y":2177}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[173.97s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:139, intactWalls:4, nearbyHostiles:1
+[174.00s]  undefined | type:"ENEMY_AI_STATE", enemy:"warrior", role:"DPS", hp:119, mana:40, position:{"x":4503,"y":1850}, speed:90, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamC"
+[174.00s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:4, max:60
+[174.00s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warden", distance:35, requiredRange:30, inWater:false
+[174.03s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:106, hp:63, mana:2, speed:110
+[174.03s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:53, hp:43, mana:17, speed:110
+[174.03s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4345,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.03s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:33, requiredRange:30, inWater:false
+[174.03s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"mage", targetType:"enemy", distance:73
+[174.07s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4350,"y":2021}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.07s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4346,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.10s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:6, hp:80, mana:11, speed:110
+[174.10s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4467,"y":2178}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.10s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:8, hp:80, mana:39, speed:110
+[174.10s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:220
+[174.10s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:33, requiredRange:30, inWater:false
+[174.13s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"South", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:1.06, hpBefore:0, hpAfter:0, hpPercent:0
+[174.13s]  undefined | type:"WALL_DESTROYED", site:"Flag 4", side:"South", attackers:4, destroyerList:"Knight 816(TANK,friendly), Knight 835(TANK,friendly), Warden 236(TANK,friendly), Knight 754(TANK,friendly)", destroyerRoles:{"TANK":4}, remainingWalls:3
+[174.13s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4348,"y":2023}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.17s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:43, requiredRange:29, inWater:false
+[174.17s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Mage 320", distance:64, requiredRange:29, inWater:false
+[174.17s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:5, reason:"damage_rotation"
+[174.18s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 1", side:"South", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[174.18s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"warrior", targetType:"enemy", distance:73
+[174.18s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:49, requiredRange:30, inWater:false
+[174.22s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_enemy", target:"warrior", distance:52, hp:63, mana:3, speed:110
+[174.22s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4337,"y":2037}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.22s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"knight", targetType:"enemy", distance:32
+[174.22s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:136, intactWalls:3, nearbyHostiles:1
+[174.25s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4334,"y":2041}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.25s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4476,"y":2177}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.25s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:145, intactWalls:3, nearbyHostiles:1
+[174.25s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:5, max:60
+[174.28s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_enemy", target:"warrior", distance:42, hp:63, mana:4, speed:110
+[174.28s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:117, hp:50, mana:13, speed:110
+[174.31s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:220
+[174.31s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:32, requiredRange:30, inWater:false
+[174.35s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"warden", targetType:"enemy", distance:32
+[174.35s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[174.36s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:86, hp:80, mana:21, speed:110
+[174.36s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:33, requiredRange:30, inWater:false
+[174.36s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:36, requiredRange:30, inWater:false
+[174.38s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4325,"y":2065}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.38s]  undefined | type:"MANA_STARVED", unit:"Mage 508", kind:"friendly", ability:"heal_burst", required:18, current:14, max:60
+[174.40s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:115, hp:80, mana:13, speed:110
+[174.40s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:95, hp:80, mana:41, speed:110
+[174.40s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:10, max:40
+[174.43s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4337,"y":2037}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.43s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4457,"y":2178}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.43s]  undefined | type:"ENEMY_AI_STATE", enemy:"warrior", role:"DPS", hp:224, mana:40, position:{"x":4868,"y":1429}, speed:90, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:32, hasSpawnTarget:true, team:"teamB"
+[174.45s]  undefined | type:"MANA_STARVED", unit:"Knight 754", kind:"friendly", ability:"heal_burst", required:18, current:13, max:60
+[174.45s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_enemy", target:"warrior", distance:35, hp:63, mana:0, speed:110
+[174.45s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4453,"y":2178}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.45s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:216
+[174.45s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Mage 320", distance:33, requiredRange:29, inWater:false
+[174.45s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:144, intactWalls:4, nearbyHostiles:1
+[174.46s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warden", distance:32, requiredRange:30, inWater:false
+[174.50s]  undefined | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"warrior_cleave", required:9, current:4, max:60
+[174.50s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4339,"y":2034}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.50s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:8, max:60
+[174.50s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:6, max:40
+[174.50s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[174.51s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4336,"y":2035}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.51s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"arc_bolt", required:10, current:8, max:60
+[174.51s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:135, intactWalls:3, nearbyHostiles:1
+[174.51s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:216
+[174.55s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:138, intactWalls:4, nearbyHostiles:1
+[174.56s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_enemy", target:"warrior", distance:32, hp:63, mana:1, speed:110
+[174.56s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4340,"y":2032}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.56s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"warden", targetType:"enemy", distance:32
+[174.56s]  undefined | type:"ENEMY_AI_STATE", enemy:"warden", role:"TANK", hp:338, mana:14, position:{"x":954,"y":2317}, speed:65, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:63, hasSpawnTarget:true, team:"teamA"
+[174.58s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:113, hp:102, mana:24, speed:110
+[174.58s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:8, reason:"damage_rotation"
+[174.58s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:5, max:40
+[174.60s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4335,"y":2039}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.60s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:52, hp:80, mana:22, speed:110
+[174.60s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:41, hp:102, mana:16, speed:110
+[174.60s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4324,"y":2069}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.61s]  undefined | type:"FRIENDLY_RANGED_ATTACK", attacker:"Mage 508", attackerRole:"HEALER", target:"warden", targetType:"enemy", damage:8, distance:"67.1"
+[174.61s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"knight", targetType:"enemy", distance:33
+[174.61s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:9, max:60
+[174.61s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:32, requiredRange:30, inWater:false
+[174.61s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Mage 320", distance:36, requiredRange:29, inWater:false
+[174.65s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Zag", distance:31, requiredRange:28, inWater:false
+[174.65s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:144, intactWalls:4, nearbyHostiles:1
+[174.66s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4326,"y":2109}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.66s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[174.66s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:6, reason:"damage_rotation"
+[174.68s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4327,"y":2110}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.71s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:12, reason:"healer_priority"
+[174.71s]  undefined | type:"ENEMY_AI_STATE", enemy:"warden", role:"TANK", hp:288, mana:40, position:{"x":4988,"y":1452}, speed:65, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:95, hasSpawnTarget:true, team:"teamC"
+[174.73s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:105, hp:80, mana:14, speed:110
+[174.73s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4335,"y":2040}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.73s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"warden", targetType:"enemy", distance:33
+[174.73s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:8, max:60
+[174.73s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:40
+[174.73s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:8, max:40
+[174.73s]  undefined | type:"ENEMY_DAMAGE", enemy:"warrior", role:"DPS", damage:"4.0", crit:false, hpBefore:"118.9", hpAfter:"114.9", fromPlayer:true
+[174.75s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4332,"y":2044}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.75s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4335,"y":2041}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.75s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4329,"y":2117}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.75s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:3, max:40
+[174.75s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:41, requiredRange:29, inWater:false
+[174.76s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4452,"y":2182}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.76s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[174.76s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage 320", distance:70, requiredRange:29, inWater:false
+[174.80s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:103, hp:102, mana:26, speed:110
+[174.80s]  undefined | type:"MANA_STARVATION", unit:"Warrior 912", ability:"chain_light", required:18, current:13, reason:"damage_rotation"
+[174.80s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"attack_walls", target:"Flag 2", targetOwner:"teamB", wallsIntact:4
+[174.81s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:109, hp:80, mana:15, speed:110
+[174.81s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4336,"y":2041}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.81s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:28, hp:80, mana:23, speed:110
+[174.81s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:40, hp:102, mana:17, speed:110
+[174.81s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4323,"y":2091}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.81s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:61, hp:80, mana:31, speed:110
+[174.83s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4331,"y":2039}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.83s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:33
+[174.83s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:7, reason:"damage_rotation"
+[174.85s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4334,"y":2127}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.86s]  undefined | type:"MANA_STARVATION", unit:"Warrior 894", ability:"warrior_life_leech", required:8, current:2, reason:"damage_rotation"
+[174.86s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4335,"y":2129}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.86s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:88, requiredRange:29, inWater:false
+[174.86s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:10, reason:"damage_rotation"
+[174.86s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:158, intactWalls:4, nearbyHostiles:1
+[174.86s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:218
+[174.88s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[174.88s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1403, hp:63, mana:13, speed:110
+[174.88s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:54, hp:80, mana:32, speed:110
+[174.88s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_attack_safe", target:"warden", targetType:"enemy", distance:33
+[174.88s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:21, max:40
+[174.88s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Mage 320", distance:34, requiredRange:29, inWater:false
+[174.88s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:7, max:40
+[174.90s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:100, hp:80, mana:15, speed:110
+[174.90s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4332,"y":2045}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.90s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:32
+[174.93s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:98, hp:80, mana:15, speed:110
+[174.93s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4338,"y":2133}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.93s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:7, reason:"damage_rotation"
+[174.95s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:109, hp:50, mana:5, speed:110
+[174.95s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4331,"y":2048}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.95s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:38, requiredRange:29, inWater:false
+[174.96s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4340,"y":2138}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.96s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:46, hp:80, mana:32, speed:110
+[174.96s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:7, max:40
+[174.98s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"East", attackers:1, attackerList:"Knight 835(TANK)", roleCounts:{"TANK":1}, damage:0.13, hpBefore:199, hpAfter:199, hpPercent:99
+[174.98s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4326,"y":2108}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[174.98s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[174.98s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"teamC", distance:217
+[174.98s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Mage Guard 1", distance:32, requiredRange:29, inWater:false
+[175.00s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:40
+[175.00s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:32
+[175.00s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:4, reason:"damage_rotation"
+[175.03s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:117, hp:50, mana:19, speed:110
+[175.03s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"mage", targetType:"enemy", distance:76
+[175.03s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:135, intactWalls:3, nearbyHostiles:1
+[175.04s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:33, requiredRange:30, inWater:false
+[175.04s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:4, max:40
+[175.06s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4322,"y":2052}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.06s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:97, hp:80, mana:16, speed:110
+[175.06s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:36, hp:80, mana:33, speed:110
+[175.06s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[175.08s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"warrior_cleave", required:9, current:3, reason:"damage_rotation"
+[175.08s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"ward_barrier", required:22, current:6, max:60
+[175.08s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[175.08s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_attack_safe", target:"Mage Guard 1", targetType:"friendly", distance:39
+[175.08s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:218
+[175.11s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4350,"y":2149}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.11s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4485,"y":2178}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.11s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:17, max:40
+[175.14s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4331,"y":2122}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.14s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:41, requiredRange:29, inWater:false
+[175.14s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[175.14s]  undefined | type:"CREATURE_AI_STATE", creature:"goblin", boss:false, hp:50, target:"knight", distance:30, hitCd:"0.00", attacked:true
+[175.18s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4320,"y":2053}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.18s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:16, reason:"healer_priority"
+[175.18s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Zag", distance:30, requiredRange:28, inWater:false
+[175.18s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:0, reason:"damage_rotation"
+[175.19s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4326,"y":2053}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.19s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4350,"y":2149}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.19s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:77, requiredRange:30, inWater:false
+[175.19s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:135, intactWalls:3, nearbyHostiles:1
+[175.21s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:16, max:40
+[175.23s]  undefined | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"mage_radiant_aura", required:18, current:7, max:60
+[175.23s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4333,"y":2126}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.23s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:64, requiredRange:30, inWater:false
+[175.23s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:220
+[175.23s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:3, reason:"damage_rotation"
+[175.24s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"ward_barrier", required:22, current:8, max:60
+[175.24s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:44, hp:102, mana:20, speed:110
+[175.24s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:2, max:60
+[175.28s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage 320", distance:70, requiredRange:29, inWater:false
+[175.29s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4349,"y":2148}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.29s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4503,"y":2173}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.29s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4335,"y":2130}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.29s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:218
+[175.31s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4309,"y":2067}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.31s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"teamC", distance:217
+[175.31s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:98, requiredRange:30, inWater:false
+[175.33s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4503,"y":2170}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.34s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"knight", targetType:"enemy", distance:33
+[175.34s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:11, reason:"damage_rotation"
+[175.34s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:142, intactWalls:4, nearbyHostiles:1
+[175.38s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4504,"y":2166}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.38s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[175.38s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Mage 320", distance:33, requiredRange:29, inWater:false
+[175.39s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:37, hp:102, mana:21, speed:110
+[175.41s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:50, hp:50, mana:6, speed:110
+[175.41s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:94, mana:18, position:{"x":4846,"y":1510}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:76, hasSpawnTarget:true, team:"teamC"
+[175.41s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:58, requiredRange:30, inWater:false
+[175.41s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage 320", distance:73, requiredRange:29, inWater:false
+[175.44s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:50, hp:50, mana:4, speed:110
+[175.44s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:2, reason:"healer_priority"
+[175.46s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4505,"y":2156}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.46s]  undefined | type:"ENEMY_AI_STATE", enemy:"warrior", role:"DPS", hp:224, mana:40, position:{"x":4862,"y":1429}, speed:90, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:35, hasSpawnTarget:true, team:"teamB"
+[175.46s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:218
+[175.49s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_enemy", target:"warrior", distance:31, hp:63, mana:2, speed:110
+[175.49s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1406, hp:63, mana:16, speed:110
+[175.53s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:54, hp:50, mana:10, speed:110
+[175.53s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"attack_walls", target:"Flag 2", targetOwner:"teamB", wallsIntact:4
+[175.53s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:60
+[175.56s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_enemy", target:"warrior", distance:31, hp:63, mana:2, speed:110
+[175.56s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4342,"y":2140}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.56s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:3, reason:"healer_priority"
+[175.56s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[175.56s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[175.58s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:81, hp:102, mana:30, speed:110
+[175.58s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:33, hp:102, mana:22, speed:110
+[175.58s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:88, requiredRange:29, inWater:false
+[175.58s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:218
+[175.59s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[175.59s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:11, reason:"healer_priority"
+[175.59s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:144, intactWalls:4, nearbyHostiles:1
+[175.59s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:138, intactWalls:4, nearbyHostiles:1
+[175.61s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4323,"y":2072}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.61s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:80, mana:27, speed:110
+[175.61s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4344,"y":2142}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.61s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:5, max:40
+[175.61s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:135, intactWalls:3, nearbyHostiles:1
+[175.61s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:48, requiredRange:30, inWater:false
+[175.64s]  undefined | type:"MANA_STARVED", unit:"Warrior 894", kind:"friendly", ability:"warrior_life_leech", required:8, current:2, max:60
+[175.64s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4324,"y":2074}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.64s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[175.64s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:158, intactWalls:4, nearbyHostiles:1
+[175.66s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4325,"y":2111}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.66s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[175.71s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"East", attackers:2, attackerList:"Knight 816(TANK), Knight 835(TANK)", roleCounts:{"TANK":2}, damage:0.53, hpBefore:189, hpAfter:188, hpPercent:94
+[175.71s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4351,"y":2150}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.71s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:80, mana:28, speed:110
+[175.74s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:12, reason:"healer_priority"
+[175.77s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:94, requiredRange:30, inWater:false
+[175.81s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4347,"y":2148}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.81s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 1", side:"South", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[175.81s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:13, reason:"damage_rotation"
+[175.81s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"attack_walls", target:"Flag 4", targetOwner:"teamC", wallsIntact:3
+[175.81s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:8, max:40
+[175.82s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4323,"y":2089}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.82s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4351,"y":2150}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.82s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:5, reason:"healer_priority"
+[175.86s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4323,"y":2090}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.86s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:21, max:40
+[175.86s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:220
+[175.86s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:33, requiredRange:30, inWater:false
+[175.86s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:194, mana:8, position:{"x":1025,"y":2267}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:41, hasSpawnTarget:true, team:"teamA"
+[175.91s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:137, mana:37, position:{"x":4521,"y":1898}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:57, hasSpawnTarget:true, team:"teamB"
+[175.91s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[175.94s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:25, hp:73, mana:21, speed:110
+[175.94s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4323,"y":2094}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.94s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:52, hp:50, mana:7, speed:110
+[175.94s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:158, intactWalls:4, nearbyHostiles:1
+[175.96s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4334,"y":2129}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.96s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4347,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[175.96s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:80, mana:38, speed:110
+[175.96s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:88, requiredRange:29, inWater:false
+[175.96s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:32
+[175.96s]  undefined | type:"ENEMY_AI_STATE", enemy:"knight", role:"TANK", hp:327, mana:40, position:{"x":4576,"y":1941}, speed:77, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamB"
+[175.97s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:51, hp:36, mana:13, speed:110
+[175.97s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:6, reason:"healer_priority"
+[175.97s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:54, requiredRange:30, inWater:false
+[175.97s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_attack_safe", target:"Mage Guard 1", targetType:"friendly", distance:42
+[176.01s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:80, mana:38, speed:110
+[176.02s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:220
+[176.02s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:14, max:60
+[176.06s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"East", attackers:3, attackerList:"Knight 816(TANK), Knight 835(TANK), Knight 754(TANK)", roleCounts:{"TANK":3}, damage:0.79, hpBefore:182, hpAfter:181, hpPercent:90
+[176.06s]  undefined | type:"FRIENDLY_RANGED_ATTACK", attacker:"Mage Guard 1", attackerRole:"HEALER", target:"warden", targetType:"enemy", damage:9.5, distance:"31.1"
+[176.06s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"knight", targetType:"enemy", distance:32
+[176.06s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:41, requiredRange:29, inWater:false
+[176.06s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:60, requiredRange:30, inWater:false
+[176.06s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:1, max:40
+[176.07s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4338,"y":2134}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.07s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4504,"y":2094}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.07s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4346,"y":2147}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.07s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"warcry", required:12, current:8, max:40
+[176.07s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[176.10s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:4, reason:"damage_rotation"
+[176.10s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:33, requiredRange:30, inWater:false
+[176.12s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:1, max:40
+[176.15s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:51, hp:36, mana:11, speed:110
+[176.15s]  undefined | type:"ENEMY_AI_STATE", enemy:"warrior", role:"DPS", hp:119, mana:30, position:{"x":4605,"y":1925}, speed:90, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamC"
+[176.17s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4340,"y":2138}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.17s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4326,"y":2107}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.17s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4348,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.17s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:145, intactWalls:3, nearbyHostiles:1
+[176.17s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warden", distance:35, requiredRange:30, inWater:false
+[176.20s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4347,"y":2146}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.20s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4503,"y":2088}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.20s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:158, intactWalls:4, nearbyHostiles:1
+[176.22s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4326,"y":2110}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.22s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4503,"y":2085}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.22s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4353,"y":2151}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.24s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4326,"y":2111}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.24s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4352,"y":2151}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.24s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:144, mana:38, position:{"x":4881,"y":1400}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:34, hasSpawnTarget:true, team:"teamC"
+[176.24s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"arc_bolt", required:10, current:7, max:40
+[176.27s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:4, max:60
+[176.27s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:135, intactWalls:3, nearbyHostiles:1
+[176.29s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:40, hp:95, mana:34, speed:110
+[176.29s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:80, mana:39, speed:110
+[176.29s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Mage Guard 1", distance:31, requiredRange:29, inWater:false
+[176.29s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:17, max:40
+[176.32s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:7, hp:73, mana:23, speed:110
+[176.32s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:32
+[176.32s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:138, intactWalls:4, nearbyHostiles:1
+[176.34s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:73, mana:23, speed:110
+[176.34s]  undefined | type:"MANA_STARVED", unit:"Mage 320", kind:"friendly", ability:"ward_barrier", required:22, current:13, max:60
+[176.34s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:2, reason:"damage_rotation"
+[176.37s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"East", attackers:3, attackerList:"Knight 816(TANK), Knight 835(TANK), Knight 754(TANK)", roleCounts:{"TANK":3}, damage:0.79, hpBefore:174, hpAfter:173, hpPercent:87
+[176.37s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"ward_barrier", required:22, current:16, max:60
+[176.37s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4328,"y":2116}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.37s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:17, max:40
+[176.39s]  undefined | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"warrior_fortitude", required:15, current:6, max:60
+[176.39s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4345,"y":2144}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.39s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 1", side:"South", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[176.39s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:154, intactWalls:3, nearbyHostiles:1
+[176.39s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:6, max:40
+[176.42s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:117, hp:50, mana:13, speed:110
+[176.42s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:144, mana:40, position:{"x":4881,"y":1400}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamC"
+[176.44s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4347,"y":2146}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.44s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4345,"y":2148}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.44s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:140, mana:29, position:{"x":4860,"y":1375}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:33, hasSpawnTarget:true, team:"teamC"
+[176.44s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:7, reason:"damage_rotation"
+[176.47s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[176.47s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Mage 320", distance:30, requiredRange:29, inWater:false
+[176.50s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage 320", distance:73, requiredRange:29, inWater:false
+[176.50s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"cleave", required:10, current:3, max:40
+[176.54s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:28, hp:95, mana:35, speed:110
+[176.54s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1404, hp:63, mana:22, speed:110
+[176.54s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4503,"y":2052}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.54s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:8, hp:80, mana:41, speed:110
+[176.57s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4345,"y":2149}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.57s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:145, intactWalls:3, nearbyHostiles:1
+[176.57s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"healer_priority"
+[176.57s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:6, reason:"damage_rotation"
+[176.57s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:220
+[176.57s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:60, requiredRange:30, inWater:false
+[176.60s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4348,"y":2146}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.60s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"warcry", required:12, current:11, max:40
+[176.63s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"East", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:1.06, hpBefore:167, hpAfter:166, hpPercent:83
+[176.63s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4503,"y":2041}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.67s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:59, requiredRange:30, inWater:false
+[176.67s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:9, reason:"damage_rotation"
+[176.67s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:0, max:40
+[176.70s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4504,"y":2034}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.73s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4345,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.73s]  undefined | type:"SHIELDED_DAMAGE", attacker:"Warden 236", target:"warrior", targetType:"enemy", shieldBefore:"5.0", shieldAfter:"0.0", hpLoss:"5.0", totalDamage:"5.0", targetHP:62
+[176.73s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4349,"y":2147}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.73s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:3, reason:"damage_rotation"
+[176.73s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[176.75s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4504,"y":2027}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.75s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:40
+[176.77s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:67, requiredRange:30, inWater:false
+[176.80s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"knight", targetType:"enemy", distance:32
+[176.82s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4340,"y":2137}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.82s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4350,"y":2152}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[176.82s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:135, intactWalls:3, nearbyHostiles:1
+[176.83s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"warcry", required:12, current:12, max:40
+[176.85s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:12, reason:"healer_priority"
+[176.85s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:10, max:60
+[176.85s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:136, intactWalls:3, nearbyHostiles:1
+[176.85s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:1, max:40
+[176.85s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:5, max:40
+[176.85s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Mage 320", distance:38, requiredRange:29, inWater:false
+[176.87s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1405, hp:63, mana:23, speed:110
+[176.87s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"mage", targetType:"enemy", distance:74
+[176.87s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:1, reason:"damage_rotation"
+[176.90s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:3, hp:80, mana:14, speed:110
+[176.90s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:34, hp:102, mana:29, speed:110
+[176.90s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[176.90s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_support_position", target:"warrior", targetType:"enemy", distance:76
+[176.90s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_attack_safe", target:"warden", targetType:"enemy", distance:35
+[176.90s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:2, reason:"damage_rotation"
+[176.90s]  undefined | type:"ENEMY_DAMAGE", enemy:"mage", role:"HEALER", damage:"8.0", crit:false, hpBefore:"99.6", hpAfter:"91.6", fromPlayer:true
+[176.92s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1399, hp:63, mana:23, speed:110
+[176.93s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"ward_barrier", required:22, current:4, max:60
+[176.93s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[176.93s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:220
+[176.93s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:40
+[176.97s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_enemy", target:"warrior", distance:31, hp:63, mana:5, speed:110
+[176.97s]  undefined | type:"ENEMY_DAMAGE", enemy:"warrior", role:"DPS", damage:"8.0", crit:false, hpBefore:"49.0", hpAfter:"41.0", fromPlayer:false
+[176.97s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:13, reason:"healer_priority"
+[176.98s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_enemy", target:"warrior", distance:32, hp:63, mana:5, speed:110
+[177.00s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:50, hp:43, mana:4, speed:110
+[177.00s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4347,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.00s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[177.00s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_anchor", required:10, current:10, max:40
+[177.03s]  undefined | type:"MANA_STARVED", unit:"Mage 508", kind:"friendly", ability:"mage_radiant_aura", required:18, current:16, max:60
+[177.03s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:32, requiredRange:30, inWater:false
+[177.03s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:95, requiredRange:30, inWater:false
+[177.05s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4504,"y":2049}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.05s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:42, requiredRange:29, inWater:false
+[177.07s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:41, hp:102, mana:30, speed:110
+[177.07s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:2, reason:"damage_rotation"
+[177.10s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[177.10s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[177.10s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:218
+[177.10s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:3, reason:"damage_rotation"
+[177.11s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:138, intactWalls:4, nearbyHostiles:1
+[177.11s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:2, reason:"damage_rotation"
+[177.13s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 816", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:80, mana:26, speed:110
+[177.13s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:15, reason:"healer_priority"
+[177.15s]  undefined | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"cleave", required:10, current:6, max:60
+[177.15s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4345,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.15s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 236", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:6, hp:102, mana:38, speed:110
+[177.15s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4503,"y":2052}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.15s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:4, max:40
+[177.18s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 912", role:"DPS", decision:"attack_objective", target:"Flag 4", distance:1403, hp:63, mana:25, speed:110
+[177.18s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[177.20s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:32, requiredRange:30, inWater:false
+[177.20s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:144, intactWalls:4, nearbyHostiles:1
+[177.21s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:15, max:40
+[177.21s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:32, requiredRange:30, inWater:false
+[177.21s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:12, reason:"damage_rotation"
+[177.23s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4348,"y":2149}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.23s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:12, reason:"damage_rotation"
+[177.26s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"knight", targetType:"enemy", distance:33
+[177.26s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:5, max:60
+[177.28s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:116, hp:43, mana:6, speed:110
+[177.28s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4349,"y":2146}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.28s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"healer_attack_safe", target:"Mage Guard 1", targetType:"friendly", distance:41
+[177.28s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_anchor", required:10, current:4, max:40
+[177.30s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:218
+[177.31s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4508,"y":2048}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.31s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4349,"y":2148}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.31s]  undefined | type:"MANA_STARVED", unit:"Mage 508", kind:"friendly", ability:"mage_radiant_aura", required:18, current:18, max:60
+[177.31s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:32, requiredRange:30, inWater:false
+[177.31s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warden", distance:35, requiredRange:30, inWater:false
+[177.31s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:194, mana:5, position:{"x":1028,"y":2269}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:38, hasSpawnTarget:true, team:"teamA"
+[177.35s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4346,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.35s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:5, hp:80, mana:27, speed:110
+[177.35s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4509,"y":2046}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.35s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4347,"y":2146}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.35s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:6, reason:"damage_rotation"
+[177.35s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"East", wallHP:200, distance:158, intactWalls:4, nearbyHostiles:1
+[177.35s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:3, reason:"damage_rotation"
+[177.36s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4345,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.36s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4346,"y":2152}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.36s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"arc_bolt", required:10, current:6, max:60
+[177.36s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"mage_radiant_aura", required:18, current:6, max:60
+[177.36s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warden", distance:427, requiredRange:30, inWater:false
+[177.36s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"dps_attack_host", target:"mage", targetType:"enemy", distance:33
+[177.36s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_cleave", required:9, current:3, reason:"damage_rotation"
+[177.38s]  undefined | type:"MANA_STARVED", unit:"Mage 773", kind:"friendly", ability:"ward_barrier", required:22, current:8, max:60
+[177.38s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4349,"y":2147}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.41s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4347,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.41s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4508,"y":2039}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.41s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4347,"y":2150}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.41s]  undefined | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:17, reason:"healer_priority"
+[177.41s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:13, reason:"damage_rotation"
+[177.43s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[177.43s]  undefined | type:"MANA_STARVED", unit:"Mage 320", kind:"friendly", ability:"heal_burst", required:18, current:7, max:60
+[177.43s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:220
+[177.43s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:33, requiredRange:30, inWater:false
+[177.46s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:40, requiredRange:29, inWater:false
+[177.46s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:33, requiredRange:30, inWater:false
+[177.46s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"chain_light", required:18, current:6, max:60
+[177.48s]  undefined | type:"FRIENDLY_RANGED_ATTACK", attacker:"Mage Guard 1", attackerRole:"HEALER", target:"warden", targetType:"enemy", damage:9.5, distance:"31.1"
+[177.48s]  undefined | type:"MANA_STARVED", unit:"Warrior 894", kind:"friendly", ability:"warrior_life_leech", required:8, current:4, max:60
+[177.48s]  undefined | type:"TANK_AI_START", tank:"Knight 835", position:{"x":4347,"y":2148}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.48s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4345,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.48s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Mage 320", distance:50, hp:50, mana:1, speed:110
+[177.48s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:218
+[177.48s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_cleave", required:9, current:4, max:40
+[177.50s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 773", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:54, hp:36, mana:9, speed:110
+[177.50s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4346,"y":2145}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.50s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 508", role:"HEALER", decision:"follow_ally", target:"Warrior Guard 5", distance:116, hp:50, mana:1, speed:110
+[177.50s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:11, max:40
+[177.50s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:139, intactWalls:4, nearbyHostiles:1
+[177.50s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:32, requiredRange:30, inWater:false
+[177.53s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4348,"y":2148}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.53s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:33, requiredRange:30, inWater:false
+[177.58s]  undefined | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:3, max:40
+[177.58s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"piercing_lance", required:16, current:7, max:60
+[177.58s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"piercing_lance", required:16, current:14, reason:"damage_rotation"
+[177.60s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4351,"y":2150}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.60s]  undefined | type:"TANK_AI_START", tank:"Warden 359", position:{"x":4505,"y":2020}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.60s]  undefined | type:"ENEMY_AI_STATE", enemy:"warden", role:"TANK", hp:338, mana:3, position:{"x":955,"y":2317}, speed:65, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:62, hasSpawnTarget:true, team:"teamA"
+[177.60s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"piercing_lance", required:16, current:7, reason:"damage_rotation"
+[177.60s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:7, reason:"damage_rotation"
+[177.60s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 2", targetOwner:"teamB", distance:220
+[177.60s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warrior", distance:77, requiredRange:30, inWater:false
+[177.61s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4348,"y":2147}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.61s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 320", role:"HEALER", decision:"follow_ally", target:"Mage Guard 1", distance:51, hp:50, mana:8, speed:110
+[177.61s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 2", side:"North", wallHP:200, distance:142, intactWalls:4, nearbyHostiles:1
+[177.61s]  undefined | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:1, max:40
+[177.63s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"East", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.53, hpBefore:135, hpAfter:134, hpPercent:67
+[177.63s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 835", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:3, hp:80, mana:29, speed:110
+[177.63s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:34, hp:52, mana:33, speed:110
+[177.66s]  undefined | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"warrior_cleave", required:9, current:0, reason:"damage_rotation"
+[177.68s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 359", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:36, hp:52, mana:33, speed:110
+[177.71s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 894", role:"DPS", decision:"attack_enemy", target:"warrior", distance:32, hp:63, mana:5, speed:110
+[177.71s]  undefined | type:"ENEMY_AI_STATE", enemy:"warrior", role:"DPS", hp:200, mana:40, position:{"x":4847,"y":1405}, speed:90, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:32, hasSpawnTarget:true, team:"teamB"
+[177.73s]  undefined | type:"MANA_STARVED", unit:"Mage 320", kind:"friendly", ability:"heal_burst", required:18, current:9, max:60
+[177.73s]  undefined | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:39, requiredRange:29, inWater:false
+[177.73s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"cleave", required:10, current:4, reason:"damage_rotation"
+[177.74s]  undefined | type:"ENEMY_AI_STATE", enemy:"mage", role:"HEALER", hp:202, mana:13, position:{"x":4821,"y":1494}, speed:95, hitCd:"0.00", attacked:true, inWater:false, nearestHostDist:78, hasSpawnTarget:true, team:"teamC"
+[177.74s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:133, intactWalls:4, nearbyHostiles:1
+[177.74s]  undefined | type:"ENEMY_AI_TARGET", enemy:"warrior", decision:"outpost_focus", target:"Flag 6", targetOwner:"player", distance:218
+[177.76s]  undefined | type:"TANK_AI_START", tank:"Knight 754", position:{"x":4350,"y":2149}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.76s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4348,"y":2147}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.76s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"chain_light", required:18, current:14, reason:"damage_rotation"
+[177.78s]  undefined | type:"MANA_STARVED", unit:"Mage 508", kind:"friendly", ability:"ward_barrier", required:22, current:3, max:60
+[177.78s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"slash", required:4, current:4, reason:"damage_rotation"
+[177.79s]  undefined | type:"WALL_DAMAGE", site:"Flag 4", side:"East", attackers:4, attackerList:"Knight 816(TANK), Knight 835(TANK), Warden 236(TANK), Knight 754(TANK)", roleCounts:{"TANK":4}, damage:0.54, hpBefore:129, hpAfter:129, hpPercent:64
+[177.79s]  undefined | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 754", role:"TANK", decision:"attack_wall", target:"Flag 4 wall", distance:4, hp:73, mana:19, speed:110
+[177.79s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4350,"y":2148}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.79s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_combat", target:"Flag 6", side:"South"
+[177.79s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 4", side:"West", wallHP:200, distance:137, intactWalls:3, nearbyHostiles:1
+[177.83s]  undefined | type:"TANK_AI_START", tank:"Knight 816", position:{"x":4349,"y":2148}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.83s]  undefined | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"TANK", decision:"tank_walls_outpost", target:"Flag 6", side:"South", wallHP:141, distance:144, intactWalls:4, nearbyHostiles:1
+[177.84s]  undefined | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"warrior_cleave", required:9, current:1, max:60
+[177.84s]  undefined | type:"TANK_AI_START", tank:"Warden 236", position:{"x":4351,"y":2150}, closestObjective:"Flag 4", closestObjectivePos:{"x":4411,"y":2085}, wallTarget:"YES", initialDecision:"idle"
+[177.84s]  undefined | type:"ENEMY_AI_TARGET", enemy:"mage", decision:"outpost_focus", target:"Flag 4", targetOwner:"teamC", distance:217
+[177.84s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"arc_bolt", required:10, current:8, reason:"damage_rotation"
+[177.84s]  undefined | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"arc_bolt", required:10, current:8, max:60
+[177.84s]  undefined | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:4, reason:"damage_rotation"
+[177.84s]  undefined | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+
+======================================== SHIELD ========================================
+[170.47s]  Periodic shield check | shieldValue:157.2, shieldSource:"Warrior 894 (ability)", nearbyAllies:1, nearbyEnemies:0
+[175.49s]  Periodic shield check | shieldValue:157.2, shieldSource:"Warrior 894 (ability)", nearbyAllies:0, nearbyEnemies:0
+
+========================================================================================================================
+END OF DEBUG LOG

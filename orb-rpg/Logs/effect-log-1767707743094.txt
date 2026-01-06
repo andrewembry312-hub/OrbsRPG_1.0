@@ -1,0 +1,45 @@
+Effect Cast Log
+======================================================================
+Generated: 1/6/2026, 8:55:43 AM
+Total Effects: 2000
+Game Time: 177s
+
+FRIENDLY EFFECTS:
+----------------------------------------------------------------------
+  HEAL+SHIELD:
+    knight_rally                           26 casts
+    cleanse_wave                           47 casts
+  HEAL:
+    mage_divine_touch                     106 casts
+    heal_burst                             83 casts
+  SHIELD+HEAL:
+    knight_shield_wall                     49 casts
+  SHIELD:
+    mage_radiant_aura                      54 casts
+    tank_bodyguard                         13 casts
+    knight_taunt                           59 casts
+    warcry                                 57 casts
+    tank_anchor                            15 casts
+    tank_iron_skin                         12 casts
+    warrior_fortitude                      96 casts
+    ward_barrier                           17 casts
+
+ENEMY EFFECTS:
+----------------------------------------------------------------------
+  SHIELD:
+    mage_radiant_aura                      99 casts
+    warrior_fortitude                      98 casts
+    tank_bodyguard                         57 casts
+    tank_anchor                            63 casts
+    knight_taunt                          123 casts
+    warcry                                120 casts
+    ward_barrier                           29 casts
+    tank_iron_skin                         46 casts
+  HEAL+SHIELD:
+    knight_rally                           33 casts
+    cleanse_wave                           72 casts
+  HEAL:
+    mage_divine_touch                     278 casts
+    heal_burst                            244 casts
+  SHIELD+HEAL:
+    knight_shield_wall                    104 casts
