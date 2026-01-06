@@ -1,0 +1,63 @@
+Combat Event Log
+====================================================================================================
+Generated: 1/6/2026, 2:50:46 PM
+Total Events: 54
+Game Time: 195s
+
+[11.20s]     SHIELD ONLY: Player blocked 7.00 damage (raw: 7.00) | Shield absorbed all damage
+[13.49s]     SHIELD ONLY: Player blocked 7.00 damage (raw: 7.00) | Shield absorbed all damage
+[14.16s]     SHIELD ONLY: Player blocked 7.00 damage (raw: 7.00) | Shield absorbed all damage
+[14.82s]     SHIELD ONLY: Player blocked 7.00 damage (raw: 7.00) | Shield absorbed all damage
+[15.49s]     SHIELD ONLY: Player blocked 7.00 damage (raw: 7.00) | Shield absorbed all damage
+[25.86s]     SHIELD ONLY: Player blocked 11.00 damage (raw: 11.00) | Shield absorbed all damage
+[36.00s]     SHIELD ONLY: Player blocked 8.00 damage (raw: 8.00) | Shield absorbed all damage
+[36.06s]     SHIELD ONLY: Player blocked 12.00 damage (raw: 12.00) | Shield absorbed all damage
+[56.92s]     SHIELD ONLY: Player blocked 10.00 damage (raw: 10.00) | Shield absorbed all damage
+[56.98s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[57.46s]     SHIELD ONLY: Player blocked 10.00 damage (raw: 10.00) | Shield absorbed all damage
+[57.55s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[58.23s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[58.76s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[59.24s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[59.77s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[60.24s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[60.77s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[61.29s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[61.80s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[62.30s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[62.83s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[63.31s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[64.34s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[65.36s]     SHIELD ONLY: Player blocked 11.00 damage (raw: 11.00) | Shield absorbed all damage
+[65.36s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[65.36s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[66.35s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[66.60s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[67.37s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[67.60s]     SHIELD ONLY: Player blocked 11.00 damage (raw: 11.00) | Shield absorbed all damage
+[67.60s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[67.60s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[68.31s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[68.51s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[68.69s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[69.33s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[69.51s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[69.71s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[70.32s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[70.54s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[70.72s]     SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[117.49s]    SHIELD ONLY: Player blocked 11.00 damage (raw: 11.00) | Shield absorbed all damage
+[179.73s]    SHIELD ONLY: Player blocked 47.00 damage (raw: 47.00) | Shield absorbed all damage
+[179.76s]    SHIELD ONLY: Player blocked 47.00 damage (raw: 47.00) | Shield absorbed all damage
+[179.98s]    SHIELD ONLY: Player blocked 47.00 damage (raw: 47.00) | Shield absorbed all damage
+[180.32s]    SHIELD ONLY: Player blocked 39.00 damage (raw: 39.00) | Shield absorbed all damage
+[180.44s]    DAMAGE: Player took 37.86 HP (raw: 39.00, shield: 0.00, block: 0.00, def: 1.14) | HP: 184.00 → 146.14
+[181.33s]    SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[181.90s]    SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[181.98s]    SHIELD ONLY: Player blocked 13.00 damage (raw: 13.00) | Shield absorbed all damage
+[182.13s]    SHIELD ONLY: Player blocked 13.00 damage (raw: 13.00) | Shield absorbed all damage
+[182.13s]    SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[182.36s]    SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+
+====================================================================================================
+END OF LOG

@@ -1,0 +1,11 @@
+Console Errors Log
+======================================================================
+Generated: 1/6/2026, 2:50:46 PM
+Total Errors: 3
+
+[undefined] undefined: %c[UNEXPLAINED HP JUMP] color: #f0f; font-weight: bold; HP jumped by 13.5 but regen only accounts for 0.0 UNEXPLAINED: 13.5
+
+[undefined] undefined: %c[UNEXPLAINED HP JUMP] color: #f0f; font-weight: bold; HP jumped by 24.0 but regen only accounts for 0.0 UNEXPLAINED: 23.9
+
+[undefined] undefined: %c[UNEXPLAINED HP JUMP] color: #f0f; font-weight: bold; HP jumped by 37.8 but regen only accounts for 0.0 UNEXPLAINED: 37.8
+

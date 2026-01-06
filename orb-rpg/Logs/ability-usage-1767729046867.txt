@@ -1,0 +1,31 @@
+Ability Usage Log
+======================================================================
+Generated: 1/6/2026, 2:50:46 PM
+Game Time: 195s
+
+FRIENDLY ABILITIES:
+----------------------------------------------------------------------
+warrior_fortitude              Total:   250 | DPS:250 | CD: 8.0s (actual: 1.1s)
+mage_radiant_aura              Total:   115 | DPS:35, HEALER:69, GUARD_HEALER:11 | CD: 8.0s (actual: 1.9s)
+piercing_lance                 Total:    21 | DPS:21 | CD: 6.0s (actual: 8.2s)
+arc_bolt                       Total:    42 | DPS:42 | CD: 3.5s (actual: 4.1s)
+chain_light                    Total:     1 | DPS:1 | CD: 5.5s (actual: 0.0s)
+ward_barrier                   Total:    55 | HEALER:23, TANK:24, GUARD_HEALER:8 | CD: 10.0s (actual: 3.5s)
+cleanse_wave                   Total:    50 | HEALER:50 | CD: 9.0s (actual: 3.4s)
+tank_iron_skin                 Total:    39 | TANK:39 | CD: 10.0s (actual: 4.2s)
+
+ENEMY ABILITIES:
+----------------------------------------------------------------------
+knight_taunt                   Total:   333 | TANK:333 | CD: 8.0s (actual: 1.3s)
+warcry                         Total:   325 | TANK:325 | CD: 8.0s (actual: 1.1s)
+knight_shield_wall             Total:   297 | TANK:297 | CD: 9.0s (actual: 1.3s)
+knight_rally                   Total:    74 | TANK:74 | CD: 10.0s (actual: 3.1s)
+heal_burst                     Total:   347 | TANK:90, HEALER:228, GUARD_HEALER:29 | CD: 7.5s (actual: 0.6s)
+mage_divine_touch              Total:   432 | HEALER:394, GUARD_HEALER:38 | CD: 4.5s (actual: 0.5s)
+tank_bodyguard                 Total:    57 | TANK:57 | CD: 11.0s (actual: 3.1s)
+tank_anchor                    Total:    61 | TANK:61 | CD: 9.0s (actual: 3.0s)
+cleave                         Total:    38 | DPS:38 | CD: 3.2s (actual: 4.0s)
+slash                          Total:   244 | DPS:244 | CD: 1.0s (actual: 0.8s)
+warrior_life_leech             Total:    63 | DPS:63 | CD: 4.0s (actual: 2.7s)
+warrior_cleave                 Total:    24 | DPS:23, GUARD_DPS:1 | CD: 4.2s (actual: 5.8s)
+meteor_slam                    Total:  1820 | GUARD_DPS:1820

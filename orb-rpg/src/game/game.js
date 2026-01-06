@@ -1845,6 +1845,28 @@ function npcCastSupportAbility(state, u, id, target){
       logEffect(state, 'shield', 'tank_anchor', u, kind, 'aoe');
       return true;
     }
+    case 'shoulder_charge':{
+      // Dash toward target or forward, deal AoE on arrival
+      let tx = target ? target.x : u.x + Math.cos(u.dir||0)*90;
+      let ty = target ? target.y : u.y + Math.sin(u.dir||0)*90;
+      const dx = tx - u.x;
+      const dy = ty - u.y;
+      const dist = Math.hypot(dx, dy);
+      const maxDist = 120;
+      const actualDist = Math.min(dist, maxDist);
+      const angle = Math.atan2(dy, dx);
+      u.x = clamp(u.x + Math.cos(angle) * actualDist, 0, state.mapWidth || state.engine.canvas.width);
+      u.y = clamp(u.y + Math.sin(angle) * actualDist, 0, state.mapHeight || state.engine.canvas.height);
+      // AoE damage and stun at new position
+      if (typeof npcAreaDamage === 'function') {
+        npcAreaDamage(state, u.x, u.y, 90, 14 + (u.atk||10)*1.1, 'bleed', 'stun', u);
+      }
+      if(state.effects && state.effects.flashes) {
+        state.effects.flashes.push({ x: u.x, y: u.y, r: 90, life: 0.7, color: '#9b7bff' });
+      }
+      logEffect(state, 'aoe_charge', 'shoulder_charge', u, kind, 'aoe');
+      return true;
+    }
     default:
       return false;
   }
@@ -1895,7 +1917,7 @@ export function npcInitAbilities(u){
   
   // Assign an explicit party role for AI behavior
   if(!u.role){
-    u.role = (variant==='mage') ? 'HEALER' : ((variant==='warden'||variant==='knight') ? 'TANK' : 'DPS');
+    u.role = (variant==='mage') ? 'HEALER' : 'DPS';
   }
   
   // Debug log to verify loadouts for all variants
@@ -2041,9 +2063,17 @@ function npcUpdateAbilities(state, u, dt, kind){
     if(role === 'TANK' && targetHpPct > 0.5 && dist <= 140){
       // Gravity well setup (high priority when target is healthy)
       let idx = tryCast('gravity_well');
-      if(idx === -1) idx = tryCast('shoulder_charge');
-      if(idx === -1) idx = tryCast('knight_shield_wall');
-      
+      if(idx === -1) {
+        console.log('[AI DEBUG] gravity_well not available for', u.name || u.variant, 'mana:', u.mana, 'cds:', u.npcCd);
+        idx = tryCast('shoulder_charge');
+        if(idx === -1) {
+          console.log('[AI DEBUG] shoulder_charge not available for', u.name || u.variant, 'mana:', u.mana, 'cds:', u.npcCd);
+          idx = tryCast('knight_shield_wall');
+          if(idx === -1) {
+            console.log('[AI DEBUG] knight_shield_wall not available for', u.name || u.variant, 'mana:', u.mana, 'cds:', u.npcCd);
+          }
+        }
+      }
       if(idx !== -1){
         const abilityId = u.npcAbilities[idx];
         const cdValue = ABILITY_META[abilityId]?.cd || 0;
@@ -2052,10 +2082,14 @@ function npcUpdateAbilities(state, u, dt, kind){
           if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
         }
         u.mana -= costValue;
+        console.log('[AI DEBUG] GUARD_TANK casting', abilityId, 'at', target ? (target.x + ',' + target.y) : 'no target', 'mana:', u.mana);
         npcCastSupportAbility(state,u,abilityId,target);
         recordAI('cast-prio',{role:'GUARD_TANK',ability:abilityId,reason:'setup_cc'});
         return;
       }
+        if(id === 'shoulder_charge') {
+          console.log('[AI DEBUG] npcCastSupportAbility called for shoulder_charge by', u.name || u.variant, 'at', u.x, u.y, 'target:', target ? (target.x + ',' + target.y) : 'none');
+        }
     }
     
     // DPS GUARDS: Burst damage when target is CC'd or below 70% HP
@@ -3784,27 +3818,21 @@ function updateFriendlies(state, dt){
           const HEALER_OPTIMAL = 140;
           
           if(targetDist < HEALER_MIN_DIST){
-            // Too close, kite back toward slot
-            a.speed = 100;
+            // Too close - retreat toward slot position
             const angle = Math.atan2(a.y - priorityTarget.y, a.x - priorityTarget.x);
-            tx = a.x + Math.cos(angle) * 40;
-            ty = a.y + Math.sin(angle) * 40;
-          } else if(targetDist > HEALER_MAX_DIST){
-            // Too far, move toward target but stop at optimal
+            tx = a.x + Math.cos(angle) * 60;
+            ty = a.y + Math.sin(angle) * 60;
             a.speed = 90;
-            const angle = Math.atan2(priorityTarget.y - a.y, priorityTarget.x - a.x);
-            tx = a.x + Math.cos(angle) * 30;
-            ty = a.y + Math.sin(angle) * 30;
+          } else if(targetDist > HEALER_MAX_DIST){
+            // Too far - advance to maintain heal range
+            tx = priorityTarget.x;
+            ty = priorityTarget.y;
+            a.speed = 75;
           } else {
-            // Good range, minimal adjustment toward slot
+            // Good range - stay at slot, minimal movement
+            tx = slotX;
+            ty = slotY;
             a.speed = 40;
-            if(distFromSlot > 25){
-              tx = slotX;
-              ty = slotY;
-            } else {
-              tx = a.x;
-              ty = a.y;
-            }
           }
         } else {
           // DPS: Aggressive engagement but within leash
@@ -3816,25 +3844,40 @@ function updateFriendlies(state, dt){
       else if(a._guardState === 'RETURN_TO_POST'){
         // ═══ RETURN TO POST STATE ═══
         a.attacked = false;
-        a.speed = 110;
         tx = slotX;
         ty = slotY;
+        a.speed = 110;
+
+        // Snap to slot when very close
+        if(distFromSlot <= 8){
+          a.x = slotX;
+          a.y = slotY;
+          a.speed = 0;
+        }
       }
       else {
         // ═══ IDLE DEFENSE STATE ═══
         a.attacked = false;
-        
-        // Return to formation slot with deadband (ignore small drift)
-        if(distFromSlot > 25){
-          a.speed = 80;
-          tx = slotX;
-          ty = slotY;
+        tx = slotX;
+        ty = slotY;
+
+        // Gentle drift toward slot
+        if(distFromSlot > 10){
+          a.speed = 30;
         } else {
-          // At slot, minimal movement
           a.speed = 0;
-          tx = a.x;
-          ty = a.y;
+          a.x = slotX;
+          a.y = slotY;
         }
+      }
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // MOVEMENT EXECUTION (match enemy guard behavior)
+      // ─────────────────────────────────────────────────────────────────────────────
+      const cc = getCcState(a);
+      if(a.speed > 0){
+        const slowFactor = (a.inWater ? 0.45 : 1.0) * ((cc.rooted||cc.stunned) ? 0 : Math.max(0, 1 + cc.speedMod));
+        if(slowFactor>0) moveWithAvoidance(a, tx, ty, state, dt, { slowFactor });
       }
     } else {
       // non-guard friendlies: check for garrison assignment first
@@ -4298,7 +4341,8 @@ function updateFriendlies(state, dt){
     a.inWater = false; for(const w of state.waters||[]){ if(Math.hypot(a.x-w.x,a.y-w.y) <= w.r){ a.inWater=true; break; } }
 
     // idle soft spacing so friendlies don't remain stacked when not moving
-    if(state.friendlies.length>1){
+    // Guards use formation slots; skip extra spacing to match enemy guard cohesion.
+    if(!a.guard && state.friendlies.length>1){
       let sepX = 0, sepY = 0;
       for(const other of state.friendlies){
         if(other===a) continue;
