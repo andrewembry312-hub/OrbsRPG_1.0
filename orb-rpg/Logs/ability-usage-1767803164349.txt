@@ -1,0 +1,33 @@
+Ability Usage Log
+======================================================================
+Generated: 1/7/2026, 11:26:04 AM
+Game Time: 113s
+
+FRIENDLY ABILITIES:
+----------------------------------------------------------------------
+knight_taunt                   Total:   125 | TANK:24, DPS:101 | CD: 8.0s (actual/per-caster: 9.9s, casters: 13, min: 8.00s)
+warrior_fortitude              Total:   266 | DPS:111, GUARD_DPS:155 | CD: 8.0s (actual/per-caster: 9.8s, casters: 37, min: 8.01s)
+ward_barrier                   Total:    86 | HEALER:16, DPS:58, TANK:3, GUARD_HEALER:9 | CD: 10.0s (actual/per-caster: 15.3s, casters: 23, min: 10.14s)
+warcry                         Total:   123 | TANK:24, DPS:99 | CD: 8.0s (actual/per-caster: 10.1s, casters: 13, min: 8.00s)
+mage_radiant_aura              Total:    34 | DPS:13, HEALER:11, GUARD_HEALER:10 | CD: 8.0s (actual/per-caster: 17.2s, casters: 9, min: 8.58s)
+arc_bolt                       Total:    23 | DPS:23 | CD: 3.5s (actual/per-caster: 6.6s, casters: 2, min: 3.50s)
+piercing_lance                 Total:    13 | DPS:13 | CD: 6.0s (actual/per-caster: 12.0s, casters: 2, min: 6.29s)
+chain_light                    Total:     1 | DPS:1 | CD: 5.5s (actual/per-caster: 0.0s, casters: 1)
+warrior_cleave                 Total:    17 | DPS:17 | CD: 4.2s (actual/per-caster: 17.7s, casters: 8, min: 4.24s)
+shoulder_charge                Total:    35 | GUARD_DPS:35 | CD: 7.0s (actual/per-caster: 13.7s, casters: 12, min: 7.01s)
+warrior_life_leech             Total:    81 | GUARD_DPS:53, DPS:28 | CD: 4.0s (actual/per-caster: 7.8s, casters: 18, min: 4.00s)
+mage_divine_touch              Total:   185 | HEALER:81, GUARD_HEALER:104 | CD: 4.5s (actual/per-caster: 7.5s, casters: 34, min: 4.50s)
+meteor_slam                    Total:    14 | GUARD_DPS:13, warrior:1 | CD: 10.0s (actual/per-caster: 36.6s, casters: 11, min: 12.51s)
+slash                          Total:    91 | DPS:91 | CD: 1.0s (actual/per-caster: 2.1s, casters: 5, min: 1.01s)
+cleanse_wave                   Total:     9 | HEALER:8, GUARD_HEALER:1 | CD: 9.0s (actual/per-caster: 19.6s, casters: 4, min: 10.62s)
+gravity_well                   Total:     5 | GUARD_DPS:4, warrior:1 | CD: 14.0s (actual/per-caster: 21.3s, casters: 4, min: 21.32s)
+
+ENEMY ABILITIES:
+----------------------------------------------------------------------
+tank_iron_skin                 Total:    77 | DPS:71, TANK:6 | CD: 10.0s (actual/per-caster: 11.8s, casters: 9, min: 10.01s)
+knight_shield_wall             Total:   116 | DPS:97, TANK:19 | CD: 9.0s (actual/per-caster: 10.0s, casters: 13, min: 9.01s)
+tank_anchor                    Total:    91 | DPS:83, TANK:8 | CD: 9.0s (actual/per-caster: 10.3s, casters: 9, min: 9.05s)
+tank_bodyguard                 Total:    72 | DPS:64, TANK:8 | CD: 11.0s (actual/per-caster: 12.5s, casters: 9, min: 11.01s)
+knight_rally                   Total:    38 | DPS:24, TANK:14 | CD: 10.0s (actual/per-caster: 15.8s, casters: 13, min: 10.01s)
+heal_burst                     Total:   130 | DPS:21, HEALER:49, TANK:19, GUARD_HEALER:41 | CD: 7.5s (actual/per-caster: 15.0s, casters: 42, min: 7.50s)
+cleave                         Total:    10 | DPS:10 | CD: 3.2s (actual/per-caster: 23.2s, casters: 4, min: 3.20s)

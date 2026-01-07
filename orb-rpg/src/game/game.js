@@ -4408,7 +4408,14 @@ function updateFriendlies(state, dt){
 
             if(allowReselect && shouldSwitch){
               const prevId = ball.focusTargetId;
-              ball.focusTargetId = best.id || best._id;
+              {
+                let id = best.id || best._id;
+                if(id === undefined || id === null || String(id) === ''){
+                  // Friendly guard balls focus enemies; ensure enemy has a stable id.
+                  id = ensureEntityId(state, best, { team: 'enemy', kind: 'enemy' });
+                }
+                ball.focusTargetId = id;
+              }
               ball.focusScore = bestScore;
 
               // short reselect gate + longer burst commit window
@@ -4424,7 +4431,7 @@ function updateFriendlies(state, dt){
                 ballId,
                 leaderId,
                 focusTarget: best.name || best.variant || 'target',
-                focusTargetId: ball.focusTargetId,
+                focusTargetId: ball.focusTargetId ?? null,
                 prevFocusTargetId: prevId,
                 score: +bestScore.toFixed(1),
                 burstUntil: +ball.burstUntil.toFixed(2)
@@ -5568,7 +5575,15 @@ function updateEnemies(state, dt){
 
             if(allowReselect && shouldSwitch){
               const prevId = ball.focusTargetId;
-              ball.focusTargetId = best.id || best._id;
+              {
+                let id = best.id || best._id;
+                if(id === undefined || id === null || String(id) === ''){
+                  // Enemy guard balls focus player/friendlies; ensure target has a stable id.
+                  const kind = (best === state.player) ? 'player' : 'friendly';
+                  id = ensureEntityId(state, best, { team: 'player', kind });
+                }
+                ball.focusTargetId = id;
+              }
               ball.focusScore = bestScore;
               ball.focusUntil = now + RESELECT_MIN;
               ball.burstUntil = now + BURST_LOCK;
@@ -5580,7 +5595,7 @@ function updateEnemies(state, dt){
                 ballId,
                 leaderId,
                 focusTarget: best.name || best.variant || (best === state.player ? 'Player' : 'target'),
-                focusTargetId: ball.focusTargetId,
+                focusTargetId: ball.focusTargetId ?? null,
                 prevFocusTargetId: prevId,
                 score: +bestScore.toFixed(1),
                 burstUntil: +ball.burstUntil.toFixed(2)

@@ -1,0 +1,22 @@
+Combat Event Log
+====================================================================================================
+Generated: 1/7/2026, 11:26:04 AM
+Total Events: 13
+Game Time: 113s
+
+[28.86s]     SHIELD ONLY: Player blocked 7.00 damage (raw: 7.00) | Shield absorbed all damage
+[34.63s]     SHIELD ONLY: Player blocked 7.00 damage (raw: 7.00) | Shield absorbed all damage
+[99.17s]     SHIELD ONLY: Player blocked 8.00 damage (raw: 8.00) | Shield absorbed all damage
+[100.59s]    SHIELD ONLY: Player blocked 12.00 damage (raw: 12.00) | Shield absorbed all damage
+[101.09s]    SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[101.26s]    SHIELD ONLY: Player blocked 12.00 damage (raw: 12.00) | Shield absorbed all damage
+[101.31s]    SHIELD ONLY: Player blocked 8.00 damage (raw: 8.00) | Shield absorbed all damage
+[101.41s]    SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[101.92s]    SHIELD ONLY: Player blocked 12.00 damage (raw: 12.00) | Shield absorbed all damage
+[102.24s]    SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[102.33s]    SHIELD ONLY: Player blocked 8.00 damage (raw: 8.00) | Shield absorbed all damage
+[102.42s]    SHIELD ONLY: Player blocked 4.00 damage (raw: 4.00) | Shield absorbed all damage
+[102.58s]    SHIELD ONLY: Player blocked 12.00 damage (raw: 12.00) | Shield absorbed all damage
+
+====================================================================================================
+END OF LOG
