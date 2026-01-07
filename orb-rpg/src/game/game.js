@@ -943,6 +943,21 @@ function applyWeaponElementals(state, target){
   }
 }
 
+function notePlayerHpGain(state, gained, cause, extra={}){
+  if(!state || !state.player) return;
+  const amt = Number(gained);
+  if(!Number.isFinite(amt) || amt <= 0) return;
+  state._playerHpAccountedGain = (state._playerHpAccountedGain || 0) + amt;
+  state._playerHpAccountedSources = state._playerHpAccountedSources || [];
+  state._playerHpAccountedSources.push({
+    time: (state.campaign?.time || 0).toFixed(2),
+    cause: String(cause || 'unknown'),
+    gained: +amt.toFixed(2),
+    ...extra
+  });
+  if(state._playerHpAccountedSources.length > 10) state._playerHpAccountedSources.shift();
+}
+
 function applyDamageToEnemy(e,dmg,st,state,fromPlayer=false){
   const crit=rollCrit(st||{critChance:0});
   const final=crit?(dmg*(st?.critMult||1.5)):dmg;
@@ -1013,8 +1028,20 @@ function lifestealFrom(state, dealt, st){
   if(!Number.isFinite(heal) || heal <= 0) return;
   if(!state?.player) return;
 
+  const hpBefore = Number(state.player.hp || 0);
+
   const maxHp = Number(st?.maxHp);
   state.player.hp = clamp((state.player.hp || 0) + heal, 0, Number.isFinite(maxHp) ? maxHp : (state.player.maxHp || 999999));
+
+  const hpAfter = Number(state.player.hp || 0);
+  const gained = Math.max(0, hpAfter - hpBefore);
+  if(gained > 0){
+    notePlayerHpGain(state, gained, 'lifesteal', {
+      sourceAbilityId: null,
+      lifesteal: ls,
+      damageDealt: dealtNum
+    });
+  }
 
   // Log lifesteal healing (defensive formatting)
   const hpNow = Number(state.player.hp);
@@ -1656,7 +1683,7 @@ const ABILITY_META = {
   warrior_life_leech: { range: 82, cost:8, cd:4.0, dmg:16, type:'melee', arc:1.1, role:{mage:0.6,tank:0.9,dps:1.1} }
 };
 
-function npcHealPulse(state, cx, cy, radius, amount, caster=null){
+function npcHealPulse(state, cx, cy, radius, amount, caster=null, sourceAbilityId=null){
   const st = currentStats(state);
   const isEnemyCaster = caster && state.enemies.includes(caster);
   
@@ -1666,13 +1693,32 @@ function npcHealPulse(state, cx, cy, radius, amount, caster=null){
     const healAmt = amount * mult;
     const oldHP = ent.hp || 0;
     ent.hp = clamp((ent.hp||0) + healAmt, 0, maxHp);
+    const gained = Math.max(0, (ent.hp || 0) - oldHP);
+    
+    // Audit: log applied heal per target
+    if(gained > 0 && sourceAbilityId){
+      logEffectApplied(state, {
+        sourceAbilityId,
+        effectId: sourceAbilityId + '_heal',
+        targetId: ent.id || ent._id || null,
+        effectType: 'heal',
+        amount: gained
+      });
+    }
     
     // Log player healing from NPC abilities
     if(ent === state.player){
       const casterName = caster ? (caster.name || caster.variant || 'Unknown') : 'Unknown';
+      if(gained > 0){
+        notePlayerHpGain(state, gained, 'ally_ability', {
+          sourceAbilityId: sourceAbilityId || null,
+          caster: casterName
+        });
+      }
       logPlayerEvent(state, 'HEAL', {
         source: 'ally_ability',
         caster: casterName,
+        ability: sourceAbilityId || undefined,
         amount: healAmt.toFixed(1),
         oldHP: oldHP.toFixed(1),
         newHP: ent.hp.toFixed(1),
@@ -1713,6 +1759,7 @@ function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
   state.effects.flashes.push({ x: cx, y: cy, r: radius, life: 0.5, color: flashColor });
   
   const casterName = caster.name || caster.variant || 'Unknown';
+  const sourceAbilityId = arguments[7] || null;
   const applyShield = (ent, mult=1)=>{
     if(!ent) return;
     // Shield cap is player's max HP (or 320 for NPCs)
@@ -1721,6 +1768,18 @@ function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
     const before = ent.shield || 0;
     ent.shield = clamp((ent.shield||0) + shieldGain, 0, cap);
     const after = ent.shield;
+    const gained = Math.max(0, after - before);
+    
+    // Audit: log applied shield per target
+    if(gained > 0 && sourceAbilityId){
+      logEffectApplied(state, {
+        sourceAbilityId,
+        effectId: sourceAbilityId + '_shield',
+        targetId: ent.id || ent._id || null,
+        effectType: 'shield',
+        amount: gained
+      });
+    }
     // Track shield source
     if(ent === state.player){
       const distance = Math.round(Math.hypot(caster.x - state.player.x, caster.y - state.player.y));
@@ -1767,11 +1826,32 @@ function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
   }
 }
 
-function npcDirectHeal(state, target, amount){
+function npcDirectHeal(state, target, amount, caster=null, sourceAbilityId=null){
   if(!target) return;
   const st = currentStats(state);
   const maxHp = target===state.player ? st.maxHp : target.maxHp || st.maxHp;
+  const before = Number(target.hp || 0);
   target.hp = clamp((target.hp||0) + amount, 0, maxHp);
+  const gained = Math.max(0, Number(target.hp || 0) - before);
+  
+  // Audit: log direct heal application
+  if(gained > 0 && sourceAbilityId){
+    logEffectApplied(state, {
+      sourceAbilityId,
+      effectId: sourceAbilityId + '_heal',
+      targetId: target.id || target._id || null,
+      effectType: 'heal',
+      amount: gained
+    });
+  }
+  
+  if(target === state.player && gained > 0){
+    const casterName = caster ? (caster.name || caster.variant || 'Unknown') : 'Unknown';
+    notePlayerHpGain(state, gained, 'direct_heal', {
+      sourceAbilityId: sourceAbilityId || null,
+      caster: casterName
+    });
+  }
 }
 
 function npcAreaDamage(state, caster, cx, cy, radius, dmg, opts={}){
@@ -1779,6 +1859,7 @@ function npcAreaDamage(state, caster, cx, cy, radius, dmg, opts={}){
   const targets = isEnemyCaster
     ? [state.player, ...(state.friendlies||[]).filter(f=>f && f.respawnT<=0)]
     : (state.enemies||[]);
+  const sourceAbilityId = opts.sourceAbilityId || null;
 
   for(let i=targets.length-1; i>=0; i--){
     const t = targets[i];
@@ -1797,6 +1878,17 @@ function npcAreaDamage(state, caster, cx, cy, radius, dmg, opts={}){
         const enemyIndex = (state.enemies||[]).indexOf(t);
         if(enemyIndex >= 0) killEnemy(state, enemyIndex, true);
       }
+    }
+    
+    // Audit: log applied damage per target
+    if(sourceAbilityId){
+      logEffectApplied(state, {
+        sourceAbilityId,
+        effectId: sourceAbilityId + '_damage',
+        targetId: t.id || t._id || null,
+        effectType: 'damage',
+        amount: dmg
+      });
     }
   }
 }
@@ -1835,7 +1927,7 @@ function npcCastSupportAbility(state, u, id, target){
         });
       }
 
-      npcAreaDamage(state, u, x, y, radius, dmg);
+      npcAreaDamage(state, u, x, y, radius, dmg, {sourceAbilityId: 'meteor_slam'});
       if(state.effects && state.effects.flashes) state.effects.flashes.push({ x, y, r: radius, life: 0.9, color: '#ff9a3c' });
       if(state.effects && state.effects.slashes) state.effects.slashes.push({ x, y, range: radius, arc: Math.PI*2, dir: 0, t: 0.12, color: '#ff4500' });
 
@@ -1884,21 +1976,21 @@ function npcCastSupportAbility(state, u, id, target){
     }
     case 'heal_burst':{
       const amt = 22 + (u.maxHp||90)*0.12;
-      npcHealPulse(state, u.x, u.y, 150, amt);
+      npcHealPulse(state, u.x, u.y, 150, amt, u, 'heal_burst');
       logEffect(state, 'heal', 'heal_burst', u, kind, 'aoe');
       return true;
     }
     case 'ward_barrier':{
       const shield = 32 + (u.def||8)*1.0;
-      npcShieldPulse(state, u, u.x, u.y, 90, shield);
+      npcShieldPulse(state, u, u.x, u.y, 90, shield, 1, 'ward_barrier');
       logEffect(state, 'shield', 'ward_barrier', u, kind, 'aoe');
       return true;
     }
     case 'cleanse_wave':{
       const heal = 14 + (u.maxHp||90)*0.06;
       const shield = 20 + (u.def||6)*0.9;
-      npcHealPulse(state, u.x, u.y, 150, heal);
-      npcShieldPulse(state, u, u.x, u.y, 80, shield);
+      npcHealPulse(state, u.x, u.y, 150, heal, u, 'cleanse_wave');
+      npcShieldPulse(state, u, u.x, u.y, 80, shield, 1, 'cleanse_wave');
       logEffect(state, 'heal+shield', 'cleanse_wave', u, kind, 'aoe');
       return true;
     }
@@ -1920,7 +2012,17 @@ function npcCastSupportAbility(state, u, id, target){
           isEnemyCaster
         });
       }
-      state.effects.heals.push({t:5.0,tick:0.8,tl:0.8,amt, beacon:{x:u.x,y:u.y,r:150}, targets});
+      state.effects.heals.push({
+        t:5.0,
+        tick:0.8,
+        tl:0.8,
+        amt,
+        beacon:{x:u.x,y:u.y,r:150},
+        targets,
+        sourceAbilityId: 'renewal_field',
+        sourceType: 'npc_ability',
+        sourceCaster: u.name || u.variant || (isEnemyCaster ? 'Enemy' : 'Ally')
+      });
       logEffect(state, 'hot', 'renewal_field', u, kind, targets.length);
       return true;
     }
@@ -1942,64 +2044,86 @@ function npcCastSupportAbility(state, u, id, target){
           isEnemyCaster
         });
       }
-      state.effects.heals.push({t:6.0,tick:1.0,tl:1.0,amt, beacon:{x:u.x,y:u.y,r:170}, targets});
+      state.effects.heals.push({
+        t:6.0,
+        tick:1.0,
+        tl:1.0,
+        amt,
+        beacon:{x:u.x,y:u.y,r:170},
+        targets,
+        sourceAbilityId: 'beacon_of_light',
+        sourceType: 'npc_ability',
+        sourceCaster: u.name || u.variant || (isEnemyCaster ? 'Enemy' : 'Ally')
+      });
       logEffect(state, 'hot', 'beacon_of_light', u, kind, targets.length);
       return true;
     }
     case 'mage_divine_touch':{
       const tgt = target || state.player;
-      npcDirectHeal(state, tgt, 26 + (u.maxHp||90)*0.18);
+      npcDirectHeal(state, tgt, 26 + (u.maxHp||90)*0.18, u, 'mage_divine_touch');
       logEffect(state, 'heal', 'mage_divine_touch', u, kind, 1);
       return true;
     }
     case 'mage_radiant_aura':{
       const shield = 26 + (u.def||10)*1.0;
-      npcShieldPulse(state, u, u.x, u.y, 90, shield);
+      npcShieldPulse(state, u, u.x, u.y, 90, shield, 1, 'mage_radiant_aura');
       logEffect(state, 'shield', 'mage_radiant_aura', u, kind, 'aoe');
       return true;
     }
     case 'warcry':{
       const shield = 18 + (u.def||6)*0.8;
-      npcShieldPulse(state, u, u.x, u.y, 80, shield);
+      npcShieldPulse(state, u, u.x, u.y, 80, shield, 1, 'warcry');
       logEffect(state, 'shield', 'warcry', u, kind, 'aoe');
       return true;
     }
     case 'knight_shield_wall':{
       const shield = 34 + (u.def||9)*1.1;
-      npcShieldPulse(state, u, u.x, u.y, 100, shield);
-      npcHealPulse(state, u.x, u.y, 180, 10 + (u.maxHp||90)*0.04);
+      npcShieldPulse(state, u, u.x, u.y, 100, shield, 1, 'knight_shield_wall');
+      npcHealPulse(state, u.x, u.y, 180, 10 + (u.maxHp||90)*0.04, u, 'knight_shield_wall');
       logEffect(state, 'shield+heal', 'knight_shield_wall', u, kind, 'aoe');
       return true;
     }
     case 'knight_rally':{
-      npcHealPulse(state, u.x, u.y, 180, 12 + (u.maxHp||90)*0.03);
-      npcShieldPulse(state, u, u.x, u.y, 100, 18 + (u.def||8)*0.8);
+      npcHealPulse(state, u.x, u.y, 180, 12 + (u.maxHp||90)*0.03, u, 'knight_rally');
+      npcShieldPulse(state, u, u.x, u.y, 100, 18 + (u.def||8)*0.8, 1, 'knight_rally');
       logEffect(state, 'heal+shield', 'knight_rally', u, kind, 'aoe');
       return true;
     }
     case 'knight_taunt':{
-      npcShieldPulse(state, u, u.x, u.y, 80, 16 + (u.def||8)*0.7);
+      npcShieldPulse(state, u, u.x, u.y, 80, 16 + (u.def||8)*0.7, 1, 'knight_taunt');
       logEffect(state, 'shield', 'knight_taunt', u, kind, 'aoe');
       return true;
     }
     case 'warrior_fortitude':{
-      npcShieldPulse(state, u, u.x, u.y, 90, 22 + (u.def||8)*0.9);
+      npcShieldPulse(state, u, u.x, u.y, 90, 22 + (u.def||8)*0.9, 1, 'warrior_fortitude');
       logEffect(state, 'shield', 'warrior_fortitude', u, kind, 'aoe');
       return true;
     }
     case 'tank_iron_skin':{
       const cap = u.shieldCap || u.maxShield || 320;
-      u.shield = clamp((u.shield||0) + 50 + (u.def||10)*1.2, 0, cap);
+      const before = u.shield || 0;
+      const shieldGain = 50 + (u.def||10)*1.2;
+      u.shield = clamp(before + shieldGain, 0, cap);
+      const gained = Math.max(0, u.shield - before);
+      if(gained > 0){
+        logEffectApplied(state, {
+          sourceAbilityId: 'tank_iron_skin',
+          effectId: 'tank_iron_skin_shield',
+          targetId: u.id || u._id || null,
+          effectType: 'shield',
+          amount: gained
+        });
+      }
       logEffect(state, 'shield', 'tank_iron_skin', u, kind, 1);
       return true;
     }
     case 'tank_bodyguard':{
-      npcShieldPulse(state, u, u.x, u.y, 100, 24 + (u.def||10)*1.0);
+      npcShieldPulse(state, u, u.x, u.y, 100, 24 + (u.def||10)*1.0, 1, 'tank_bodyguard');
       logEffect(state, 'shield', 'tank_bodyguard', u, kind, 'aoe');
       return true;
     }
     case 'tank_anchor':{
-      npcShieldPulse(state, u, u.x, u.y, 90, 20 + (u.def||9)*0.9);
+      npcShieldPulse(state, u, u.x, u.y, 90, 20 + (u.def||9)*0.9, 1, 'tank_anchor');
       logEffect(state, 'shield', 'tank_anchor', u, kind, 'aoe');
       return true;
     }
@@ -2029,7 +2153,7 @@ function npcCastSupportAbility(state, u, id, target){
       u.x = clamp(u.x + Math.cos(angle) * actualDist, 0, state.mapWidth || state.engine.canvas.width);
       u.y = clamp(u.y + Math.sin(angle) * actualDist, 0, state.mapHeight || state.engine.canvas.height);
       // AoE damage and stun at new position
-      npcAreaDamage(state, u, u.x, u.y, 90, 14 + (u.atk||10)*1.1);
+      npcAreaDamage(state, u, u.x, u.y, 90, 14 + (u.atk||10)*1.1, {sourceAbilityId: 'shoulder_charge'});
       if(state.effects && state.effects.flashes) {
         state.effects.flashes.push({ x: u.x, y: u.y, r: 90, life: 0.7, color: '#9b7bff' });
       }
@@ -2547,11 +2671,28 @@ function npcUpdateAbilities(state, u, dt, kind){
   // GUARD TACTICAL ABILITY PRIORITIES (Elite Combat AI)
   // ═══════════════════════════════════════════════════════════════════════════════
   if(u.guard){
+    const TACTICAL_IDS = new Set(['gravity_well','meteor_slam','shoulder_charge']);
+    const KITE_AFTER_BURST = 2.4;
+    const KITE_AFTER_FAIL = 2.2;
+    const TACTICAL_MANA_BUFFER = 6;
+    const TACTICAL_RESERVE = 30;
     const tryCast = (id)=>{ 
       const i=u.npcAbilities.indexOf(id); 
       const hasCd = i>=0 && u.npcCd[i] === 0;
       const cost = ABILITY_META[id]?.cost||0;
       const hasMana = u.mana >= cost;
+      
+      // Mana reserve: don't drop below TACTICAL_RESERVE unless in burst window
+      const inBurstWindow = now < (ball.burstUntil || 0);
+      if(hasCd && hasMana && TACTICAL_IDS.has(id) && !inBurstWindow && (u.mana - cost) < TACTICAL_RESERVE){
+        return -1;
+      }
+
+      // Post-burst kite window: don't even try expensive tacticals until mana is comfortably above cost.
+      if(hasCd && i>=0 && TACTICAL_IDS.has(id) && (u._guardKiteUntil || 0) > now && (u.mana < (cost + TACTICAL_MANA_BUFFER))){
+        return -1;
+      }
+
       if(hasCd && !hasMana && state.debugLog && Math.random() < 0.05){
         state.debugLog.push({
           time: (state.campaign?.time || 0).toFixed(2),
@@ -2562,6 +2703,23 @@ function npcUpdateAbilities(state, u, dt, kind){
           current: Math.round(u.mana ?? 0),
           reason: 'guard_tactical'
         });
+      }
+
+      // If we tried (or were about to try) a tactical and we're broke, force a kite window.
+      if(hasCd && !hasMana && TACTICAL_IDS.has(id)){
+        u._guardManaStarveAt = now;
+        u._guardManaStarveAbility = id;
+        u._guardKiteUntil = Math.max(u._guardKiteUntil || 0, now + KITE_AFTER_FAIL);
+        if(state.debugLog && Math.random() < 0.02){
+          logDebug(state, 'GUARD_BALL', 'Guard entering kite window after mana-starved tactical', {
+            type: 'GUARD_KITE_ARM',
+            reason: 'mana_starve',
+            ability: id,
+            kiteUntil: +u._guardKiteUntil.toFixed(2),
+            mana: Math.round(u.mana ?? 0),
+            required: cost
+          });
+        }
       }
       return (hasCd && hasMana) ? i : -1; 
     };
@@ -2681,6 +2839,10 @@ function npcUpdateAbilities(state, u, dt, kind){
               npcCastSupportAbility(state, u, abilityId, target);
               recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'combo_gravity'});
 
+              // Burst happened: kite window to regen mana/cds.
+              u._guardLastTacticalCastAt = now;
+              u._guardKiteUntil = Math.max(u._guardKiteUntil || 0, now + KITE_AFTER_BURST);
+
               combo.stage = 'METEOR';
               combo.stageUntil = now + 0.65;
               combo.meteorCast = {};
@@ -2719,6 +2881,9 @@ function npcUpdateAbilities(state, u, dt, kind){
               npcCastSupportAbility(state, u, abilityId, target);
               recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'combo_meteor'});
               combo.meteorCast[uid] = now;
+
+              u._guardLastTacticalCastAt = now;
+              u._guardKiteUntil = Math.max(u._guardKiteUntil || 0, now + KITE_AFTER_BURST);
               return;
             }
           }
@@ -2759,6 +2924,9 @@ function npcUpdateAbilities(state, u, dt, kind){
               u.mana -= costValue;
               npcCastSupportAbility(state, u, abilityId, target);
               recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'combo_charge'});
+
+              u._guardLastTacticalCastAt = now;
+              u._guardKiteUntil = Math.max(u._guardKiteUntil || 0, now + KITE_AFTER_BURST);
               combo.chargeCast = true;
               combo.stage = 'COOLDOWN';
               combo.until = now + 6.0;
@@ -2795,6 +2963,9 @@ function npcUpdateAbilities(state, u, dt, kind){
           // Small internal lock to avoid multi-casting in the same instant across branches
           u._guardTacticalUntil = now + 0.25;
           noteWeaveLock(abilityId);
+
+          u._guardLastTacticalCastAt = now;
+          u._guardKiteUntil = Math.max(u._guardKiteUntil || 0, now + KITE_AFTER_BURST);
           return true;
         };
 
@@ -2874,6 +3045,27 @@ function npcUpdateAbilities(state, u, dt, kind){
         u.mana -= costValue;
         npcCastSupportAbility(state, u, abilityId, castTarget || u);
         recordAI('cast-prio', { role:'GUARD_HEALER', ability: abilityId, reason, policy: healerPolicy });
+
+        // Debug proof (exportable): show policy + shared gate timing.
+        if(state.debugLog){
+          const minTick = 0.25;
+          if(!ball._lastHealerPolicyLogAt || (now - ball._lastHealerPolicyLogAt) >= minTick){
+            ball._lastHealerPolicyLogAt = now;
+            logDebug(state, 'GUARD_BALL', 'Guard healer cast (policy)', {
+              type: 'GUARD_HEALER_POLICY_CAST',
+              ballId,
+              policy: healerPolicy,
+              gateKind,
+              reason,
+              ability: abilityId,
+              casterId: selfId,
+              targetId: (castTarget ? (castTarget.id || castTarget._id) : null),
+              healUntil: ball.healerHealUntil ? +ball.healerHealUntil.toFixed(2) : 0,
+              shieldUntil: ball.healerShieldUntil ? +ball.healerShieldUntil.toFixed(2) : 0,
+              cleanseUntil: ball.healerCleanseUntil ? +ball.healerCleanseUntil.toFixed(2) : 0
+            });
+          }
+        }
 
         if(gateKind === 'heal') ball.healerHealUntil = now + 0.60;
         if(gateKind === 'shield') ball.healerShieldUntil = now + 1.10;
@@ -4770,9 +4962,24 @@ function updateFriendlies(state, dt){
           }
         } else {
           // DPS: Aggressive engagement but within leash
-          a.speed = 130;
-          tx = priorityTarget.x;
-          ty = priorityTarget.y;
+          const kiteUntil = (a._guardKiteUntil || 0);
+          if(kiteUntil > now){
+            // Hard post-burst kite window: stop chasing, buy time for mana + cooldown alignment.
+            const retreatAngle = Math.atan2(a.y - priorityTarget.y, a.x - priorityTarget.x);
+            if(targetDist < 110){
+              tx = a.x + Math.cos(retreatAngle) * 90;
+              ty = a.y + Math.sin(retreatAngle) * 90;
+              a.speed = 145;
+            } else {
+              tx = slotX;
+              ty = slotY;
+              a.speed = (distFromSlot > 14) ? 130 : 55;
+            }
+          } else {
+            a.speed = 130;
+            tx = priorityTarget.x;
+            ty = priorityTarget.y;
+          }
         }
       }
       else if(a._guardState === 'RETURN_TO_POST'){
@@ -6392,6 +6599,8 @@ function respawn(state){
   state.player.x=hb.x; state.player.y=hb.y;
   const oldHP = state.player.hp;
   state.player.hp=st.maxHp; state.player.mana=st.maxMana; state.player.stam=st.maxStam;
+  const gained = Math.max(0, st.maxHp - oldHP);
+  if(gained > 0) notePlayerHpGain(state, gained, 'respawn', {});
   
   logPlayerEvent(state, 'HEAL', {
     source: 'respawn',
@@ -6545,7 +6754,9 @@ function tryCastSlot(state, idx){
   };
   const healSelf = (amount)=>{ 
     const oldHP = state.player.hp;
-    state.player.hp = clamp(state.player.hp + amount, 0, st.maxHp); 
+    state.player.hp = clamp(state.player.hp + amount, 0, st.maxHp);
+    const gained = Math.max(0, state.player.hp - oldHP);
+    if(gained > 0) notePlayerHpGain(state, gained, 'ability_heal', {sourceAbilityId: sk?.id || null});
     
     logPlayerEvent(state, 'HEAL', {
       source: 'ability_heal',
@@ -7041,6 +7252,11 @@ function updateHeals(state, dt){
             
             // LOG: Track healing to player
             if(t === state.player && gained > 0){
+              notePlayerHpGain(state, gained, 'hot_tick', {
+                sourceAbilityId: h.sourceAbilityId || null,
+                sourceType: h.sourceType || null,
+                sourceCaster: h.sourceCaster || null
+              });
               console.log('[HOT HEAL PLAYER]', '+' + gained.toFixed(2), 'hp:', hpBefore.toFixed(2), '->', t.hp.toFixed(2), 'amt:', h.amt);
               // Add to combat log
               if(state.combatLog){
@@ -7077,6 +7293,11 @@ function updateHeals(state, dt){
           
           // LOG: Track healing to player
           if(t === state.player && gained > 0){
+            notePlayerHpGain(state, gained, 'hot_tick', {
+              sourceAbilityId: h.sourceAbilityId || null,
+              sourceType: h.sourceType || null,
+              sourceCaster: h.sourceCaster || null
+            });
             console.log('[HOT HEAL PLAYER]', '+' + gained.toFixed(2), 'hp:', hpBefore.toFixed(2), '->', t.hp.toFixed(2), 'amt:', h.amt);
             // Add to combat log
             if(state.combatLog){
@@ -7154,6 +7375,8 @@ function updateSlashes(state, dt){
             const leechHeal = dealtNum * 0.5;
             const oldHP = state.player.hp;
             state.player.hp = clamp(state.player.hp + leechHeal, 0, st.maxHp);
+            const gained = Math.max(0, state.player.hp - oldHP);
+            if(gained > 0) notePlayerHpGain(state, gained, 'ability_leech', {sourceAbilityId: s.sourceAbilityId || null});
             
             logPlayerEvent(state, 'HEAL', {
               source: 'leech',
@@ -7293,7 +7516,19 @@ function updateWells(state, dt){
           if(!t || t.hp === undefined || t.hp <= 0) continue;
           if(Math.hypot((t.x||0)-w.x, (t.y||0)-w.y)<=w.r){
             const maxHp = (t===state.player) ? currentStats(state).maxHp : (t.maxHp || currentStats(state).maxHp);
-            t.hp = clamp((t.hp||0) - w.dmgPerTick, 0, maxHp);
+            const before = t.hp || 0;
+            t.hp = clamp(before - w.dmgPerTick, 0, maxHp);
+            const actualDmg = before - t.hp;
+            // Audit: log well tick damage
+            if(actualDmg > 0 && w.sourceAbilityId){
+              logEffectApplied(state, {
+                sourceAbilityId: w.sourceAbilityId,
+                effectId: w.sourceAbilityId + '_dot_tick',
+                targetId: t.id || t._id || null,
+                effectType: 'damage',
+                amount: actualDmg
+              });
+            }
           }
         }
       } else {
@@ -7301,8 +7536,20 @@ function updateWells(state, dt){
         for(let i=state.enemies.length-1;i>=0;i--){
           const e=state.enemies[i];
           if(Math.hypot(e.x-w.x, e.y-w.y)<=w.r){
+            const before = e.hp || 0;
             const res=applyDamageToEnemy(e,w.dmgPerTick,stNow,state,true);
             lifestealFrom(state,res.dealt,stNow);
+            const actualDmg = before - (e.hp || 0);
+            // Audit: log well tick damage
+            if(actualDmg > 0 && w.sourceAbilityId){
+              logEffectApplied(state, {
+                sourceAbilityId: w.sourceAbilityId,
+                effectId: w.sourceAbilityId + '_dot_tick',
+                targetId: e.id || e._id || null,
+                effectType: 'damage',
+                amount: actualDmg
+              });
+            }
             const effectOpts = {
               state,
               sourceAbilityId: w.sourceAbilityId || null,
@@ -8425,7 +8672,10 @@ export function handleHotkeys(state, dt){
       // Old format with data.pct
       if(potion.type === 'hp'){
         const heal = Math.round(st.maxHp * potion.data.pct);
+        const oldHP = state.player.hp;
         state.player.hp = clamp(state.player.hp + heal, 0, st.maxHp);
+        const gained = Math.max(0, state.player.hp - oldHP);
+        if(gained > 0) notePlayerHpGain(state, gained, 'potion', {potionName: potion.name});
         state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${heal} HP`);
         
         // Log potion healing
@@ -8445,7 +8695,10 @@ export function handleHotkeys(state, dt){
       // New format with buffs (instant heal/mana restore)
       if(potion.type === 'hp' && potion.buffs.hpRegen){
         const heal = potion.buffs.hpRegen * 20; // Convert regen to instant heal
+        const oldHP = state.player.hp;
         state.player.hp = clamp(state.player.hp + heal, 0, st.maxHp);
+        const gained = Math.max(0, state.player.hp - oldHP);
+        if(gained > 0) notePlayerHpGain(state, gained, 'potion', {potionName: potion.name});
         state.ui.toast(`Used <b class="${rarityClass(potion.rarity.key)}">${potion.name}</b>: +${heal} HP`);
         
         // Log potion healing
@@ -8973,7 +9226,9 @@ export function updateGame(state, dt){
     }
     
     // Detect unexplained HP jumps (more than expected from regen)
-    const expectedHPChange = st.hpRegen * dt;
+    const accountedGain = Number(state._playerHpAccountedGain || 0);
+    const accountedSources = Array.isArray(state._playerHpAccountedSources) ? state._playerHpAccountedSources.slice(-6) : [];
+    const expectedHPChange = (st.hpRegen * dt) + accountedGain;
     const actualHPChange = hpAfter - state._lastLoggedHP;
     const unexplainedChange = actualHPChange - expectedHPChange;
     
@@ -8988,13 +9243,19 @@ export function updateGame(state, dt){
         hpBefore: state._lastLoggedHP.toFixed(1),
         hpAfter: hpAfter.toFixed(1),
         actualChange: actualHPChange.toFixed(1),
-        expectedRegen: expectedHPChange.toFixed(1),
+        expectedRegen: (st.hpRegen * dt).toFixed(1),
+        accountedGain: accountedGain.toFixed(2),
         unexplained: unexplainedChange.toFixed(1),
-        regenRate: st.hpRegen.toFixed(2)
+        regenRate: st.hpRegen.toFixed(2),
+        accountedSources
       });
     }
     
     state._lastLoggedHP = hpAfter;
+
+    // Reset accounted (non-regen) healing for the next frame's detector window.
+    state._playerHpAccountedGain = 0;
+    state._playerHpAccountedSources = [];
     
     // Debug excessive regen
     if(st.hpRegen > 50){

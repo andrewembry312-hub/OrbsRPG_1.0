@@ -1,0 +1,210 @@
+AI Behavior Tracking Log
+========================================================================================================================
+Generated: 1/7/2026, 12:57:19 PM
+Total Events: 134
+Game Time: 158s
+
+This log tracks:
+  • Decision changes (when AI switches between actions)
+  • Target changes (when AI switches targets)
+  • Behavior changes (aggressive ↔ neutral)
+  • Position loops (stuck detection)
+  • Combat engagement/disengagement
+
+
+================================================== Knight 248 (enemy) ==================================================
+Total Events: 17
+Role: TANK
+Team: undefined
+
+[-0.01s]   DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2471)
+[0.32s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2454)
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2253)
+[45.05s]   DECISION_CHANGE → attack_wall (target: Flag 4 wall, dist: 150)
+[69.57s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 1617)
+[82.66s]   DECISION_CHANGE → attack_wall (target: Flag 1 wall, dist: 149)
+[105.07s]  DECISION_CHANGE → capture_objective (target: Flag 1, dist: 89)
+[118.77s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 13.8)
+[122.82s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (2 stuck warnings) (avg movement: 18.2)
+[126.85s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (3 stuck warnings) (avg movement: 7.6)
+[130.88s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (4 stuck warnings) (avg movement: 5.2)
+[134.91s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (5 stuck warnings) (avg movement: 2.3)
+[138.93s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (6 stuck warnings) (avg movement: 0.9)
+[143.00s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (7 stuck warnings) (avg movement: 0.7)
+[147.04s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (8 stuck warnings) (avg movement: 0.5)
+[151.09s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (9 stuck warnings) (avg movement: 3.3)
+[155.11s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (10 stuck warnings) (avg movement: 5.9)
+
+================================================== Mage 508 (enemy) ==================================================
+Total Events: 8
+Role: HEALER
+Team: undefined
+
+[0.06s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2411)
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2161)
+[41.83s]   DECISION_CHANGE → support_allies (target: Mage 558, dist: 50)
+[52.77s]   DECISION_CHANGE → capture_objective (target: Flag 4, dist: 343)
+[55.36s]   DECISION_CHANGE → support_allies (target: Mage 656, dist: 51)
+[69.57s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 1696)
+[80.92s]   DECISION_CHANGE → support_allies (target: Warden 972, dist: 60)
+[118.77s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 14.5)
+
+================================================== Mage 656 (enemy) ==================================================
+Total Events: 14
+Role: HEALER
+Team: undefined
+
+[0.26s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2394)
+[0.79s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2334)
+[1.70s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2247)
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2213)
+[41.76s]   DECISION_CHANGE → support_allies (target: Knight 248, dist: 91)
+[52.77s]   DECISION_CHANGE → capture_objective (target: Flag 4, dist: 378)
+[54.88s]   DECISION_CHANGE → support_allies (target: Knight 248, dist: 58)
+[69.57s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 1665)
+[80.07s]   DECISION_CHANGE → support_allies (target: Warden 87, dist: 60)
+[80.37s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 453)
+[80.41s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 451)
+[114.71s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 13.7)
+[138.64s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (2 stuck warnings) (avg movement: 17.3)
+[142.68s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (3 stuck warnings) (avg movement: 19.3)
+
+================================================== Knight 304 (enemy) ==================================================
+Total Events: 8
+Role: TANK
+Team: undefined
+
+[0.36s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2399)
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2181)
+[44.14s]   DECISION_CHANGE → attack_wall (target: Flag 4 wall, dist: 149)
+[66.38s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 8.2)
+[69.57s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 1731)
+[83.69s]   DECISION_CHANGE → attack_wall (target: Flag 1 wall, dist: 147)
+[104.44s]  DECISION_CHANGE → capture_objective (target: Flag 6, dist: 124)
+[157.73s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (2 stuck warnings) (avg movement: 14.6)
+
+================================================== Warden 972 (enemy) ==================================================
+Total Events: 9
+Role: TANK
+Team: undefined
+
+[0.36s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2368)
+[0.85s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2295)
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2126)
+[47.72s]   DECISION_CHANGE → attack_wall (target: Flag 4 wall, dist: 150)
+[62.36s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 0.0)
+[66.38s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (2 stuck warnings) (avg movement: 19.2)
+[69.57s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 1729)
+[84.10s]   DECISION_CHANGE → attack_wall (target: Flag 1 wall, dist: 149)
+[104.44s]  DECISION_CHANGE → capture_objective (target: Flag 6, dist: 111)
+
+================================================== Knight 87 (enemy) ==================================================
+Total Events: 16
+Role: TANK
+Team: undefined
+
+[0.49s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2410)
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2232)
+[47.61s]   DECISION_CHANGE → attack_wall (target: Flag 4 wall, dist: 150)
+[66.38s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 2.0)
+[69.57s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 1730)
+[70.38s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (2 stuck warnings) (avg movement: 16.1)
+[84.20s]   DECISION_CHANGE → attack_wall (target: Flag 1 wall, dist: 149)
+[105.07s]  DECISION_CHANGE → capture_objective (target: Flag 1, dist: 84)
+[114.71s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (3 stuck warnings) (avg movement: 17.4)
+[118.77s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (4 stuck warnings) (avg movement: 0.5)
+[122.82s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (5 stuck warnings) (avg movement: 16.2)
+[138.93s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (6 stuck warnings) (avg movement: 16.7)
+[143.00s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (7 stuck warnings) (avg movement: 0.6)
+[147.04s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (8 stuck warnings) (avg movement: 0.6)
+[151.09s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (9 stuck warnings) (avg movement: 1.4)
+[155.11s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (10 stuck warnings) (avg movement: 1.4)
+
+================================================== Warrior 37 (enemy) ==================================================
+Total Events: 23
+Role: DPS
+Team: undefined
+
+[1.50s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2345)
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2299)
+[18.23s]   DECISION_CHANGE → attack_creature (target: Creature, dist: 80)
+[19.23s]   DECISION_CHANGE → capture_objective (target: Flag 3, dist: 398)
+[20.25s]   DECISION_CHANGE → capture_objective (target: Flag 3, dist: 312)
+[22.28s]   DECISION_CHANGE → attack_creature (target: Creature, dist: 80)
+[23.37s]   DECISION_CHANGE → capture_objective (target: Flag 3, dist: 65)
+[24.07s]   DECISION_CHANGE → capture_objective (target: Flag 5, dist: 340)
+[24.30s]   DECISION_CHANGE → capture_objective (target: Flag 5, dist: 319)
+[35.23s]   DECISION_CHANGE → attack_creature (target: Creature, dist: 80)
+[39.49s]   DECISION_CHANGE → attack_objective (target: Flag 4, dist: 1138)
+[47.38s]   DECISION_CHANGE → attack_enemy (target: warrior, dist: 64)
+[52.77s]   DECISION_CHANGE → attack_objective (target: Flag 4, dist: 277)
+[65.09s]   DECISION_CHANGE → attack_enemy (target: mage, dist: 65)
+[69.57s]   DECISION_CHANGE → attack_objective (target: Flag 1, dist: 1416)
+[80.17s]   DECISION_CHANGE → attack_enemy (target: warrior, dist: 67)
+[98.58s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 7.4)
+[102.61s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (2 stuck warnings) (avg movement: 3.0)
+[106.64s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (3 stuck warnings) (avg movement: 3.0)
+[110.66s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (4 stuck warnings) (avg movement: 2.7)
+[114.71s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (5 stuck warnings) (avg movement: 2.3)
+[118.77s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (6 stuck warnings) (avg movement: 2.5)
+[151.39s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (7 stuck warnings) (avg movement: 17.0)
+
+================================================== Mage 558 (enemy) ==================================================
+Total Events: 11
+Role: HEALER
+Team: undefined
+
+[1.70s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2264)
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2233)
+[41.60s]   DECISION_CHANGE → support_allies (target: Mage 656, dist: 67)
+[54.28s]   DECISION_CHANGE → capture_objective (target: Flag 4, dist: 112)
+[56.28s]   DECISION_CHANGE → support_allies (target: Warrior 37, dist: 71)
+[62.36s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 7.3)
+[66.38s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (2 stuck warnings) (avg movement: 14.4)
+[69.57s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 1681)
+[80.80s]   DECISION_CHANGE → support_allies (target: Knight 248, dist: 64)
+[138.93s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (3 stuck warnings) (avg movement: 18.1)
+[143.00s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (4 stuck warnings) (avg movement: 17.5)
+
+================================================== Warden 87 (enemy) ==================================================
+Total Events: 16
+Role: TANK
+Team: undefined
+
+[1.91s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2279)
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2269)
+[45.60s]   DECISION_CHANGE → attack_wall (target: Flag 4 wall, dist: 148)
+[69.57s]   DECISION_CHANGE → capture_objective (target: Flag 1, dist: 1619)
+[82.25s]   DECISION_CHANGE → attack_wall (target: Flag 1 wall, dist: 148)
+[105.07s]  DECISION_CHANGE → capture_objective (target: Flag 1, dist: 85)
+[118.77s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 8.4)
+[122.82s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (2 stuck warnings) (avg movement: 15.0)
+[126.85s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (3 stuck warnings) (avg movement: 15.5)
+[130.88s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (4 stuck warnings) (avg movement: 17.1)
+[134.91s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (5 stuck warnings) (avg movement: 18.9)
+[138.93s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (6 stuck warnings) (avg movement: 11.8)
+[143.00s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (7 stuck warnings) (avg movement: 6.2)
+[147.04s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (8 stuck warnings) (avg movement: 0.7)
+[151.09s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (9 stuck warnings) (avg movement: 1.7)
+[155.11s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (10 stuck warnings) (avg movement: 1.7)
+
+================================================== Warrior 927 (enemy) ==================================================
+Total Events: 12
+Role: DPS
+Team: undefined
+
+[2.03s]    DECISION_CHANGE → capture_objective (target: Flag 3, dist: 2209)
+[15.68s]   DECISION_CHANGE → attack_creature (target: Creature, dist: 79)
+[17.10s]   DECISION_CHANGE → capture_objective (target: Flag 3, dist: 509)
+[18.42s]   DECISION_CHANGE → capture_objective (target: Flag 3, dist: 447)
+[36.30s]   DECISION_CHANGE → attack_creature (target: Creature, dist: 78)
+[37.49s]   DECISION_CHANGE → capture_objective (target: Flag 4, dist: 922)
+[50.28s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (1 stuck warnings) (avg movement: 2.7)
+[54.31s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (2 stuck warnings) (avg movement: 7.6)
+[58.34s]   POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (3 stuck warnings) (avg movement: 14.7)
+[67.82s]   DECISION_CHANGE → attack_enemy (target: mage, dist: 17)
+[130.18s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (4 stuck warnings) (avg movement: 10.3)
+[134.22s]  POSITION_CHECK ⚠️ STUCK_LOOP_DETECTED (5 stuck warnings) (avg movement: 9.1)
+
+========================================================================================================================
+END OF AI BEHAVIOR LOG

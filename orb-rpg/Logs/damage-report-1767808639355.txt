@@ -1,0 +1,154 @@
+Damage & Healing Report
+======================================================================
+Generated: 1/7/2026, 12:57:19 PM
+Game Time: 158s
+
+DAMAGE DEALT:
+----------------------------------------------------------------------
+  PLAYER                    [Player] 10422
+  warrior                   [Enemy ] 1785
+  knight                    [Enemy ] 1651
+  warrior                   [Enemy ] 1621
+  warrior                   [Enemy ] 1621
+  knight                    [Enemy ] 1598
+  warrior                   [Enemy ] 1284
+  knight                    [Enemy ] 1180
+  warrior                   [Enemy ] 1054
+  warden                    [Enemy ] 1041
+  warrior                   [Enemy ] 843
+  warrior                   [Enemy ] 841
+  warden                    [Enemy ] 839
+  Warrior 927               [Ally  ] 774
+  warden                    [Enemy ] 767
+  warden                    [Enemy ] 661
+  Knight 248                [Ally  ] 583
+  knight                    [Enemy ] 569
+  Warden 87                 [Ally  ] 563
+  Warden 972                [Ally  ] 544
+  knight                    [Enemy ] 517
+  Knight 87                 [Ally  ] 501
+  Warrior 37                [Ally  ] 486
+  warden                    [Enemy ] 455
+  knight                    [Enemy ] 436
+  Knight 304                [Ally  ] 415
+  Mage 656                  [Ally  ] 360
+  Mage 558                  [Ally  ] 352
+  Mage 508                  [Ally  ] 240
+  warrior                   [Enemy ] 204
+  knight                    [Enemy ] 167
+  knight                    [Enemy ] 152
+  knight                    [Enemy ] 116
+  mage                      [Enemy ] 105
+  knight                    [Enemy ] 77
+  mage                      [Enemy ] 60
+  mage                      [Enemy ] 54
+  Warrior Guard 4           [Ally  ] 40
+  Warrior Guard 3           [Ally  ] 30
+  Warrior Guard 3           [Ally  ] 20
+  Warrior Guard 4           [Ally  ] 10
+  Warrior Guard 5           [Ally  ] 10
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warden                    [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warrior                   [Enemy ] 0
+  warrior                   [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warrior                   [Enemy ] 0
+  warrior                   [Enemy ] 0
+  warrior                   [Enemy ] 0
+
+DAMAGE RECEIVED:
+----------------------------------------------------------------------
+  PLAYER                    [Player] 3147
+  warden                    [Enemy ] 1904
+  warrior                   [Enemy ] 1898
+  warrior                   [Enemy ] 1752
+  knight                    [Enemy ] 1605
+  knight                    [Enemy ] 1541
+  warrior                   [Enemy ] 1470
+  warrior                   [Enemy ] 1455
+  warrior                   [Enemy ] 1390
+  knight                    [Enemy ] 1358
+  warden                    [Enemy ] 1288
+  warden                    [Enemy ] 1053
+  Warden 972                [Ally  ] 991
+  Warrior 927               [Ally  ] 908
+  knight                    [Enemy ] 905
+  Knight 304                [Ally  ] 711
+  warden                    [Enemy ] 700
+  warrior                   [Enemy ] 696
+  knight                    [Enemy ] 664
+  warrior                   [Enemy ] 655
+  warden                    [Enemy ] 647
+  knight                    [Enemy ] 634
+  warrior                   [Enemy ] 624
+  knight                    [Enemy ] 517
+  knight                    [Enemy ] 479
+  Mage 656                  [Ally  ] 451
+  knight                    [Enemy ] 337
+  Warrior 37                [Ally  ] 217
+  Knight 87                 [Ally  ] 213
+  Warden 87                 [Ally  ] 112
+  mage                      [Enemy ] 99
+  mage                      [Enemy ] 89
+  Mage 558                  [Ally  ] 88
+  knight                    [Enemy ] 46
+  Mage 508                  [Ally  ] 30
+  mage                      [Enemy ] 15
+  Warrior Guard 3           [Ally  ] 12
+  Knight 248                [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Warrior Guard 4           [Ally  ] 0
+  Warrior Guard 5           [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Warrior Guard 3           [Ally  ] 0
+  Warrior Guard 4           [Ally  ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warden                    [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warrior                   [Enemy ] 0
+  warrior                   [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warrior                   [Enemy ] 0
+  warrior                   [Enemy ] 0
+  warrior                   [Enemy ] 0
+
+HEALING DONE:
+----------------------------------------------------------------------
+
+SHIELDS PROVIDED:
+----------------------------------------------------------------------
