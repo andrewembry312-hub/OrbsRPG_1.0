@@ -2804,12 +2804,14 @@ function npcUpdateAbilities(state, u, dt, kind){
         
         // Log block activation (1% sample rate)
         if(state.debugLog && Math.random() < 0.01){
+          const timeSinceDamage = now - u._lastDamagedAt;
           state.debugLog.push({
             time: now.toFixed(2),
             type: 'GUARD_BLOCK_ACTIVE',
             guard: u.name || u.variant,
             role: u.guardRole || 'DPS',
-            reason: recoveryReason,
+            reason: 'reactive_defense',
+            timeSinceDamage: timeSinceDamage.toFixed(2),
             stamina: u.stam.toFixed(1),
             nearbyEnemies: nearbyEnemyCount
           });

@@ -294,8 +294,9 @@ export function render(state){
       ctx.fillStyle='rgba(70,130,200,0.72)';
       for(const c of lake.circles){ ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2); ctx.fill(); }
       ctx.globalAlpha=1;
-      ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=2;
-      for(const c of lake.circles){ ctx.beginPath(); ctx.arc(c.x,c.y,Math.max(6,c.r-6),0,Math.PI*2); ctx.stroke(); }
+      // Border removed - single water color only
+      // ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=2;
+      // for(const c of lake.circles){ ctx.beginPath(); ctx.arc(c.x,c.y,Math.max(6,c.r-6),0,Math.PI*2); ctx.stroke(); }
     }
   }
 
@@ -318,14 +319,46 @@ export function render(state){
   // sites
   for(const s of state.sites) drawSite(ctx, s, state);
 
-  // draw dungeon entrances as small cave icons
+  // draw dungeon entrances with circular image display
   if(state.dungeons){
     for(const d of state.dungeons){
-      const color = d.cleared ? 'rgba(80,60,40,0.6)' : '#8B5A2B';
-      drawTriangle(ctx, d.x, d.y - 6, 10, color);
+      const dungeonImg = loadCachedImage(state, 'assets/structure/Dungeon Entrance.png');
+      if(dungeonImg){
+        try{
+          // Draw circular clipping mask
+          ctx.save();
+          const radius = 24;
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, radius, 0, Math.PI*2);
+          ctx.clip();
+          
+          // Draw dungeon entrance image to fill the circle
+          const imgSize = radius * 2.2;
+          ctx.drawImage(dungeonImg, d.x - imgSize/2, d.y - imgSize/2, imgSize, imgSize);
+          ctx.restore();
+          
+          // Add border ring (dimmed if cleared)
+          const borderColor = d.cleared ? 'rgba(80,60,40,0.5)' : 'rgba(139,90,43,0.9)';
+          ctx.strokeStyle = borderColor;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, radius, 0, Math.PI*2);
+          ctx.stroke();
+        }catch(e){
+          // Fallback to triangle if image fails
+          const color = d.cleared ? 'rgba(80,60,40,0.6)' : '#8B5A2B';
+          drawTriangle(ctx, d.x, d.y - 6, 10, color);
+        }
+      } else {
+        // Fallback to triangle while image loads
+        const color = d.cleared ? 'rgba(80,60,40,0.6)' : '#8B5A2B';
+        drawTriangle(ctx, d.x, d.y - 6, 10, color);
+      }
+      
+      // Draw dungeon name label
       ctx.fillStyle='rgba(255,255,255,.9)';
       ctx.font='12px system-ui';
-      ctx.fillText(d.name, d.x - ctx.measureText(d.name).width/2, d.y + 18);
+      ctx.fillText(d.name, d.x - ctx.measureText(d.name).width/2, d.y + 34);
     }
   }
 
@@ -1028,7 +1061,7 @@ function drawMiniMap(ctx, canvas, state){
     const sx = x + (s.x/mapW)*mw; 
     const sy = y + (s.y/mapH)*mh; 
     const isBase = s.id.endsWith('_base');
-    const siteColor = (s.owner ? (teamColor(s.owner) || '#9b6b4b') : '#9b6b4b');
+    const siteColor = (s.owner ? (teamColor(s.owner) || '#888888') : '#888888');
     
     // Draw emoji for bases and outposts
     if(isBase){
@@ -1165,7 +1198,7 @@ function drawFullMap(ctx, canvas, state){
   for(const s of state.sites){
     const sx = x + s.x*scale; const sy = y + s.y*scale;
     const isBase = s.id && s.id.endsWith('_base');
-    const siteColor = (s.owner ? (teamColor(s.owner) || '#9b6b4b') : '#9b6b4b');
+    const siteColor = (s.owner ? (teamColor(s.owner) || '#888888') : '#888888');
     
     if(isBase){
       // Castle for bases 🏰

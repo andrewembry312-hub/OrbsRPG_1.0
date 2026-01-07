@@ -136,67 +136,69 @@ export function initSites(state){
     }
   }
 
-  // base scatter (only in playable area)
-  const TREE_COUNT = Math.floor((playWidth*playHeight)/(60000));
-  for(let i=0;i<TREE_COUNT;i++){
-    let ok=false, tx,ty,tries=0;
-    while(!ok && tries<200){
-      tx = offsetX + Math.random()*(playWidth-80)+40;
-      ty = offsetY + Math.random()*(playHeight-80)+40;
-      ok=true;
-      for(const b of state.sites){ if(Math.hypot(b.x-tx,b.y-ty) < 120) { ok=false; break; } }
-      tries++;
-    }
-    if(ok) state.trees.push({x:tx,y:ty,r:12});
-  }
-  // clustered groves for denser forests
-  const CLUSTERS = 16;
-  for(let c=0;c<CLUSTERS;c++){
-    const cx = offsetX + Math.random()*(playWidth-200)+100;
-    const cy = offsetY + Math.random()*(playHeight-200)+100;
-    let nearBase=false;
-    for(const b of state.sites){ if(Math.hypot(b.x-cx,b.y-cy) < 200){ nearBase=true; break; } }
-    if(nearBase) continue;
-    const treesInCluster = 8 + Math.floor(Math.random()*10);
-    for(let t=0;t<treesInCluster;t++){
-      const ang = Math.random()*Math.PI*2;
-      const dist = 18 + Math.random()*42;
-      const tx = cx + Math.cos(ang)*dist;
-      const ty = cy + Math.sin(ang)*dist;
-      if(tx<offsetX+30 || ty<offsetY+30 || tx>offsetX+playWidth-30 || ty>offsetY+playHeight-30) continue;
-      state.trees.push({x:tx,y:ty,r:12});
-    }
-  }
-  // mountains: clustered brown triangles + collision circles
+  // DISABLED: base scatter trees (prevent AI pathfinding issues)
+  // Trees kept on outer borders only, removed from playable area
+  // const TREE_COUNT = Math.floor((playWidth*playHeight)/(60000));
+  // for(let i=0;i<TREE_COUNT;i++){
+  //   let ok=false, tx,ty,tries=0;
+  //   while(!ok && tries<200){
+  //     tx = offsetX + Math.random()*(playWidth-80)+40;
+  //     ty = offsetY + Math.random()*(playHeight-80)+40;
+  //     ok=true;
+  //     for(const b of state.sites){ if(Math.hypot(b.x-tx,b.y-ty) < 120) { ok=false; break; } }
+  //     tries++;
+  //   }
+  //   if(ok) state.trees.push({x:tx,y:ty,r:12});
+  // }
+  // DISABLED: clustered groves (prevent AI pathfinding issues)
+  // const CLUSTERS = 16;
+  // for(let c=0;c<CLUSTERS;c++){
+  //   const cx = offsetX + Math.random()*(playWidth-200)+100;
+  //   const cy = offsetY + Math.random()*(playHeight-200)+100;
+  //   let nearBase=false;
+  //   for(const b of state.sites){ if(Math.hypot(b.x-cx,b.y-cy) < 200){ nearBase=true; break; } }
+  //   if(nearBase) continue;
+  //   const treesInCluster = 8 + Math.floor(Math.random()*10);
+  //   for(let t=0;t<treesInCluster;t++){
+  //     const ang = Math.random()*Math.PI*2;
+  //     const dist = 18 + Math.random()*42;
+  //     const tx = cx + Math.cos(ang)*dist;
+  //     const ty = cy + Math.sin(ang)*dist;
+  //     if(tx<offsetX+30 || ty<offsetY+30 || tx>offsetX+playWidth-30 || ty>offsetY+playHeight-30) continue;
+  //     state.trees.push({x:tx,y:ty,r:12});
+  //   }
+  // }
+  // DISABLED: mountains in playable area (prevent AI pathfinding issues)
+  // Mountains kept on outer borders only, removed from playable area
   state.mountains = [];
   state.mountainCircles = [];
-  const MOUNT_COUNT = 8;
-  for(let i=0;i<MOUNT_COUNT;i++){
-    let ok=false, mx,my,tries=0;
-    while(!ok && tries<220){
-      mx = offsetX + Math.random()*(playWidth-240) + 120;
-      my = offsetY + Math.random()*(playHeight-240) + 120;
-      ok=true;
-      for(const b of state.sites){ if(Math.hypot(b.x-mx,b.y-my) < 180) { ok=false; break; } }
-      tries++;
-    }
-    if(!ok) continue;
-    const peaks = [];
-    const clusterSize = 3 + Math.floor(Math.random()*4);
-    for(let p=0;p<clusterSize;p++){
-      const ang = Math.random()*Math.PI*2;
-      const dist = 20 + Math.random()*60;
-      const px = mx + Math.cos(ang)*dist;
-      const py = my + Math.sin(ang)*dist;
-      const pr = 28 + Math.random()*36;
-      peaks.push({x:px,y:py,r:pr});
-      state.mountainCircles.push({x:px,y:py,r:pr});
-    }
-    // add a central blocker to close gaps between peaks
-    const clusterR = 65 + Math.random()*25;
-    state.mountainCircles.push({x:mx,y:my,r:clusterR});
-    state.mountains.push({x:mx,y:my,peaks});
-  }
+  // const MOUNT_COUNT = 8;
+  // for(let i=0;i<MOUNT_COUNT;i++){
+  //   let ok=false, mx,my,tries=0;
+  //   while(!ok && tries<220){
+  //     mx = offsetX + Math.random()*(playWidth-240) + 120;
+  //     my = offsetY + Math.random()*(playHeight-240) + 120;
+  //     ok=true;
+  //     for(const b of state.sites){ if(Math.hypot(b.x-mx,b.y-my) < 180) { ok=false; break; } }
+  //     tries++;
+  //   }
+  //   if(!ok) continue;
+  //   const peaks = [];
+  //   const clusterSize = 3 + Math.floor(Math.random()*4);
+  //   for(let p=0;p<clusterSize;p++){
+  //     const ang = Math.random()*Math.PI*2;
+  //     const dist = 20 + Math.random()*60;
+  //     const px = mx + Math.cos(ang)*dist;
+  //     const py = my + Math.sin(ang)*dist;
+  //     const pr = 28 + Math.random()*36;
+  //     peaks.push({x:px,y:py,r:pr});
+  //     state.mountainCircles.push({x:px,y:py,r:pr});
+  //   }
+  //   // add a central blocker to close gaps between peaks
+  //   const clusterR = 65 + Math.random()*25;
+  //   state.mountainCircles.push({x:mx,y:my,r:clusterR});
+  //   state.mountains.push({x:mx,y:my,peaks});
+  // }
 
   // rock formations: grey ovals with subtle shading
   state.rocks = [];

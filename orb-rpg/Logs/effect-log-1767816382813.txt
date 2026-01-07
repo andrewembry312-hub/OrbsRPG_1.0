@@ -1,0 +1,153 @@
+Effect Cast Log
+======================================================================
+Generated: 1/7/2026, 3:06:22 PM
+Total Effects: 2000
+Total Applied Effects: 4079
+Game Time: 176s
+
+VALIDATION (APPLIED EFFECTS ATTRIBUTION):
+----------------------------------------------------------------------
+Missing sourceAbilityId: 0
+Missing effectId:       0
+Missing targetId:       594
+
+Top missing-targetId samples (first 12):
+  t=0.00 ?:warrior_fortitude_shield target=?:?                    source=?:warrior_fortitude
+  t=0.00 ?:warrior_fortitude_shield target=?:?                    source=?:warrior_fortitude
+  t=15.17 ?:mage_divine_touch_heal target=?:?                    source=?:mage_divine_touch
+  t=15.37 ?:mage_divine_touch_heal target=?:?                    source=?:mage_divine_touch
+  t=16.10 ?:mage_divine_touch_heal target=?:?                    source=?:mage_divine_touch
+  t=16.50 ?:mage_divine_touch_heal target=?:?                    source=?:mage_divine_touch
+  t=16.75 ?:mage_divine_touch_heal target=?:?                    source=?:mage_divine_touch
+  t=16.75 ?:mage_divine_touch_heal target=?:?                    source=?:mage_divine_touch
+  t=17.13 ?:mage_divine_touch_heal target=?:?                    source=?:mage_divine_touch
+  t=17.99 ?:mage_divine_touch_heal target=?:?                    source=?:mage_divine_touch
+  t=18.14 ?:knight_shield_wall_shield target=?:?                    source=?:knight_shield_wall
+  t=18.16 ?:knight_taunt_shield target=?:?                    source=?:knight_taunt
+
+FRIENDLY EFFECTS:
+----------------------------------------------------------------------
+  SHIELD:
+    warrior_fortitude                       7 casts
+    tank_bodyguard                         16 casts
+    knight_taunt                           45 casts
+    warcry                                 41 casts
+    tank_anchor                            25 casts
+    mage_radiant_aura                      34 casts
+    tank_iron_skin                         15 casts
+    ward_barrier                           30 casts
+  HEAL:
+    heal_burst                             80 casts
+    mage_divine_touch                      94 casts
+  SHIELD+HEAL:
+    knight_shield_wall                     35 casts
+  HEAL+SHIELD:
+    knight_rally                           31 casts
+    cleanse_wave                           31 casts
+
+ENEMY EFFECTS:
+----------------------------------------------------------------------
+  SHIELD:
+    warrior_fortitude                     259 casts
+    mage_radiant_aura                      32 casts
+    knight_taunt                           51 casts
+    warcry                                 50 casts
+    tank_anchor                            92 casts
+    tank_iron_skin                         79 casts
+    ward_barrier                           73 casts
+    tank_bodyguard                         77 casts
+  SHIELD+HEAL:
+    knight_shield_wall                     48 casts
+  HEAL:
+    mage_divine_touch                     432 casts
+    heal_burst                            199 casts
+  HEAL+SHIELD:
+    knight_rally                            9 casts
+    cleanse_wave                           18 casts
+  AOE_CHARGE:
+    shoulder_charge                        78 casts
+  AOE_DAMAGE:
+    meteor_slam                             9 casts
+  AOE_DOT:
+    gravity_well                            2 casts
+
+APPLIED EFFECTS (AUDIT):
+----------------------------------------------------------------------
+Counts are per-target applications (more granular than cast logs).
+
+UNKNOWN APPLIED EFFECTS:
+  mage_divine_touch              totalApplied:   536
+    effect:mage_divine_touch_heal         536
+  heal_burst                     totalApplied:   459
+    effect:heal_burst_heal                459
+  shoulder_charge                totalApplied:   436
+    effect:shoulder_charge_damage         436
+  knight_shield_wall             totalApplied:   348
+    effect:knight_shield_wall_heal        185
+    effect:knight_shield_wall_shield      163
+  warrior_fortitude              totalApplied:   345
+    effect:warrior_fortitude_shield       345
+  knight_rally                   totalApplied:   334
+    effect:knight_rally_heal              217
+    effect:knight_rally_shield            117
+  cleanse_wave                   totalApplied:   327
+    effect:cleanse_wave_heal              245
+    effect:cleanse_wave_shield             82
+  knight_taunt                   totalApplied:   180
+    effect:knight_taunt_shield            180
+  warcry                         totalApplied:   177
+    effect:warcry_shield                  177
+  mage_radiant_aura              totalApplied:   135
+    effect:mage_radiant_aura_shield       135
+  tank_anchor                    totalApplied:   134
+    effect:tank_anchor_shield             134
+  tank_bodyguard                 totalApplied:   115
+    effect:tank_bodyguard_shield          115
+  gravity_well                   totalApplied:   106
+    effect:gravity_well_dot_tick          106
+  ward_barrier                   totalApplied:    80
+    effect:ward_barrier_shield             80
+  meteor_slam                    totalApplied:    42
+    effect:meteor_slam_damage              42
+  tank_iron_skin                 totalApplied:    14
+    effect:tank_iron_skin_shield           14
+
+PLAYER APPLIED EFFECTS:
+  gravity_well                   totalApplied:   194
+    buff:slow                              97
+    buff:curse                             97
+  warrior_life_leech             totalApplied:    60
+    dot:bleed                              60
+  warrior_charge                 totalApplied:    35
+    dot:bleed                              15
+    buff:stun                              15
+    buff:haste                              5
+  meteor_slam                    totalApplied:    22
+    dot:burn                               11
+    buff:slow                              11
+
+CAST VS APPLIED (BY ABILITY):
+----------------------------------------------------------------------
+arc_bolt                       casts:     1 | applied:      0 | applied/cast: 0.00
+cleanse_wave                   casts:    49 | applied:    327 | applied/cast: 6.67
+cleave                         casts:    20 | applied:      0 | applied/cast: 0.00
+gravity_well                   casts:     6 | applied:    300 | applied/cast: 50.00
+heal_burst                     casts:   287 | applied:    459 | applied/cast: 1.60
+knight_rally                   casts:    42 | applied:    334 | applied/cast: 7.95
+knight_shield_wall             casts:    92 | applied:    348 | applied/cast: 3.78
+knight_taunt                   casts:   105 | applied:    180 | applied/cast: 1.71
+mage_divine_touch              casts:   536 | applied:    536 | applied/cast: 1.00
+mage_radiant_aura              casts:    71 | applied:    135 | applied/cast: 1.90
+meteor_slam                    casts:    13 | applied:     64 | applied/cast: 4.92
+piercing_lance                 casts:     2 | applied:      0 | applied/cast: 0.00
+shoulder_charge                casts:    79 | applied:    436 | applied/cast: 5.52
+slash                          casts:   215 | applied:      0 | applied/cast: 0.00
+tank_anchor                    casts:   132 | applied:    134 | applied/cast: 1.02
+tank_bodyguard                 casts:   107 | applied:    115 | applied/cast: 1.07
+tank_iron_skin                 casts:   108 | applied:     14 | applied/cast: 0.13
+warcry                         casts:   100 | applied:    177 | applied/cast: 1.77
+ward_barrier                   casts:   117 | applied:     80 | applied/cast: 0.68
+warrior_charge                 casts:     5 | applied:     35 | applied/cast: 7.00
+warrior_cleave                 casts:    20 | applied:      0 | applied/cast: 0.00
+warrior_fortitude              casts:   295 | applied:    345 | applied/cast: 1.17
+warrior_life_leech             casts:   188 | applied:     60 | applied/cast: 0.32
