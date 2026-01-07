@@ -184,10 +184,24 @@ export function buildUI(state){
       <div id="levelUpNumber" style="font-size:96px; font-weight:bold; color:#4a9eff; text-shadow:0 0 30px rgba(74,158,255,0.8); margin-top:-30px; opacity:0;">50</div>
     </div>
 
+    <!-- Bomb Notification (Killstreak) -->
+    <div id="bombNotification" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
+      <div id="bombText" style="font-size:120px; font-weight:900; color:#b565d8; text-shadow:-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 0 0 40px rgba(181,101,216,0.8); opacity:0;">BOMB!</div>
+      <div id="bombNumber" style="font-size:96px; font-weight:bold; color:#d4af37; text-shadow:-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 0 0 30px rgba(212,175,55,0.8); margin-top:-30px; opacity:0;">10</div>
+    </div>
+
     <!-- Emperor Notification -->
     <div id="emperorNotification" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
       <div id="emperorText" style="font-size:120px; font-weight:900; color:#ffd700; text-shadow:0 0 50px rgba(255,215,0,1); opacity:0; font-style:italic;">EMPEROR!</div>
       <div id="emperorSubtext" style="font-size:64px; font-weight:bold; color:#b8941f; text-shadow:0 0 30px rgba(184,148,31,0.8); margin-top:-20px; opacity:0;">🔱</div>
+    </div>
+
+    <!-- Kill Counter (bottom right) -->
+    <div id="killCounter" style="position:fixed; bottom:20px; right:20px; z-index:100; background:rgba(0,0,0,0.85); border:3px solid #d4af37; border-radius:8px; padding:12px 20px; min-width:180px; pointer-events:none;">
+      <div style="font-size:14px; font-weight:bold; color:#d4af37; margin-bottom:6px; text-align:center;">⚔️ KILL COUNTER ⚔️</div>
+      <div style="font-size:24px; font-weight:900; color:#d4af37; text-align:center; text-shadow:0 0 10px rgba(212,175,55,0.6);" id="killCounterValue">0</div>
+      <div style="font-size:12px; font-weight:bold; color:#b565d8; margin-top:8px; text-align:center; border-top:1px solid rgba(212,175,55,0.3); padding-top:6px;">💣 BIGGEST BOMB</div>
+      <div style="font-size:18px; font-weight:900; color:#b565d8; text-align:center; text-shadow:0 0 8px rgba(181,101,216,0.6);" id="biggestBombValue">0</div>
     </div>
 
     <!-- Inventory / Tabbed UI -->
@@ -1587,6 +1601,8 @@ function bindUI(state){
     levelTabLevelNum:$('levelTabLevelNum'), levelTabXpFill:$('levelTabXpFill'), levelTabXpText:$('levelTabXpText'),
     levelTabCurrentLevel:$('levelTabCurrentLevel'), levelTabStatPoints:$('levelTabStatPoints'),
     levelUpNotification:$('levelUpNotification'), levelUpText:$('levelUpText'), levelUpNumber:$('levelUpNumber'),
+    bombNotification:$('bombNotification'), bombText:$('bombText'), bombNumber:$('bombNumber'),
+    killCounterValue:$('killCounterValue'), biggestBombValue:$('biggestBombValue'),
     emperorNotification:$('emperorNotification'), emperorText:$('emperorText'), emperorSubtext:$('emperorSubtext'),
     toastEl:$('toast'),
     abilBar:$('abilBar'),
@@ -1949,6 +1965,51 @@ function bindUI(state){
     numberEl.style.opacity = '0';
     textEl.textContent = 'LEVEL UP!';
     numberEl.textContent = level;
+    
+    // Use requestAnimationFrame for smooth fade in
+    requestAnimationFrame(() => {
+      // Fade in: 0-0.3s
+      textEl.style.transition = 'opacity 0.3s ease-in';
+      numberEl.style.transition = 'opacity 0.3s ease-in';
+      textEl.style.opacity = '1';
+      numberEl.style.opacity = '1';
+      
+      // Fade out: starts at 2.7s, ends at 3s
+      setTimeout(() => {
+        textEl.style.transition = 'opacity 0.3s ease-out';
+        numberEl.style.transition = 'opacity 0.3s ease-out';
+        textEl.style.opacity = '0';
+        numberEl.style.opacity = '0';
+      }, 2700);
+      
+      // Hide after animation
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 3000);
+    });
+  };
+
+  // Bomb notification with fade animation (similar to level up)
+  ui.showBomb = (killCount)=>{
+    const notification = ui.bombNotification;
+    const textEl = ui.bombText;
+    const numberEl = ui.bombNumber;
+    
+    if(!notification) return;
+    
+    // Play bomb sound
+    if(state.sounds?.bombNotification){
+      const audio = state.sounds.bombNotification.cloneNode();
+      audio.volume = 0.6;
+      audio.play().catch(e => {});
+    }
+    
+    // Reset animation
+    notification.style.display = 'block';
+    textEl.style.opacity = '0';
+    numberEl.style.opacity = '0';
+    textEl.textContent = 'BOMB!';
+    numberEl.textContent = killCount;
     
     // Use requestAnimationFrame for smooth fade in
     requestAnimationFrame(() => {
@@ -3633,6 +3694,14 @@ function bindUI(state){
     ui.stamText.textContent = `${stam}/${maxStam}`;
     ui.xpText.textContent = `${xp}/${xpNext}`;
     ui.updateGoldDisplay();
+    
+    // Update kill counter display
+    if(ui.killCounterValue){
+      ui.killCounterValue.textContent = state.player.kills || 0;
+    }
+    if(ui.biggestBombValue){
+      ui.biggestBombValue.textContent = state.player.biggestBomb || 0;
+    }
 
     // Update bar widths
     ui.hpFill.style.width = `${clamp(hp/maxHp,0,1)*100}%`;

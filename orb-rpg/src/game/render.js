@@ -539,7 +539,7 @@ export function render(state){
       const size = Math.max(16, Math.floor(e.r*1.6));
       ctx.drawImage(img, e.x - size/2, e.y - size/2, size, size);
     }
-    drawHpBar(ctx, e.x, e.y-e.r-18, 34, 6, Math.max(0, (e.hp||0)/(e.maxHp||1)), e.level);
+    drawHpBar(ctx, e.x, e.y-e.r-18, 34, 6, Math.max(0, (e.hp||0)/(e.maxHp||1)), e.level, true);
     // draw shield indicator (blue shield ring for enemy shields)
     if(e.shield && e.shield > 0){
       const shieldRatio = Math.min(1, e.shield / (e.maxShield || 100));
@@ -826,7 +826,7 @@ function drawTriangle(ctx,x,y,size,color){
   ctx.stroke();
 }
 
-function drawHpBar(ctx, x,y,w,h,pct,level){
+function drawHpBar(ctx, x,y,w,h,pct,level,isEnemy){
   const p=clamp(pct,0,1);
   
   // If level is provided, draw level circle at the start
@@ -836,14 +836,14 @@ function drawHpBar(ctx, x,y,w,h,pct,level){
     const circleX = barStartX - circleR - 2; // Position to the left of bar
     const circleY = y + h/2; // Center vertically with bar
     
-    // Gold circle background
-    ctx.fillStyle = '#d4af37';
+    // Circle background with appropriate color
+    ctx.fillStyle = isEnemy ? '#ff0000' : '#d4af37';
     ctx.beginPath();
     ctx.arc(circleX, circleY, circleR, 0, Math.PI*2);
     ctx.fill();
     
-    // Gold border
-    ctx.strokeStyle = '#FFD700';
+    // Border with appropriate color
+    ctx.strokeStyle = isEnemy ? '#ff4444' : '#FFD700';
     ctx.lineWidth = 1.5;
     ctx.stroke();
     
@@ -855,8 +855,8 @@ function drawHpBar(ctx, x,y,w,h,pct,level){
     ctx.fillText(level.toString(), circleX, circleY);
   }
   
-  // Gold outline around health bar
-  ctx.strokeStyle = '#d4af37';
+  // Outline with appropriate color - red for enemies, gold for others
+  ctx.strokeStyle = isEnemy ? '#ff0000' : '#d4af37';
   ctx.lineWidth = 1.5;
   ctx.strokeRect(x-w/2, y, w, h);
   
@@ -1020,7 +1020,7 @@ function drawMiniMap(ctx, canvas, state){
     const sx = x + (s.x/mapW)*mw; 
     const sy = y + (s.y/mapH)*mh; 
     const isBase = s.id.endsWith('_base');
-    const siteColor = (s.owner ? (teamColor(s.owner) || cssVar('--enemy')) : cssVar('--enemy'));
+    const siteColor = (s.owner ? (teamColor(s.owner) || '#9b6b4b') : '#9b6b4b');
     
     // Draw emoji for bases and outposts
     if(isBase){
@@ -1052,7 +1052,7 @@ function drawMiniMap(ctx, canvas, state){
       ctx.fillStyle = '#fff';
       ctx.fillText(s.id.replace('_', ' '), sx, sy + 16);
     } else {
-      // Flag for outposts 🏴
+      // Flag for outposts 🚩
       ctx.font = '10px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -1070,15 +1070,10 @@ function drawMiniMap(ctx, canvas, state){
       ctx.arc(sx, sy, 5, 0, Math.PI*2); 
       ctx.stroke();
       
-      ctx.fillStyle = '#fff';
-      ctx.fillText('🏴', sx, sy);
+      ctx.fillStyle = siteColor;
+      ctx.fillText('🚩', sx, sy);
       
-      // Label for outpost
-      ctx.font = '7px system-ui';
-      ctx.fillStyle = 'rgba(0,0,0,0.8)';
-      ctx.fillRect(sx - 15, sy + 7, 30, 10);
-      ctx.fillStyle = '#fff';
-      ctx.fillText(s.name || s.id, sx, sy + 12);
+      // No label on minimap for flags (too cluttered)
     }
   }
   // player arrow (pointing in movement direction)
@@ -1162,7 +1157,7 @@ function drawFullMap(ctx, canvas, state){
   for(const s of state.sites){
     const sx = x + s.x*scale; const sy = y + s.y*scale;
     const isBase = s.id && s.id.endsWith('_base');
-    const siteColor = (s.owner ? (teamColor(s.owner) || cssVar('--enemy')) : cssVar('--enemy'));
+    const siteColor = (s.owner ? (teamColor(s.owner) || '#9b6b4b') : '#9b6b4b');
     
     if(isBase){
       // Castle for bases 🏰
@@ -1195,7 +1190,7 @@ function drawFullMap(ctx, canvas, state){
       ctx.fillStyle = siteColor;
       ctx.fillText(baseLabel, sx, sy + 26);
     } else {
-      // Flag for outposts 🏴
+      // Flag for outposts 🚩
       ctx.font = '16px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -1213,17 +1208,17 @@ function drawFullMap(ctx, canvas, state){
       ctx.arc(sx, sy, 9, 0, Math.PI*2); 
       ctx.stroke();
       
-      ctx.fillStyle = '#fff';
-      ctx.fillText('🏴', sx, sy);
+      ctx.fillStyle = siteColor;
+      ctx.fillText('🚩', sx, sy);
       
-      // Label for outpost
-      ctx.font = '11px system-ui';
-      const outpostLabel = s.id.toUpperCase();
-      const outpostLabelWidth = ctx.measureText(outpostLabel).width + 6;
+      // Label for flag (use the site's actual name like "Flag 1", "Flag 2", etc.)
+      ctx.font = 'bold 11px system-ui';
+      const flagLabel = s.name || s.id;
+      const outpostLabelWidth = ctx.measureText(flagLabel).width + 6;
       ctx.fillStyle = 'rgba(0,0,0,0.85)';
       ctx.fillRect(sx - outpostLabelWidth/2, sy + 14, outpostLabelWidth, 14);
-      ctx.fillStyle = '#fff';
-      ctx.fillText(outpostLabel, sx, sy + 21);
+      ctx.fillStyle = siteColor;
+      ctx.fillText(flagLabel, sx, sy + 21);
     }
     
     // only consider clickable player-owned sites

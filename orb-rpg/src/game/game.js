@@ -311,6 +311,14 @@ export async function initGame(state){
     state.sounds.levelUp = new Audio('assets/sounds/Level Up Sound.mp3');
     state.sounds.levelUp.volume = 0.6;
   }
+  if(!state.sounds.killCounter){
+    state.sounds.killCounter = new Audio('assets/sounds/kill counter sound.wav');
+    state.sounds.killCounter.volume = 0.5;
+  }
+  if(!state.sounds.bombNotification){
+    state.sounds.bombNotification = new Audio('assets/sounds/bomb notification.mp3');
+    state.sounds.bombNotification.volume = 0.6;
+  }
   if(!state.sounds.gameNonCombatMusic){
     state.sounds.gameNonCombatMusic = new Audio('assets/sounds/Main Game non attack music.mp3');
     state.sounds.gameNonCombatMusic.loop = true;
@@ -1493,7 +1501,44 @@ function killEnemy(state, index, fromPlayer=true){
   if(state.selectedUnit && state.selectedUnit.unit===e){
     try{ state.ui.hideUnitPanel?.(); }catch{}
   }
-  if(fromPlayer) awardXP(state, e.xp);
+  
+  // Track kills for player
+  if(fromPlayer){
+    awardXP(state, e.xp);
+    state.player.kills = (state.player.kills || 0) + 1;
+    
+    // Play kill sound
+    if(state.sounds?.killCounter){
+      const audio = state.sounds.killCounter.cloneNode();
+      audio.volume = 0.5;
+      audio.play().catch(e => {});
+    }
+    
+    // Check for bomb (multikill within time window)
+    if(!state._bombTimer) state._bombTimer = 0;
+    if(!state._bombCount) state._bombCount = 0;
+    
+    const now = performance.now();
+    if(now - state._bombTimer < 3000){
+      // Within 3 second window - increment bomb count
+      state._bombCount++;
+    } else {
+      // New bomb sequence
+      state._bombCount = 1;
+    }
+    state._bombTimer = now;
+    
+    // Show bomb notification if 3+ kills in window
+    if(state._bombCount >= 3){
+      if(state._bombCount > (state.player.biggestBomb || 0)){
+        state.player.biggestBomb = state._bombCount;
+      }
+      if(state.ui && state.ui.showBomb){
+        state.ui.showBomb(state._bombCount);
+      }
+    }
+  }
+  
   // Dungeon enemies do not respawn; boss guarantees legendary drop
   if(e.dungeonId){
     if(e.boss){

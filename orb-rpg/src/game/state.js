@@ -46,7 +46,9 @@ export function createState(engine, input, ui){
     passives: defaultPassives(getSkillById),
     cd:[0,0,0,0,0],
     dead:false,
-    respawnT:0
+    respawnT:0,
+    kills:0,
+    biggestBomb:0
   };
 
   const state={
