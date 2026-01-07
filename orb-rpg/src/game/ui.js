@@ -5948,11 +5948,51 @@ function bindUI(state){
       if(ui.enableEffectLog.checked){
         // Generate effect log
         const effects = state.effectLog || [];
+        const applied = state.effectApplyLog || [];
         let log = 'Effect Cast Log\n';
         log += '='.repeat(70) + '\n';
         log += `Generated: ${new Date().toLocaleString()}\n`;
         log += `Total Effects: ${effects.length}\n`;
+        log += `Total Applied Effects: ${applied.length}\n`;
         log += `Game Time: ${Math.floor(state.campaign?.time || 0)}s\n\n`;
+
+        // Quick validation helpers
+        log += 'VALIDATION (APPLIED EFFECTS ATTRIBUTION):\n';
+        log += '-'.repeat(70) + '\n';
+        const missingSource = applied.filter(e => !e || !e.sourceAbilityId || e.sourceAbilityId === 'UNKNOWN_SOURCE');
+        const missingEffectId = applied.filter(e => !e || !e.effectId);
+        const missingTargetId = applied.filter(e => !e || !e.targetId);
+        log += `Missing sourceAbilityId: ${missingSource.length}\n`;
+        log += `Missing effectId:       ${missingEffectId.length}\n`;
+        log += `Missing targetId:       ${missingTargetId.length}\n`;
+        if(missingSource.length){
+          log += '\nTop missing-source samples (first 12):\n';
+          for(const evt of missingSource.slice(0, 12)){
+            const ek = `${evt.effectKind || '?'}:${evt.effectId || '?'}`;
+            const tgt = `${evt.targetKind || '?'}:${evt.targetName || evt.targetId || '?'}`;
+            const caster = `${evt.sourceKind || evt.kind || '?'}:${evt.casterName || evt.casterId || '?'}`;
+            log += `  t=${evt.time} ${ek.padEnd(18)} target=${tgt.padEnd(22)} caster=${caster}\n`;
+          }
+        }
+        if(missingEffectId.length){
+          log += '\nTop missing-effectId samples (first 12):\n';
+          for(const evt of missingEffectId.slice(0, 12)){
+            const ek = `${evt.effectKind || '?'}:${evt.effectId || '?'}`;
+            const tgt = `${evt.targetKind || '?'}:${evt.targetName || evt.targetId || '?'}`;
+            const src = `${evt.sourceKind || evt.kind || '?'}:${evt.sourceAbilityId || '?'}`;
+            log += `  t=${evt.time} ${ek.padEnd(18)} target=${tgt.padEnd(22)} source=${src}\n`;
+          }
+        }
+        if(missingTargetId.length){
+          log += '\nTop missing-targetId samples (first 12):\n';
+          for(const evt of missingTargetId.slice(0, 12)){
+            const ek = `${evt.effectKind || '?'}:${evt.effectId || '?'}`;
+            const tgt = `${evt.targetKind || '?'}:${evt.targetName || evt.targetId || '?'}`;
+            const src = `${evt.sourceKind || evt.kind || '?'}:${evt.sourceAbilityId || '?'}`;
+            log += `  t=${evt.time} ${ek.padEnd(18)} target=${tgt.padEnd(22)} source=${src}\n`;
+          }
+        }
+        log += '\n';
         
         // Group by effect type
         const byType = {};
@@ -5990,6 +6030,74 @@ function bindUI(state){
           for(const [ability, count] of Object.entries(byAbility)){
             log += `    ${ability.padEnd(35)} ${count.toString().padStart(5)} casts\n`;
           }
+        }
+
+        // ================= Applied Effects Audit =================
+        log += '\nAPPLIED EFFECTS (AUDIT):\n';
+        log += '-'.repeat(70) + '\n';
+        log += 'Counts are per-target applications (more granular than cast logs).\n\n';
+
+        // Group applied by sourceKind then by sourceAbilityId then by (effectKind|effectId)
+        const appliedBySourceKind = {};
+        for(const evt of applied){
+          const sourceKind = evt.sourceKind || 'unknown';
+          if(!appliedBySourceKind[sourceKind]) appliedBySourceKind[sourceKind] = [];
+          appliedBySourceKind[sourceKind].push(evt);
+        }
+
+        const summarizeApplied = (evts)=>{
+          const byAbility = {};
+          for(const evt of evts){
+            const ability = evt.sourceAbilityId || 'UNKNOWN_SOURCE';
+            if(!byAbility[ability]) byAbility[ability] = {};
+            const k = `${evt.effectKind || 'effect'}|${evt.effectId || 'unknown'}`;
+            byAbility[ability][k] = (byAbility[ability][k] || 0) + 1;
+          }
+          return byAbility;
+        };
+
+        for(const [sourceKind, evts] of Object.entries(appliedBySourceKind)){
+          log += `${String(sourceKind).toUpperCase()} APPLIED EFFECTS:\n`;
+          const byAbility = summarizeApplied(evts);
+          const abilities = Object.keys(byAbility).sort((a,b)=>{
+            const ta = Object.values(byAbility[a]).reduce((s,n)=>s+n,0);
+            const tb = Object.values(byAbility[b]).reduce((s,n)=>s+n,0);
+            return tb - ta;
+          });
+          for(const ability of abilities){
+            const effectsMap = byAbility[ability];
+            const total = Object.values(effectsMap).reduce((s,n)=>s+n,0);
+            log += `  ${ability.padEnd(30)} totalApplied: ${String(total).padStart(5)}\n`;
+            const top = Object.entries(effectsMap)
+              .sort((a,b)=>b[1]-a[1])
+              .slice(0, 12);
+            for(const [ekey, count] of top){
+              const [kind, id] = ekey.split('|');
+              log += `    ${(kind + ':' + id).padEnd(35)} ${String(count).padStart(5)}\n`;
+            }
+          }
+          log += '\n';
+        }
+
+        // ================= Cast vs Applied Comparison =================
+        log += 'CAST VS APPLIED (BY ABILITY):\n';
+        log += '-'.repeat(70) + '\n';
+        const castCounts = {};
+        const abilityLog = state.abilityLog || {};
+        for(const [ability, data] of Object.entries(abilityLog)){
+          castCounts[ability] = data?.count || 0;
+        }
+        const appliedCounts = {};
+        for(const evt of applied){
+          const a = evt.sourceAbilityId || 'UNKNOWN_SOURCE';
+          appliedCounts[a] = (appliedCounts[a] || 0) + 1;
+        }
+        const allAbilities = Array.from(new Set([...Object.keys(castCounts), ...Object.keys(appliedCounts)])).sort();
+        for(const ability of allAbilities){
+          const casts = castCounts[ability] || 0;
+          const apps = appliedCounts[ability] || 0;
+          const ratio = casts > 0 ? (apps / casts) : 0;
+          log += `${ability.padEnd(30)} casts: ${String(casts).padStart(5)} | applied: ${String(apps).padStart(6)} | applied/cast: ${ratio.toFixed(2)}\n`;
         }
         
         const blob = new Blob([log], { type: 'text/plain' });

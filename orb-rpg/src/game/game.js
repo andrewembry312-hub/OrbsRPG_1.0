@@ -89,6 +89,9 @@ export function hardResetGameState(state){
   state.projectiles = [];
   state.loot = [];
   state.inventory = [];
+
+  // Stable entity id sequence (used for _id assignment on spawn)
+  state.nextEntityId = 0;
   
   // Expose item generation functions for console commands
   state._itemGen = {
@@ -133,6 +136,23 @@ export function hardResetGameState(state){
   
   // Reset campaign
   state.campaign = { playerPoints:0, enemyPoints:0, targetPoints:250, time:0 };
+}
+
+function ensureEntityId(state, ent, opts={}){
+  if(!ent) return null;
+  if(ent._id !== undefined && ent._id !== null && String(ent._id) !== '') return ent._id;
+
+  // Prefer an existing explicit id if present (friendlies/group members already have one)
+  if(ent.id !== undefined && ent.id !== null && String(ent.id) !== ''){
+    ent._id = String(ent.id);
+    return ent._id;
+  }
+
+  const kind = opts.kind || ent.kind || 'unit';
+  const team = opts.team || ent.team || (kind === 'friendly' ? 'player' : 'enemy');
+  state.nextEntityId = (state.nextEntityId || 0) + 1;
+  ent._id = `${team}:${kind}:${state.nextEntityId}`;
+  return ent._id;
 }
 
 export async function initGame(state){
@@ -971,19 +991,40 @@ function getWorldMouse(state){
 }
 
 function lifestealFrom(state, dealt, st){
-  const ls=st.lifesteal??0;
-  if(ls<=0 || dealt<=0) return;
-  const heal=dealt*ls;
-  state.player.hp=clamp(state.player.hp+heal,0,st.maxHp);
-  
-  // Log lifesteal healing
+  const ls = Number(st?.lifesteal ?? 0);
+  const dealtNum = Number(dealt);
+  if(!Number.isFinite(ls) || ls <= 0) return;
+  if(!Number.isFinite(dealtNum) || dealtNum <= 0) {
+    // Rare long-run edge case: some damage events can yield undefined dealt.
+    if(state?.debugLog && !state._warnedBadLifestealDealt){
+      state._warnedBadLifestealDealt = true;
+      logDebug(state, 'DAMAGE', 'Skipping lifesteal due to invalid damageDealt', {
+        type: 'LIFESTEAL_SKIP',
+        dealt,
+        lifesteal: ls,
+        hasPlayer: !!state.player,
+        maxHp: st?.maxHp
+      });
+    }
+    return;
+  }
+
+  const heal = dealtNum * ls;
+  if(!Number.isFinite(heal) || heal <= 0) return;
+  if(!state?.player) return;
+
+  const maxHp = Number(st?.maxHp);
+  state.player.hp = clamp((state.player.hp || 0) + heal, 0, Number.isFinite(maxHp) ? maxHp : (state.player.maxHp || 999999));
+
+  // Log lifesteal healing (defensive formatting)
+  const hpNow = Number(state.player.hp);
   logPlayerEvent(state, 'HEAL', {
     source: 'lifesteal',
-    amount: heal.toFixed(1),
-    lifestealPercent: (ls * 100).toFixed(1) + '%',
-    damageDealt: dealt.toFixed(1),
-    newHP: state.player.hp.toFixed(1),
-    maxHP: st.maxHp
+    amount: Number.isFinite(heal) ? heal.toFixed(1) : String(heal),
+    lifestealPercent: Number.isFinite(ls) ? (ls * 100).toFixed(1) + '%' : String(ls),
+    damageDealt: dealtNum.toFixed(1),
+    newHP: Number.isFinite(hpNow) ? hpNow.toFixed(1) : String(hpNow),
+    maxHP: st?.maxHp
   });
 }
 
@@ -1343,8 +1384,17 @@ function spawnProjectile(state, x,y,angle,speed,r,dmg,pierce=0, fromPlayer=true,
   
   const p = {x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,r,dmg,pierce,life:1.35, fromPlayer};
   if(opts.dotId) p.dotId = opts.dotId;
+  if(opts.buffId) p.buffId = opts.buffId;
+  // source attribution for applied-effect auditing
+  if(opts.sourceAbilityId || opts.abilityId || opts.ability) p.sourceAbilityId = opts.sourceAbilityId ?? opts.abilityId ?? opts.ability;
+  if(opts.sourceKind) p.sourceKind = opts.sourceKind;
+  if(opts.sourceType) p.sourceType = opts.sourceType;
   if(opts.team) p.team = opts.team;
   if(opts.shooter) p.shooter = opts.shooter; // Track who fired this projectile
+  if(opts.sourceCasterId) p.sourceCasterId = opts.sourceCasterId;
+  if(opts.sourceCasterName) p.sourceCasterName = opts.sourceCasterName;
+  if(opts.shooter && !p.sourceCasterId) p.sourceCasterId = opts.shooter.id || opts.shooter._id;
+  if(opts.shooter && !p.sourceCasterName) p.sourceCasterName = opts.shooter.name || opts.shooter.variant;
   const col = colorForProjectile(opts, fromPlayer);
   if(col) p.color = col;
   if(opts.element) p.element = opts.element;
@@ -1754,13 +1804,36 @@ function npcAreaDamage(state, caster, cx, cy, radius, dmg, opts={}){
 function npcCastSupportAbility(state, u, id, target){
   const isEnemyCaster = state.enemies.includes(u);
   const kind = isEnemyCaster ? 'enemy' : 'friendly';
+
+  // Step 2 (Guard Ball): If this is a guard AoE cast, prefer the ball focus position
+  // so the squad lands AoE at the same spot. Only use focusPos when it matches
+  // the current targetId to avoid unintentionally re-targeting.
+  const targetId = target ? (target.id ?? target._id ?? null) : null;
+  const ballId = (u && u.guardFlagId) ? `${kind}:${u.guardFlagId}` : null;
+  const ball = ballId ? (state.guardBalls?.[ballId] || null) : null;
+  const focusPos = (ball && ball.focusPos && Number.isFinite(ball.focusPos.x) && Number.isFinite(ball.focusPos.y)
+    && (!targetId || String(ball.focusTargetId) === String(targetId)))
+    ? ball.focusPos
+    : null;
   
   switch(id){
     case 'meteor_slam':{
-      const x = target ? (target.x||u.x) : u.x;
-      const y = target ? (target.y||u.y) : u.y;
+      const x = focusPos ? focusPos.x : (target ? (target.x||u.x) : u.x);
+      const y = focusPos ? focusPos.y : (target ? (target.y||u.y) : u.y);
       const radius = 115;
       const dmg = 24 + (u.atk||10)*1.15;
+
+      if(focusPos && state.debugLog){
+        logDebug(state, 'GUARD_BALL', 'AoE cast targeted at ball focus position', {
+          type:'GUARD_BALL_AOE_TARGET',
+          ballId,
+          ability: id,
+          casterId: getStableUnitLogId(state, u, kind),
+          focusTargetId: ball?.focusTargetId ?? null,
+          x,
+          y
+        });
+      }
 
       npcAreaDamage(state, u, x, y, radius, dmg);
       if(state.effects && state.effects.flashes) state.effects.flashes.push({ x, y, r: radius, life: 0.9, color: '#ff9a3c' });
@@ -1771,9 +1844,22 @@ function npcCastSupportAbility(state, u, id, target){
       return true;
     }
     case 'gravity_well':{
-      const x = target ? (target.x||u.x) : u.x;
-      const y = target ? (target.y||u.y) : u.y;
+      const x = focusPos ? focusPos.x : (target ? (target.x||u.x) : u.x);
+      const y = focusPos ? focusPos.y : (target ? (target.y||u.y) : u.y);
       const r = 150;
+
+      if(focusPos && state.debugLog){
+        logDebug(state, 'GUARD_BALL', 'AoE cast targeted at ball focus position', {
+          type:'GUARD_BALL_AOE_TARGET',
+          ballId,
+          ability: id,
+          casterId: getStableUnitLogId(state, u, kind),
+          focusTargetId: ball?.focusTargetId ?? null,
+          x,
+          y
+        });
+      }
+
       state.effects.wells.push({
         x,
         y,
@@ -1784,7 +1870,12 @@ function npcCastSupportAbility(state, u, id, target){
         dmgPerTick: 6 + (u.atk||10)*0.35,
         pull: 98,
         color: (kind === 'enemy') ? '#c07070' : '#9b7bff',
-        team: kind
+        team: kind,
+        sourceAbilityId: id,
+        sourceKind: kind,
+        sourceType: 'npc_ability',
+        sourceCasterId: getStableUnitLogId(state, u, kind),
+        sourceCasterName: u.name || u.variant || kind
       });
       if(state.effects && state.effects.flashes) state.effects.flashes.push({ x, y, r, life: 0.6, color: (kind === 'enemy') ? '#c07070' : '#9b7bff' });
       logEffect(state, 'aoe_dot', 'gravity_well', u, kind, 'aoe');
@@ -1914,8 +2005,21 @@ function npcCastSupportAbility(state, u, id, target){
     }
     case 'shoulder_charge':{
       // Dash toward target or forward, deal AoE on arrival
-      let tx = target ? target.x : u.x + Math.cos(u.dir||0)*90;
-      let ty = target ? target.y : u.y + Math.sin(u.dir||0)*90;
+      let tx = focusPos ? focusPos.x : (target ? target.x : u.x + Math.cos(u.dir||0)*90);
+      let ty = focusPos ? focusPos.y : (target ? target.y : u.y + Math.sin(u.dir||0)*90);
+
+      if(focusPos && state.debugLog){
+        logDebug(state, 'GUARD_BALL', 'AoE cast targeted at ball focus position', {
+          type:'GUARD_BALL_AOE_TARGET',
+          ballId,
+          ability: id,
+          casterId: getStableUnitLogId(state, u, kind),
+          focusTargetId: ball?.focusTargetId ?? null,
+          x: tx,
+          y: ty
+        });
+      }
+
       const dx = tx - u.x;
       const dy = ty - u.y;
       const dist = Math.hypot(dx, dy);
@@ -2162,6 +2266,114 @@ function npcInitGuardAbilities(u, opts={}){
   if(state?.debugLog && isSpawnSource(source)){
     logSpawnLoadoutSnapshot(state, u, source);
   }
+}
+
+function getStableUnitLogId(state, u, kind){
+  if(!u) return null;
+  if(!u._abilityLogId){
+    const stable = (u.id ?? u._id);
+    if(stable !== undefined && stable !== null && String(stable) !== ''){
+      u._abilityLogId = String(stable);
+    } else {
+      state._abilityLogSeq = (state._abilityLogSeq || 0) + 1;
+      u._abilityLogId = `${kind}_npc_${state._abilityLogSeq}`;
+    }
+  }
+  return u._abilityLogId;
+}
+
+function getOrCreateGuardBall(state, ballId, now){
+  if(!state.guardBalls) state.guardBalls = {};
+  let ball = state.guardBalls[ballId];
+  if(!ball){
+    ball = {
+      ballId,
+      createdAt: now,
+      focusTargetId: null,
+      focusPos: null,
+      focusUntil: 0,
+      lastFocusPosAt: 0,
+      burstUntil: 0,
+      resetUntil: 0,
+      lastBurstAt: 0,
+      leaderId: null,
+      focusScore: null
+    };
+    state.guardBalls[ballId] = ball;
+    if(state.debugLog) logDebug(state, 'GUARD_BALL', 'Guard ball created', { type:'GUARD_BALL_INIT', ballId });
+  }
+  return ball;
+}
+
+function electGuardBallLeader(state, ball, kind, guards, now){
+  if(!Array.isArray(guards) || guards.length === 0) return null;
+  const dps = guards.filter(g => String(g.guardRole || g.role || 'DPS').toUpperCase() !== 'HEALER');
+  const pool = dps.length ? dps : guards;
+
+  let best = null;
+  let bestKey = null;
+  for(const g of pool){
+    const key = getStableUnitLogId(state, g, kind);
+    if(key === null || key === undefined) continue;
+    if(best === null || String(key) < String(bestKey)){
+      best = g;
+      bestKey = key;
+    }
+  }
+  const leaderId = bestKey ? String(bestKey) : null;
+  if(leaderId && ball.leaderId !== leaderId){
+    ball.leaderId = leaderId;
+    if(state.debugLog) logDebug(state, 'GUARD_BALL', 'Guard ball leader elected', { type:'GUARD_BALL_LEADER', ballId: ball.ballId, leaderId });
+  }
+  return leaderId;
+}
+
+function scoreGuardBallTarget(state, kind, guardSite, spawnX, spawnY, candidate, geo){
+  if(!candidate) return -Infinity;
+  const now = state.campaign?.time || 0;
+  const FLAG_RADIUS = geo?.FLAG_RADIUS ?? 50;
+  const DEFENSE_ENTER = geo?.DEFENSE_ENTER ?? (FLAG_RADIUS + 100);
+  const LEASH_HARD_STOP = geo?.LEASH_HARD_STOP ?? 350;
+
+  const distFromSpawn = Math.hypot((candidate.x||0) - (spawnX||0), (candidate.y||0) - (spawnY||0));
+  if(distFromSpawn > LEASH_HARD_STOP) return -Infinity;
+
+  const distFromFlag = guardSite ? Math.hypot((candidate.x||0) - guardSite.x, (candidate.y||0) - guardSite.y) : Infinity;
+  const distToCenter = Math.hypot((candidate.x||0) - (spawnX||0), (candidate.y||0) - (spawnY||0));
+
+  let score = 0;
+  if(distFromFlag <= FLAG_RADIUS) score += 100;
+  else if(distFromFlag <= DEFENSE_ENTER) score += 80;
+
+  // Low HP bonus (0..40)
+  if(candidate.hp !== undefined && candidate.maxHp){
+    const frac = Math.max(0, Math.min(1, 1 - (candidate.hp / candidate.maxHp)));
+    score += frac * 40;
+  }
+
+  // Healer bonus
+  const role = String(candidate.role || '').toUpperCase();
+  const variant = String(candidate.variant || '').toLowerCase();
+  if(role === 'HEALER' || variant === 'mage') score += 25;
+
+  // Closer is better (0..20)
+  score += Math.max(0, 20 - (distToCenter / 12));
+
+  // Near leash edge penalty
+  if(distFromSpawn >= LEASH_HARD_STOP * 0.9) score -= 50;
+
+  // Bonus for actively attacking guards (if tracking exists)
+  if(candidate.attacked && candidate._hostTarget?.guard && (candidate._hostTarget?.homeSiteId || candidate._hostTarget?.guardFlagId) === (guardSite?.id || null)){
+    score += 50;
+  }
+
+  // Soft penalty if we haven't seen them recently (if system tracks it)
+  if(candidate._lastSeenAt !== undefined){
+    const unseen = now - candidate._lastSeenAt;
+    if(unseen > 1.0) score -= 30;
+  }
+
+  return score;
 }
 
 function npcUpdateAbilities(state, u, dt, kind){
@@ -2907,7 +3119,7 @@ function npcUpdateAbilities(state, u, dt, kind){
         const leadY = target.y + (target.vy||0)*0.25;
         aimAng = Math.atan2(leadY - u.y, leadX - u.x);
       }
-      spawnProjectile(state, u.x, u.y, aimAng, meta.speed||420, 5, meta.dmg, meta.pierce||0, fromPlayer, { shooter: u });
+      spawnProjectile(state, u.x, u.y, aimAng, meta.speed||420, 5, meta.dmg, meta.pierce||0, fromPlayer, { shooter: u, sourceAbilityId: id, sourceKind: kind, sourceType: 'npc_ability' });
       recordAI('cast', { ability:id, score:Number(bestScore.toFixed(2)), dist:Math.round(bestD), mana:Math.round(u.mana), target:u._lockId||target.id||'?' });
       return; // CRITICAL: Return after projectile cast to respect cooldown
     } else {
@@ -3051,6 +3263,7 @@ function spawnEnemyAt(state, x,y, t, opts={}){
   // Set level FIRST, then apply class - applyClassToUnit scales based on level
   e.level = Math.max(1, level);
   applyClassToUnit(e, e.variant);
+  ensureEntityId(state, e, { kind:'enemy', team: e.team || opts.team });
   npcInitAbilities(e, { state, source: 'spawnEnemy' });
   state.enemies.push(e);
   return e;
@@ -3669,6 +3882,9 @@ function spawnFriendlyAt(state, site, forceVariant=null){
     dots: [],
     level: playerLevel // Allies match player level
   };
+
+  // Ensure stable _id exists for logs/AI targeting
+  ensureEntityId(state, f, { kind:'friendly', team: 'player' });
   
   // Get class modifiers for ally scaling
   const classModifiers = {
@@ -4085,11 +4301,11 @@ function updateFriendlies(state, dt){
       // ─────────────────────────────────────────────────────────────────────────────
       // FORMATION SLOT ASSIGNMENT (Stable, Anchor-Based)
       // ─────────────────────────────────────────────────────────────────────────────
+      const allGuards = state.friendlies.filter(f =>
+        f.guard && f.homeSiteId === a.homeSiteId && f.respawnT <= 0
+      );
       if(!a._formationSlot || now - a._lastFormationUpdate >= FORMATION_UPDATE){
         // Assign slots based on guard index and role
-        const allGuards = state.friendlies.filter(f => 
-          f.guard && f.homeSiteId === a.homeSiteId && f.respawnT <= 0
-        );
         const dpsGuards = allGuards.filter(g => g.guardRole !== 'HEALER');
         const healerGuards = allGuards.filter(g => g.guardRole === 'HEALER');
         
@@ -4115,6 +4331,128 @@ function updateFriendlies(state, dt){
       const slotY = spawnY + a._formationSlot.offsetY;
       const distFromSlot = Math.hypot(a.x - slotX, a.y - slotY);
       const distFromSpawn = Math.hypot(a.x - spawnX, a.y - spawnY);
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // SHARED GUARD BALL STATE (LOG-ONLY STEP)
+      // - Creates per-ball state
+      // - Elects a leader
+      // - Leader computes/logs focus target + focusPos (does NOT affect current AI yet)
+      // ─────────────────────────────────────────────────────────────────────────────
+      {
+        const kind = 'friendly';
+        const siteKey = a.guardFlagId || a.homeSiteId || a.siteId || (guardSite?.id || null) || 'unknown';
+        const ballId = `${kind}:${siteKey}`;
+        const ball = getOrCreateGuardBall(state, ballId, now);
+        const leaderId = electGuardBallLeader(state, ball, kind, allGuards, now);
+        const selfId = getStableUnitLogId(state, a, kind);
+
+        // Only leader selects focus, throttled
+        const FOCUS_TICK = 0.75;
+        if(selfId && leaderId && selfId === leaderId && (!ball._lastFocusTickAt || (now - ball._lastFocusTickAt) >= FOCUS_TICK)){
+          ball._lastFocusTickAt = now;
+
+          const geo = { FLAG_RADIUS, DEFENSE_ENTER, LEASH_HARD_STOP };
+          const current = ball.focusTargetId ? state.enemies.find(e => (e.id||e._id) === ball.focusTargetId && !e.dead && e.hp > 0) : null;
+          const currentScore = current ? scoreGuardBallTarget(state, kind, guardSite, spawnX, spawnY, current, geo) : -Infinity;
+
+          let best = null;
+          let bestScore = -Infinity;
+          for(const cand of state.enemies){
+            if(!cand || cand.dead || cand.hp <= 0) continue;
+            const s = scoreGuardBallTarget(state, kind, guardSite, spawnX, spawnY, cand, geo);
+            if(s > bestScore){ bestScore = s; best = cand; }
+          }
+
+          const bestValid = !!best && bestScore !== -Infinity && Number.isFinite(bestScore);
+          const currentValid = !!current && currentScore !== -Infinity && Number.isFinite(currentScore);
+
+          // Step 3: burst/reset timers
+          const BURST_LOCK = 2.25;   // seconds to commit to a focus target (prevents thrashing)
+          const RESELECT_MIN = 0.60; // minimum time between target switches
+          const RESET_GRACE = 1.00;  // seconds with no valid targets before clearing focus
+
+          // If there are no valid targets in range/leash, arm a reset and eventually clear focus.
+          if(!bestValid){
+            if(ball.focusTargetId){
+              if(!ball.resetUntil || ball.resetUntil <= 0){
+                ball.resetUntil = now + RESET_GRACE;
+                if(state.debugLog) logDebug(state, 'GUARD_BALL', 'Ball reset armed (no valid targets)', {
+                  type:'GUARD_BALL_RESET_ARM',
+                  ballId,
+                  leaderId,
+                  resetAt: +ball.resetUntil.toFixed(2)
+                });
+              } else if(now >= ball.resetUntil){
+                if(state.debugLog) logDebug(state, 'GUARD_BALL', 'Ball focus reset (no valid targets)', {
+                  type:'GUARD_BALL_RESET',
+                  ballId,
+                  leaderId,
+                  prevFocusTargetId: ball.focusTargetId
+                });
+                ball.focusTargetId = null;
+                ball.focusPos = null;
+                ball.focusScore = null;
+                ball.focusUntil = 0;
+                ball.burstUntil = 0;
+                ball.lastFocusPosAt = 0;
+                ball.resetUntil = 0;
+              }
+            }
+          } else {
+            // Clear any pending reset once we have valid targets again
+            ball.resetUntil = 0;
+
+            const allowReselect = now >= (ball.focusUntil || 0);
+            const burstLocked = currentValid && now < (ball.burstUntil || 0);
+            const shouldSwitch = !currentValid || (!burstLocked && bestScore >= currentScore * 1.3);
+
+            if(allowReselect && shouldSwitch){
+              const prevId = ball.focusTargetId;
+              ball.focusTargetId = best.id || best._id;
+              ball.focusScore = bestScore;
+
+              // short reselect gate + longer burst commit window
+              ball.focusUntil = now + RESELECT_MIN;
+              ball.burstUntil = now + BURST_LOCK;
+              ball.lastBurstAt = now;
+
+              ball.focusPos = { x: best.x, y: best.y };
+              ball.lastFocusPosAt = now;
+
+              if(state.debugLog) logDebug(state, 'GUARD_BALL', 'Ball focus target selected', {
+                type:'GUARD_BALL_FOCUS',
+                ballId,
+                leaderId,
+                focusTarget: best.name || best.variant || 'target',
+                focusTargetId: ball.focusTargetId,
+                prevFocusTargetId: prevId,
+                score: +bestScore.toFixed(1),
+                burstUntil: +ball.burstUntil.toFixed(2)
+              });
+            } else if(ball.focusTargetId && currentValid && (now - (ball.lastFocusPosAt||0) >= 0.4)){
+              // Snapshot focusPos from the CURRENT focused target (not the best candidate)
+              ball.focusPos = { x: current.x, y: current.y };
+              ball.lastFocusPosAt = now;
+            }
+          }
+
+          // Focus heartbeat: makes sure debug exports include focus info even when focus never changes.
+          const HEARTBEAT_TICK = 3.0;
+          if(state.debugLog && ball.focusTargetId && (!ball._lastFocusHeartbeatAt || (now - ball._lastFocusHeartbeatAt) >= HEARTBEAT_TICK)){
+            ball._lastFocusHeartbeatAt = now;
+            const fp = ball.focusPos;
+            logDebug(state, 'GUARD_BALL', 'Ball focus heartbeat', {
+              type:'GUARD_BALL_FOCUS_HEARTBEAT',
+              ballId,
+              leaderId,
+              focusTargetId: ball.focusTargetId,
+              x: fp && Number.isFinite(fp.x) ? +fp.x.toFixed(2) : null,
+              y: fp && Number.isFinite(fp.y) ? +fp.y.toFixed(2) : null,
+              score: Number.isFinite(ball.focusScore) ? +ball.focusScore.toFixed(1) : null
+            });
+          }
+        }
+      }
       
       // ─────────────────────────────────────────────────────────────────────────────
       // TARGET SELECTION WITH COMMIT TIMER
@@ -5120,11 +5458,11 @@ function updateEnemies(state, dt){
       // ─────────────────────────────────────────────────────────────────────────────
       // FORMATION SLOT ASSIGNMENT (Stable, Anchor-Based)
       // ─────────────────────────────────────────────────────────────────────────────
+      const allGuards = state.enemies.filter(en =>
+        en.guard && en.homeSiteId === e.homeSiteId && (!en.dead && en.hp > 0)
+      );
       if(!e._formationSlot || now - e._lastFormationUpdate >= FORMATION_UPDATE){
         // Assign slots based on guard index and role
-        const allGuards = state.enemies.filter(en => 
-          en.guard && en.homeSiteId === e.homeSiteId && (!en.dead && en.hp > 0)
-        );
         const dpsGuards = allGuards.filter(g => g.guardRole !== 'HEALER');
         const healerGuards = allGuards.filter(g => g.guardRole === 'HEALER');
         
@@ -5150,6 +5488,126 @@ function updateEnemies(state, dt){
       const slotY = spawnY + e._formationSlot.offsetY;
       const distFromSlot = Math.hypot(e.x - slotX, e.y - slotY);
       const distFromSpawn = Math.hypot(e.x - spawnX, e.y - spawnY);
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // SHARED GUARD BALL STATE (LOG-ONLY STEP)
+      // ─────────────────────────────────────────────────────────────────────────────
+      {
+        const kind = 'enemy';
+        const siteKey = e.guardFlagId || e.homeSiteId || e.siteId || (guardSite?.id || null) || 'unknown';
+        const ballId = `${kind}:${siteKey}`;
+        const ball = getOrCreateGuardBall(state, ballId, now);
+        const leaderId = electGuardBallLeader(state, ball, kind, allGuards, now);
+        const selfId = getStableUnitLogId(state, e, kind);
+
+        const FOCUS_TICK = 0.75;
+        if(selfId && leaderId && selfId === leaderId && (!ball._lastFocusTickAt || (now - ball._lastFocusTickAt) >= FOCUS_TICK)){
+          ball._lastFocusTickAt = now;
+
+          const geo = { FLAG_RADIUS, DEFENSE_ENTER, LEASH_HARD_STOP };
+          const currentId = ball.focusTargetId;
+          let current = null;
+          if(currentId){
+            if((state.player?.id || state.player?._id) === currentId && !state.player.dead && state.player.hp > 0) current = state.player;
+            else current = state.friendlies.find(f => (f.id||f._id) === currentId && f.respawnT <= 0);
+          }
+          const currentScore = current ? scoreGuardBallTarget(state, kind, guardSite, spawnX, spawnY, current, geo) : -Infinity;
+
+          let best = null;
+          let bestScore = -Infinity;
+          const candidates = [];
+          if(state.player && !state.player.dead && state.player.hp > 0) candidates.push(state.player);
+          for(const f of state.friendlies){
+            if(f && f.respawnT <= 0) candidates.push(f);
+          }
+          for(const cand of candidates){
+            const s = scoreGuardBallTarget(state, kind, guardSite, spawnX, spawnY, cand, geo);
+            if(s > bestScore){ bestScore = s; best = cand; }
+          }
+
+          const bestValid = !!best && bestScore !== -Infinity && Number.isFinite(bestScore);
+          const currentValid = !!current && currentScore !== -Infinity && Number.isFinite(currentScore);
+
+          // Step 3: burst/reset timers
+          const BURST_LOCK = 2.25;
+          const RESELECT_MIN = 0.60;
+          const RESET_GRACE = 1.00;
+
+          if(!bestValid){
+            if(ball.focusTargetId){
+              if(!ball.resetUntil || ball.resetUntil <= 0){
+                ball.resetUntil = now + RESET_GRACE;
+                if(state.debugLog) logDebug(state, 'GUARD_BALL', 'Ball reset armed (no valid targets)', {
+                  type:'GUARD_BALL_RESET_ARM',
+                  ballId,
+                  leaderId,
+                  resetAt: +ball.resetUntil.toFixed(2)
+                });
+              } else if(now >= ball.resetUntil){
+                if(state.debugLog) logDebug(state, 'GUARD_BALL', 'Ball focus reset (no valid targets)', {
+                  type:'GUARD_BALL_RESET',
+                  ballId,
+                  leaderId,
+                  prevFocusTargetId: ball.focusTargetId
+                });
+                ball.focusTargetId = null;
+                ball.focusPos = null;
+                ball.focusScore = null;
+                ball.focusUntil = 0;
+                ball.burstUntil = 0;
+                ball.lastFocusPosAt = 0;
+                ball.resetUntil = 0;
+              }
+            }
+          } else {
+            ball.resetUntil = 0;
+
+            const allowReselect = now >= (ball.focusUntil || 0);
+            const burstLocked = currentValid && now < (ball.burstUntil || 0);
+            const shouldSwitch = !currentValid || (!burstLocked && bestScore >= currentScore * 1.3);
+
+            if(allowReselect && shouldSwitch){
+              const prevId = ball.focusTargetId;
+              ball.focusTargetId = best.id || best._id;
+              ball.focusScore = bestScore;
+              ball.focusUntil = now + RESELECT_MIN;
+              ball.burstUntil = now + BURST_LOCK;
+              ball.lastBurstAt = now;
+              ball.focusPos = { x: best.x, y: best.y };
+              ball.lastFocusPosAt = now;
+              if(state.debugLog) logDebug(state, 'GUARD_BALL', 'Ball focus target selected', {
+                type:'GUARD_BALL_FOCUS',
+                ballId,
+                leaderId,
+                focusTarget: best.name || best.variant || (best === state.player ? 'Player' : 'target'),
+                focusTargetId: ball.focusTargetId,
+                prevFocusTargetId: prevId,
+                score: +bestScore.toFixed(1),
+                burstUntil: +ball.burstUntil.toFixed(2)
+              });
+            } else if(ball.focusTargetId && currentValid && (now - (ball.lastFocusPosAt||0) >= 0.4)){
+              ball.focusPos = { x: current.x, y: current.y };
+              ball.lastFocusPosAt = now;
+            }
+          }
+
+          // Focus heartbeat: makes sure debug exports include focus info even when focus never changes.
+          const HEARTBEAT_TICK = 3.0;
+          if(state.debugLog && ball.focusTargetId && (!ball._lastFocusHeartbeatAt || (now - ball._lastFocusHeartbeatAt) >= HEARTBEAT_TICK)){
+            ball._lastFocusHeartbeatAt = now;
+            const fp = ball.focusPos;
+            logDebug(state, 'GUARD_BALL', 'Ball focus heartbeat', {
+              type:'GUARD_BALL_FOCUS_HEARTBEAT',
+              ballId,
+              leaderId,
+              focusTargetId: ball.focusTargetId,
+              x: fp && Number.isFinite(fp.x) ? +fp.x.toFixed(2) : null,
+              y: fp && Number.isFinite(fp.y) ? +fp.y.toFixed(2) : null,
+              score: Number.isFinite(ball.focusScore) ? +ball.focusScore.toFixed(1) : null
+            });
+          }
+        }
+      }
       
       // ─────────────────────────────────────────────────────────────────────────────
       // TARGET SELECTION WITH COMMIT TIMER
@@ -5835,6 +6293,68 @@ function tryCastSlot(state, idx){
   const wm = getWorldMouse(state);
   const a=Math.atan2(wm.y-state.player.y, wm.x-state.player.x);
 
+  // Attribution for applied-effect auditing (buffs/dots should record which ability caused them)
+  const effectSourceBase = {
+    state,
+    sourceAbilityId: sk.id,
+    abilityId: sk.id,
+    sourceType: 'ability',
+    sourceKind: 'player',
+    sourceCaster: state.player,
+    sourceCasterId: state.player.id || state.player._id || null,
+    sourceCasterName: state.player.name || 'Player',
+    casterId: state.player.id || state.player._id || null,
+    casterName: state.player.name || 'Player'
+  };
+
+  // Track player ability usage for cast-vs-applied auditing
+  state.abilityLog = state.abilityLog || {};
+  if(!state.abilityLog[sk.id]){
+    state.abilityLog[sk.id] = {
+      kind: 'player',
+      count: 0,
+      byRole: {},
+      byCaster: {},
+      lastCastTime: 0,
+      avgCooldown: 0,
+      expectedCd: ABILITY_META[sk.id]?.cd || 0
+    };
+  }
+  {
+    const currentTime = state.campaign?.time || 0;
+    const playerLogId = String(state.player.id ?? state.player._id ?? 'player');
+    const casterKey = `player:${playerLogId}`;
+    const casterStats = state.abilityLog[sk.id].byCaster[casterKey] || {
+      count: 0,
+      lastCastTime: 0,
+      sumIntervals: 0,
+      intervalCount: 0,
+      minInterval: Infinity
+    };
+    if(casterStats.lastCastTime > 0){
+      const interval = currentTime - casterStats.lastCastTime;
+      if(interval > 0){
+        casterStats.sumIntervals += interval;
+        casterStats.intervalCount += 1;
+        casterStats.minInterval = Math.min(casterStats.minInterval, interval);
+      }
+    }
+    casterStats.lastCastTime = currentTime;
+    casterStats.count += 1;
+    state.abilityLog[sk.id].byCaster[casterKey] = casterStats;
+
+    const timeSinceLastCast = currentTime - state.abilityLog[sk.id].lastCastTime;
+    if(state.abilityLog[sk.id].lastCastTime > 0 && timeSinceLastCast > 0){
+      const count = state.abilityLog[sk.id].count || 1;
+      state.abilityLog[sk.id].avgCooldown = ((state.abilityLog[sk.id].avgCooldown * count) + timeSinceLastCast) / (count + 1);
+    }
+    state.abilityLog[sk.id].lastCastTime = currentTime;
+
+    const role = String(state.player.heroClass || state.player.role || state.player.class || 'PLAYER');
+    state.abilityLog[sk.id].count++;
+    state.abilityLog[sk.id].byRole[role] = (state.abilityLog[sk.id].byRole[role] || 0) + 1;
+  }
+
   // auto-targeting helpers
   const findLowestHealthAlly = (range, excludePlayer=false) => {
     let best = excludePlayer ? null : state.player;
@@ -5869,8 +6389,8 @@ function tryCastSlot(state, idx){
       if(Math.hypot(e.x-cx,e.y-cy)<=radius){
         const res=applyDamageToEnemy(e,dmg,st,state,true);
         lifestealFrom(state,res.dealt,st);
-        if(dotId) applyDotTo(e, dotId);
-        if(buffId) applyBuffTo(e, buffId);
+        if(dotId) applyDotTo(e, dotId, effectSourceBase);
+        if(buffId) applyBuffTo(e, buffId, effectSourceBase);
         if(e.hp<=0) killEnemy(state,i,true);
       }
     }
@@ -5900,10 +6420,10 @@ function tryCastSlot(state, idx){
     for(const f of state.friendlies){ if(f.respawnT>0) continue; if(Math.hypot(f.x-cx,f.y-cy)<=radius){ f.shield = clamp((f.shield||0)+amount*0.6,0,320); } }
   };
   const reduceCooldowns = (pct)=>{ for(let i=0;i<state.player.cd.length;i++){ state.player.cd[i] = Math.max(0, state.player.cd[i] - pct*state.player.cd[i]); } };
-  const applyBuffSelf = (buffId)=>{ try{ applyBuffTo(state.player, buffId); }catch{} };
+  const applyBuffSelf = (buffId)=>{ try{ applyBuffTo(state.player, buffId, effectSourceBase); }catch{} };
   const applyBuffAlliesAround = (cx,cy,radius,buffId)=>{
     applyBuffSelf(buffId);
-    for(const f of state.friendlies){ if(f.respawnT>0) continue; if(Math.hypot(f.x-cx,f.y-cy)<=radius){ try{ applyBuffTo(f, buffId); }catch{} } }
+    for(const f of state.friendlies){ if(f.respawnT>0) continue; if(Math.hypot(f.x-cx,f.y-cy)<=radius){ try{ applyBuffTo(f, buffId, effectSourceBase); }catch{} } }
   };
 
   // --- ability effects ---
@@ -5911,7 +6431,7 @@ function tryCastSlot(state, idx){
     // Destruction Staff
     case 'arc_bolt':{
       playPositionalSound(state, 'castingMagic1', state.player.x, state.player.y, 650, 0.5);
-      spawnProjectile(state, state.player.x,state.player.y,a,460,5,14+st.atk*1.0,0,true,{ dotId:'shock', team:'player', element:'shock', maxRange:300 });
+      spawnProjectile(state, state.player.x,state.player.y,a,460,5,14+st.atk*1.0,0,true,{ dotId:'shock', team:'player', element:'shock', maxRange:300, shooter: state.player, sourceAbilityId: sk.id, sourceKind: 'player', sourceType: 'ability_projectile' });
       const vx = Math.cos(a)*460, vy = Math.sin(a)*460;
       state.effects.bolts.push({ x: state.player.x + Math.cos(a)*12, y: state.player.y + Math.sin(a)*12, vx, vy, life: 0.9 });
       break;
@@ -5934,8 +6454,8 @@ function tryCastSlot(state, idx){
         const dmg=(14+st.atk*0.9)*(1-hop*0.12);
         const res=applyDamageToEnemy(e,dmg,st,state,true);
         lifestealFrom(state,res.dealt,st);
-        applyDotTo(e,'shock');
-        applyBuffTo(e,'slow');
+        applyDotTo(e,'shock', effectSourceBase);
+        applyBuffTo(e,'slow', effectSourceBase);
         if(e.hp<=0) killEnemy(state,best,true);
         last=e; hits++;
       }
@@ -5963,7 +6483,7 @@ function tryCastSlot(state, idx){
     }
     case 'piercing_lance':{
       playPositionalSound(state, 'magicSpell6005', state.player.x, state.player.y, 650, 0.45);
-      spawnProjectile(state, state.player.x,state.player.y,a,560,6,20+st.atk*1.3,3,true,{ dotId:'bleed', team:'player', element:'arcane', maxRange:350 });
+      spawnProjectile(state, state.player.x,state.player.y,a,560,6,20+st.atk*1.3,3,true,{ dotId:'bleed', team:'player', element:'arcane', maxRange:350, shooter: state.player, sourceAbilityId: sk.id, sourceKind: 'player', sourceType: 'ability_projectile' });
       logEffect(state, 'piercing_projectile', 'piercing_lance', state.player, 'player', 1);
       state.ui.toast('Piercing Lance');
       break;
@@ -5973,7 +6493,23 @@ function tryCastSlot(state, idx){
       const target = findClosestEnemy(350);
       const x = target ? target.x : wm.x;
       const y = target ? target.y : wm.y;
-      state.effects.wells.push({x,y,r:150,timeLeft:3.6,tick:0.5,tickLeft:0.5,dmgPerTick:6+st.atk*0.35,pull:98,color:'#9b7bff'});
+      state.effects.wells.push({
+        x,
+        y,
+        r: 150,
+        timeLeft: 3.6,
+        tick: 0.5,
+        tickLeft: 0.5,
+        dmgPerTick: 6 + st.atk*0.35,
+        pull: 98,
+        color: '#9b7bff',
+        team: 'player',
+        sourceAbilityId: sk.id,
+        sourceKind: 'player',
+        sourceType: 'ability',
+        sourceCasterId: effectSourceBase.sourceCasterId,
+        sourceCasterName: effectSourceBase.sourceCasterName
+      });
       state.effects.flashes.push({ x, y, r: 150, life: 0.6, color: '#9b7bff' });
       logEffect(state, 'aoe_dot', 'gravity_well', state.player, 'player', 'aoe');
       playPositionalSound(state, 'magicalRockSpellAlt', x, y, 650, 0.45);
@@ -6040,21 +6576,34 @@ function tryCastSlot(state, idx){
 
     // Melee Weapons
     case 'slash':{
-      const slash = pushSlashEffect(state, {t:0.12,arc:1.15,range:64,dmg:6+st.atk*0.75,dir:a});
+      const slash = pushSlashEffect(state, {t:0.12,arc:1.15,range:64,dmg:6+st.atk*0.75,dir:a, team:'player', sourceAbilityId: sk.id, sourceKind:'player', sourceType:'ability', sourceCasterId: effectSourceBase.sourceCasterId, sourceCasterName: effectSourceBase.sourceCasterName});
       logEffect(state, 'melee_slash', 'slash', state.player, 'player', 1);
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.35);
       break;
     }
     case 'blade_storm':{
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
-      state.effects.storms.push({t:2.6, tick:0.25, tl:0.25, r:120, dmg:4+st.atk*0.45, dotId:'bleed'});
+      state.effects.storms.push({
+        t: 2.6,
+        tick: 0.25,
+        tl: 0.25,
+        r: 120,
+        dmg: 4 + st.atk*0.45,
+        dotId: 'bleed',
+        team: 'player',
+        sourceAbilityId: sk.id,
+        sourceKind: 'player',
+        sourceType: 'ability',
+        sourceCasterId: effectSourceBase.sourceCasterId,
+        sourceCasterName: effectSourceBase.sourceCasterName
+      });
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 120, life: 0.5, color: '#9b7bff' });
       logEffect(state, 'aoe_storm', 'blade_storm', state.player, 'player', 'aoe');
       state.ui.toast('Blade Storm');
       break;
     }
     case 'cleave':{
-      pushSlashEffect(state, {t:0.18,arc:1.6,range:86,dmg:10+st.atk*1.1, dotId:'bleed',dir:a});
+      pushSlashEffect(state, {t:0.18,arc:1.6,range:86,dmg:10+st.atk*1.1, dotId:'bleed',dir:a, team:'player', sourceAbilityId: sk.id, sourceKind:'player', sourceType:'ability', sourceCasterId: effectSourceBase.sourceCasterId, sourceCasterName: effectSourceBase.sourceCasterName});
       logEffect(state, 'melee_cleave', 'cleave', state.player, 'player', 1);
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.35);
       break;
@@ -6068,9 +6617,9 @@ function tryCastSlot(state, idx){
       // Leap strike applies bleed, slow, and adds stun for more CC
       const enemiesToHit = state.enemies.filter(e => Math.hypot(e.x-state.player.x, e.y-state.player.y) <= 110);
       for(const e of enemiesToHit){
-        applyDotTo(e, 'bleed');
-        applyBuffTo(e, 'slow');
-        applyBuffTo(e, 'stun');
+        applyDotTo(e, 'bleed', effectSourceBase);
+        applyBuffTo(e, 'slow', effectSourceBase);
+        applyBuffTo(e, 'stun', effectSourceBase);
         const dmg = 16+st.atk*1.2;
         applyDamageToEnemy(e, dmg, currentStats(state), state, true);
       }
@@ -6122,7 +6671,23 @@ function tryCastSlot(state, idx){
       const y = target ? target.y : wm.y;
       const radius = 140;
       const dmgTick = 10 + st.atk*0.65;
-      state.effects.wells.push({x,y,r:radius,timeLeft:6.0,tick:0.8,tickLeft:0.8,dmgPerTick:dmgTick,pull:0,color:'#ffb347'});
+      state.effects.wells.push({
+        x,
+        y,
+        r: radius,
+        timeLeft: 6.0,
+        tick: 0.8,
+        tickLeft: 0.8,
+        dmgPerTick: dmgTick,
+        pull: 0,
+        color: '#ffb347',
+        team: 'player',
+        sourceAbilityId: sk.id,
+        sourceKind: 'player',
+        sourceType: 'ability',
+        sourceCasterId: effectSourceBase.sourceCasterId,
+        sourceCasterName: effectSourceBase.sourceCasterName
+      });
       state.effects.flashes.push({ x, y, r: radius, life: 0.6, color: '#ffb347' });
       applyBuffAlliesAround(x, y, radius, 'blessed');
       playPositionalSound(state, 'elementalImpact', x, y, 700, 0.55);
@@ -6145,7 +6710,7 @@ function tryCastSlot(state, idx){
       const spread = 0.15;
       const baseDmg = 12+st.atk*0.9;
       [-spread,0,spread].forEach(off=>{
-        spawnProjectile(state, state.player.x, state.player.y, a+off, 480, 5, baseDmg, 0, true, { dotId: 'arcane_burn', buffId: 'silence', team: 'player', element:'arcane', maxRange:280 });
+        spawnProjectile(state, state.player.x, state.player.y, a+off, 480, 5, baseDmg, 0, true, { dotId: 'arcane_burn', buffId: 'silence', team: 'player', element:'arcane', maxRange:280, shooter: state.player, sourceAbilityId: sk.id, sourceKind: 'player', sourceType: 'ability_projectile' });
       });
       playPositionalSound(state, 'magicalSpellCast', state.player.x, state.player.y, 700, 0.5);
       state.ui.toast('Arcane Missiles');
@@ -6170,7 +6735,7 @@ function tryCastSlot(state, idx){
       break;
     }
     case 'knight_justice_strike':{
-      const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:92,dmg:18+st.atk*1.4, dotId:'bleed',dir:a});
+      const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:92,dmg:18+st.atk*1.4, dotId:'bleed',dir:a, team:'player', sourceAbilityId: sk.id, sourceKind:'player', sourceType:'ability', sourceCasterId: effectSourceBase.sourceCasterId, sourceCasterName: effectSourceBase.sourceCasterName});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 92, life: 0.5, color: slash.color });
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
       break;
@@ -6200,7 +6765,7 @@ function tryCastSlot(state, idx){
 
     // Warrior
     case 'warrior_life_leech':{
-      const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:82,dmg:16+st.atk*1.2, leech:true, dotId:'bleed',dir:a});
+      const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:82,dmg:16+st.atk*1.2, leech:true, dotId:'bleed',dir:a, team:'player', sourceAbilityId: sk.id, sourceKind:'player', sourceType:'ability', sourceCasterId: effectSourceBase.sourceCasterId, sourceCasterName: effectSourceBase.sourceCasterName});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 82, life: 0.5, color: slash.color });
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
       break;
@@ -6220,7 +6785,7 @@ function tryCastSlot(state, idx){
       break;
     }
     case 'warrior_cleave':{
-      const slash = pushSlashEffect(state, {t:0.20,arc:1.7,range:92,dmg:20+st.atk*1.35, dotId:'bleed', buffId:'weakness',dir:a});
+      const slash = pushSlashEffect(state, {t:0.20,arc:1.7,range:92,dmg:20+st.atk*1.35, dotId:'bleed', buffId:'weakness',dir:a, team:'player', sourceAbilityId: sk.id, sourceKind:'player', sourceType:'ability', sourceCasterId: effectSourceBase.sourceCasterId, sourceCasterName: effectSourceBase.sourceCasterName});
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 92, life: 0.6, color: slash.color });
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
       break;
@@ -6281,7 +6846,7 @@ function tryCastSlot(state, idx){
       break;
     }
     case 'tank_seismic_wave':{
-      spawnProjectile(state, state.player.x,state.player.y,a,420,6,18+st.atk*1.05,2,true,{ dotId:'shock', team:'player', element:'shock', maxRange:320 });
+      spawnProjectile(state, state.player.x,state.player.y,a,420,6,18+st.atk*1.05,2,true,{ dotId:'shock', team:'player', element:'shock', maxRange:320, shooter: state.player, sourceAbilityId: sk.id, sourceKind: 'player', sourceType: 'ability_projectile' });
       playPositionalSound(state, 'magicalRockSpell', state.player.x, state.player.y, 650, 0.5);
       break;
     }
@@ -6434,22 +6999,41 @@ function updateSlashes(state, dt){
         diff=Math.min(diff, Math.PI*2-diff);
         if(diff<=s.arc/2){
           const res=applyDamageToEnemy(e,s.dmg,st,state,true);
-          lifestealFrom(state,res.dealt,st);
+          lifestealFrom(state, res?.dealt, st);
           if(s.leech){ 
-            const leechHeal = res.dealt * 0.5;
+            const dealtNum = Number(res?.dealt);
+            if(!Number.isFinite(dealtNum) || dealtNum <= 0) continue;
+            const leechHeal = dealtNum * 0.5;
             const oldHP = state.player.hp;
             state.player.hp = clamp(state.player.hp + leechHeal, 0, st.maxHp);
             
             logPlayerEvent(state, 'HEAL', {
               source: 'leech',
               amount: leechHeal.toFixed(1),
-              damageDealt: res.dealt.toFixed(1),
+              damageDealt: dealtNum.toFixed(1),
               oldHP: oldHP.toFixed(1),
               newHP: state.player.hp.toFixed(1),
               maxHP: st.maxHp
             });
           }
-          if(s.dotId) applyDotTo(e, s.dotId);
+          const effectOpts = {
+            state,
+            sourceAbilityId: s.sourceAbilityId || null,
+            abilityId: s.sourceAbilityId || null,
+            sourceType: s.sourceType || 'slash',
+            sourceKind: s.sourceKind || s.team || null,
+            sourceCasterId: s.sourceCasterId || null,
+            sourceCasterName: s.sourceCasterName || null,
+            casterId: s.sourceCasterId || null,
+            casterName: s.sourceCasterName || null
+          };
+
+          if(s.dotId){
+            applyDotTo(e, s.dotId, effectOpts);
+          }
+          if(s.buffId){
+            applyBuffTo(e, s.buffId, effectOpts);
+          }
           if(e.hp<=0) killEnemy(state, ei, true);
         }
       }
@@ -6501,7 +7085,20 @@ function updateStorms(state, dt){
         if(Math.hypot(e.x-state.player.x,e.y-state.player.y)<=s.r){
           const res=applyDamageToEnemy(e,s.dmg,st,state,true);
           lifestealFrom(state,res.dealt,st);
-          if(s.dotId) applyDotTo(e, s.dotId);
+          if(s.dotId){
+            const effectOpts = {
+              state,
+              sourceAbilityId: s.sourceAbilityId || null,
+              abilityId: s.sourceAbilityId || null,
+              sourceType: s.sourceType || 'storm',
+              sourceKind: s.sourceKind || s.team || null,
+              sourceCasterId: s.sourceCasterId || null,
+              sourceCasterName: s.sourceCasterName || null,
+              casterId: s.sourceCasterId || null,
+              casterName: s.sourceCasterName || null
+            };
+            applyDotTo(e, s.dotId, effectOpts);
+          }
           if(e.hp<=0) killEnemy(state, ei, true);
         }
       }
@@ -6558,8 +7155,19 @@ function updateWells(state, dt){
           if(Math.hypot(e.x-w.x, e.y-w.y)<=w.r){
             const res=applyDamageToEnemy(e,w.dmgPerTick,stNow,state,true);
             lifestealFrom(state,res.dealt,stNow);
-            applyBuffTo(e,'slow');
-            applyBuffTo(e,'curse');
+            const effectOpts = {
+              state,
+              sourceAbilityId: w.sourceAbilityId || null,
+              abilityId: w.sourceAbilityId || null,
+              sourceType: w.sourceType || 'well',
+              sourceKind: w.sourceKind || w.team || null,
+              sourceCasterId: w.sourceCasterId || null,
+              sourceCasterName: w.sourceCasterName || null,
+              casterId: w.sourceCasterId || null,
+              casterName: w.sourceCasterName || null
+            };
+            applyBuffTo(e,'slow', effectOpts);
+            applyBuffTo(e,'curse', effectOpts);
             if(e.hp<=0) killEnemy(state,i,true);
           }
         }
@@ -6651,7 +7259,23 @@ function updateProjectiles(state, dt){
             p.shooter._damageDealt = (p.shooter._damageDealt || 0) + (res?.dealt || p.dmg);
           }
           
-          if(p.dotId) applyDotTo(e, p.dotId);
+          // Apply on-hit dot/buff if provided (and attribute applications to the source ability)
+          if(p.dotId || p.buffId){
+            const effectOpts = {
+              state,
+              sourceAbilityId: p.sourceAbilityId || null,
+              sourceType: p.sourceType || 'projectile',
+              sourceKind: p.sourceKind || (p.team || (p.fromPlayer ? 'player' : 'enemy')),
+              sourceCasterId: p.sourceCasterId || (p.shooter?.id ?? p.shooter?._id) || null,
+              sourceCasterName: p.sourceCasterName || (p.shooter?.name ?? p.shooter?.variant) || null,
+              sourceCaster: p.shooter || null,
+              casterId: p.sourceCasterId || (p.shooter?.id ?? p.shooter?._id) || null,
+              casterName: p.sourceCasterName || (p.shooter?.name ?? p.shooter?.variant) || null,
+              abilityId: p.sourceAbilityId || null
+            };
+            if(p.dotId) applyDotTo(e, p.dotId, effectOpts);
+            if(p.buffId) applyBuffTo(e, p.buffId, effectOpts);
+          }
           if(e.hp<=0) killEnemy(state, ei, true);
           if(p.pierce>0) p.pierce-=1;
           else state.projectiles.splice(pi,1);
@@ -6708,6 +7332,22 @@ function updateProjectiles(state, dt){
         if(f.respawnT>0) continue;
         if(Math.hypot(p.x-f.x, p.y-f.y) <= f.r + p.r){
           applyShieldedDamage(state, f, p.dmg, p.shooter);
+          if(p.dotId || p.buffId){
+            const effectOpts = {
+              state,
+              sourceAbilityId: p.sourceAbilityId || null,
+              sourceType: p.sourceType || 'projectile',
+              sourceKind: p.sourceKind || (p.team || (p.fromPlayer ? 'player' : 'enemy')),
+              sourceCasterId: p.sourceCasterId || (p.shooter?.id ?? p.shooter?._id) || null,
+              sourceCasterName: p.sourceCasterName || (p.shooter?.name ?? p.shooter?.variant) || null,
+              sourceCaster: p.shooter || null,
+              casterId: p.sourceCasterId || (p.shooter?.id ?? p.shooter?._id) || null,
+              casterName: p.sourceCasterName || (p.shooter?.name ?? p.shooter?.variant) || null,
+              abilityId: p.sourceAbilityId || null
+            };
+            if(p.dotId) applyDotTo(f, p.dotId, effectOpts);
+            if(p.buffId) applyBuffTo(f, p.buffId, effectOpts);
+          }
           if(f.hp<=0){ killFriendly(state, fi, true); }
           state.projectiles.splice(pi,1);
           break;
@@ -6716,7 +7356,22 @@ function updateProjectiles(state, dt){
       if(pi>=state.projectiles.length) continue; // removed by friendly hit
       if(!state.player.dead && Math.hypot(p.x-state.player.x,p.y-state.player.y)<=state.player.r+p.r){
         applyDamageToPlayer(state, p.dmg, st, p.shooter);
-        // potential enemy projectile DoTs could be applied here similarly
+        if(p.dotId || p.buffId){
+          const effectOpts = {
+            state,
+            sourceAbilityId: p.sourceAbilityId || null,
+            sourceType: p.sourceType || 'projectile',
+            sourceKind: p.sourceKind || (p.team || (p.fromPlayer ? 'player' : 'enemy')),
+            sourceCasterId: p.sourceCasterId || (p.shooter?.id ?? p.shooter?._id) || null,
+            sourceCasterName: p.sourceCasterName || (p.shooter?.name ?? p.shooter?.variant) || null,
+            sourceCaster: p.shooter || null,
+            casterId: p.sourceCasterId || (p.shooter?.id ?? p.shooter?._id) || null,
+            casterName: p.sourceCasterName || (p.shooter?.name ?? p.shooter?.variant) || null,
+            abilityId: p.sourceAbilityId || null
+          };
+          if(p.dotId) applyDotTo(state.player, p.dotId, effectOpts);
+          if(p.buffId) applyBuffTo(state.player, p.buffId, effectOpts);
+        }
         state.projectiles.splice(pi,1);
       }
     }
@@ -6786,13 +7441,14 @@ function updateDots(state, dt){
   for(const f of state.friendlies){ if(f.respawnT<=0) process(f); }
 }
 
-function applyBuffTo(entity, buffId){
+function applyBuffTo(entity, buffId, opts={}){
   const meta = BUFF_REGISTRY && BUFF_REGISTRY[buffId];
   if(!meta) return;
   entity.buffs = entity.buffs || [];
   const existing = entity.buffs.find(b=>b.id===buffId);
   const prevStacks = existing ? (existing.stacks||1) : 0;
   const cap = meta.maxStacks || 5;
+  const isRefresh = !!existing;
   if(existing){
     existing.t = meta.duration || 5.0;
     existing.tl = (meta.ticks?.interval) || 1.0;
@@ -6800,6 +7456,39 @@ function applyBuffTo(entity, buffId){
     existing.stacks = Math.min(cap, nextStacks);
   } else {
     entity.buffs.push({ id: buffId, t: meta.duration || 5.0, tl: (meta.ticks?.interval) || 1.0, stacks:1 });
+  }
+
+  // Applied-effect audit event (prefer explicit state, otherwise fall back to window.state)
+  const auditState = opts.state || window.state;
+  const sourceAbilityId = opts.sourceAbilityId ?? opts.abilityId ?? opts.ability ?? null;
+  if(auditState){
+    const targetKind = (entity === auditState?.player)
+      ? 'player'
+      : (auditState?.enemies?.includes(entity) ? 'enemy' : (auditState?.friendlies?.includes(entity) ? 'friendly' : null));
+    let targetId = entity?.id ?? entity?._id ?? null;
+    if((targetId === null || targetId === undefined || String(targetId) === '') && entity){
+      // Guarantee stable ids for audit logs; some transient/spawned entities may not have ids yet.
+      const team = (targetKind === 'enemy') ? 'enemy' : 'player';
+      const kind = (targetKind === 'enemy') ? 'enemy' : (targetKind === 'friendly' ? 'friendly' : (targetKind === 'player' ? 'player' : 'unit'));
+      targetId = ensureEntityId(auditState, entity, { team, kind });
+    }
+    logEffectApplied(auditState, {
+      event: 'EFFECT_APPLIED',
+      effectKind: 'buff',
+      effectId: buffId,
+      effectName: meta.name || buffId,
+      action: isRefresh ? ((prevStacks > 0 && (existing?.stacks||1) > prevStacks) ? 'stack' : 'refresh') : 'apply',
+      stacks: existing ? (existing.stacks||1) : 1,
+      duration: meta.duration || 5.0,
+      sourceAbilityId,
+      sourceType: opts.sourceType || 'ability',
+      sourceKind: opts.sourceKind || null,
+      casterId: opts.casterId || opts.sourceCasterId || (opts.sourceCaster?.id ?? opts.sourceCaster?._id) || null,
+      casterName: opts.casterName || (opts.sourceCaster?.name ?? opts.sourceCaster?.variant) || null,
+      targetId: (targetId === null || targetId === undefined || String(targetId) === '') ? null : String(targetId),
+      targetName: entity.name || entity.variant || null,
+      targetKind
+    });
   }
 
   // immediate shield gain when a buff carries a shield stat so the HUD reflects it
@@ -6849,6 +7538,7 @@ function applyDotTo(entity, dotId, opts={}){
   const type = meta.type;
   const buffId = opts.buffId || meta.buffId;
   const existing = entity.dots.find(d=>d.id===dotId);
+  const isRefresh = !!existing;
   if(existing){
     existing.t = duration;
     existing.tl = interval;
@@ -6858,7 +7548,43 @@ function applyDotTo(entity, dotId, opts={}){
     existing.stacks = Math.min(cap, next);
   }
   else entity.dots.push({ id: dotId, t: duration, tl: interval, damage: damage || meta.damage, type, stacks:1 });
-  if(buffId) applyBuffTo(entity, buffId);
+
+  // Applied-effect audit event
+  const auditState = opts.state || window.state;
+  const sourceAbilityId = opts.sourceAbilityId ?? opts.abilityId ?? opts.ability ?? null;
+  if(auditState){
+    const targetKind = (entity === auditState?.player)
+      ? 'player'
+      : (auditState?.enemies?.includes(entity) ? 'enemy' : (auditState?.friendlies?.includes(entity) ? 'friendly' : null));
+    let targetId = entity?.id ?? entity?._id ?? null;
+    if((targetId === null || targetId === undefined || String(targetId) === '') && entity){
+      const team = (targetKind === 'enemy') ? 'enemy' : 'player';
+      const kind = (targetKind === 'enemy') ? 'enemy' : (targetKind === 'friendly' ? 'friendly' : (targetKind === 'player' ? 'player' : 'unit'));
+      targetId = ensureEntityId(auditState, entity, { team, kind });
+    }
+    logEffectApplied(auditState, {
+      event: 'EFFECT_APPLIED',
+      effectKind: 'dot',
+      effectId: dotId,
+      effectName: meta.name || dotId,
+      action: isRefresh ? ((existing?.stacks||1) > 1 ? 'stack' : 'refresh') : 'apply',
+      stacks: existing ? (existing.stacks||1) : 1,
+      duration,
+      interval,
+      damage: damage || meta.damage || 0,
+      dotType: type || null,
+      sourceAbilityId,
+      sourceType: opts.sourceType || 'ability',
+      sourceKind: opts.sourceKind || null,
+      casterId: opts.casterId || opts.sourceCasterId || (opts.sourceCaster?.id ?? opts.sourceCaster?._id) || null,
+      casterName: opts.casterName || (opts.sourceCaster?.name ?? opts.sourceCaster?.variant) || null,
+      targetId: (targetId === null || targetId === undefined || String(targetId) === '') ? null : String(targetId),
+      targetName: entity.name || entity.variant || null,
+      targetKind
+    });
+  }
+
+  if(buffId) applyBuffTo(entity, buffId, opts);
 }
 
 function getCcState(unit){
@@ -6993,10 +7719,12 @@ function spawnDungeonEnemies(state, dungeon){
     const VARS = ['warrior','mage','knight','tank'];
     const variant = VARS[randi(0, VARS.length-1)];
     const e = { x: cx + Math.cos(ang)*dist, y: cy + Math.sin(ang)*dist, r: 12, maxHp: 40, hp: 40, speed: 62, contactDmg: 8, hitCd:0, xp: 12, attacked:false, dungeonId: dungeon.id, team: null, homeSiteId: null, spawnTargetSiteId: null, variant };
+    ensureEntityId(state, e, { kind:'enemy', team: 'dungeon' });
     state.enemies.push(e);
   }
   // boss
   const boss = { x: cx, y: cy, r: 26, maxHp: 620, hp: 620, speed: 36, contactDmg: 22, hitCd:0, xp: 120, attacked:false, boss:true, dungeonId: dungeon.id, team: null, homeSiteId: null, spawnTargetSiteId: null, variant: 'tank' };
+  ensureEntityId(state, boss, { kind:'enemy', team: 'dungeon' });
   state.enemies.push(boss);
 }
 
@@ -8935,7 +9663,13 @@ export function importSave(state, s){
 
   // Only import world/entity arrays if the save actually contains them (protect against empty/corrupt saves)
   if(Array.isArray(s.sites) && s.sites.length>0){ state.sites.length=0; s.sites.forEach(x=>state.sites.push(x)); }
-  if(Array.isArray(s.enemies) && s.enemies.length>0){ state.enemies.length=0; s.enemies.forEach(e=>state.enemies.push(e)); }
+  if(Array.isArray(s.enemies) && s.enemies.length>0){
+    state.enemies.length=0;
+    s.enemies.forEach(e=>{
+      ensureEntityId(state, e, { kind:'enemy', team: e.team || 'enemy' });
+      state.enemies.push(e);
+    });
+  }
   if(Array.isArray(s.friendlies) && s.friendlies.length>0){ 
     state.friendlies.length=0; 
     s.friendlies.forEach(a=>{
@@ -8944,6 +9678,7 @@ export function importSave(state, s){
     state.group.settings = s.group.settings || {};
   }
       if(!a.id) a.id = `f_${Date.now()}_${randi(0, 99999)}`; // Add ID if missing
+      ensureEntityId(state, a, { kind:'friendly', team: 'player' });
       // Reinitialize abilities to ensure latest loadouts (healer mages, etc)
       if(a.variant) {
         npcInitAbilities(a, { state, source: 'importSave' });
@@ -9286,6 +10021,9 @@ window.testEmperorBuff = function(){
 export function initGameLogging(state){
   // Initialize player event log (detailed tracking of everything affecting player)
   if(!state.playerLog) state.playerLog = [];
+
+  // Initialize applied-effects audit log (buff/dot applications tied to source abilities)
+  if(!state.effectApplyLog) state.effectApplyLog = [];
 }
 
 // Log player events (damage, healing, shields, buffs, etc.)
@@ -9327,6 +10065,26 @@ function logEffect(state, effectType, ability, caster, kind, targets = 1){
   // Keep only last 2000 events
   if(state.effectLog.length > 2000){
     state.effectLog.shift();
+  }
+}
+
+// Log applied effects (buffs/dots) with precise IDs and attribution.
+// This is the audit stream used to compare "ability casts" vs "effects actually applied".
+function logEffectApplied(state, data){
+  if(!state) return;
+  if(!state.effectApplyLog) state.effectApplyLog = [];
+
+  const evt = {
+    time: (state.campaign?.time || 0).toFixed(2),
+    timestamp: Date.now(),
+    ...data
+  };
+
+  state.effectApplyLog.push(evt);
+
+  // Keep only last 6000 events (more than cast log because this is per-target)
+  if(state.effectApplyLog.length > 6000){
+    state.effectApplyLog.shift();
   }
 }
 
