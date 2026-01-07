@@ -1219,7 +1219,51 @@ function applyShieldedDamage(state, entity, amount, attacker=null){
   try{
     if(entity.buffs && entity.buffs.some(b=>BUFF_REGISTRY?.[b.id]?.stats?.invulnerable)) return;
   }catch{}
+  
   let remain = amount;
+  
+  // BLOCKING: Reduce damage by 50% if entity is blocking and has stamina
+  // Only applies to guards who have blocking capability
+  if(entity.blocking && entity.stam > 0){
+    const blockReduction = remain * 0.5; // 50% damage reduction
+    const stamDrain = Math.max(5, blockReduction * 0.5); // 0.5 stamina per point blocked, minimum 5
+    
+    // Only block if we have enough stamina
+    if(entity.stam >= stamDrain){
+      remain -= blockReduction;
+      entity.stam -= stamDrain;
+      entity.stam = Math.max(0, entity.stam);
+      
+      // Log block event (10% sample rate)
+      if(state?.debugLog && Math.random() < 0.1){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'BLOCK_DAMAGE_REDUCED',
+          blocker: entity.name || entity.variant || 'unknown',
+          blockerRole: entity.guardRole || entity.role || 'unknown',
+          damageBlocked: blockReduction.toFixed(1),
+          staminaCost: stamDrain.toFixed(1),
+          staminaAfter: entity.stam.toFixed(1),
+          remainingDamage: remain.toFixed(1)
+        });
+      }
+    } else {
+      // Not enough stamina - block failed
+      entity.blocking = false;
+      
+      if(state?.debugLog && Math.random() < 0.05){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'BLOCK_FAILED_NO_STAMINA',
+          blocker: entity.name || entity.variant || 'unknown',
+          stamina: entity.stam.toFixed(1),
+          requiredStamina: stamDrain.toFixed(1)
+        });
+      }
+    }
+  }
+  
+  // Shield absorbs remaining damage first
   if(entity.shield>0){
     const used = Math.min(entity.shield, remain);
     entity.shield -= used;
@@ -1228,6 +1272,11 @@ function applyShieldedDamage(state, entity, amount, attacker=null){
   if(remain<=0) return;
   const maxHp = entity===state.player ? currentStats(state).maxHp : entity.maxHp || 9999;
   entity.hp = clamp((entity.hp||0) - remain, 0, maxHp);
+  
+  // Track last damage time for guard blocking system
+  if(entity.guard){
+    entity._lastDamagedAt = state.campaign?.time || 0;
+  }
   
   // Track damage dealt and received
   entity._damageReceived = (entity._damageReceived || 0) + amount;
@@ -2727,6 +2776,46 @@ function npcUpdateAbilities(state, u, dt, kind){
     // Recovery state: check if unit is kiting/recovering
     const inRecovery = (u._guardKiteUntil || 0) > now;
     const recoveryReason = inRecovery ? (u._guardManaStarveAbility ? 'mana_starve' : 'post_burst') : null;
+    
+    // BLOCK DURING COMBAT: Guards use blocking reactively when under threat
+    // Only block if:
+    // 1. Recently damaged (within last 0.8 seconds)
+    // 2. Have stamina available (guards get stamina if not initialized)
+    // 3. Enemies nearby (within melee range ~80 units)
+    if(!u.stam) u.stam = 100; // Initialize stamina for guards
+    if(!u.maxStam) u.maxStam = 100;
+    
+    u.blocking = false; // Reset each frame
+    
+    // Track last damage time for reactive blocking
+    if(!u._lastDamagedAt) u._lastDamagedAt = 0;
+    
+    // Activate blocking if recently damaged (0.8s window) and have stamina
+    if((now - u._lastDamagedAt < 0.8) && u.stam > 20){
+      // Check if enemies are in melee range (80 units) to justify blocking
+      const nearbyEnemyCount = (state.enemies || []).filter(e => {
+        if(e.dead || e.hp <= 0 || e.respawnT > 0) return false;
+        const dist = Math.hypot(e.x - u.x, e.y - u.y);
+        return dist <= 80;
+      }).length;
+      
+      if(nearbyEnemyCount > 0){
+        u.blocking = true;
+        
+        // Log block activation (1% sample rate)
+        if(state.debugLog && Math.random() < 0.01){
+          state.debugLog.push({
+            time: now.toFixed(2),
+            type: 'GUARD_BLOCK_ACTIVE',
+            guard: u.name || u.variant,
+            role: u.guardRole || 'DPS',
+            reason: recoveryReason,
+            stamina: u.stam.toFixed(1),
+            nearbyEnemies: nearbyEnemyCount
+          });
+        }
+      }
+    }
     
     const tryCast = (id)=>{ 
       const i=u.npcAbilities.indexOf(id); 
@@ -5674,7 +5763,7 @@ function updateFriendlies(state, dt){
         
         if(contactTarget.hp<=0){
           const idx = state.enemies.indexOf(contactTarget);
-          if(idx>=0) killEnemy(state, idx, false);
+          if(idx>=0) killEnemy(state, idx, false); // Friendly melee kill, not player
         }
       }
     }
@@ -5810,6 +5899,12 @@ function updateEnemies(state, dt){
     e.hitCd=Math.max(0,e.hitCd-dt);
     const manaRegen = e.manaRegen ?? Math.max(3, (e.maxMana||40)*0.08);
     e.mana = clamp((e.mana||0) + manaRegen*dt, 0, e.maxMana||40);
+    
+    // Stamina regeneration for guards (who have blocking capability)
+    if(e.guard && e.maxStam){
+      const stamRegen = 18; // Same as player base stamina regen
+      e.stam = clamp((e.stam||0) + stamRegen*dt, 0, e.maxStam);
+    }
 
     // detect if enemy currently in water (slows and disables melee contact)
     e.inWater = false;
@@ -6500,7 +6595,7 @@ function updateEnemies(state, dt){
             e._damageDealt = (e._damageDealt || 0) + (res?.dealt || e.contactDmg);
             if(bestTarget.hp<=0){
               const tgtIdx = state.enemies.findIndex(x=>x===bestTarget);
-              if(tgtIdx!==-1) killEnemy(state, tgtIdx, true);
+              if(tgtIdx!==-1) killEnemy(state, tgtIdx, false); // Enemy killed by enemy, not player
             }
           } else if(bestType === 'creature'){
             const dead = applyDamageToCreature(bestTarget, e.contactDmg, state);
@@ -6588,7 +6683,7 @@ function updateEnemies(state, dt){
       state.ui.toast?.(`<span class="neg">Enemy (${e.team||'AI'}) armor improved to <b>${rarity.name}</b>.</span>`);
     }
 
-    if(e.hp<=0) killEnemy(state, i, true);
+    if(e.hp<=0) killEnemy(state, i, false); // Level scaling damage is not from player
   }
 }
 
@@ -7918,8 +8013,10 @@ function updateDots(state, dt){
           if(unit === state.player){
             applyDamageToPlayer(state, dmg, st, d.source);
           } else if(state.enemies.includes(unit)){
-            const res = applyDamageToEnemy(unit, dmg, st, state, true);
-            if(unit.hp <= 0){ const idx = state.enemies.indexOf(unit); if(idx!==-1) killEnemy(state, idx, true); }
+            // Check if DoT was applied by player or player's projectile/ability
+            const fromPlayer = d.source === state.player || (d.sourceKind === 'player');
+            const res = applyDamageToEnemy(unit, dmg, st, state, fromPlayer);
+            if(unit.hp <= 0){ const idx = state.enemies.indexOf(unit); if(idx!==-1) killEnemy(state, idx, fromPlayer); }
           } else if(state.friendlies.includes(unit)){
             applyShieldedDamage(state, unit, dmg);
             if(unit.hp <= 0){ unit.dead = true; unit.respawnT = 10; }

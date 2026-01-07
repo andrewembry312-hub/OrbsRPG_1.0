@@ -540,11 +540,19 @@ export function render(state){
       ctx.drawImage(img, e.x - size/2, e.y - size/2, size, size);
     }
     drawHpBar(ctx, e.x, e.y-e.r-18, 34, 6, Math.max(0, (e.hp||0)/(e.maxHp||1)), e.level, true);
-    // draw shield indicator (blue shield ring for enemy shields)
+    // draw block indicator (blue ring when actively blocking - guards only)
+    if(e.blocking && e.stam > 0){
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle='#6ec0ff';
+      ctx.lineWidth=4;
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.r+14, 0, Math.PI*2); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    // draw shield indicator (cyan shield ring for enemy shields - different from block ring)
     if(e.shield && e.shield > 0){
       const shieldRatio = Math.min(1, e.shield / (e.maxShield || 100));
       ctx.globalAlpha = 0.5 + 0.3*shieldRatio;
-      ctx.strokeStyle = '#6ec0ff';
+      ctx.strokeStyle = '#80e5ff'; // Lighter cyan to distinguish from block
       ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(e.x, e.y, e.r+8, 0, Math.PI*2); ctx.stroke();
       ctx.globalAlpha = 1;

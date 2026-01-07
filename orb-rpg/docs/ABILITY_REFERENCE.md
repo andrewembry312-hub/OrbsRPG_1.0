@@ -327,3 +327,51 @@ Notes:
 - **Versatility** (`arcane_versatility`) — Adaptive mastery.
   - +6% all stats, +10% movement speed, +5% cast speed. Always active when selected.
 
+---
+
+## Player Achievement Tracking
+
+### Kill Counter System
+
+The game tracks your combat achievements in real-time, displayed in the bottom-right corner of the screen.
+
+#### Kill Counter
+- **Location**: Bottom-right panel with black background and gold border
+- **Displays**:
+  - **Kills**: Total number of enemies killed by the player
+  - **Biggest Bomb**: Highest multikill streak achieved in a single session
+- **Visual Style**: Gold text (#d4af37) on black background (85% opacity)
+
+#### Attribution Rules
+Kills only count when **you deal the final damage point** that executes the enemy. This means:
+
+**Counts as Your Kill**:
+- Direct melee attacks (Slash, Cleave)
+- Your projectiles (Arc Bolt, Piercing Lance, etc.)
+- Your area damage abilities (Gravity Well, Meteor Slam)
+- Damage-over-time effects **you** applied (Bleed, Burn, Shock from your abilities)
+
+**Does NOT Count as Your Kill**:
+- Enemy-on-enemy damage (enemies fighting each other)
+- Friendly/group member attacks
+- Level scaling damage (automatic difficulty balancing)
+- DoTs applied by other units (friendly or enemy casters)
+
+#### Bomb Notifications
+When you get 3 or more kills within a 3-second window, you trigger a **BOMB!** achievement:
+
+- **Visual**: Center-screen popup notification (like level-up text)
+  - "BOMB!" text in **purple** (#b565d8) with thick black text-shadow borders
+  - Kill count in **gold** (#d4af37) with thick black text-shadow borders
+- **Audio**: Special bomb notification sound plays
+- **Tracking**: Your "Biggest Bomb" counter updates if this streak exceeds your previous record
+
+#### Sound Effects
+- **Kill Sound**: Plays on every confirmed player kill (`kill counter sound.wav` at 50% volume)
+- **Bomb Sound**: Plays when bomb notification triggers (`bomb notification.mp3` at 60% volume)
+
+#### Gameplay Tips
+- Multikills reset the 3-second timer with each kill, allowing extended bomb streaks
+- Area damage abilities (Gravity Well, Meteor Slam) are effective for bomb achievements
+- DoTs can contribute to bombs if the tick lands the killing blow within the time window
+- Guard blocking and enemy infighting do not interfere with your kill tracking

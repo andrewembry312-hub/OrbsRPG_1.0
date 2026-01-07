@@ -934,6 +934,41 @@ export function buildUI(state){
               </div>
             </div>
 
+            <!-- Player Achievement Tracking -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #d4af37; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#d4af37; margin-bottom:8px;">🏅 Player Achievement Tracking</div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                <b>Kill Counter (Bottom-Right HUD):</b><br>
+                • <b>Kills:</b> Total enemies killed by YOU (only your killing blows count)<br>
+                • <b>Biggest Bomb:</b> Highest multikill streak in current session<br>
+                • Only counts when <b>you deal the final damage</b> that kills the enemy<br><br>
+                
+                <b>What Counts as Your Kill:</b><br>
+                • ✅ Your melee attacks (Slash, Cleave)<br>
+                • ✅ Your projectiles (Arc Bolt, Piercing Lance)<br>
+                • ✅ Your area abilities (Gravity Well, Meteor Slam)<br>
+                • ✅ DoTs YOU applied (Bleed, Burn, Shock from your abilities)<br><br>
+                
+                <b>What Does NOT Count:</b><br>
+                • ❌ Enemy-on-enemy damage (enemies fighting each other)<br>
+                • ❌ Group member attacks (your allies' kills)<br>
+                • ❌ Guard attacks (site defender kills)<br>
+                • ❌ DoTs from other units (friendly/enemy casters)<br><br>
+                
+                <b>BOMB! Achievement:</b><br>
+                • Get <b>3+ kills within 3 seconds</b> to trigger a BOMB!<br>
+                • Visual: Purple "BOMB!" notification with kill count (center screen)<br>
+                • Audio: Special bomb sound effect plays<br>
+                • Each kill resets the 3-second timer, allowing extended streaks<br>
+                • Best for: Area damage abilities (Gravity Well, Meteor Slam, Blade Storm)<br><br>
+                
+                <b>Sound Effects:</b><br>
+                • Kill sound plays on every confirmed player kill<br>
+                • Bomb sound plays when bomb notification triggers<br>
+              </div>
+            </div>
+
             <!-- Controls -->
             <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #fa4; border-radius:3px;">
               <div style="font-weight:bold; font-size:14px; color:#fa4; margin-bottom:8px;">🎮 Controls & UI</div>
