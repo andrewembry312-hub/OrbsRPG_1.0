@@ -632,15 +632,19 @@ export function buildUI(state){
               <div style="font-weight:bold; font-size:14px; color:#d4af37; margin-bottom:8px;">🤖 NPC Types</div>
               
               <div style="margin-bottom:10px;">
-                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🛡️ Guards (Site Defenders)</div>
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🛡️ Guards (Elite Site Defenders)</div>
                 <div style="font-size:11px; line-height:1.6; color:#ccc;">
-                  • <b>Purpose:</b> Defend flags and bases from enemies<br>
-                  • <b>Behavior:</b> ALWAYS AGGRESSIVE (cannot be changed)<br>
-                  • <b>Location:</b> Fixed positions around sites (up to 4 per site)<br>
-                  • <b>Movement:</b> Idle at spawn point, chase enemies within 120 units, max chase distance 140 units<br>
-                  • <b>Respawn:</b> 10 seconds after death if site remains player-controlled<br>
-                  • <b>Cannot be invited to group</b> (site-bound defenders)<br>
-                  • <b>Visual:</b> Blue orbs at static guard positions
+                  • <b>Purpose:</b> Defend flags using coordinated tactical combos<br>
+                  • <b>Behavior:</b> Advanced AI with burst windows and recovery phases<br>
+                  • <b>Squad Composition:</b> 3 DPS + 2 Healers per site (5 total)<br>
+                  • <b>Formation:</b> DPS triangle (front) + Healers (rear support)<br>
+                  • <b>Coordination:</b> Guards synchronize abilities on shared targets<br>
+                  • <b>Combo System:</b> Gravity Well → Meteor Slam → Shoulder Charge<br>
+                  • <b>Mana Management:</b> Burst → Recovery → Re-engage when ready<br>
+                  • <b>Respawn:</b> 10 seconds if site remains player-controlled<br>
+                  • <b>Cannot be invited to group</b> (site-bound tactical units)<br>
+                  • <b>Visual:</b> Blue orbs coordinating at static positions<br><br>
+                  <i style="color:#6cf;">💡 Guards are elite defenders that work as a coordinated team, not individual fighters. Watch for their synchronized combo chains!</i>
                 </div>
               </div>
               
@@ -704,7 +708,67 @@ export function buildUI(state){
               </div>
               
               <div style="font-size:11px; line-height:1.6; color:#aaf; margin-top:8px;">
-                💡 <b>Tip:</b> Use Aggressive for offense, Neutral for defense. Guards are ALWAYS aggressive.
+                💡 <b>Tip:</b> Use Aggressive for offense, Neutral for defense. Guards use advanced tactical AI (always coordinated).
+              </div>
+            </div>
+
+            <!-- Guard Tactical System -->
+            <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-left:3px solid #d4af37; border-radius:3px;">
+              <div style="font-weight:bold; font-size:14px; color:#d4af37; margin-bottom:8px;">🛡️⚔️ Guard Tactical System (Elite AI)</div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🎯 Squad Coordination</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  • <b>Formation:</b> 3 DPS (front triangle) + 2 Healers (rear support)<br>
+                  • <b>Focus Target:</b> All guards attack the same enemy (synchronized)<br>
+                  • <b>Shared AoE Position:</b> Guards dump area attacks at same location<br>
+                  • <b>Healer Policies:</b> H1 (primary healer) handles emergencies, H2 (secondary) provides shields/auras<br>
+                  • <b>Role Assignment:</b> Each guard has specific combat role (DPS/HEALER) that determines behavior
+                </div>
+              </div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">💥 Combo Chain (Burst Phase)</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  <b>Stage 1 - Initiation:</b> Leader casts <b>Gravity Well</b> (pulls + DoT)<br>
+                  <b>Stage 2 - Burst:</b> All DPS cast <b>Meteor Slam</b> at same spot (synchronized AoE)<br>
+                  <b>Stage 3 - Finisher:</b> Closest DPS executes <b>Shoulder Charge</b> (gap closer + AoE)<br>
+                  <b>Cooldown:</b> 6s between combo chains (allows mana recovery)<br><br>
+                  <i style="color:#fc6;">⚡ Watch for guards clustering their abilities - that's a coordinated burst!</i>
+                </div>
+              </div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🔋 Mana Management & Recovery</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  • <b>Tactical Reserve:</b> Guards keep 30 mana minimum outside burst windows<br>
+                  • <b>Recovery Mode:</b> When low on mana, guards enter recovery (light attacks only)<br>
+                  • <b>Exit Condition:</b> Guards resume combos when mana ≥45 AND abilities are off cooldown<br>
+                  • <b>Healer Reserve:</b> Healers keep 22 mana for emergency heals (override on ally critical HP)<br>
+                  • <b>DPS Recovery:</b> DPS units rest at 20 mana, resume at 35 mana<br><br>
+                  <i style="color:#6cf;">💡 Guards pace themselves - recovery phases are intentional, not bugs!</i>
+                </div>
+              </div>
+              
+              <div style="margin-bottom:10px;">
+                <div style="font-weight:bold; color:#fff; margin-bottom:4px;">🎭 Healer Role Policies</div>
+                <div style="font-size:11px; line-height:1.6; color:#ccc;">
+                  <b>H1 (Primary Healer):</b><br>
+                  • Emergency heals when ally &lt;55% HP (mage_divine_touch, heal_burst)<br>
+                  • AoE stabilize when 3+ wounded allies (heal_burst)<br>
+                  • Cleanse wave when 2+ allies have DoTs<br>
+                  • Shields when ally &lt;90% HP (ward_barrier)<br><br>
+                  
+                  <b>H2 (Secondary Healer):</b><br>
+                  • Shields and auras (mage_radiant_aura, ward_barrier)<br>
+                  • Cleanse when 2+ dotted allies<br>
+                  • Backup emergency heals only when H1 can't handle it<br>
+                  • Focus on preventative mitigation over reactive healing
+                </div>
+              </div>
+              
+              <div style="font-size:11px; line-height:1.6; color:#ffd; margin-top:8px; padding:8px; background:rgba(255,215,0,0.1); border-radius:3px;">
+                🏆 <b>Strategic Tip:</b> Guard squads excel at holding defensive positions. They burst down threats, then recover safely behind their formation. Don't expect constant aggression - their strength is coordinated, rhythmic combat cycles.
               </div>
             </div>
 
@@ -822,28 +886,36 @@ export function buildUI(state){
               <div style="font-weight:bold; font-size:14px; color:#f66; margin-bottom:8px;">⚔️ Combat Mechanics</div>
               
               <div style="font-size:11px; line-height:1.6; color:#ccc;">
-                <b>Aggro Ranges (detection distance):</b><br>
-                • Guards: 120 units<br>
-                • Group Aggressive: 180 units<br>
-                • Group Neutral: 90 units<br>
-                • Non-Group Aggressive: 140 units<br>
-                • Non-Group Neutral: 80 units<br><br>
+                <b>Targeting Ranges (detection distance):</b><br>
+                • Guards: Coordinated focus (shared target system)<br>
+                • Group Aggressive: ~180 units<br>
+                • Group Neutral: ~90 units<br>
+                • Non-Group Aggressive: ~140 units<br>
+                • Non-Group Neutral: ~80 units<br><br>
                 
-                <b>Chase Limits:</b><br>
-                • Guards: 140 units from spawn (then return)<br>
-                • Group members: No limit (follow player)<br>
-                • Non-Group: Will pursue to enemy flag<br><br>
+                <b>Guard Defense Zones:</b><br>
+                • Formation Slots: 5 fixed positions around flag spawn<br>
+                • Defense Zone: 150 unit radius from flag<br>
+                • Max Chase Distance: 260 units (then return to post)<br>
+                • Hard Leash: 280 units (forced return)<br><br>
+                
+                <b>Ability Cooldowns:</b><br>
+                • Guards respect combo timing (no spam)<br>
+                • Recovery lockout prevents mana starvation<br>
+                • Light attacks allowed during recovery<br>
+                • Cooldown-aware re-engagement (wait for abilities)<br><br>
                 
                 <b>Respawn System:</b><br>
-                • Guards: 10 seconds, respawn at original site if player-owned<br>
+                • Guards: 10 seconds, respawn at site if player-owned<br>
                 • Group Members: 10 seconds, respawn at home base and rejoin formation<br>
                 • Non-Group: 10 seconds, respawn at home flag<br>
-                • Lose site = lose defenders (they disappear)<br><br>
+                • Lose site = lose defenders permanently<br><br>
                 
-                <b>Buffs & Debuffs:</b><br>
+                <b>Buffs & Effects:</b><br>
                 • NPCs can receive all player buffs/debuffs<br>
-                • Healers will cast heals on low HP allies<br>
-                • Tanks use defensive abilities automatically<br>
+                • Healers cast heals on low HP allies automatically<br>
+                • Tanks use defensive abilities when threatened<br>
+                • Guards coordinate shields before combat (proactive defense)<br>
                 • See Buffs/Debuffs tab for full list
               </div>
             </div>
