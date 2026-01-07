@@ -2788,7 +2788,8 @@ function npcUpdateAbilities(state, u, dt, kind){
     u.blocking = false; // Reset each frame
     
     // Track last damage time for reactive blocking
-    if(!u._lastDamagedAt) u._lastDamagedAt = 0;
+    // Initialize to -999 so guards who never took damage won't block
+    if(!u._lastDamagedAt) u._lastDamagedAt = -999;
     
     // Activate blocking if recently damaged (0.8s window) and have stamina
     if((now - u._lastDamagedAt < 0.8) && u.stam > 20){
@@ -10136,8 +10137,20 @@ function updateCreatures(state, dt){
     if(nearest && (c.attacked || nearest)){ 
       c.target = nearest;
       c.attacked = true;
-      tx = nearest.x;
-      ty = nearest.y;
+      
+      // Calculate stopping distance (attack range + small buffer)
+      const stopDist = (c.r||12) + (nearest.r||14) + 8;
+      const distToTarget = Math.hypot(nearest.x - c.x, nearest.y - c.y);
+      
+      // Only move toward target if beyond stopping distance
+      if(distToTarget > stopDist){
+        tx = nearest.x;
+        ty = nearest.y;
+      } else {
+        // Within attack range - hold position, don't stack on target
+        tx = c.x;
+        ty = c.y;
+      }
       
       // Log creature AI state (0.5% sample rate)
       if(state.debugLog && Math.random() < 0.005){
@@ -10148,7 +10161,7 @@ function updateCreatures(state, dt){
           boss: c.boss || false,
           hp: Math.round(c.hp),
           target: c.target.name || c.target.variant || (c.target === state.player ? 'Player' : 'unknown'),
-          distance: Math.round(nearestD),
+          distance: Math.round(distToTarget),
           hitCd: (c.hitCd || 0).toFixed(2),
           attacked: c.attacked
         });
