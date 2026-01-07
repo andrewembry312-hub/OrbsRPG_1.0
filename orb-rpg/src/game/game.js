@@ -2676,11 +2676,24 @@ function npcUpdateAbilities(state, u, dt, kind){
     const KITE_AFTER_FAIL = 2.2;
     const TACTICAL_MANA_BUFFER = 6;
     const TACTICAL_RESERVE = 30;
+    const RECOVERY_MIN_MANA = 45; // Don't exit recovery until we have this much mana
+    const LIGHT_ATTACK_COST = 0; // Light attacks are free
+    
+    // Recovery state: check if unit is kiting/recovering
+    const inRecovery = (u._guardKiteUntil || 0) > now;
+    const recoveryReason = inRecovery ? (u._guardManaStarveAbility ? 'mana_starve' : 'post_burst') : null;
+    
     const tryCast = (id)=>{ 
       const i=u.npcAbilities.indexOf(id); 
       const hasCd = i>=0 && u.npcCd[i] === 0;
       const cost = ABILITY_META[id]?.cost||0;
       const hasMana = u.mana >= cost;
+      
+      // RECOVERY LOCKOUT: Block all expensive abilities during recovery
+      // Only allow light attacks (cost=0) and movement during recovery phase
+      if(inRecovery && cost > LIGHT_ATTACK_COST){
+        return -1; // Hard lockout - don't even check mana
+      }
       
       // Mana reserve: don't drop below TACTICAL_RESERVE unless in burst window
       const inBurstWindow = now < (ball.burstUntil || 0);
@@ -2688,31 +2701,14 @@ function npcUpdateAbilities(state, u, dt, kind){
         return -1;
       }
 
-      // Post-burst kite window: don't even try expensive tacticals until mana is comfortably above cost.
-      if(hasCd && i>=0 && TACTICAL_IDS.has(id) && (u._guardKiteUntil || 0) > now && (u.mana < (cost + TACTICAL_MANA_BUFFER))){
-        return -1;
-      }
-
-      if(hasCd && !hasMana && state.debugLog && Math.random() < 0.05){
-        state.debugLog.push({
-          time: (state.campaign?.time || 0).toFixed(2),
-          type: 'MANA_STARVATION',
-          unit: u.name || u.variant,
-          ability: id,
-          required: cost,
-          current: Math.round(u.mana ?? 0),
-          reason: 'guard_tactical'
-        });
-      }
-
-      // If we tried (or were about to try) a tactical and we're broke, force a kite window.
-      if(hasCd && !hasMana && TACTICAL_IDS.has(id)){
+      // If we can't afford a tactical outside recovery, enter recovery mode
+      if(hasCd && !hasMana && TACTICAL_IDS.has(id) && !inRecovery){
         u._guardManaStarveAt = now;
         u._guardManaStarveAbility = id;
         u._guardKiteUntil = Math.max(u._guardKiteUntil || 0, now + KITE_AFTER_FAIL);
-        if(state.debugLog && Math.random() < 0.02){
-          logDebug(state, 'GUARD_BALL', 'Guard entering kite window after mana-starved tactical', {
-            type: 'GUARD_KITE_ARM',
+        if(state.debugLog && Math.random() < 0.05){
+          logDebug(state, 'GUARD_BALL', 'Guard entering recovery (mana starved)', {
+            type: 'GUARD_RECOVERY_ENTER',
             reason: 'mana_starve',
             ability: id,
             kiteUntil: +u._guardKiteUntil.toFixed(2),
@@ -2740,6 +2736,29 @@ function npcUpdateAbilities(state, u, dt, kind){
     const targetHpPct = (target && target.maxHp) ? (target.hp / target.maxHp) : 1.0;
     const dist = bestD;
     const guardRole = String(u.guardRole || role || 'DPS').toUpperCase();
+    
+    // COOLDOWN-AWARE RECOVERY EXIT: Don't exit recovery until combo abilities are ready
+    // Check if any primary tactical is off cooldown AND we have enough mana
+    if(inRecovery && u.mana >= RECOVERY_MIN_MANA){
+      let anyTacticalReady = false;
+      for(const tacId of TACTICAL_IDS){
+        const idx = u.npcAbilities.indexOf(tacId);
+        if(idx >= 0 && u.npcCd[idx] === 0){
+          anyTacticalReady = true;
+          break;
+        }
+      }
+      if(anyTacticalReady){
+        u._guardKiteUntil = 0; // Exit recovery cleanly
+        if(state.debugLog && Math.random() < 0.1){
+          logDebug(state, 'GUARD_BALL', 'Guard exiting recovery (combo ready)', {
+            type: 'GUARD_RECOVERY_EXIT',
+            mana: Math.round(u.mana ?? 0),
+            reason: 'tactical_ready'
+          });
+        }
+      }
+    }
 
     // Step 4: Weave gate (shared per guard-ball)
     // - Outside of the ball's burst window, prevent repeated tactical casts back-to-back.
@@ -3136,6 +3155,9 @@ function npcUpdateAbilities(state, u, dt, kind){
 
   // Healer priority: emergency save, then AoE stabilize, then pre-burst mitigation
   if(role==='HEALER'){
+    const HEALER_EMERGENCY_RESERVE = 22; // Reserve mana for critical heals
+    const HEALER_CRITICAL_HP = 0.35; // HP threshold for emergency override
+    
     const tryCast = (id)=>{ 
       const i=u.npcAbilities.indexOf(id); 
       // Require cooldown to be FULLY at 0 (not just <=0.5s) to prevent spam
@@ -3143,20 +3165,15 @@ function npcUpdateAbilities(state, u, dt, kind){
       const cost = ABILITY_META[id]?.cost||0;
       const hasMana = u.mana >= cost;
       
-      // Log mana starvation (5% sample)
-      if(hasCd && !hasMana && state.debugLog && Math.random() < 0.05){
-        state.debugLog.push({
-          time: (state.campaign?.time || 0).toFixed(2),
-          type: 'MANA_STARVATION',
-          unit: u.name || u.variant,
-          ability: id,
-          required: cost,
-          current: Math.round(u.mana ?? 0),
-          reason: 'healer_priority'
-        });
+      // HEALER EMERGENCY RESERVE: Don't spend below reserve unless ally is critical
+      const wouldDropBelowReserve = hasMana && (u.mana - cost) < HEALER_EMERGENCY_RESERVE;
+      const anyCriticalAlly = lowestAlly && lowestAllyHp < HEALER_CRITICAL_HP;
+      
+      if(wouldDropBelowReserve && !anyCriticalAlly){
+        return -1; // Preserve reserve for emergencies
       }
       
-      return (hasCd && hasMana) ? i : -1; 
+      return (hasCd && hasMana) ? i : -1;
     };
     if(lowestAlly && lowestAllyHp < 0.40){
       let idx = tryCast('mage_divine_touch'); if(idx===-1) idx = tryCast('heal_burst');
@@ -3260,7 +3277,44 @@ function npcUpdateAbilities(state, u, dt, kind){
 
   // DPS ROTATION SYSTEM: Maintain buffs 100%, then damage abilities by priority, weave light attacks
   if(role==='DPS'){
-    const tryCast = (id)=>{ const i=u.npcAbilities.indexOf(id); return (i>=0 && u.npcCd[i] === 0 && u.mana >= (ABILITY_META[id]?.cost||0)) ? i : -1; };
+    const DPS_RECOVERY_THRESHOLD = 20; // Enter recovery below this mana
+    const DPS_RECOVERY_EXIT = 35; // Exit recovery when mana reaches this
+    
+    // Check if in recovery mode
+    if(!u._dpsRecoveryUntil) u._dpsRecoveryUntil = 0;
+    const inDpsRecovery = now < u._dpsRecoveryUntil;
+    
+    // Enter recovery if mana too low
+    if(!inDpsRecovery && u.mana < DPS_RECOVERY_THRESHOLD){
+      u._dpsRecoveryUntil = now + 3.0; // Force 3s recovery
+      if(state.debugLog && Math.random() < 0.1){
+        logDebug(state, 'DPS_RECOVERY', 'Entering recovery mode', {
+          type: 'DPS_RECOVERY_ENTER',
+          mana: Math.round(u.mana),
+          until: +u._dpsRecoveryUntil.toFixed(2)
+        });
+      }
+    }
+    
+    // Exit recovery if mana recovered
+    if(inDpsRecovery && u.mana >= DPS_RECOVERY_EXIT){
+      u._dpsRecoveryUntil = 0;
+      if(state.debugLog && Math.random() < 0.1){
+        logDebug(state, 'DPS_RECOVERY', 'Exiting recovery mode', {
+          type: 'DPS_RECOVERY_EXIT',
+          mana: Math.round(u.mana)
+        });
+      }
+    }
+    
+    const tryCast = (id)=>{ 
+      // Block expensive abilities during recovery
+      const cost = ABILITY_META[id]?.cost||0;
+      if(inDpsRecovery && cost > 0) return -1;
+      
+      const i=u.npcAbilities.indexOf(id); 
+      return (i>=0 && u.npcCd[i] === 0 && u.mana >= cost) ? i : -1; 
+    };
     
     // PRIORITY 1: Maintain buff uptime (recast when < 3s remaining) - but don't return, continue to damage rotation
     if(!u._buffTimers) u._buffTimers = {};
