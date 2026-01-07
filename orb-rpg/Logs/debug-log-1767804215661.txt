@@ -1,0 +1,1050 @@
+Debug Diagnostic Log
+========================================================================================================================
+Generated: 1/7/2026, 11:43:35 AM
+Total Events: 30810
+Game Time: 145s
+
+CURRENT STATE:
+  Player Level: 2
+  Player HP: 180/184
+  Player Mana: 81/81
+  Player Stamina: 66/113
+  Player Shield: 0 (cap: 184)
+  Base Player MaxMana: 70
+  Stat Spends: {"vit":0,"int":0,"str":0,"def":0,"agi":0}
+
+
+======================================== TANK_AI_START ========================================
+[140.84s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1789,"y":1061}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[140.86s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1790,"y":1062}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[140.99s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1725,"y":1015}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[140.99s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1668,"y":976}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.03s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1728,"y":1017}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.06s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1807,"y":1073}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.06s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1703,"y":999}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.08s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1706,"y":1001}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.08s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1677,"y":982}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.16s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1774,"y":1050}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.16s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1685,"y":987}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.19s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1811,"y":1076}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.21s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1718,"y":1010}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.26s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1721,"y":1012}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.29s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1784,"y":1057}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.29s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1753,"y":1035}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.29s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1725,"y":1015}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.32s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1812,"y":1077}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.34s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1786,"y":1058}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.42s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1762,"y":1041}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.44s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1791,"y":1060}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.49s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1807,"y":1083}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.51s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1795,"y":1061}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.51s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1709,"y":1005}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.54s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1711,"y":1006}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.62s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1745,"y":1028}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.66s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1774,"y":1051}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.72s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1778,"y":1055}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.74s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1724,"y":1015}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.81s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1757,"y":1037}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.82s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1824,"y":1086}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.82s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1819,"y":1064}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.86s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1787,"y":1063}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.89s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1824,"y":1094}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.89s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1763,"y":1041}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.91s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1736,"y":1024}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[141.97s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1769,"y":1045}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.00s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1830,"y":1105}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.05s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1795,"y":1074}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.09s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1827,"y":1078}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.10s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1831,"y":1080}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.10s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1778,"y":1049}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.14s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1832,"y":1081}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.15s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1833,"y":1084}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.15s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1799,"y":1080}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.19s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1752,"y":1036}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.25s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1852,"y":1121}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.27s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1804,"y":1086}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.34s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1862,"y":1125}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.34s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1806,"y":1089}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.40s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1801,"y":1059}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.54s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1853,"y":1111}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.54s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1811,"y":1066}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.55s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1781,"y":1058}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.57s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1782,"y":1059}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.59s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1828,"y":1102}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.60s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1785,"y":1061}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.64s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1862,"y":1118}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.68s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1898,"y":1138}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.70s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1793,"y":1066}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.77s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1843,"y":1109}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.77s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1797,"y":1069}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.78s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1877,"y":1127}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.78s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1799,"y":1071}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.82s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1879,"y":1130}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.87s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1838,"y":1083}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.88s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1918,"y":1146}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.92s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1810,"y":1079}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.95s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1813,"y":1081}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.97s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1815,"y":1082}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[142.98s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1896,"y":1137}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.05s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1902,"y":1140}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.08s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1858,"y":1094}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.18s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1867,"y":1100}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.27s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1958,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.27s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1922,"y":1151}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.28s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1875,"y":1105}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.28s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1842,"y":1100}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.30s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1958,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.32s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1958,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.35s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1927,"y":1153}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.35s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1879,"y":1106}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.37s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1900,"y":1134}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.38s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1901,"y":1134}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.40s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1929,"y":1155}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.42s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.52s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.53s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1935,"y":1159}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.60s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1892,"y":1110}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.62s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1939,"y":1159}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.63s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1894,"y":1111}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.65s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1941,"y":1159}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.67s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1942,"y":1159}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.72s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1899,"y":1113}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.72s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1865,"y":1122}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.73s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1920,"y":1139}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.73s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1899,"y":1114}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.75s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1921,"y":1139}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.82s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1871,"y":1127}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.85s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1951,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.85s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1873,"y":1129}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.87s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1952,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.90s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1954,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.90s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1908,"y":1118}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[143.98s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.02s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1957,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.03s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.03s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1957,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.05s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.05s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1957,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.07s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.08s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1957,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.12s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1918,"y":1123}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.15s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.25s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1941,"y":1155}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.26s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1902,"y":1152}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.30s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1958,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.30s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1903,"y":1153}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.31s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1944,"y":1156}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.35s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1958,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.36s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1946,"y":1157}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.38s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1958,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.40s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1912,"y":1159}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.46s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1951,"y":1159}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.51s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1160}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.51s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1932,"y":1137}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.55s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1955,"y":1160}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.56s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.58s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.58s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1934,"y":1141}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.60s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1927,"y":1167}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.65s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1957,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.68s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1958,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.68s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1938,"y":1144}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.71s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.71s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1957,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.76s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1959,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.80s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1957,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.83s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.83s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1959,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.90s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1959,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.90s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1947,"y":1152}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.93s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1959,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.93s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1947,"y":1152}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.93s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1945,"y":1167}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[144.98s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1949,"y":1166}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.03s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1958,"y":1163}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.03s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1953,"y":1155}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.10s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1958,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.15s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.19s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1957,"y":1160}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.21s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.24s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1957,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.29s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 135", position:{"x":1958,"y":1163}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.33s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 672", position:{"x":1957,"y":1162}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.34s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1957,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.38s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 396", position:{"x":1959,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.39s]  TANK_AI_START | type:"TANK_AI_START", tank:"Warden 369", position:{"x":1957,"y":1161}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+[145.44s]  TANK_AI_START | type:"TANK_AI_START", tank:"Knight 502", position:{"x":1959,"y":1160}, closestObjective:"Flag 5", closestObjectivePos:{"x":2018,"y":1221}, wallTarget:"YES", initialDecision:"idle"
+
+======================================== TANK_OBJECTIVE_SET ========================================
+[140.84s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1713,"y":1006}, distance:373
+[141.03s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Warden 369", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1700,"y":997}, distance:389
+[141.06s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Warden 369", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1703,"y":999}, distance:385
+[141.16s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1741,"y":1026}, distance:339
+[141.19s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Warden 135", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1776,"y":1051}, distance:296
+[141.21s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 396", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1811,"y":1076}, distance:252
+[141.26s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Warden 369", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1721,"y":1012}, distance:364
+[141.32s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Warden 135", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1785,"y":1058}, distance:284
+[141.32s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1756,"y":1037}, distance:320
+[141.49s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Warden 135", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1794,"y":1060}, distance:275
+[141.49s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 672", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1708,"y":1004}, distance:378
+[141.52s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1766,"y":1045}, distance:307
+[141.54s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 396", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1808,"y":1084}, distance:251
+[141.59s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 396", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1808,"y":1086}, distance:250
+[141.62s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 672", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1716,"y":1009}, distance:369
+[141.64s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 396", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1806,"y":1081}, distance:254
+[141.72s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1778,"y":1055}, distance:292
+[141.74s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Warden 369", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1753,"y":1034}, distance:324
+[141.76s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1781,"y":1057}, distance:288
+[141.82s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 396", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1824,"y":1086}, distance:236
+[142.02s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1795,"y":1073}, distance:268
+[142.10s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1798,"y":1078}, distance:263
+[142.20s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 672", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1754,"y":1038}, distance:321
+[142.34s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 672", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1763,"y":1045}, distance:310
+[142.42s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1812,"y":1093}, distance:242
+[142.49s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 502", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1818,"y":1097}, distance:235
+[142.49s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 672", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1775,"y":1053}, distance:295
+[142.64s]  TANK_OBJECTIVE_SET | type:"TANK_OBJECTIVE_SET", tank:"Knight 672", objective:"Flag 5", objectivePos:{"x":2018,"y":1221}, tankPos:{"x":1786,"y":1061}, distance:281
+
+======================================== MANA_STARVED ========================================
+[140.84s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:10, max:60
+[140.84s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:0, max:60
+[140.86s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:1, max:60
+[140.89s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 4", kind:"friendly", ability:"gravity_well", required:30, current:10, max:60
+[140.91s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:1, max:60
+[140.91s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:7, max:60
+[140.91s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:3, max:40
+[141.03s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:10, max:60
+[141.06s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:1, max:60
+[141.06s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:2, max:40
+[141.06s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:40
+[141.23s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:3, max:40
+[141.26s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:2, max:60
+[141.29s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:10, max:60
+[141.34s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:11, max:60
+[141.39s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"meteor_slam", required:28, current:13, max:60
+[141.39s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior 838", kind:"friendly", ability:"cleave", required:10, current:5, max:60
+[141.44s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warden 135", kind:"friendly", ability:"ward_barrier", required:22, current:15, max:60
+[141.44s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:11, max:60
+[141.47s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:11, max:60
+[141.49s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior 838", kind:"friendly", ability:"warrior_cleave", required:9, current:5, max:60
+[141.54s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 4", kind:"friendly", ability:"warrior_fortitude", required:15, current:14, max:60
+[141.54s]  MANA_STARVED | type:"MANA_STARVED", unit:"Knight 396", kind:"friendly", ability:"heal_burst", required:18, current:1, max:60
+[141.69s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:7, max:40
+[141.71s]  MANA_STARVED | type:"MANA_STARVED", unit:"Knight 502", kind:"friendly", ability:"heal_burst", required:18, current:2, max:60
+[141.71s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:7, max:60
+[141.76s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:8, max:40
+[141.81s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"heal_burst", required:18, current:8, max:60
+[141.84s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:12, max:60
+[141.92s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"cleanse_wave", required:14, current:8, max:60
+[141.92s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warden 369", kind:"friendly", ability:"ward_barrier", required:22, current:8, max:60
+[141.94s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"cleanse_wave", required:14, current:9, max:60
+[142.02s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"heal_burst", required:18, current:9, max:60
+[142.02s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"cleanse_wave", required:14, current:9, max:60
+[142.10s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:60
+[142.19s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"cleanse_wave", required:14, current:10, max:60
+[142.20s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:9, max:60
+[142.22s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:3, max:40
+[142.22s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:60
+[142.29s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:5, max:40
+[142.29s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:4, max:60
+[142.40s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:4, max:40
+[142.50s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:40
+[142.57s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:6, max:60
+[142.60s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 4", kind:"friendly", ability:"meteor_slam", required:28, current:6, max:60
+[142.60s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:15, max:60
+[142.64s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warden 135", kind:"friendly", ability:"ward_barrier", required:22, current:5, max:60
+[142.64s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior 838", kind:"friendly", ability:"warrior_cleave", required:9, current:3, max:60
+[142.65s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:15, max:60
+[142.68s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:10, max:60
+[142.68s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:15, max:60
+[142.74s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:7, max:40
+[142.87s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:15, max:60
+[142.92s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"heal_burst", required:18, current:14, max:60
+[142.97s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"mage_divine_touch", required:16, current:15, max:60
+[142.98s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:6, max:60
+[142.98s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:15, max:40
+[143.00s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"mage_divine_touch", required:16, current:15, max:60
+[143.00s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:2, max:40
+[143.07s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:7, max:60
+[143.10s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:6, max:60
+[143.10s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[143.12s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_iron_skin", required:14, current:3, max:40
+[143.17s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warden 369", kind:"friendly", ability:"ward_barrier", required:22, current:15, max:60
+[143.17s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:6, max:60
+[143.17s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:12, max:60
+[143.18s]  MANA_STARVED | type:"MANA_STARVED", unit:"Knight 672", kind:"friendly", ability:"heal_burst", required:18, current:4, max:60
+[143.22s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:10, max:40
+[143.23s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 4", kind:"friendly", ability:"gravity_well", required:30, current:9, max:60
+[143.25s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"meteor_slam", required:28, current:9, max:60
+[143.25s]  MANA_STARVED | type:"MANA_STARVED", unit:"Knight 396", kind:"friendly", ability:"heal_burst", required:18, current:10, max:60
+[143.32s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:7, max:40
+[143.33s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:15, max:60
+[143.40s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"gravity_well", required:30, current:10, max:60
+[143.40s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:1, max:60
+[143.42s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:10, max:40
+[143.42s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:60
+[143.43s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:15, max:60
+[143.53s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:8, max:40
+[143.55s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"gravity_well", required:30, current:11, max:60
+[143.62s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"heal_burst", required:18, current:3, max:60
+[143.62s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:0, max:60
+[143.63s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"cleanse_wave", required:14, current:3, max:60
+[143.67s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:13, max:60
+[143.67s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:2, max:60
+[143.75s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:40
+[143.77s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:2, max:60
+[143.77s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:3, max:40
+[143.83s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:10, max:60
+[143.90s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"heal_burst", required:18, current:4, max:60
+[143.90s]  MANA_STARVED | type:"MANA_STARVED", unit:"Knight 396", kind:"friendly", ability:"heal_burst", required:18, current:14, max:60
+[143.95s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 4", kind:"friendly", ability:"gravity_well", required:30, current:14, max:60
+[143.98s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warden 369", kind:"friendly", ability:"ward_barrier", required:22, current:19, max:60
+[144.05s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior 838", kind:"friendly", ability:"cleave", required:10, current:2, max:60
+[144.10s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_anchor", required:10, current:4, max:40
+[144.21s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"heal_burst", required:18, current:6, max:60
+[144.23s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:11, max:60
+[144.30s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 3", kind:"friendly", ability:"meteor_slam", required:28, current:8, max:60
+[144.35s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:4, max:60
+[144.40s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"heal_burst", required:18, current:7, max:60
+[144.43s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"cleanse_wave", required:14, current:8, max:60
+[144.45s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:5, max:60
+[144.46s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:3, max:60
+[144.51s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:11, max:40
+[144.53s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:3, max:60
+[144.56s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:16, max:40
+[144.58s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 1", kind:"friendly", ability:"cleanse_wave", required:14, current:2, max:60
+[144.60s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"cleanse_wave", required:14, current:9, max:60
+[144.65s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior 838", kind:"friendly", ability:"cleave", required:10, current:5, max:60
+[144.70s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior 838", kind:"friendly", ability:"warrior_cleave", required:9, current:5, max:60
+[144.73s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:1, max:60
+[144.80s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:15, max:40
+[144.81s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warden 135", kind:"friendly", ability:"ward_barrier", required:22, current:17, max:60
+[144.83s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 4", kind:"friendly", ability:"gravity_well", required:30, current:11, max:60
+[144.83s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:6, max:60
+[144.86s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"heal_burst", required:18, current:13, max:40
+[144.88s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:40
+[144.90s]  MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:15, max:40
+[144.98s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"tank_anchor", required:10, current:9, max:40
+[145.05s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:4, max:60
+[145.06s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:2, max:60
+[145.06s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:5, max:60
+[145.10s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior 838", kind:"friendly", ability:"warrior_cleave", required:9, current:3, max:60
+[145.10s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[145.11s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:5, max:60
+[145.19s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior Guard 4", kind:"friendly", ability:"meteor_slam", required:28, current:3, max:60
+[145.23s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:26, max:60
+[145.29s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:9, max:40
+[145.33s]  MANA_STARVED | type:"MANA_STARVED", unit:"Mage Guard 2", kind:"friendly", ability:"cleanse_wave", required:14, current:13, max:60
+[145.34s]  MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:15, max:60
+[145.36s]  MANA_STARVED | type:"MANA_STARVED", unit:"Warrior 838", kind:"friendly", ability:"warrior_fortitude", required:15, current:4, max:60
+[145.43s]  MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:6, max:60
+[145.43s]  MANA_STARVED | type:"MANA_STARVED", unit:"warden", kind:"enemy", ability:"ward_barrier", required:22, current:2, max:40
+
+======================================== MANA_STARVATION ========================================
+[140.84s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:9, reason:"guard_tactical"
+[141.06s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"guard_tactical"
+[141.09s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"meteor_slam", required:28, current:11, reason:"guard_tactical"
+[141.23s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:12, reason:"guard_tactical"
+[141.23s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Mage Guard 1", ability:"ward_barrier", required:22, current:4, reason:"guard_tactical"
+[141.31s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"guard_tactical"
+[141.54s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:11, reason:"guard_tactical"
+[141.64s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:2, reason:"damage_rotation"
+[141.72s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:2, reason:"damage_rotation"
+[142.50s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"gravity_well", required:30, current:5, reason:"guard_tactical"
+[142.54s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[142.54s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:14, reason:"healer_priority"
+[142.55s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"healer_priority"
+[142.57s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"gravity_well", required:30, current:5, reason:"guard_tactical"
+[142.57s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:10, reason:"healer_priority"
+[142.59s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"gravity_well", required:30, current:5, reason:"guard_tactical"
+[142.60s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[142.60s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:6, reason:"healer_priority"
+[142.72s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior 838", ability:"cleave", required:10, current:3, reason:"damage_rotation"
+[142.74s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"mage_divine_touch", required:16, current:15, reason:"healer_priority"
+[142.77s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"gravity_well", required:30, current:7, reason:"guard_tactical"
+[142.77s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior 838", ability:"slash", required:4, current:3, reason:"damage_rotation"
+[142.77s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior 838", ability:"warrior_cleave", required:9, current:3, reason:"damage_rotation"
+[142.77s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[142.78s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"meteor_slam", required:28, current:7, reason:"guard_tactical"
+[142.83s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"gravity_well", required:30, current:7, reason:"guard_tactical"
+[142.93s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"meteor_slam", required:28, current:8, reason:"guard_tactical"
+[142.97s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"gravity_well", required:30, current:8, reason:"guard_tactical"
+[143.13s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"meteor_slam", required:28, current:9, reason:"guard_tactical"
+[143.23s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"gravity_well", required:30, current:9, reason:"guard_tactical"
+[143.28s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:10, reason:"guard_tactical"
+[143.38s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"gravity_well", required:30, current:10, reason:"guard_tactical"
+[143.42s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:10, reason:"guard_tactical"
+[143.53s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"gravity_well", required:30, current:11, reason:"guard_tactical"
+[143.57s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:11, reason:"guard_tactical"
+[143.65s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:12, reason:"guard_tactical"
+[143.67s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:8, reason:"damage_rotation"
+[143.70s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"meteor_slam", required:28, current:12, reason:"guard_tactical"
+[143.73s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior 838", ability:"warrior_cleave", required:9, current:4, reason:"damage_rotation"
+[143.75s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"meteor_slam", required:28, current:12, reason:"guard_tactical"
+[143.77s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"gravity_well", required:30, current:13, reason:"guard_tactical"
+[143.82s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"gravity_well", required:30, current:13, reason:"guard_tactical"
+[143.83s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:13, reason:"guard_tactical"
+[143.98s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"gravity_well", required:30, current:14, reason:"guard_tactical"
+[144.05s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"gravity_well", required:30, current:2, reason:"guard_tactical"
+[144.12s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:15, reason:"guard_tactical"
+[144.20s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 3", ability:"meteor_slam", required:28, current:15, reason:"guard_tactical"
+[144.21s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"gravity_well", required:30, current:2, reason:"guard_tactical"
+[144.23s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"gravity_well", required:30, current:7, reason:"guard_tactical"
+[144.43s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Mage Guard 2", ability:"ward_barrier", required:22, current:8, reason:"guard_tactical"
+[144.48s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Mage Guard 2", ability:"ward_barrier", required:22, current:8, reason:"guard_tactical"
+[144.60s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"gravity_well", required:30, current:10, reason:"guard_tactical"
+[144.61s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:10, reason:"guard_tactical"
+[144.61s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"gravity_well", required:30, current:3, reason:"guard_tactical"
+[144.68s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:10, reason:"guard_tactical"
+[144.68s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior 838", ability:"warrior_cleave", required:9, current:5, reason:"damage_rotation"
+[144.71s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:10, reason:"guard_tactical"
+[144.73s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior 838", ability:"cleave", required:10, current:5, reason:"damage_rotation"
+[144.73s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"gravity_well", required:30, current:4, reason:"guard_tactical"
+[144.76s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"meteor_slam", required:28, current:11, reason:"guard_tactical"
+[144.86s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior Guard 4", ability:"gravity_well", required:30, current:11, reason:"guard_tactical"
+[144.86s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"gravity_well", required:30, current:4, reason:"guard_tactical"
+[144.88s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Mage Guard 2", ability:"ward_barrier", required:22, current:10, reason:"guard_tactical"
+[144.88s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Warrior 838", ability:"cleave", required:10, current:6, reason:"damage_rotation"
+[144.88s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"gravity_well", required:30, current:4, reason:"guard_tactical"
+[144.93s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"gravity_well", required:30, current:5, reason:"guard_tactical"
+[144.95s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"shoulder_charge", required:10, current:4, reason:"guard_tactical"
+[145.18s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Mage Guard 2", ability:"ward_barrier", required:22, current:12, reason:"guard_tactical"
+[145.23s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:2, reason:"healer_priority"
+[145.23s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:7, reason:"healer_priority"
+[145.28s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"Mage Guard 2", ability:"ward_barrier", required:22, current:13, reason:"guard_tactical"
+[145.29s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:5, reason:"healer_priority"
+[145.33s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"gravity_well", required:30, current:5, reason:"guard_tactical"
+[145.33s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:3, reason:"healer_priority"
+[145.34s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"shoulder_charge", required:10, current:5, reason:"guard_tactical"
+[145.36s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:7, reason:"healer_priority"
+[145.38s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"gravity_well", required:30, current:5, reason:"guard_tactical"
+[145.43s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:8, reason:"healer_priority"
+[145.44s]  MANA_STARVATION | type:"MANA_STARVATION", unit:"mage", ability:"heal_burst", required:18, current:3, reason:"healer_priority"
+
+======================================== ENEMY_ATTACK_OUT_OF_RANGE ========================================
+[140.84s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:2086, requiredRange:30, inWater:false
+[140.89s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:2106, requiredRange:30, inWater:false
+[140.91s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:276, requiredRange:30, inWater:false
+[140.93s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:2078, requiredRange:30, inWater:false
+[140.94s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:195, requiredRange:30, inWater:false
+[141.11s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:666, requiredRange:29, inWater:false
+[141.16s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:659, requiredRange:29, inWater:false
+[141.19s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Knight 396", distance:177, requiredRange:29, inWater:false
+[141.26s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2228, requiredRange:30, inWater:false
+[141.27s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:151, requiredRange:30, inWater:false
+[141.44s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2294, requiredRange:30, inWater:false
+[141.49s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:680, requiredRange:29, inWater:false
+[141.64s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:64, requiredRange:30, inWater:false
+[141.64s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Shadow", distance:31, requiredRange:28, inWater:false
+[141.64s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2274, requiredRange:30, inWater:false
+[141.82s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warden", distance:257, requiredRange:30, inWater:false
+[141.92s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:839, requiredRange:29, inWater:false
+[141.92s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warden", distance:82, requiredRange:30, inWater:false
+[141.97s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:195, requiredRange:30, inWater:false
+[142.15s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:660, requiredRange:29, inWater:false
+[142.19s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:802, requiredRange:29, inWater:false
+[142.20s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warden", distance:143, requiredRange:30, inWater:false
+[142.34s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:194, requiredRange:30, inWater:false
+[142.39s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warden", distance:1030, requiredRange:30, inWater:false
+[142.40s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:92, requiredRange:30, inWater:false
+[142.49s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2294, requiredRange:30, inWater:false
+[142.50s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:72, requiredRange:30, inWater:false
+[142.55s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2228, requiredRange:30, inWater:false
+[142.55s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:806, requiredRange:29, inWater:false
+[142.87s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:79, requiredRange:30, inWater:false
+[142.87s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:837, requiredRange:29, inWater:false
+[142.98s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:127, requiredRange:30, inWater:false
+[143.13s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Knight 396", distance:98, requiredRange:29, inWater:false
+[143.17s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2294, requiredRange:30, inWater:false
+[143.22s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Shadow", distance:30, requiredRange:28, inWater:false
+[143.23s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warden", distance:36, requiredRange:30, inWater:false
+[143.28s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:194, requiredRange:30, inWater:false
+[143.33s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:54, requiredRange:30, inWater:false
+[143.43s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:855, requiredRange:29, inWater:false
+[143.43s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:2188, requiredRange:30, inWater:false
+[143.43s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Warrior 838", distance:31, requiredRange:29, inWater:false
+[143.45s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:127, requiredRange:30, inWater:false
+[143.45s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warden", distance:1032, requiredRange:30, inWater:false
+[143.60s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2294, requiredRange:30, inWater:false
+[143.73s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warden", distance:33, requiredRange:30, inWater:false
+[143.75s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2098, requiredRange:30, inWater:false
+[143.77s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"knight", distance:34, requiredRange:30, inWater:false
+[143.85s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:494, requiredRange:29, inWater:false
+[143.98s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:857, requiredRange:29, inWater:false
+[144.07s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warden", distance:1029, requiredRange:30, inWater:false
+[144.21s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:468, requiredRange:29, inWater:false
+[144.25s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warden", distance:160, requiredRange:30, inWater:false
+[144.33s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2274, requiredRange:30, inWater:false
+[144.35s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2294, requiredRange:30, inWater:false
+[144.45s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:451, requiredRange:29, inWater:false
+[144.53s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Mage Guard 1", distance:590, requiredRange:29, inWater:false
+[144.53s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:692, requiredRange:29, inWater:false
+[144.60s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Shadow", distance:30, requiredRange:28, inWater:false
+[144.66s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:690, requiredRange:29, inWater:false
+[144.70s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:95, requiredRange:30, inWater:false
+[144.71s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"warden", distance:32, requiredRange:30, inWater:false
+[144.80s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"Warrior 838", distance:31, requiredRange:29, inWater:false
+[144.85s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:111, requiredRange:30, inWater:false
+[144.88s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Warden 369", distance:31, requiredRange:29, inWater:false
+[144.96s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warden", target:"mage", distance:195, requiredRange:30, inWater:false
+[144.96s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Knight 672", distance:115, requiredRange:29, inWater:false
+[144.96s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:98, requiredRange:30, inWater:false
+[144.98s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:1973, requiredRange:30, inWater:false
+[145.11s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Shadow", distance:31, requiredRange:28, inWater:false
+[145.13s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:2103, requiredRange:30, inWater:false
+[145.28s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"mage", distance:2274, requiredRange:30, inWater:false
+[145.33s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Mage Guard 1", distance:870, requiredRange:29, inWater:false
+[145.43s]  ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warden", distance:100, requiredRange:30, inWater:false
+
+======================================== ENEMY_ROLE_TARGET ========================================
+[140.84s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[140.86s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:145, mana:31, speed:77
+[140.91s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:605, hp:327, mana:16, speed:77
+[140.91s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:40, speed:95
+[140.91s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:0, hp:259, mana:1, speed:65
+[140.93s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[140.94s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2584, hp:415, mana:23, speed:77
+[140.94s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:27, speed:77
+[140.94s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:145, mana:31, speed:77
+[140.99s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:28, speed:77
+[141.03s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:346, hp:417, mana:1, speed:65
+[141.03s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:33, speed:95
+[141.03s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:34, speed:95
+[141.06s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:27, speed:95
+[141.06s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:33, speed:95
+[141.06s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:33, speed:95
+[141.08s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:0, hp:259, mana:2, speed:65
+[141.08s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:30, speed:95
+[141.09s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:2, speed:65
+[141.09s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:30, speed:95
+[141.09s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:24, speed:95
+[141.11s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:40, speed:95
+[141.11s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:347, hp:417, mana:2, speed:65
+[141.11s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:33, speed:95
+[141.11s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:145, mana:32, speed:77
+[141.11s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:28, speed:77
+[141.16s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:2, speed:65
+[141.19s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:34, speed:95
+[141.21s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2594, hp:327, mana:16, speed:77
+[141.21s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:34, speed:95
+[141.26s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:609, hp:327, mana:18, speed:77
+[141.26s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2427, hp:327, mana:26, speed:77
+[141.27s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:29, speed:77
+[141.31s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:35, speed:95
+[141.31s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1370, hp:255, mana:40, speed:90
+[141.32s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:145, mana:34, speed:77
+[141.34s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2584, hp:327, mana:17, speed:77
+[141.34s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:417, mana:3, speed:65
+[141.39s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:417, mana:3, speed:65
+[141.39s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:348, hp:417, mana:3, speed:65
+[141.41s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:4, speed:65
+[141.41s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:27, speed:95
+[141.42s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:349, hp:417, mana:4, speed:65
+[141.44s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:6, speed:77
+[141.44s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:36, speed:95
+[141.47s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:605, hp:415, mana:13, speed:77
+[141.49s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:6, speed:77
+[141.49s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:33, speed:95
+[141.51s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2541, hp:415, mana:27, speed:77
+[141.54s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:33, speed:95
+[141.54s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:31, speed:77
+[141.59s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:622, hp:327, mana:20, speed:77
+[141.59s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:24, speed:95
+[141.59s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:31, speed:77
+[141.62s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2532, hp:415, mana:27, speed:77
+[141.66s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2529, hp:415, mana:27, speed:77
+[141.66s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:5, speed:65
+[141.71s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2556, hp:327, mana:19, speed:77
+[141.71s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:622, hp:327, mana:20, speed:77
+[141.72s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:32, speed:77
+[141.76s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:32, speed:95
+[141.76s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:6, speed:65
+[141.79s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:32, speed:95
+[141.81s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:347, hp:417, mana:6, speed:65
+[141.81s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:33, hp:315, mana:32, speed:77
+[141.82s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:32, speed:77
+[141.82s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[141.86s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:39, speed:95
+[141.89s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:33, speed:95
+[141.89s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:33, speed:77
+[141.91s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2376, hp:327, mana:30, speed:77
+[141.91s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:27, speed:95
+[141.91s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:33, speed:77
+[141.91s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:38, speed:95
+[141.94s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:26, speed:95
+[142.00s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:168, mana:9, speed:77
+[142.00s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.02s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:417, mana:7, speed:65
+[142.02s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:168, mana:9, speed:77
+[142.02s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.02s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1370, hp:255, mana:40, speed:90
+[142.05s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.10s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:33, hp:315, mana:34, speed:77
+[142.14s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:794, hp:415, mana:4, speed:77
+[142.19s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.19s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:38, speed:95
+[142.22s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:145, mana:38, speed:77
+[142.22s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1370, hp:255, mana:40, speed:90
+[142.29s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:25, speed:95
+[142.32s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2816, hp:415, mana:4, speed:77
+[142.32s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:30, speed:95
+[142.34s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:537, hp:415, mana:18, speed:77
+[142.34s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:645, hp:327, mana:19, speed:77
+[142.37s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Mage 437", distance:27, hp:142, mana:11, speed:65
+[142.37s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:145, mana:39, speed:77
+[142.37s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:29, speed:95
+[142.39s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:533, hp:415, mana:18, speed:77
+[142.39s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:417, mana:9, speed:65
+[142.45s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2806, hp:415, mana:4, speed:77
+[142.45s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:0, hp:259, mana:9, speed:65
+[142.49s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.50s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Warrior Guard 3", distance:31, hp:105, mana:12, speed:65
+[142.50s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:344, hp:417, mana:10, speed:65
+[142.54s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2459, hp:327, mana:24, speed:77
+[142.54s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:32, speed:95
+[142.55s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2326, hp:327, mana:34, speed:77
+[142.55s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.57s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:32, speed:95
+[142.57s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Warrior 838", distance:31, hp:101, mana:12, speed:65
+[142.57s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:2, speed:77
+[142.57s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1371, hp:255, mana:40, speed:90
+[142.60s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:10, speed:65
+[142.60s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:28, speed:95
+[142.64s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:515, hp:415, mana:20, speed:77
+[142.64s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:32, speed:95
+[142.65s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:631, hp:327, mana:26, speed:77
+[142.65s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2471, hp:415, mana:33, speed:77
+[142.67s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:630, hp:327, mana:26, speed:77
+[142.67s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:145, mana:25, speed:77
+[142.67s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1371, hp:255, mana:40, speed:90
+[142.70s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.72s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:29, speed:95
+[142.74s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:0, hp:259, mana:11, speed:65
+[142.77s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.77s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:37, speed:95
+[142.77s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:32, speed:95
+[142.78s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.78s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.80s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.82s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:500, hp:415, mana:21, speed:77
+[142.82s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:29, speed:95
+[142.83s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:0, hp:259, mana:11, speed:65
+[142.87s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:813, hp:415, mana:8, speed:77
+[142.87s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:145, mana:26, speed:77
+[142.87s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:38, speed:77
+[142.88s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2301, hp:327, mana:35, speed:77
+[142.90s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:145, mana:26, speed:77
+[142.90s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:30, speed:95
+[142.92s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:629, hp:327, mana:22, speed:77
+[142.92s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:38, speed:77
+[142.93s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:613, hp:327, mana:27, speed:77
+[142.97s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:5, speed:77
+[142.97s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[142.98s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:24, speed:95
+[143.03s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2434, hp:327, mana:26, speed:77
+[143.03s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:0, hp:259, mana:13, speed:65
+[143.03s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[143.03s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:34, speed:95
+[143.05s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:39, speed:95
+[143.07s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:348, hp:417, mana:13, speed:65
+[143.07s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:39, speed:77
+[143.08s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2429, hp:327, mana:27, speed:77
+[143.08s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:350, hp:417, mana:13, speed:65
+[143.10s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1371, hp:255, mana:40, speed:90
+[143.10s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:32, speed:95
+[143.12s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[143.12s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:5, speed:77
+[143.13s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2282, hp:327, mana:37, speed:77
+[143.13s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:3, speed:65
+[143.15s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:614, hp:327, mana:24, speed:77
+[143.15s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:26, speed:95
+[143.15s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:35, speed:95
+[143.15s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:32, speed:95
+[143.17s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:6, speed:77
+[143.17s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:35, speed:95
+[143.17s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:32, speed:95
+[143.18s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:36, speed:95
+[143.22s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:168, mana:6, speed:77
+[143.25s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:37, speed:95
+[143.25s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:417, mana:14, speed:65
+[143.28s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:37, speed:95
+[143.28s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1371, hp:255, mana:40, speed:90
+[143.30s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:789, hp:415, mana:10, speed:77
+[143.30s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:36, speed:95
+[143.32s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2738, hp:415, mana:9, speed:77
+[143.32s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:27, speed:95
+[143.33s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:579, hp:327, mana:29, speed:77
+[143.33s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:145, mana:29, speed:77
+[143.33s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:36, speed:95
+[143.37s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:34, speed:95
+[143.38s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[143.40s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:38, speed:95
+[143.42s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:594, hp:327, mana:25, speed:77
+[143.42s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2421, hp:415, mana:37, speed:77
+[143.42s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:38, speed:95
+[143.42s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[143.43s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:557, hp:327, mana:30, speed:77
+[143.43s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:33, hp:315, mana:40, speed:77
+[143.45s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[143.48s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2256, hp:327, mana:39, speed:77
+[143.53s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2251, hp:327, mana:39, speed:77
+[143.55s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:39, speed:95
+[143.55s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:5, speed:65
+[143.60s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:768, hp:415, mana:12, speed:77
+[143.60s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1371, hp:255, mana:40, speed:90
+[143.60s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[143.62s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2388, hp:327, mana:30, speed:77
+[143.65s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2712, hp:415, mana:11, speed:77
+[143.65s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2385, hp:327, mana:30, speed:77
+[143.65s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:40, speed:77
+[143.67s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:761, hp:415, mana:12, speed:77
+[143.67s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:8, speed:77
+[143.70s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:573, hp:327, mana:27, speed:77
+[143.70s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:39, speed:95
+[143.72s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:40, speed:95
+[143.75s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Mage 798", distance:31, hp:158, mana:19, speed:65
+[143.77s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:25, speed:95
+[143.80s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2392, hp:415, mana:39, speed:77
+[143.80s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2232, hp:327, mana:40, speed:77
+[143.83s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Warrior Guard 4", distance:31, hp:154, mana:19, speed:65
+[143.83s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:31, speed:95
+[143.83s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:40, speed:95
+[143.83s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:37, speed:95
+[143.85s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2697, hp:415, mana:12, speed:77
+[143.85s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:40, speed:95
+[143.85s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:25, speed:95
+[143.85s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:181, mana:9, speed:77
+[143.87s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:0, hp:259, mana:3, speed:65
+[143.87s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:10, speed:77
+[143.87s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:40, speed:77
+[143.87s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:40, speed:77
+[143.88s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:7, speed:65
+[143.88s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:40, speed:95
+[143.90s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:521, hp:327, mana:32, speed:77
+[143.90s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:40, speed:95
+[143.90s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:40, speed:77
+[143.93s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:741, hp:415, mana:14, speed:77
+[143.95s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:417, mana:4, speed:65
+[143.95s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:346, hp:417, mana:18, speed:65
+[143.95s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:26, speed:95
+[143.95s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:40, speed:95
+[143.98s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:516, hp:327, mana:33, speed:77
+[143.98s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:168, mana:10, speed:77
+[143.98s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:40, speed:77
+[143.98s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:40, speed:77
+[144.05s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2682, hp:415, mana:13, speed:77
+[144.07s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:40, speed:95
+[144.08s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:507, hp:327, mana:33, speed:77
+[144.08s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:11, speed:77
+[144.08s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:181, mana:11, speed:77
+[144.08s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:40, speed:77
+[144.08s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:33, hp:315, mana:40, speed:77
+[144.12s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:31, speed:95
+[144.12s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:181, mana:11, speed:77
+[144.18s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:40, speed:77
+[144.20s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:394, hp:415, mana:28, speed:77
+[144.21s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[144.23s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:9, speed:65
+[144.23s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:40, speed:77
+[144.25s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:32, speed:95
+[144.25s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:209, mana:9, speed:65
+[144.26s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2338, hp:327, mana:33, speed:77
+[144.26s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:168, mana:12, speed:77
+[144.33s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:34, speed:95
+[144.36s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2187, hp:327, mana:40, speed:77
+[144.40s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:33, speed:95
+[144.40s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:33, hp:315, mana:40, speed:77
+[144.40s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[144.43s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:517, hp:327, mana:31, speed:77
+[144.43s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2344, hp:415, mana:40, speed:77
+[144.45s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1371, hp:255, mana:40, speed:90
+[144.46s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2179, hp:327, mana:40, speed:77
+[144.48s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:13, speed:77
+[144.48s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[144.51s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2320, hp:327, mana:34, speed:77
+[144.51s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:417, mana:7, speed:65
+[144.53s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:473, hp:327, mana:36, speed:77
+[144.53s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:28, speed:95
+[144.55s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Warrior Guard 4", distance:31, hp:126, mana:7, speed:65
+[144.55s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:36, speed:95
+[144.55s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:11, speed:65
+[144.60s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:467, hp:327, mana:36, speed:77
+[144.60s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2330, hp:415, mana:40, speed:77
+[144.61s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:40, speed:77
+[144.61s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[144.65s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:37, speed:95
+[144.65s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:35, speed:95
+[144.68s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[144.70s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2632, hp:415, mana:17, speed:77
+[144.70s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2161, hp:327, mana:40, speed:77
+[144.70s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:417, mana:8, speed:65
+[144.70s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:181, mana:14, speed:77
+[144.70s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:25, speed:95
+[144.71s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:33, hp:315, mana:40, speed:77
+[144.71s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:40, speed:77
+[144.73s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2159, hp:327, mana:40, speed:77
+[144.75s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:351, hp:415, mana:31, speed:77
+[144.75s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:40, speed:77
+[144.75s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[144.76s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2156, hp:327, mana:40, speed:77
+[144.76s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:181, mana:14, speed:77
+[144.80s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Warrior 838", distance:31, hp:144, mana:8, speed:65
+[144.81s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:451, hp:327, mana:37, speed:77
+[144.81s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:28, speed:95
+[144.83s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Warrior 838", distance:31, hp:135, mana:9, speed:65
+[144.83s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1370, hp:255, mana:26, speed:90
+[144.86s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:40, speed:77
+[144.88s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:28, speed:95
+[144.88s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:417, mana:9, speed:65
+[144.88s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:346, hp:417, mana:1, speed:65
+[144.90s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:40, speed:95
+[144.93s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2615, hp:415, mana:18, speed:77
+[144.93s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:13, speed:65
+[144.93s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[144.95s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:34, speed:95
+[144.96s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:335, hp:415, mana:32, speed:77
+[144.96s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:37, speed:95
+[145.01s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:0, hp:256, mana:40, speed:77
+[145.05s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2605, hp:415, mana:19, speed:77
+[145.05s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2134, hp:327, mana:40, speed:77
+[145.05s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:38, speed:95
+[145.11s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:14, speed:65
+[145.13s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:209, mana:14, speed:65
+[145.13s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1371, hp:255, mana:27, speed:90
+[145.13s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:40, speed:95
+[145.13s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[145.18s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:26, speed:95
+[145.19s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:349, hp:417, mana:2, speed:65
+[145.21s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2122, hp:327, mana:40, speed:77
+[145.21s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:0, hp:259, mana:1, speed:65
+[145.23s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:21, speed:95
+[145.24s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:2262, hp:327, mana:38, speed:77
+[145.24s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:32, hp:315, mana:40, speed:77
+[145.28s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:417, mana:1, speed:65
+[145.29s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:449, hp:327, mana:35, speed:77
+[145.29s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Warrior Guard 4", distance:23, hp:98, mana:11, speed:65
+[145.29s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[145.31s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:94, mana:32, speed:95
+[145.31s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:256, mana:11, speed:95
+[145.34s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:32, hp:168, mana:18, speed:77
+[145.34s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[145.36s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:33, hp:315, mana:40, speed:77
+[145.38s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:40, speed:95
+[145.39s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 3", distance:406, hp:327, mana:40, speed:77
+[145.39s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"attack_enemy", target:"Warrior 838", distance:31, hp:71, mana:12, speed:65
+[145.43s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warden", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:0, hp:259, mana:2, speed:65
+[145.44s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:19, speed:95
+[145.44s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"mage", role:"HEALER", decision:"support_allies", target:"Maintaining position", distance:0, hp:202, mana:17, speed:95
+[145.44s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:33, hp:181, mana:18, speed:77
+[145.44s]  ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 6", distance:1369, hp:255, mana:29, speed:90
+
+======================================== FRIENDLY_ROLE_TARGET ========================================
+[140.86s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1072, hp:63, mana:60, speed:110
+[140.86s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:57, hp:50, mana:52, speed:110
+[140.89s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:438, hp:80, mana:4, speed:110
+[140.93s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:52, hp:50, mana:23, speed:110
+[140.93s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:64, hp:50, mana:32, speed:110
+[140.93s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:433, hp:80, mana:4, speed:110
+[140.93s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:57, hp:50, mana:53, speed:110
+[140.94s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:396, hp:102, mana:17, speed:110
+[140.96s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:65, hp:50, mana:32, speed:110
+[140.99s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Mage 565", distance:63, hp:50, mana:33, speed:110
+[141.06s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1072, hp:63, mana:60, speed:110
+[141.09s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:380, hp:102, mana:18, speed:110
+[141.11s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 135", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:303, hp:77, mana:13, speed:110
+[141.21s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:56, hp:50, mana:25, speed:110
+[141.26s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:252, hp:55, mana:15, speed:110
+[141.26s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:55, hp:50, mana:55, speed:110
+[141.29s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:55, hp:50, mana:25, speed:110
+[141.32s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:55, hp:50, mana:26, speed:110
+[141.34s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:56, hp:50, mana:26, speed:110
+[141.41s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1073, hp:63, mana:60, speed:110
+[141.51s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Mage 565", distance:51, hp:50, mana:57, speed:110
+[141.61s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:336, hp:102, mana:6, speed:110
+[141.62s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:60, hp:50, mana:28, speed:110
+[141.69s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:295, hp:80, mana:2, speed:110
+[141.71s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:51, hp:50, mana:28, speed:110
+[141.72s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 838", role:"DPS", decision:"attack_enemy", target:"warden", distance:32, hp:63, mana:6, speed:110
+[141.72s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:326, hp:102, mana:7, speed:110
+[141.74s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 838", role:"DPS", decision:"attack_enemy", target:"warden", distance:31, hp:63, mana:6, speed:110
+[141.76s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:288, hp:80, mana:2, speed:110
+[141.76s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:357, hp:80, mana:8, speed:110
+[141.79s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:321, hp:102, mana:7, speed:110
+[141.81s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:354, hp:80, mana:9, speed:110
+[141.84s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Mage 565", distance:54, hp:50, mana:39, speed:110
+[141.86s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 838", role:"DPS", decision:"attack_enemy", target:"warden", distance:31, hp:63, mana:7, speed:110
+[141.91s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:147, hp:80, mana:3, speed:110
+[141.91s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Mage 565", distance:53, hp:50, mana:60, speed:110
+[141.97s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 135", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:245, hp:102, mana:2, speed:110
+[142.02s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:53, hp:50, mana:60, speed:110
+[142.05s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior Guard 4", distance:54, hp:50, mana:60, speed:110
+[142.09s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1074, hp:63, mana:47, speed:110
+[142.10s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Mage 565", distance:57, hp:50, mana:41, speed:110
+[142.19s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 838", role:"DPS", decision:"attack_enemy", target:"warden", distance:32, hp:63, mana:1, speed:110
+[142.19s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:324, hp:80, mana:11, speed:110
+[142.20s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:117, hp:80, mana:5, speed:110
+[142.22s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:319, hp:80, mana:11, speed:110
+[142.25s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage 437", distance:51, hp:50, mana:33, speed:110
+[142.27s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 838", role:"DPS", decision:"attack_enemy", target:"warden", distance:33, hp:63, mana:1, speed:110
+[142.37s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Mage 565", distance:52, hp:50, mana:60, speed:110
+[142.59s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:75, hp:80, mana:7, speed:110
+[142.59s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:252, hp:102, mana:12, speed:110
+[142.64s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Mage 565", distance:60, hp:50, mana:45, speed:110
+[142.67s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"capture_objective", target:"Flag 5", distance:244, hp:102, mana:12, speed:110
+[142.68s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1071, hp:63, mana:50, speed:110
+[142.78s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:53, hp:45, mana:8, speed:110
+[142.80s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:148, hp:67, mana:13, speed:110
+[142.82s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:147, hp:67, mana:13, speed:110
+[142.95s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:35, hp:45, mana:9, speed:110
+[142.95s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:133, hp:67, mana:14, speed:110
+[142.98s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:52, hp:50, mana:38, speed:110
+[143.00s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:30, hp:45, mana:9, speed:110
+[143.03s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1071, hp:63, mana:52, speed:110
+[143.03s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:97, hp:45, mana:9, speed:110
+[143.10s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior Guard 4", distance:64, hp:50, mana:60, speed:110
+[143.22s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1072, hp:63, mana:52, speed:110
+[143.23s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:105, hp:67, mana:15, speed:110
+[143.27s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:134, hp:80, mana:5, speed:110
+[143.33s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 135", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:33, hp:67, mana:9, speed:110
+[143.33s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:66, hp:45, mana:11, speed:110
+[143.38s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Mage 565", distance:51, hp:50, mana:50, speed:110
+[143.42s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 135", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:29, hp:67, mana:10, speed:110
+[143.42s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:62, hp:45, mana:11, speed:110
+[143.42s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 838", role:"DPS", decision:"attack_enemy", target:"warden", distance:31, hp:63, mana:3, speed:110
+[143.42s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:123, hp:80, mana:5, speed:110
+[143.43s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:60, hp:45, mana:11, speed:110
+[143.43s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:81, hp:50, mana:60, speed:110
+[143.52s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:115, hp:80, mana:6, speed:110
+[143.53s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:56, hp:50, mana:52, speed:110
+[143.57s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1072, hp:63, mana:54, speed:110
+[143.57s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:53, hp:45, mana:12, speed:110
+[143.63s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior 838", distance:68, hp:50, mana:60, speed:110
+[143.72s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:74, hp:50, mana:43, speed:110
+[143.73s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:47, mana:13, speed:110
+[143.75s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:43, hp:45, mana:13, speed:110
+[143.80s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 672", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:96, hp:80, mana:8, speed:110
+[143.85s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1072, hp:63, mana:56, speed:110
+[143.87s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 838", role:"DPS", decision:"attack_enemy", target:"warden", distance:31, hp:63, mana:5, speed:110
+[143.90s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:67, hp:67, mana:19, speed:110
+[143.92s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:35, hp:45, mana:14, speed:110
+[143.98s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 135", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:51, mana:13, speed:110
+[144.07s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior Guard 4", distance:82, hp:50, mana:60, speed:110
+[144.08s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 838", role:"DPS", decision:"attack_enemy", target:"warden", distance:31, hp:63, mana:2, speed:110
+[144.15s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1072, hp:63, mana:57, speed:110
+[144.15s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 135", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:51, mana:14, speed:110
+[144.16s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 135", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:51, mana:14, speed:110
+[144.18s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:47, mana:15, speed:110
+[144.20s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage 798", distance:51, hp:50, mana:47, speed:110
+[144.26s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage 437", distance:56, hp:50, mana:48, speed:110
+[144.31s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage 798", distance:51, hp:50, mana:48, speed:110
+[144.48s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:6, hp:69, mana:1, speed:110
+[144.55s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:51, hp:50, mana:60, speed:110
+[144.56s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:59, hp:50, mana:59, speed:110
+[144.60s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:69, mana:2, speed:110
+[144.61s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:69, mana:2, speed:110
+[144.68s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:88, hp:50, mana:60, speed:110
+[144.70s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior Guard 4", distance:60, hp:50, mana:51, speed:110
+[144.75s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1072, hp:63, mana:60, speed:110
+[144.75s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:76, hp:50, mana:60, speed:110
+[144.80s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:69, mana:3, speed:110
+[144.81s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:71, mana:7, speed:110
+[144.86s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:65, hp:50, mana:60, speed:110
+[144.93s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:54, hp:50, mana:60, speed:110
+[144.95s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:84, hp:50, mana:53, speed:110
+[145.01s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:76, hp:50, mana:53, speed:110
+[145.03s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:77, hp:50, mana:53, speed:110
+[145.06s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warrior 939", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1071, hp:63, mana:60, speed:110
+[145.10s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:82, hp:50, mana:54, speed:110
+[145.13s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:69, mana:5, speed:110
+[145.19s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:91, mana:16, speed:110
+[145.21s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 798", role:"HEALER", decision:"support_allies", target:"Warrior Guard 4", distance:59, hp:50, mana:60, speed:110
+[145.24s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:71, hp:50, mana:55, speed:110
+[145.24s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:69, mana:5, speed:110
+[145.28s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:71, mana:10, speed:110
+[145.29s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:51, hp:50, mana:55, speed:110
+[145.33s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 396", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:71, mana:10, speed:110
+[145.34s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Warden 369", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:91, mana:17, speed:110
+[145.43s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Knight 502", role:"TANK", decision:"attack_wall", target:"Flag 5 wall", distance:1, hp:80, mana:6, speed:110
+[145.43s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 437", role:"HEALER", decision:"support_allies", target:"Warrior Guard 3", distance:95, hp:50, mana:60, speed:110
+[145.44s]  FRIENDLY_ROLE_TARGET | type:"FRIENDLY_ROLE_TARGET", friendly:"Mage 565", role:"HEALER", decision:"support_allies", target:"Mage Guard 2", distance:60, hp:50, mana:56, speed:110
+
+======================================== TANK_DECISION ========================================
+[140.93s]  TANK_DECISION | type:"TANK_DECISION", tank:"Knight 672", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[140.96s]  TANK_DECISION | type:"TANK_DECISION", tank:"Knight 396", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.23s]  TANK_DECISION | type:"TANK_DECISION", tank:"Knight 672", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.34s]  TANK_DECISION | type:"TANK_DECISION", tank:"Warden 135", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.37s]  TANK_DECISION | type:"TANK_DECISION", tank:"Knight 672", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.49s]  TANK_DECISION | type:"TANK_DECISION", tank:"Knight 672", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.59s]  TANK_DECISION | type:"TANK_DECISION", tank:"Warden 135", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.61s]  TANK_DECISION | type:"TANK_DECISION", tank:"Warden 369", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.61s]  TANK_DECISION | type:"TANK_DECISION", tank:"Knight 672", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.79s]  TANK_DECISION | type:"TANK_DECISION", tank:"Warden 369", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.81s]  TANK_DECISION | type:"TANK_DECISION", tank:"Warden 369", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.82s]  TANK_DECISION | type:"TANK_DECISION", tank:"Knight 672", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[141.97s]  TANK_DECISION | type:"TANK_DECISION", tank:"Warden 369", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[142.05s]  TANK_DECISION | type:"TANK_DECISION", tank:"Knight 502", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[142.67s]  TANK_DECISION | type:"TANK_DECISION", tank:"Warden 369", decision:"capture_objective", target:"Flag 5", hasPosition:true
+[142.68s]  TANK_DECISION | type:"TANK_DECISION", tank:"Warden 369", decision:"capture_objective", target:"Flag 5", hasPosition:true
+
+======================================== FRIENDLY_CONTACT_ATTACK ========================================
+[140.96s]  FRIENDLY_CONTACT_ATTACK | type:"FRIENDLY_CONTACT_ATTACK", attacker:"Warrior 838", attackerRole:"DPS", target:"warden", targetType:"enemy", damage:9, distance:"26.4"
+[144.45s]  FRIENDLY_CONTACT_ATTACK | type:"FRIENDLY_CONTACT_ATTACK", attacker:"Warden 369", attackerRole:"TANK", target:"warrior", targetType:"enemy", damage:7, distance:"30.9"
+
+======================================== GUARD_BALL ========================================
+[141.03s]  Ball focus heartbeat | type:"GUARD_BALL_FOCUS_HEARTBEAT", ballId:"friendly:site_2", leaderId:"f_1767804205006_37295", focusTargetId:"teamA:enemy:35", x:1328.01, y:704.19, score:112.7
+[141.84s]  Ball focus target selected | type:"GUARD_BALL_FOCUS", ballId:"enemy:site_4", leaderId:"unknown_npc_26", focusTarget:"Hero", focusTargetId:"player:player:33", prevFocusTargetId:null, score:0, burstUntil:144.09
+[141.84s]  Ball focus heartbeat | type:"GUARD_BALL_FOCUS_HEARTBEAT", ballId:"enemy:site_4", leaderId:"unknown_npc_26", focusTargetId:"player:player:33", x:1818.59, y:1398.08, score:0
+[144.08s]  Ball focus heartbeat | type:"GUARD_BALL_FOCUS_HEARTBEAT", ballId:"friendly:site_2", leaderId:"f_1767804205006_37295", focusTargetId:"teamA:enemy:35", x:1358.61, y:714.57, score:112.7
+[144.15s]  Ball focus target selected | type:"GUARD_BALL_FOCUS", ballId:"enemy:site_4", leaderId:"unknown_npc_26", focusTarget:"Warden 135", focusTargetId:"f_1767804055870_32936", prevFocusTargetId:"player:player:33", score:101.2, burstUntil:146.4
+[144.86s]  AoE cast targeted at ball focus position | type:"GUARD_BALL_AOE_TARGET", ballId:"friendly:site_2", ability:"shoulder_charge", casterId:"f_1767804205007_90319", focusTargetId:"teamA:enemy:35", x:1351.320896667987, y:729.6587437978011
+[144.86s]  Weave lock set after tactical cast | type:"GUARD_BALL_WEAVE_LOCK", ballId:"friendly:site_2", ability:"shoulder_charge", casterId:"f_1767804205007_90319", targetId:"teamA:enemy:35", weaveUntil:145.76, burstUntil:137.13
+[144.86s]  AoE cast targeted at ball focus position | type:"GUARD_BALL_AOE_TARGET", ballId:"friendly:site_2", ability:"shoulder_charge", casterId:"f_1767804205006_37295", focusTargetId:"teamA:enemy:35", x:1351.320896667987, y:729.6587437978011
+[144.93s]  Ball focus heartbeat | type:"GUARD_BALL_FOCUS_HEARTBEAT", ballId:"enemy:site_4", leaderId:"unknown_npc_26", focusTargetId:"f_1767804055870_32936", x:1958.76, y:1162.47, score:101.2
+[145.05s]  Weave gate blocked tactical cast | type:"GUARD_BALL_WEAVE_BLOCK", ballId:"friendly:site_2", leaderId:"f_1767804205006_37295", casterId:"f_1767804205006_37295", targetId:"teamA:enemy:35", lockedByAbility:"shoulder_charge", weaveUntil:145.76, now:145.05
+[145.13s]  Weave gate blocked tactical cast | type:"GUARD_BALL_WEAVE_BLOCK", ballId:"friendly:site_2", leaderId:"f_1767804205006_37295", casterId:"f_1767804205007_90319", targetId:"teamA:enemy:35", lockedByAbility:"shoulder_charge", weaveUntil:145.76, now:145.13
+
+======================================== WALL_DAMAGE ========================================
+[141.14s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"East", attackers:1, attackerList:"knight(DPS)", roleCounts:{"DPS":1}, damage:0.26, hpBefore:122, hpAfter:122, hpPercent:61
+[141.54s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"East", attackers:1, attackerList:"knight(DPS)", roleCounts:{"DPS":1}, damage:0.13, hpBefore:119, hpAfter:119, hpPercent:59
+[141.61s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"East", attackers:1, attackerList:"knight(DPS)", roleCounts:{"DPS":1}, damage:0.13, hpBefore:118, hpAfter:118, hpPercent:59
+[142.02s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"East", attackers:1, attackerList:"knight(DPS)", roleCounts:{"DPS":1}, damage:0.13, hpBefore:115, hpAfter:115, hpPercent:57
+[142.92s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"East", attackers:1, attackerList:"knight(DPS)", roleCounts:{"DPS":1}, damage:0.13, hpBefore:108, hpAfter:108, hpPercent:54
+[143.13s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"South", attackers:1, attackerList:"Knight 396(TANK)", roleCounts:{"TANK":1}, damage:0.13, hpBefore:199, hpAfter:199, hpPercent:99
+[143.15s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"East", attackers:1, attackerList:"knight(DPS)", roleCounts:{"DPS":1}, damage:0.13, hpBefore:106, hpAfter:106, hpPercent:53
+[143.55s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"South", attackers:2, attackerList:"Warden 135(TANK), Knight 396(TANK)", roleCounts:{"TANK":2}, damage:0.27, hpBefore:194, hpAfter:194, hpPercent:97
+[143.60s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"South", attackers:2, attackerList:"Warden 135(TANK), Knight 396(TANK)", roleCounts:{"TANK":2}, damage:0.53, hpBefore:194, hpAfter:193, hpPercent:97
+[143.85s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"East", attackers:1, attackerList:"knight(DPS)", roleCounts:{"DPS":1}, damage:0.13, hpBefore:100, hpAfter:100, hpPercent:50
+[143.85s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"South", attackers:2, attackerList:"Warden 135(TANK), Knight 396(TANK)", roleCounts:{"TANK":2}, damage:0.27, hpBefore:190, hpAfter:189, hpPercent:95
+[144.36s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"South", attackers:3, attackerList:"Knight 502(TANK), Warden 135(TANK), Knight 396(TANK)", roleCounts:{"TANK":3}, damage:0.4, hpBefore:179, hpAfter:178, hpPercent:89
+[145.19s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"South", attackers:5, attackerList:"Knight 672(TANK), Warden 369(TANK), Knight 502(TANK), Warden 135(TANK), Knight 396(TANK)", roleCounts:{"TANK":5}, damage:0.67, hpBefore:149, hpAfter:149, hpPercent:74
+[145.23s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"South", attackers:5, attackerList:"Knight 672(TANK), Warden 369(TANK), Knight 502(TANK), Warden 135(TANK), Knight 396(TANK)", roleCounts:{"TANK":5}, damage:0.67, hpBefore:148, hpAfter:147, hpPercent:74
+[145.33s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"East", attackers:1, attackerList:"knight(DPS)", roleCounts:{"DPS":1}, damage:0.13, hpBefore:88, hpAfter:88, hpPercent:44
+[145.39s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"South", attackers:5, attackerList:"Knight 672(TANK), Warden 369(TANK), Knight 502(TANK), Warden 135(TANK), Knight 396(TANK)", roleCounts:{"TANK":5}, damage:0.67, hpBefore:142, hpAfter:141, hpPercent:70
+[145.44s]  WALL_DAMAGE | type:"WALL_DAMAGE", site:"Flag 5", side:"East", attackers:1, attackerList:"knight(DPS)", roleCounts:{"DPS":1}, damage:0.13, hpBefore:88, hpAfter:87, hpPercent:44
+
+======================================== ENEMY_CONTACT_ATTACK ========================================
+[141.14s]  ENEMY_CONTACT_ATTACK | type:"ENEMY_CONTACT_ATTACK", attacker:"warrior", attackerRole:"DPS", target:"Knight 396", targetType:"friendly", distance:7, damage:13, targetHP:55
+
+======================================== GUARD_COMBO ========================================
+[141.31s]  GUARD_COMBO | type:"GUARD_COMBO", site:"site_2", stage:"CHARGE", target:"warden"
+[142.37s]  GUARD_COMBO | type:"GUARD_COMBO", site:"site_4", stage:"METEOR", target:"Knight 396", note:"gravity_skipped"
+[143.03s]  GUARD_COMBO | type:"GUARD_COMBO", site:"site_4", stage:"CHARGE", target:"Knight 396"
+[143.98s]  GUARD_COMBO | type:"GUARD_COMBO", site:"site_4", stage:"GRAVITY", target:"Warden 135"
+
+======================================== LOADOUT ========================================
+[141.76s]  NPC abilities assigned | type:"NPC_ABILITY_ASSIGN", source:"spawnEnemy", unit:"teamA:enemy:48", variant:"knight", guard:false, abilities:["knight_shield_wall","knight_taunt","knight_rally","warcry","heal_burst"]
+[141.76s]  Fighter spawn loadout | type:"FIGHTER_SPAWN_LOADOUT", source:"spawnEnemy", unit:"teamA:enemy:48", id:"teamA:enemy:48", kind:"unknown", guard:false, guardRole:null, variant:"knight", role:"DPS", weaponType:"Greatsword", loadoutId:null, locked:false, slots:["knight_shield_wall","knight_taunt","knight_rally","warcry","heal_burst"], emptySlots:null, missingSkills:null, missingMeta:null
+[142.00s]  NPC abilities assigned | type:"NPC_ABILITY_ASSIGN", source:"spawnEnemy", unit:"teamC:enemy:49", variant:"knight", guard:false, abilities:["knight_shield_wall","knight_taunt","knight_rally","warcry","heal_burst"]
+[142.00s]  Fighter spawn loadout | type:"FIGHTER_SPAWN_LOADOUT", source:"spawnEnemy", unit:"teamC:enemy:49", id:"teamC:enemy:49", kind:"unknown", guard:false, guardRole:null, variant:"knight", role:"DPS", weaponType:"Axe", loadoutId:null, locked:false, slots:["knight_shield_wall","knight_taunt","knight_rally","warcry","heal_burst"], emptySlots:null, missingSkills:null, missingMeta:null
+
+======================================== DAMAGE ========================================
+[143.33s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:184, blocking:false, stamina:25.874200000001977
+[144.36s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:181.6728618543689, blocking:false, stamina:45.4574999999989
+[145.38s]  Damage attempt to player | rawDamage:4, currentShield:0, currentHP:184, blocking:false, stamina:64.71209999999829
+
+======================================== CREATURE_AI_STATE ========================================
+[144.93s]  CREATURE_AI_STATE | type:"CREATURE_AI_STATE", creature:"wolf", boss:false, hp:59, target:"mage", distance:31, hitCd:"0.00", attacked:true
+[145.31s]  CREATURE_AI_STATE | type:"CREATURE_AI_STATE", creature:"wolf", boss:false, hp:59, target:"mage", distance:30, hitCd:"0.00", attacked:true
+
+========================================================================================================================
+END OF DEBUG LOG

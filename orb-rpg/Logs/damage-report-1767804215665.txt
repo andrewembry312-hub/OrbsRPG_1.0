@@ -1,0 +1,150 @@
+Damage & Healing Report
+======================================================================
+Generated: 1/7/2026, 11:43:35 AM
+Game Time: 145s
+
+DAMAGE DEALT:
+----------------------------------------------------------------------
+  PLAYER                    [Player] 11847
+  knight                    [Enemy ] 1034
+  knight                    [Enemy ] 799
+  Warrior 838               [Ally  ] 756
+  Knight 672                [Ally  ] 560
+  Knight 502                [Ally  ] 546
+  warden                    [Enemy ] 539
+  Warden 369                [Ally  ] 512
+  Knight 396                [Ally  ] 453
+  Warden 135                [Ally  ] 449
+  warden                    [Enemy ] 429
+  Warrior 939               [Ally  ] 378
+  knight                    [Enemy ] 282
+  Mage 437                  [Ally  ] 216
+  warden                    [Enemy ] 213
+  Mage 798                  [Ally  ] 176
+  Mage 565                  [Ally  ] 152
+  knight                    [Enemy ] 94
+  warden                    [Enemy ] 78
+  warrior                   [Enemy ] 72
+  Warrior Guard 3           [Ally  ] 60
+  warrior                   [Enemy ] 58
+  knight                    [Enemy ] 47
+  Warrior Guard 5           [Ally  ] 30
+  Warrior Guard 4           [Ally  ] 30
+  warrior                   [Enemy ] 24
+  Warrior Guard 5           [Ally  ] 10
+  Warrior Guard 4           [Ally  ] 10
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Warrior Guard 3           [Ally  ] 0
+  Warrior Guard 4           [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Warrior Guard 3           [Ally  ] 0
+  Warrior Guard 4           [Ally  ] 0
+  Warrior Guard 5           [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warrior                   [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warden                    [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warrior                   [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warrior                   [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+
+DAMAGE RECEIVED:
+----------------------------------------------------------------------
+  PLAYER                    [Player] 3817
+  warden                    [Enemy ] 2305
+  knight                    [Enemy ] 885
+  knight                    [Enemy ] 709
+  Warrior 838               [Ally  ] 518
+  warden                    [Enemy ] 484
+  warden                    [Enemy ] 367
+  Warrior 939               [Ally  ] 362
+  Warrior Guard 3           [Ally  ] 113
+  knight                    [Enemy ] 71
+  Warrior Guard 5           [Ally  ] 51
+  warrior                   [Enemy ] 37
+  warrior                   [Enemy ] 24
+  knight                    [Enemy ] 12
+  knight                    [Enemy ] 12
+  Mage 437                  [Ally  ] 0
+  Knight 672                [Ally  ] 0
+  Warden 369                [Ally  ] 0
+  Mage 798                  [Ally  ] 0
+  Knight 502                [Ally  ] 0
+  Warden 135                [Ally  ] 0
+  Mage 565                  [Ally  ] 0
+  Knight 396                [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Warrior Guard 3           [Ally  ] 0
+  Warrior Guard 4           [Ally  ] 0
+  Warrior Guard 5           [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Warrior Guard 3           [Ally  ] 0
+  Warrior Guard 4           [Ally  ] 0
+  Warrior Guard 5           [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Warrior Guard 4           [Ally  ] 0
+  Mage Guard 1              [Ally  ] 0
+  Mage Guard 2              [Ally  ] 0
+  Warrior Guard 4           [Ally  ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warrior                   [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warden                    [Enemy ] 0
+  warden                    [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  warrior                   [Enemy ] 0
+  warrior                   [Enemy ] 0
+  warrior                   [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  mage                      [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+  knight                    [Enemy ] 0
+
+HEALING DONE:
+----------------------------------------------------------------------
+
+SHIELDS PROVIDED:
+----------------------------------------------------------------------

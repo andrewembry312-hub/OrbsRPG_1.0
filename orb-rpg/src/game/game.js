@@ -2296,6 +2296,17 @@ function getOrCreateGuardBall(state, ballId, now){
       burstUntil: 0,
       resetUntil: 0,
       lastBurstAt: 0,
+      // Step 4: weave gate (shared throttling for non-burst tactical casts)
+      weaveUntil: 0,
+      lastWeaveAt: 0,
+      lastWeaveAbilityId: null,
+      lastWeaveCasterId: null,
+      lastWeaveTargetId: null,
+
+      // Step 5: healer H1/H2 coordination gates (shared per guard-ball)
+      healerHealUntil: 0,
+      healerShieldUntil: 0,
+      healerCleanseUntil: 0,
       leaderId: null,
       focusScore: null
     };
@@ -2572,6 +2583,38 @@ function npcUpdateAbilities(state, u, dt, kind){
     const dist = bestD;
     const guardRole = String(u.guardRole || role || 'DPS').toUpperCase();
 
+    // Step 4: Weave gate (shared per guard-ball)
+    // - Outside of the ball's burst window, prevent repeated tactical casts back-to-back.
+    // - Does NOT apply to the explicit synchronized combo stages (handled separately below).
+    const siteKey = u.guardFlagId || u.homeSiteId || u.siteId || (guardSite?.id || null) || 'unknown';
+    const ballId = `${kind}:${siteKey}`;
+    const ball = getOrCreateGuardBall(state, ballId, now);
+    const inBurstWindow = now < (ball.burstUntil || 0);
+    const WEAVE_GAP = 0.90;
+    const isWeaveLocked = (!inBurstWindow) && now < (ball.weaveUntil || 0);
+
+    const noteWeaveLock = (abilityId)=>{
+      ball.weaveUntil = now + WEAVE_GAP;
+      ball.lastWeaveAt = now;
+      ball.lastWeaveAbilityId = abilityId;
+      ball.lastWeaveCasterId = getStableUnitLogId(state, u, kind);
+      ball.lastWeaveTargetId = targetId;
+
+      // Throttle debug spam
+      if(state.debugLog && (!ball._lastWeaveLogAt || (now - ball._lastWeaveLogAt) >= 0.6)){
+        ball._lastWeaveLogAt = now;
+        logDebug(state, 'GUARD_BALL', 'Weave lock set after tactical cast', {
+          type: 'GUARD_BALL_WEAVE_LOCK',
+          ballId,
+          ability: abilityId,
+          casterId: ball.lastWeaveCasterId,
+          targetId: targetId ?? null,
+          weaveUntil: +ball.weaveUntil.toFixed(2),
+          burstUntil: ball.burstUntil ? +ball.burstUntil.toFixed(2) : 0
+        });
+      }
+    };
+
     // GUARD DPS: Synchronized tactical combo: gravity_well → meteor_slam → shoulder_charge
     if(guardRole !== 'HEALER' && guardSite && targetId){
       guardSite._guardCombo = guardSite._guardCombo || null;
@@ -2736,7 +2779,7 @@ function npcUpdateAbilities(state, u, dt, kind){
       // This prevents guards from only using cheap filler abilities.
       const comboActive = guardSite._guardCombo && guardSite._guardCombo.targetId === targetId && guardSite._guardCombo.until > now && guardSite._guardCombo.stage !== 'COOLDOWN';
       const tacticalGateOk = (u._guardTacticalUntil || 0) <= now;
-      if(!comboActive && tacticalGateOk){
+      if(!comboActive && tacticalGateOk && !isWeaveLocked){
         const castAbilityById = (abilityId)=>{
           const idx = tryCast(abilityId);
           if(idx === -1) return false;
@@ -2751,6 +2794,7 @@ function npcUpdateAbilities(state, u, dt, kind){
           recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'tactical_fallback'});
           // Small internal lock to avoid multi-casting in the same instant across branches
           u._guardTacticalUntil = now + 0.25;
+          noteWeaveLock(abilityId);
           return true;
         };
 
@@ -2762,48 +2806,137 @@ function npcUpdateAbilities(state, u, dt, kind){
         if(dist <= meteorRange && castAbilityById('meteor_slam')) return;
         // 3) Shoulder charge as a finisher/engage
         if(dist <= 135 && castAbilityById('shoulder_charge')) return;
+      } else if(!comboActive && tacticalGateOk && isWeaveLocked){
+        // Optional debug sample: show when weave gate prevents tacticals.
+        if(state.debugLog && Math.random() < 0.02){
+          logDebug(state, 'GUARD_BALL', 'Weave gate blocked tactical cast', {
+            type: 'GUARD_BALL_WEAVE_BLOCK',
+            ballId,
+            leaderId: ball.leaderId ?? null,
+            casterId: getStableUnitLogId(state, u, kind),
+            targetId: targetId ?? null,
+            lockedByAbility: ball.lastWeaveAbilityId ?? null,
+            weaveUntil: ball.weaveUntil ? +ball.weaveUntil.toFixed(2) : 0,
+            now: +now.toFixed(2)
+          });
+        }
       }
     }
     
     // HEALER GUARDS: Proactive healing and shields
     if(role === 'HEALER'){
-      // Emergency healing (ally below 50%)
-      if(lowestAlly && lowestAllyHp < 0.5 && lowestDist <= 180){
-        let idx = tryCast('heal_burst');
-        if(idx === -1) idx = tryCast('mage_divine_touch');
-        
-        if(idx !== -1){
-          const abilityId = u.npcAbilities[idx];
-          const cdValue = ABILITY_META[abilityId]?.cd || 0;
-          const costValue = ABILITY_META[abilityId]?.cost || 0;
-          u._cdUntil[abilityId] = now + cdValue;
-          for(let i=0; i<u.npcAbilities.length; i++){
-            if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+      // Step 5: deterministic H1/H2 policies for guard-ball healers
+      const selfId = getStableUnitLogId(state, u, kind);
+      const healerPool = (kind === 'enemy' ? (state.enemies||[]) : (state.friendlies||[]))
+        .filter(g => g && g.guard && String(g.guardRole || g.role || '').toUpperCase() === 'HEALER')
+        .filter(g => {
+          const gSiteKey = g.guardFlagId || g.homeSiteId || g.siteId || null;
+          return String(gSiteKey || '') === String(siteKey || '');
+        })
+        .filter(g => {
+          // alive-ish
+          if(g.respawnT !== undefined) return g.respawnT <= 0;
+          if(g.dead !== undefined) return !g.dead && (g.hp === undefined || g.hp > 0);
+          return true;
+        });
+
+      healerPool.sort((a,b)=>{
+        const aId = String(getStableUnitLogId(state, a, kind) || '');
+        const bId = String(getStableUnitLogId(state, b, kind) || '');
+        return aId.localeCompare(bId);
+      });
+
+      let healerPolicy = 'H2';
+      if(selfId){
+        const idx = healerPool.findIndex(h => String(getStableUnitLogId(state, h, kind) || '') === String(selfId));
+        if(idx === 0) healerPolicy = 'H1';
+        else healerPolicy = 'H2';
+      }
+      u._guardHealerPolicy = healerPolicy;
+
+      const healGateOk = now >= (ball.healerHealUntil || 0);
+      const shieldGateOk = now >= (ball.healerShieldUntil || 0);
+      const cleanseGateOk = now >= (ball.healerCleanseUntil || 0);
+
+      const castGuardHealer = (abilityId, castTarget, gateKind, reason)=>{
+        if(gateKind === 'heal' && !healGateOk) return false;
+        if(gateKind === 'shield' && !shieldGateOk) return false;
+        if(gateKind === 'cleanse' && !cleanseGateOk) return false;
+
+        const idx = tryCast(abilityId);
+        if(idx === -1) return false;
+        const cdValue = ABILITY_META[abilityId]?.cd || 0;
+        const costValue = ABILITY_META[abilityId]?.cost || 0;
+        u._cdUntil[abilityId] = now + cdValue;
+        for(let i=0; i<u.npcAbilities.length; i++){
+          if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+        }
+        u.mana -= costValue;
+        npcCastSupportAbility(state, u, abilityId, castTarget || u);
+        recordAI('cast-prio', { role:'GUARD_HEALER', ability: abilityId, reason, policy: healerPolicy });
+
+        if(gateKind === 'heal') ball.healerHealUntil = now + 0.60;
+        if(gateKind === 'shield') ball.healerShieldUntil = now + 1.10;
+        if(gateKind === 'cleanse') ball.healerCleanseUntil = now + 0.90;
+        return true;
+      };
+
+      // quick scan for dots/pressure near the healer
+      let dottedAllies = 0;
+      let woundedNearby = 0;
+      for(const ally of allies){
+        if(!ally || ally.hp === undefined) continue;
+        const d = Math.hypot((ally.x||0)-u.x, (ally.y||0)-u.y);
+        if(d > 170) continue;
+        const maxHp = ally===state.player ? currentStats(state).maxHp : ally.maxHp || currentStats(state).maxHp;
+        const hpPct = clamp((ally.hp||0)/Math.max(1, maxHp), 0, 1);
+        if(hpPct < 0.75) woundedNearby++;
+        if(Array.isArray(ally.dots) && ally.dots.length > 0) dottedAllies++;
+      }
+
+      // H1: primary healer (emergency heals + occasional cleanse)
+      if(healerPolicy === 'H1'){
+        if(lowestAlly && lowestAllyHp < 0.55 && lowestDist <= 190){
+          if(castGuardHealer('mage_divine_touch', lowestAlly, 'heal', 'H1_emergency_heal')) return;
+          if(castGuardHealer('heal_burst', u, 'heal', 'H1_emergency_heal')) return;
+        }
+
+        // stabilize multi-wound
+        if(woundedNearby >= 3){
+          if(castGuardHealer('heal_burst', u, 'heal', 'H1_aoe_stabilize')) return;
+        }
+
+        // light cleanse support when pressure exists
+        if(dottedAllies >= 1){
+          if(castGuardHealer('cleanse_wave', u, 'cleanse', 'H1_cleanse_support')) return;
+        }
+
+        // mitigation during (or right before) burst windows
+        if(target && dist <= 300){
+          if(inBurstWindow){
+            if(castGuardHealer('ward_barrier', u, 'shield', 'H1_burst_mitigation')) return;
           }
-          u.mana -= costValue;
-          npcCastSupportAbility(state,u,abilityId,lowestAlly);
-          recordAI('cast-prio',{role:'GUARD_HEALER',ability:abilityId,reason:'emergency_heal'});
-          return;
+          if(lowestAlly && lowestAllyHp < 0.90){
+            if(castGuardHealer('ward_barrier', u, 'shield', 'H1_shield_topoff')) return;
+          }
         }
       }
-      
-      // Preemptive shields (before combat, when ally is above 60% but target present)
-      if(lowestAlly && lowestAllyHp > 0.6 && lowestAllyHp < 0.9 && target && dist <= 280){
-        let idx = tryCast('ward_barrier');
-        if(idx === -1) idx = tryCast('mage_radiant_aura');
-        
-        if(idx !== -1){
-          const abilityId = u.npcAbilities[idx];
-          const cdValue = ABILITY_META[abilityId]?.cd || 0;
-          const costValue = ABILITY_META[abilityId]?.cost || 0;
-          u._cdUntil[abilityId] = now + cdValue;
-          for(let i=0; i<u.npcAbilities.length; i++){
-            if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
-          }
-          u.mana -= costValue;
-          npcCastSupportAbility(state,u,abilityId,lowestAlly);
-          recordAI('cast-prio',{role:'GUARD_HEALER',ability:abilityId,reason:'preemptive_shield'});
-          return;
+      // H2: secondary healer (shields/auras + backup heal)
+      else {
+        if(target && dist <= 320){
+          if(castGuardHealer('mage_radiant_aura', u, 'shield', 'H2_aura')) return;
+          if(castGuardHealer('ward_barrier', u, 'shield', 'H2_barrier')) return;
+        }
+
+        // heavier cleanse only when multiple allies are dotted
+        if(dottedAllies >= 2){
+          if(castGuardHealer('cleanse_wave', u, 'cleanse', 'H2_cleanse')) return;
+        }
+
+        // backup emergency heal (stricter than H1)
+        if(lowestAlly && lowestAllyHp < 0.40 && lowestDist <= 190){
+          if(castGuardHealer('mage_divine_touch', lowestAlly, 'heal', 'H2_emergency_backup')) return;
+          if(castGuardHealer('heal_burst', u, 'heal', 'H2_emergency_backup')) return;
         }
       }
     }
