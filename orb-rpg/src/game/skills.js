@@ -43,6 +43,9 @@ export const ABILITIES = {
   'warrior_berserk': { id:'warrior_berserk', type:'active', name:'Berserk', category:'Warrior - Exclusive', targetType:'area', mana:12, cd:11.0, castTime:0.3, range:0, radius:0, target:'Self Buff', desc:'Short burst of power.', details:'Boosts stamina and trims cooldowns slightly (no heal).', scaling:'Self Buff' },
   'warrior_cleave': { id:'warrior_cleave', type:'active', name:'Rending Cleave', category:'Warrior - Exclusive', targetType:'melee', mana:9, cd:4.2, castTime:0.25, range:14, radius:0, target:'Wide Arc', desc:'Wide heavy cleave.', details:'Strong frontal cleave with high damage. Applies Bleed DoT and Weakness debuff to reduce enemy damage.', scaling:'Attack Power: 145%', dots:['bleed'], buffs:['weakness'] },
   'warrior_charge': { id:'warrior_charge', type:'active', name:'Shoulder Charge', category:'Warrior - Exclusive', targetType:'ground', mana:10, cd:7.0, castTime:0.2, range:26, radius:10, target:'Line/Impact', desc:'Dash and smash.', details:'Rush toward cursor and deal AoE on arrival.', scaling:'Attack Power: 130%' },
+  // Alias for NPC/guard tactical id used by AI/runtime.
+  // (UI previously showed slot as empty because this id didn't exist in ABILITIES.)
+  'shoulder_charge': { id:'shoulder_charge', type:'active', name:'Shoulder Charge', category:'Warrior - Exclusive', targetType:'ground', mana:10, cd:7.0, castTime:0.2, range:26, radius:10, target:'Line/Impact', desc:'Dash and smash.', details:'Rush toward target and deal AoE on arrival.', scaling:'Attack Power: 130%' },
 
   // HERO: TANK (5)
   'tank_ground_slam': { id:'tank_ground_slam', type:'active', name:'Ground Slam', category:'Tank - Exclusive', targetType:'area', mana:12, cd:6.5, castTime:0.35, range:0, radius:20, target:'Self AoE', desc:'Crushing ground slam.', details:'Damages and briefly slows foes (slow is thematic).', scaling:'Attack Power: 120%' },

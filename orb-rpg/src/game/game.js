@@ -1576,6 +1576,11 @@ const ABILITY_META = {
   arc_bolt: { range: 280, cost:10, cd:3.5, dmg:12, type:'projectile', speed:420, pierce:0, element:'shock', role:{mage:1.0,dps:0.6} },
   piercing_lance: { range: 320, cost:16, cd:6.0, dmg:16, type:'projectile', speed:540, pierce:2, element:'arcane', role:{mage:1.0,dps:0.8} },
   chain_light: { range: 260, cost:18, cd:5.5, dmg:10, type:'projectile', speed:420, pierce:1, element:'shock', role:{mage:0.9,dps:0.7} },
+  // Tactical AoE kit (used heavily by guards)
+  // kind:'aoe' makes these cast via npcCastSupportAbility() without being treated as ally-targeted support.
+  gravity_well: { range: 170, cost:30, cd:14.0, type:'projectile', kind:'aoe', role:{mage:1.0,dps:0.9} },
+  meteor_slam: { range: 240, cost:28, cd:10.0, type:'projectile', kind:'aoe', role:{mage:1.0,dps:0.9} },
+  shoulder_charge: { range: 135, cost:10, cd:7.0, type:'melee', kind:'aoe', role:{tank:0.7,dps:1.0} },
   slash: { range: 70, cost:4, cd:1.0, dmg:7, type:'melee', arc:1.1 },
   cleave: { range: 90, cost:10, cd:3.2, dmg:14, type:'melee', arc:1.5 },
   heal_burst: { range: 160, cost:18, cd:7.5, type:'support', kind:'heal', role:{mage:1.0,tank:0.7,dps:0.6} },
@@ -1719,11 +1724,73 @@ function npcDirectHeal(state, target, amount){
   target.hp = clamp((target.hp||0) + amount, 0, maxHp);
 }
 
+function npcAreaDamage(state, caster, cx, cy, radius, dmg, opts={}){
+  const isEnemyCaster = state.enemies.includes(caster);
+  const targets = isEnemyCaster
+    ? [state.player, ...(state.friendlies||[]).filter(f=>f && f.respawnT<=0)]
+    : (state.enemies||[]);
+
+  for(let i=targets.length-1; i>=0; i--){
+    const t = targets[i];
+    if(!t || t.dead || t.hp === undefined || t.hp <= 0) continue;
+    const d = Math.hypot((t.x||0)-cx, (t.y||0)-cy);
+    if(d > radius) continue;
+
+    if(isEnemyCaster){
+      // Damage player/friendlies directly
+      const maxHp = (t===state.player) ? currentStats(state).maxHp : (t.maxHp || currentStats(state).maxHp);
+      t.hp = clamp((t.hp||0) - dmg, 0, maxHp);
+    } else {
+      // Damage enemies and allow kill handling
+      t.hp -= dmg;
+      if(t.hp <= 0){
+        const enemyIndex = (state.enemies||[]).indexOf(t);
+        if(enemyIndex >= 0) killEnemy(state, enemyIndex, true);
+      }
+    }
+  }
+}
+
 function npcCastSupportAbility(state, u, id, target){
   const isEnemyCaster = state.enemies.includes(u);
   const kind = isEnemyCaster ? 'enemy' : 'friendly';
   
   switch(id){
+    case 'meteor_slam':{
+      const x = target ? (target.x||u.x) : u.x;
+      const y = target ? (target.y||u.y) : u.y;
+      const radius = 115;
+      const dmg = 24 + (u.atk||10)*1.15;
+
+      npcAreaDamage(state, u, x, y, radius, dmg);
+      if(state.effects && state.effects.flashes) state.effects.flashes.push({ x, y, r: radius, life: 0.9, color: '#ff9a3c' });
+      if(state.effects && state.effects.slashes) state.effects.slashes.push({ x, y, range: radius, arc: Math.PI*2, dir: 0, t: 0.12, color: '#ff4500' });
+
+      logEffect(state, 'aoe_damage', 'meteor_slam', u, kind, 'aoe');
+      if(typeof playPositionalSound === 'function') playPositionalSound(state, 'meteorSlam', x, y, 700, 0.5);
+      return true;
+    }
+    case 'gravity_well':{
+      const x = target ? (target.x||u.x) : u.x;
+      const y = target ? (target.y||u.y) : u.y;
+      const r = 150;
+      state.effects.wells.push({
+        x,
+        y,
+        r,
+        timeLeft: 3.6,
+        tick: 0.5,
+        tickLeft: 0.5,
+        dmgPerTick: 6 + (u.atk||10)*0.35,
+        pull: 98,
+        color: (kind === 'enemy') ? '#c07070' : '#9b7bff',
+        team: kind
+      });
+      if(state.effects && state.effects.flashes) state.effects.flashes.push({ x, y, r, life: 0.6, color: (kind === 'enemy') ? '#c07070' : '#9b7bff' });
+      logEffect(state, 'aoe_dot', 'gravity_well', u, kind, 'aoe');
+      if(typeof playPositionalSound === 'function') playPositionalSound(state, 'magicalRockSpellAlt', x, y, 650, 0.45);
+      return true;
+    }
     case 'heal_burst':{
       const amt = 22 + (u.maxHp||90)*0.12;
       npcHealPulse(state, u.x, u.y, 150, amt);
@@ -1858,9 +1925,7 @@ function npcCastSupportAbility(state, u, id, target){
       u.x = clamp(u.x + Math.cos(angle) * actualDist, 0, state.mapWidth || state.engine.canvas.width);
       u.y = clamp(u.y + Math.sin(angle) * actualDist, 0, state.mapHeight || state.engine.canvas.height);
       // AoE damage and stun at new position
-      if (typeof npcAreaDamage === 'function') {
-        npcAreaDamage(state, u.x, u.y, 90, 14 + (u.atk||10)*1.1, 'bleed', 'stun', u);
-      }
+      npcAreaDamage(state, u, u.x, u.y, 90, 14 + (u.atk||10)*1.1);
       if(state.effects && state.effects.flashes) {
         state.effects.flashes.push({ x: u.x, y: u.y, r: 90, life: 0.7, color: '#9b7bff' });
       }
@@ -1873,6 +1938,34 @@ function npcCastSupportAbility(state, u, id, target){
 }
 
 export function npcInitAbilities(u){
+  const opts = arguments.length > 1 && arguments[1] ? arguments[1] : undefined;
+  const source = opts?.source || 'npcInitAbilities';
+  const state = opts?.state;
+  const force = !!opts?.force;
+
+  // If this unit's kit is locked, don't allow re-inits to wipe it unless explicitly forced.
+  if(u?.npcLoadoutLocked && !force){
+    if(state?.debugLog) state.debugLog.push({
+      category: 'LOADOUT',
+      message: 'NPC loadout locked (skip reinit)',
+      time: (state.campaign?.time || 0).toFixed(2),
+      type: 'NPC_LOADOUT_LOCKED',
+      source,
+      unit: u.name || u.id || u._id || u.variant || 'npc',
+      variant: u.variant,
+      guard: !!u.guard,
+      loadoutId: u.npcLoadoutId || null,
+      abilities: Array.isArray(u.npcAbilities) ? u.npcAbilities.slice() : null
+    });
+    return;
+  }
+
+  // Guards get a deterministic loadout that is safe to re-run.
+  if(u?.guard){
+    npcInitGuardAbilities(u, { state, source, force });
+    return;
+  }
+
   const variant = u.variant || 'warrior';
   const loadout = CLASS_LOADOUTS[variant] || CLASS_LOADOUTS.warrior;
   
@@ -1909,7 +2002,8 @@ export function npcInitAbilities(u){
   
   // Assign abilities
   u.npcAbilities = abilities ? abilities.slice(0,5) : ['slash','cleave','slash','cleave','slash'];
-  u.npcCd = [0,0,0,0,0];
+  // Avoid wiping cooldown arrays during mid-match refreshes; npcUpdateAbilities derives readiness from _cdUntil.
+  if(!Array.isArray(u.npcCd) || u.npcCd.length !== 5) u.npcCd = [0,0,0,0,0];
   u.maxMana = u.maxMana || 60;
   u.mana = u.mana || u.maxMana;
   const baseManaRegen = { mage: 7.5, warrior: 5.0, knight: 5.5, tank: 5.0 };
@@ -1922,14 +2016,166 @@ export function npcInitAbilities(u){
   
   // Debug log to verify loadouts for all variants
   console.log(`${variant} spawned: weapon=${u.weaponType}, role=${u.role}, abilities=`, u.npcAbilities);
+
+  if(state?.debugLog) state.debugLog.push({
+    category: 'LOADOUT',
+    message: 'NPC abilities assigned',
+    time: (state.campaign?.time || 0).toFixed(2),
+    type: 'NPC_ABILITY_ASSIGN',
+    source,
+    unit: u.name || u.id || u._id || variant,
+    variant,
+    guard: false,
+    abilities: Array.isArray(u.npcAbilities) ? u.npcAbilities.slice() : null
+  });
+
+  // Extra: capture spawn-time loadout snapshot (what template + what is actually slotted)
+  if(state?.debugLog && isSpawnSource(source)){
+    logSpawnLoadoutSnapshot(state, u, source);
+  }
+}
+
+function isSpawnSource(source){
+  if(!source) return false;
+  const s = String(source);
+  return s.includes('spawn') || s.includes('Spawn');
+}
+
+function logSpawnLoadoutSnapshot(state, u, source){
+  const isEnemy = !!(state?.enemies && state.enemies.includes(u));
+  const isFriendly = !!(state?.friendlies && state.friendlies.includes(u));
+  const kind = isEnemy ? 'enemy' : (isFriendly ? 'friendly' : 'unknown');
+
+  // Ensure a stable per-unit id exists immediately at spawn so logs can be correlated.
+  if(u && !u._abilityLogId){
+    const stable = (u.id ?? u._id);
+    if(stable !== undefined && stable !== null && String(stable) !== ''){
+      u._abilityLogId = String(stable);
+    } else {
+      state._abilityLogSeq = (state._abilityLogSeq || 0) + 1;
+      u._abilityLogId = `${kind}_npc_${state._abilityLogSeq}`;
+    }
+  }
+
+  const slots = Array.isArray(u.npcAbilities) ? u.npcAbilities.slice(0, 5) : [];
+  while(slots.length < 5) slots.push(null);
+
+  const missingSkills = [];
+  const missingMeta = [];
+  const emptySlots = [];
+  for(let i=0; i<slots.length; i++){
+    const id = slots[i];
+    if(!id){ emptySlots.push(i+1); continue; }
+    if(!getAbilityById(id)) missingSkills.push(id);
+    if(!ABILITY_META[id]) missingMeta.push(id);
+  }
+
+  state.debugLog.push({
+    category: 'LOADOUT',
+    message: 'Fighter spawn loadout',
+    time: (state.campaign?.time || 0).toFixed(2),
+    type: 'FIGHTER_SPAWN_LOADOUT',
+    source,
+    unit: u.name || u.id || u._id || u.variant || 'npc',
+    id: u?._abilityLogId || u.id || u._id || null,
+    kind,
+    guard: !!u.guard,
+    guardRole: u.guardRole || null,
+    variant: u.variant || null,
+    role: u.role || null,
+    weaponType: u.weaponType || (u.equipment?.weapon?.weaponType || null),
+    loadoutId: u.npcLoadoutId || null,
+    locked: !!u.npcLoadoutLocked,
+    slots,
+    emptySlots: emptySlots.length ? emptySlots : null,
+    missingSkills: missingSkills.length ? missingSkills : null,
+    missingMeta: missingMeta.length ? missingMeta : null
+  });
+}
+
+function npcInitGuardAbilities(u, opts={}){
+  const state = opts?.state;
+  const source = opts?.source || 'npcInitGuardAbilities';
+
+  // Guard composition is already decided at spawn; keep it stable.
+  const variant = u.variant || (String(u.guardRole||'').toUpperCase()==='HEALER' ? 'mage' : 'warrior');
+  const isHealer = (variant === 'mage');
+
+  u.equipment = u.equipment || {};
+
+  if(isHealer){
+    const loadout = CLASS_LOADOUTS.mage || CLASS_LOADOUTS.HEALER || CLASS_LOADOUTS.warrior;
+    u.equipment.weapon = structuredClone(loadout.weapon);
+    u.weaponType = loadout.weapon.weaponType;
+    assignNpcEquipment(u, 'mage');
+    u.npcAbilities = (loadout.abilities || []).slice(0,5);
+    if(!Array.isArray(u.npcCd) || u.npcCd.length !== 5) u.npcCd = [0,0,0,0,0];
+    if(!u.role) u.role = 'HEALER';
+    u.guardRole = u.guardRole || 'HEALER';
+    u.npcLoadoutId = u.npcLoadoutId || 'guard_mage_healer';
+    u.npcLoadoutLocked = true;
+  } else {
+    const loadout = CLASS_LOADOUTS.warrior || CLASS_LOADOUTS.DPS || CLASS_LOADOUTS.mage;
+
+    // Prefer a preselected weaponType (guards are often forced to use Destruction Staff).
+    const preferred = u.weaponType || 'Destruction Staff';
+    let weaponChoice = null;
+    if(Array.isArray(loadout.weapons)) weaponChoice = loadout.weapons.find(w=>w.weaponType===preferred) || null;
+    if(!weaponChoice && Array.isArray(loadout.weapons) && loadout.weapons.length){
+      weaponChoice = loadout.weapons[0];
+    }
+    if(weaponChoice){
+      u.equipment.weapon = structuredClone(weaponChoice);
+      u.weaponType = weaponChoice.weaponType;
+    }
+
+    // Guard warrior DPS kit: keep it deterministic and purpose-built for guard-ball tactics.
+    // Slots:
+    // 1) gravity_well
+    // 2) meteor_slam
+    // 3) shoulder_charge
+    // 4) warrior_life_leech
+    // 5) warrior_fortitude
+    const finalAbilities = ['gravity_well','meteor_slam','shoulder_charge','warrior_life_leech','warrior_fortitude'];
+    assignNpcEquipment(u, 'warrior');
+    u.npcAbilities = finalAbilities;
+    if(!Array.isArray(u.npcCd) || u.npcCd.length !== 5) u.npcCd = [0,0,0,0,0];
+    if(!u.role) u.role = 'DPS';
+    u.guardRole = u.guardRole || 'DPS';
+    u.npcLoadoutId = u.npcLoadoutId || 'guard_warrior_dps';
+    u.npcLoadoutLocked = true;
+  }
+
+  if(state?.debugLog) state.debugLog.push({
+    category: 'LOADOUT',
+    message: 'NPC abilities assigned',
+    time: (state.campaign?.time || 0).toFixed(2),
+    type: 'NPC_ABILITY_ASSIGN',
+    source,
+    unit: u.name || u.id || u._id || variant,
+    variant,
+    guard: true,
+    loadoutId: u.npcLoadoutId || null,
+    abilities: Array.isArray(u.npcAbilities) ? u.npcAbilities.slice() : null
+  });
+
+  if(state?.debugLog && isSpawnSource(source)){
+    logSpawnLoadoutSnapshot(state, u, source);
+  }
 }
 
 function npcUpdateAbilities(state, u, dt, kind){
   if(u.respawnT>0) return;
   if(!u.npcAbilities || !u.npcCd) return;
-  // Clamp dt to prevent cooldown skipping from lag spikes (max 0.1s per frame)
-  const safeDt = Math.min(dt, 0.1);
-  for(let i=0;i<u.npcCd.length;i++) u.npcCd[i] = Math.max(0, (u.npcCd[i]||0) - safeDt);
+  // Authoritative cooldown tracking: absolute ready-times per ability.
+  // This prevents cooldown drift from dt anomalies and prevents accidental npcCd resets from breaking gating.
+  const now = state.campaign?.time || 0;
+  if(!u._cdUntil) u._cdUntil = {};
+  for(let i=0; i<u.npcAbilities.length; i++){
+    const id = u.npcAbilities[i];
+    const until = u._cdUntil[id] || 0;
+    u.npcCd[i] = Math.max(0, until - now);
+  }
   // Check if AI debug is enabled for this unit's kind
   const debugAI = (kind === 'friendly' && state.options?.showDebugAI) ||
                   (kind === 'enemy' && state.options?.showDebugAIEnemies);
@@ -1947,21 +2193,63 @@ function npcUpdateAbilities(state, u, dt, kind){
     if(shouldTrack && (action === 'cast' || action === 'cast-prio') && extra.ability){
       state.abilityLog = state.abilityLog || {};
       const ability = extra.ability;
-      const role = extra.role || u.role || u.variant || 'unknown';
+      const baseRole = (extra.role || u.role || u.variant || 'unknown');
+      const guardRole = String(u.guardRole || '').toUpperCase();
+      // Make it explicit in logs when the caster is a guard.
+      // This prevents guard casts from being mixed into generic DPS/HEALER buckets.
+      const role = u.guard
+        ? `GUARD_${guardRole || String(baseRole).toUpperCase()}`
+        : baseRole;
       
       if(!state.abilityLog[ability]){
         state.abilityLog[ability] = {
           kind: kind,
           count: 0,
           byRole: {},
+          byCaster: {},
+          // Historical field: previously this tracked global time between casts across ALL units.
+          // Keep it for now but don't rely on it for "cooldown enforcement".
           lastCastTime: 0,
           avgCooldown: 0,
           expectedCd: ABILITY_META[ability]?.cd || 0
         };
       }
+
+      // Track per-caster cooldown intervals (this reflects actual per-unit cooldown enforcement)
+      // Ensure each unit has a stable unique id for logging; otherwise per-caster stats can be
+      // corrupted by multiple NPCs sharing the same variant/name.
+      if(!u._abilityLogId){
+        const stable = (u.id ?? u._id);
+        if(stable !== undefined && stable !== null && String(stable) !== ''){
+          u._abilityLogId = String(stable);
+        } else {
+          state._abilityLogSeq = (state._abilityLogSeq || 0) + 1;
+          u._abilityLogId = `${kind}_npc_${state._abilityLogSeq}`;
+        }
+      }
+      const casterKey = `${kind}:${u._abilityLogId}`;
+      const currentTime = state.campaign?.time || 0;
+      const casterStats = state.abilityLog[ability].byCaster[casterKey] || {
+        count: 0,
+        lastCastTime: 0,
+        sumIntervals: 0,
+        intervalCount: 0,
+        minInterval: Infinity
+      };
+
+      if(casterStats.lastCastTime > 0){
+        const interval = currentTime - casterStats.lastCastTime;
+        if(interval > 0){
+          casterStats.sumIntervals += interval;
+          casterStats.intervalCount += 1;
+          casterStats.minInterval = Math.min(casterStats.minInterval, interval);
+        }
+      }
+      casterStats.lastCastTime = currentTime;
+      casterStats.count += 1;
+      state.abilityLog[ability].byCaster[casterKey] = casterStats;
       
       // Track cooldown between casts
-      const currentTime = state.campaign?.time || 0;
       const timeSinceLastCast = currentTime - state.abilityLog[ability].lastCastTime;
       if(state.abilityLog[ability].lastCastTime > 0 && timeSinceLastCast > 0){
         // Rolling average of actual cooldowns observed
@@ -1978,7 +2266,6 @@ function npcUpdateAbilities(state, u, dt, kind){
   const fromPlayer = (kind === 'friendly');
 
   // target selection with short lock stickiness
-  const now = state.campaign?.time || 0;
   const hostileCreatures = [];
   if(kind==='friendly'){
     for(const c of state.creatures||[]){
@@ -2055,62 +2342,214 @@ function npcUpdateAbilities(state, u, dt, kind){
       }
       return (hasCd && hasMana) ? i : -1; 
     };
-    
-    const targetHpPct = target && target.maxHp ? (target.hp / target.maxHp) : 1.0;
+    const getEntityId = (ent)=> ent ? (ent.id || ent._id) : null;
+    const guardSiteId = u.guardFlagId || u.homeSiteId || u.siteId;
+    const guardSite = guardSiteId ? (state.sites||[]).find(s => s.id === guardSiteId) : null;
+
+    // If guard squad has a shared target, prefer it so tacticals synchronize.
+    if(guardSite && guardSite._sharedTargetUntil > now && guardSite._sharedTargetId){
+      const shared = candidates.find(c => (c.id||c._id) === guardSite._sharedTargetId);
+      if(shared){
+        target = shared;
+        bestD = Math.hypot((target.x||0)-u.x,(target.y||0)-u.y);
+      }
+    }
+
+    const targetId = getEntityId(target);
+    const targetHpPct = (target && target.maxHp) ? (target.hp / target.maxHp) : 1.0;
     const dist = bestD;
-    
-    // TANK GUARDS: Setup combos with CC
-    if(role === 'TANK' && targetHpPct > 0.5 && dist <= 140){
-      // Gravity well setup (high priority when target is healthy)
-      let idx = tryCast('gravity_well');
-      if(idx === -1) {
-        console.log('[AI DEBUG] gravity_well not available for', u.name || u.variant, 'mana:', u.mana, 'cds:', u.npcCd);
-        idx = tryCast('shoulder_charge');
-        if(idx === -1) {
-          console.log('[AI DEBUG] shoulder_charge not available for', u.name || u.variant, 'mana:', u.mana, 'cds:', u.npcCd);
-          idx = tryCast('knight_shield_wall');
-          if(idx === -1) {
-            console.log('[AI DEBUG] knight_shield_wall not available for', u.name || u.variant, 'mana:', u.mana, 'cds:', u.npcCd);
+    const guardRole = String(u.guardRole || role || 'DPS').toUpperCase();
+
+    // GUARD DPS: Synchronized tactical combo: gravity_well → meteor_slam → shoulder_charge
+    if(guardRole !== 'HEALER' && guardSite && targetId){
+      guardSite._guardCombo = guardSite._guardCombo || null;
+
+      const comboExpired = !guardSite._guardCombo || (guardSite._guardCombo.until || 0) <= now;
+      const comboWrongTarget = guardSite._guardCombo && guardSite._guardCombo.targetId !== targetId;
+      // Start combo more often; in practice targets are frequently <45% by the time guards engage.
+      const shouldStartCombo = dist <= 240 && targetHpPct >= 0.15;
+      const startGateOk = (guardSite._guardComboStartUntil || 0) <= now;
+
+      if((comboExpired || comboWrongTarget) && shouldStartCombo && startGateOk){
+        const group = (kind === 'enemy' ? (state.enemies||[]) : (state.friendlies||[]))
+          .filter(g => g && g.guard && (g.guardFlagId || g.homeSiteId || g.siteId) === guardSite.id && g.respawnT <= 0 && String(g.guardRole || g.role || 'DPS').toUpperCase() !== 'HEALER');
+
+        // Deterministic leader selection: lowest string id
+        let leader = group[0] || u;
+        for(const g of group){
+          const gid = String(getEntityId(g) || '');
+          const lid = String(getEntityId(leader) || '');
+          if(lid === '' || (gid !== '' && gid < lid)) leader = g;
+        }
+
+        guardSite._guardCombo = {
+          targetId,
+          stage: 'GRAVITY',
+          stageUntil: now + 1.2,
+          until: now + 6.0,
+          leaderId: getEntityId(leader),
+          squadSize: group.length || 1,
+          meteorCast: {},
+          chargeCast: false,
+          chargerId: null
+        };
+
+        // Prevent immediate restarts if gravity isn't available (keeps behavior stable).
+        guardSite._guardComboStartUntil = now + 3.0;
+
+        if(state.debugLog){
+          state.debugLog.push({
+            time: now.toFixed(2),
+            type: 'GUARD_COMBO',
+            site: guardSite.id,
+            stage: 'GRAVITY',
+            target: target.name || target.variant || String(targetId)
+          });
+        }
+      }
+
+      const combo = guardSite._guardCombo;
+      if(combo && combo.targetId === targetId && combo.until > now){
+        // Stage 1: One leader casts gravity_well to set up the combo
+        if(combo.stage === 'GRAVITY'){
+          if(getEntityId(u) === combo.leaderId && dist <= 140){
+            const idx = tryCast('gravity_well');
+            if(idx !== -1){
+              const abilityId = u.npcAbilities[idx];
+              const cdValue = ABILITY_META[abilityId]?.cd || 0;
+              const costValue = ABILITY_META[abilityId]?.cost || 0;
+              u._cdUntil[abilityId] = now + cdValue;
+              for(let i=0; i<u.npcAbilities.length; i++){
+                if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+              }
+              u.mana -= costValue;
+              npcCastSupportAbility(state, u, abilityId, target);
+              recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'combo_gravity'});
+
+              combo.stage = 'METEOR';
+              combo.stageUntil = now + 0.65;
+              combo.meteorCast = {};
+              if(state.debugLog){
+                state.debugLog.push({ time: now.toFixed(2), type:'GUARD_COMBO', site: guardSite.id, stage:'METEOR', target: target.name || target.variant || String(targetId) });
+              }
+              return;
+            }
+          }
+          // If gravity isn't available quickly, proceed anyway (still want meteor burst).
+          if(now >= combo.stageUntil){
+            combo.stage = 'METEOR';
+            combo.stageUntil = now + 0.65;
+            combo.meteorCast = {};
+            if(state.debugLog){
+              state.debugLog.push({ time: now.toFixed(2), type:'GUARD_COMBO', site: guardSite.id, stage:'METEOR', target: target.name || target.variant || String(targetId), note:'gravity_skipped' });
+            }
+          }
+        }
+
+        // Stage 2: All DPS guards dump meteor_slam in a tight time window
+        if(combo.stage === 'METEOR'){
+          const uid = getEntityId(u);
+          const meteorRange = (ABILITY_META['meteor_slam']?.range || 100);
+          if(uid && !combo.meteorCast[uid] && dist <= meteorRange){
+            const idx = tryCast('meteor_slam');
+            if(idx !== -1){
+              const abilityId = u.npcAbilities[idx];
+              const cdValue = ABILITY_META[abilityId]?.cd || 0;
+              const costValue = ABILITY_META[abilityId]?.cost || 0;
+              u._cdUntil[abilityId] = now + cdValue;
+              for(let i=0; i<u.npcAbilities.length; i++){
+                if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+              }
+              u.mana -= costValue;
+              npcCastSupportAbility(state, u, abilityId, target);
+              recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'combo_meteor'});
+              combo.meteorCast[uid] = now;
+              return;
+            }
+          }
+
+          const meteorCount = combo.meteorCast ? Object.keys(combo.meteorCast).length : 0;
+          if(now >= combo.stageUntil || meteorCount >= (combo.squadSize || 1)){
+            // Choose a charger (closest DPS) for the finisher
+            const group = (kind === 'enemy' ? (state.enemies||[]) : (state.friendlies||[]))
+              .filter(g => g && g.guard && (g.guardFlagId || g.homeSiteId || g.siteId) === guardSite.id && g.respawnT <= 0 && String(g.guardRole || g.role || 'DPS').toUpperCase() !== 'HEALER');
+            let charger = group[0] || u;
+            let best = Infinity;
+            for(const g of group){
+              const d = Math.hypot((target.x||0)-g.x, (target.y||0)-g.y);
+              if(d < best){ best = d; charger = g; }
+            }
+            combo.chargerId = getEntityId(charger);
+            combo.stage = 'CHARGE';
+            combo.stageUntil = now + 0.85;
+            combo.chargeCast = false;
+            if(state.debugLog){
+              state.debugLog.push({ time: now.toFixed(2), type:'GUARD_COMBO', site: guardSite.id, stage:'CHARGE', target: target.name || target.variant || String(targetId) });
+            }
+          }
+        }
+
+        // Stage 3: One guard shoulder-charges as a finisher
+        if(combo.stage === 'CHARGE'){
+          if(!combo.chargeCast && getEntityId(u) === combo.chargerId && dist <= 130){
+            const idx = tryCast('shoulder_charge');
+            if(idx !== -1){
+              const abilityId = u.npcAbilities[idx];
+              const cdValue = ABILITY_META[abilityId]?.cd || 0;
+              const costValue = ABILITY_META[abilityId]?.cost || 0;
+              u._cdUntil[abilityId] = now + cdValue;
+              for(let i=0; i<u.npcAbilities.length; i++){
+                if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+              }
+              u.mana -= costValue;
+              npcCastSupportAbility(state, u, abilityId, target);
+              recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'combo_charge'});
+              combo.chargeCast = true;
+              combo.stage = 'COOLDOWN';
+              combo.until = now + 6.0;
+              if(state.debugLog){
+                state.debugLog.push({ time: now.toFixed(2), type:'GUARD_COMBO', site: guardSite.id, stage:'COOLDOWN', target: target.name || target.variant || String(targetId) });
+              }
+              return;
+            }
+          }
+          if(now >= combo.stageUntil){
+            combo.stage = 'COOLDOWN';
+            combo.until = now + 4.0;
           }
         }
       }
-      if(idx !== -1){
-        const abilityId = u.npcAbilities[idx];
-        const cdValue = ABILITY_META[abilityId]?.cd || 0;
-        const costValue = ABILITY_META[abilityId]?.cost || 0;
-        for(let i=0; i<u.npcAbilities.length; i++){
-          if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
-        }
-        u.mana -= costValue;
-        console.log('[AI DEBUG] GUARD_TANK casting', abilityId, 'at', target ? (target.x + ',' + target.y) : 'no target', 'mana:', u.mana);
-        npcCastSupportAbility(state,u,abilityId,target);
-        recordAI('cast-prio',{role:'GUARD_TANK',ability:abilityId,reason:'setup_cc'});
-        return;
-      }
-        if(id === 'shoulder_charge') {
-          console.log('[AI DEBUG] npcCastSupportAbility called for shoulder_charge by', u.name || u.variant, 'at', u.x, u.y, 'target:', target ? (target.x + ',' + target.y) : 'none');
-        }
-    }
-    
-    // DPS GUARDS: Burst damage when target is CC'd or below 70% HP
-    if((role === 'DPS' || role === 'TANK') && targetHpPct < 0.7 && dist <= 100){
-      // High damage followup
-      let idx = tryCast('meteor_slam');
-      if(idx === -1) idx = tryCast('chain_light');
-      if(idx === -1) idx = tryCast('arc_bolt');
-      if(idx === -1) idx = tryCast('warrior_cleave');
-      
-      if(idx !== -1){
-        const abilityId = u.npcAbilities[idx];
-        const cdValue = ABILITY_META[abilityId]?.cd || 0;
-        const costValue = ABILITY_META[abilityId]?.cost || 0;
-        for(let i=0; i<u.npcAbilities.length; i++){
-          if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
-        }
-        u.mana -= costValue;
-        npcCastSupportAbility(state,u,abilityId,target);
-        recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'burst_execute'});
-        return;
+
+      // Fallback: if combo isn't active, still cast tacticals with priority.
+      // This prevents guards from only using cheap filler abilities.
+      const comboActive = guardSite._guardCombo && guardSite._guardCombo.targetId === targetId && guardSite._guardCombo.until > now && guardSite._guardCombo.stage !== 'COOLDOWN';
+      const tacticalGateOk = (u._guardTacticalUntil || 0) <= now;
+      if(!comboActive && tacticalGateOk){
+        const castAbilityById = (abilityId)=>{
+          const idx = tryCast(abilityId);
+          if(idx === -1) return false;
+          const cdValue = ABILITY_META[abilityId]?.cd || 0;
+          const costValue = ABILITY_META[abilityId]?.cost || 0;
+          u._cdUntil[abilityId] = now + cdValue;
+          for(let i=0; i<u.npcAbilities.length; i++){
+            if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
+          }
+          u.mana -= costValue;
+          npcCastSupportAbility(state, u, abilityId, target);
+          recordAI('cast-prio',{role:'GUARD_DPS',ability:abilityId,reason:'tactical_fallback'});
+          // Small internal lock to avoid multi-casting in the same instant across branches
+          u._guardTacticalUntil = now + 0.25;
+          return true;
+        };
+
+        // Priority order for maximum burst value
+        // 1) Gravity well if in reasonable range (setup)
+        if(dist <= 170 && castAbilityById('gravity_well')) return;
+        // 2) Meteor slam when in damage range
+        const meteorRange = (ABILITY_META['meteor_slam']?.range || 100);
+        if(dist <= meteorRange && castAbilityById('meteor_slam')) return;
+        // 3) Shoulder charge as a finisher/engage
+        if(dist <= 135 && castAbilityById('shoulder_charge')) return;
       }
     }
     
@@ -2125,6 +2564,7 @@ function npcUpdateAbilities(state, u, dt, kind){
           const abilityId = u.npcAbilities[idx];
           const cdValue = ABILITY_META[abilityId]?.cd || 0;
           const costValue = ABILITY_META[abilityId]?.cost || 0;
+          u._cdUntil[abilityId] = now + cdValue;
           for(let i=0; i<u.npcAbilities.length; i++){
             if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
           }
@@ -2144,6 +2584,7 @@ function npcUpdateAbilities(state, u, dt, kind){
           const abilityId = u.npcAbilities[idx];
           const cdValue = ABILITY_META[abilityId]?.cd || 0;
           const costValue = ABILITY_META[abilityId]?.cost || 0;
+          u._cdUntil[abilityId] = now + cdValue;
           for(let i=0; i<u.npcAbilities.length; i++){
             if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
           }
@@ -2186,6 +2627,7 @@ function npcUpdateAbilities(state, u, dt, kind){
         const abilityId = u.npcAbilities[idx];
         const cdValue = ABILITY_META[abilityId]?.cd || 0;
         const costValue = ABILITY_META[abilityId]?.cost || 0;
+        u._cdUntil[abilityId] = now + cdValue;
         
         // Set cooldown for ALL slots containing this ability (fix duplicate ability spam)
         for(let i=0; i<u.npcAbilities.length; i++){
@@ -2205,6 +2647,7 @@ function npcUpdateAbilities(state, u, dt, kind){
         const abilityId = u.npcAbilities[idx];
         const cdValue = ABILITY_META[abilityId]?.cd || 0;
         const costValue = ABILITY_META[abilityId]?.cost || 0;
+        u._cdUntil[abilityId] = now + cdValue;
         // Set cooldown for ALL duplicate slots
         for(let i=0; i<u.npcAbilities.length; i++){
           if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
@@ -2221,6 +2664,7 @@ function npcUpdateAbilities(state, u, dt, kind){
       if(idx!==-1){
         const cdValue = ABILITY_META['ward_barrier']?.cd || 0;
         const costValue = ABILITY_META['ward_barrier']?.cost || 0;
+        u._cdUntil['ward_barrier'] = now + cdValue;
         // Set cooldown for ALL duplicate slots
         for(let i=0; i<u.npcAbilities.length; i++){
           if(u.npcAbilities[i] === 'ward_barrier') u.npcCd[i] = cdValue;
@@ -2245,6 +2689,7 @@ function npcUpdateAbilities(state, u, dt, kind){
           const abilityId = u.npcAbilities[idx];
           const cdValue = ABILITY_META[abilityId]?.cd || 0;
           const costValue = ABILITY_META[abilityId]?.cost || 0;
+          u._cdUntil[abilityId] = now + cdValue;
           // Set cooldown for ALL duplicate slots
           for(let i=0; i<u.npcAbilities.length; i++){
             if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
@@ -2263,6 +2708,7 @@ function npcUpdateAbilities(state, u, dt, kind){
         const abilityId = u.npcAbilities[idx];
         const cdValue = ABILITY_META[abilityId]?.cd || 0;
         const costValue = ABILITY_META[abilityId]?.cost || 0;
+        u._cdUntil[abilityId] = now + cdValue;
         // Set cooldown for ALL duplicate slots
         for(let i=0; i<u.npcAbilities.length; i++){
           if(u.npcAbilities[i] === abilityId) u.npcCd[i] = cdValue;
@@ -2294,6 +2740,7 @@ function npcUpdateAbilities(state, u, dt, kind){
             for(let i=0; i<u.npcAbilities.length; i++){
               if(u.npcAbilities[i] === id) u.npcCd[i] = meta.cd;
             }
+            u._cdUntil[id] = now + meta.cd;
             u.mana -= meta.cost;
             npcCastSupportAbility(state, u, id, u);
             u._buffTimers[id] = 12.0; // Assume 12s duration
@@ -2347,6 +2794,7 @@ function npcUpdateAbilities(state, u, dt, kind){
         for(let i=0; i<u.npcAbilities.length; i++){
           if(u.npcAbilities[i] === chosen.id) u.npcCd[i] = chosen.meta.cd;
         }
+        u._cdUntil[chosen.id] = now + chosen.meta.cd;
         u.mana -= chosen.meta.cost;
         const ang = Math.atan2(target.y-u.y, target.x-u.x);
         
@@ -2438,14 +2886,21 @@ function npcUpdateAbilities(state, u, dt, kind){
     const meta = ABILITY_META[id];
     const chosenTarget = (meta.kind || meta.type==='support') ? (bestSupportTarget || lowestAlly || target) : target;
     const ang = Math.atan2((chosenTarget?.y||target.y)-u.y, (chosenTarget?.x||target.x)-u.x);
-    u.mana -= meta.cost; u.npcCd[bestIdx] = meta.cd;
     if(meta.type==='support' || meta.kind){
       const handled = npcCastSupportAbility(state, u, id, chosenTarget);
-      if(!handled && debugAI){ console.log('[NPC AI] support cast fallback', id); }
-      recordAI('cast', { ability:id, score:Number(bestScore.toFixed(2)), dist:Math.round(bestD), mana:Math.round(u.mana), target:u._lockId||target.id||'?' });
-      return; // CRITICAL: Return after casting support ability to respect cooldown
+      if(!handled){
+        if(debugAI){ console.log('[NPC AI] support cast not implemented', id); }
+      } else {
+        u._cdUntil[id] = now + meta.cd;
+        u.mana -= meta.cost; 
+        u.npcCd[bestIdx] = meta.cd;
+        recordAI('cast', { ability:id, score:Number(bestScore.toFixed(2)), dist:Math.round(bestD), mana:Math.round(u.mana), target:u._lockId||target.id||'?' });
+        return; // Return only on successful cast
+      }
     }
     else if(meta.type==='projectile'){
+      u._cdUntil[id] = now + meta.cd;
+      u.mana -= meta.cost; u.npcCd[bestIdx] = meta.cd;
       let aimAng = ang;
       if(target.vx || target.vy){
         const leadX = target.x + (target.vx||0)*0.25;
@@ -2456,6 +2911,8 @@ function npcUpdateAbilities(state, u, dt, kind){
       recordAI('cast', { ability:id, score:Number(bestScore.toFixed(2)), dist:Math.round(bestD), mana:Math.round(u.mana), target:u._lockId||target.id||'?' });
       return; // CRITICAL: Return after projectile cast to respect cooldown
     } else {
+      u._cdUntil[id] = now + meta.cd;
+      u.mana -= meta.cost; u.npcCd[bestIdx] = meta.cd;
       // Melee attack with visual slash effect
       const range = meta.range;
       const arc = meta.arc || 1.2;
@@ -2489,7 +2946,6 @@ function npcUpdateAbilities(state, u, dt, kind){
     }
     recordAI('cast', { ability:id, score:Number(bestScore.toFixed(2)), dist:Math.round(bestD), mana:Math.round(u.mana), target:u._lockId||target.id||'?' });
     return; // CRITICAL: Return after melee cast to respect cooldown
-    return;
   }
 
   // LIGHT ATTACK WEAVING: When no abilities available, use light attack as filler
@@ -2595,7 +3051,7 @@ function spawnEnemyAt(state, x,y, t, opts={}){
   // Set level FIRST, then apply class - applyClassToUnit scales based on level
   e.level = Math.max(1, level);
   applyClassToUnit(e, e.variant);
-  npcInitAbilities(e);
+  npcInitAbilities(e, { state, source: 'spawnEnemy' });
   state.enemies.push(e);
   return e;
 }
@@ -3234,7 +3690,7 @@ function spawnFriendlyAt(state, site, forceVariant=null){
   f.dmg = scaledStats.contactDmg;
   f.contactDmg = scaledStats.contactDmg;
   
-  npcInitAbilities(f);
+  npcInitAbilities(f, { state, source: 'spawnFriendly' });
   state.friendlies.push(f);
   
   // Log friendly spawn
@@ -5204,7 +5660,7 @@ function updateEnemies(state, dt){
       e.contactDmg = Math.round(e.contactDmg * dmgMult);
       e.hp = Math.max(1, Math.round(e.maxHp * hpRatio)); // Restore HP ratio
       
-      npcInitAbilities(e);
+      npcInitAbilities(e, { state, source: 'enemyLevelUp' });
       state.ui.toast?.(`<span class="neg">Enemy (${e.team||'AI'}) leveled up to <b>${e.level}</b>.</span>`);
     }
 
@@ -6059,28 +6515,53 @@ function updateWells(state, dt){
     const w=state.effects.wells[wi];
     w.timeLeft-=dt; w.tickLeft-=dt;
 
-    for(let i=state.enemies.length-1;i>=0;i--){
-      const e=state.enemies[i];
-      if(state.inDungeon && e.dungeonId !== state.inDungeon) continue;
-      const dx=w.x-e.x, dy=w.y-e.y;
-      const dist=Math.hypot(dx,dy)||1;
-      if(dist<=w.r){
-        e.x += (dx/dist)*w.pull*dt;
-        e.y += (dy/dist)*w.pull*dt;
+    const affectsPlayerSide = (w.team === 'enemy');
+    if(affectsPlayerSide){
+      const targets = [state.player, ...(state.friendlies||[]).filter(f=>f && f.respawnT<=0)];
+      for(const t of targets){
+        if(!t || t.hp === undefined || t.hp <= 0) continue;
+        const dx=w.x-(t.x||0), dy=w.y-(t.y||0);
+        const dist=Math.hypot(dx,dy)||1;
+        if(dist<=w.r){
+          t.x = clamp((t.x||0) + (dx/dist)*w.pull*dt, 0, state.mapWidth || state.engine.canvas.width);
+          t.y = clamp((t.y||0) + (dy/dist)*w.pull*dt, 0, state.mapHeight || state.engine.canvas.height);
+        }
+      }
+    } else {
+      for(let i=state.enemies.length-1;i>=0;i--){
+        const e=state.enemies[i];
+        if(state.inDungeon && e.dungeonId !== state.inDungeon) continue;
+        const dx=w.x-e.x, dy=w.y-e.y;
+        const dist=Math.hypot(dx,dy)||1;
+        if(dist<=w.r){
+          e.x += (dx/dist)*w.pull*dt;
+          e.y += (dy/dist)*w.pull*dt;
+        }
       }
     }
 
     if(w.tickLeft<=0){
       w.tickLeft+=w.tick;
-      const stNow=currentStats(state);
-      for(let i=state.enemies.length-1;i>=0;i--){
-        const e=state.enemies[i];
-        if(Math.hypot(e.x-w.x, e.y-w.y)<=w.r){
-          const res=applyDamageToEnemy(e,w.dmgPerTick,stNow,state,true);
-          lifestealFrom(state,res.dealt,stNow);
-          applyBuffTo(e,'slow');
-          applyBuffTo(e,'curse');
-          if(e.hp<=0) killEnemy(state,i,true);
+      if(affectsPlayerSide){
+        const targets = [state.player, ...(state.friendlies||[]).filter(f=>f && f.respawnT<=0)];
+        for(const t of targets){
+          if(!t || t.hp === undefined || t.hp <= 0) continue;
+          if(Math.hypot((t.x||0)-w.x, (t.y||0)-w.y)<=w.r){
+            const maxHp = (t===state.player) ? currentStats(state).maxHp : (t.maxHp || currentStats(state).maxHp);
+            t.hp = clamp((t.hp||0) - w.dmgPerTick, 0, maxHp);
+          }
+        }
+      } else {
+        const stNow=currentStats(state);
+        for(let i=state.enemies.length-1;i>=0;i--){
+          const e=state.enemies[i];
+          if(Math.hypot(e.x-w.x, e.y-w.y)<=w.r){
+            const res=applyDamageToEnemy(e,w.dmgPerTick,stNow,state,true);
+            lifestealFrom(state,res.dealt,stNow);
+            applyBuffTo(e,'slow');
+            applyBuffTo(e,'curse');
+            if(e.hp<=0) killEnemy(state,i,true);
+          }
         }
       }
     }
@@ -8465,7 +8946,7 @@ export function importSave(state, s){
       if(!a.id) a.id = `f_${Date.now()}_${randi(0, 99999)}`; // Add ID if missing
       // Reinitialize abilities to ensure latest loadouts (healer mages, etc)
       if(a.variant) {
-        npcInitAbilities(a);
+        npcInitAbilities(a, { state, source: 'importSave' });
         console.log(`Reinitialized ${a.variant} with abilities:`, a.npcAbilities, 'weapon:', a.weaponType);
       }
       state.friendlies.push(a);
@@ -8647,7 +9128,7 @@ window.applySquadUpgrade = function(state){
     if(f.respawnT>0) continue;
     f.level = Math.min(12, (f.level||1) + 1);
     applyClassToUnit(f, f.variant||'warrior');
-    npcInitAbilities(f);
+    npcInitAbilities(f, { state, source: 'applySquadUpgrade' });
   }
   // Refresh inventory/equipment UI if open
   state.ui.renderInventory?.();
@@ -8684,7 +9165,7 @@ window.applySquadLevelUpgrade = function(state){
     f.level = (f.level||1) + 1;
     applyClassToUnit(f, f.variant||'warrior');
     // keep existing equipment; abilities re-init to keep CDs sane
-    npcInitAbilities(f);
+    npcInitAbilities(f, { state, source: 'applySquadLevelUpgrade' });
   }
   state.ui.toast(`Squad levels increased by <b>+1</b>.`);
 };
@@ -9264,22 +9745,24 @@ export function downloadDebugLog(state){
   // Keep last 1000 events
   const events = state.debugLog.slice(-1000);
 
-  // Group by category for easier reading
+  // Group by category for easier reading (fall back to type)
   const categories = {};
   for(const ev of events){
-    if(!categories[ev.category]) categories[ev.category] = [];
-    categories[ev.category].push(ev);
+    const catKey = (ev.category || (ev.type ? String(ev.type) : 'UNCATEGORIZED'));
+    if(!categories[catKey]) categories[catKey] = [];
+    categories[catKey].push(ev);
   }
 
   for(const [cat, evs] of Object.entries(categories)){
     txt += `\n${'='.repeat(40)} ${cat} ${'='.repeat(40)}\n`;
     for(const ev of evs){
       const time = `[${ev.time}s]`.padEnd(10);
+      const msg = (ev.message || ev.type || '').toString();
       const data = Object.entries(ev)
         .filter(([k]) => k !== 'time' && k !== 'timestamp' && k !== 'category' && k !== 'message')
         .map(([k, v]) => `${k}:${JSON.stringify(v)}`)
         .join(', ');
-      txt += `${time} ${ev.message}${data ? ' | ' + data : ''}\n`;
+      txt += `${time} ${msg}${data ? ' | ' + data : ''}\n`;
     }
   }
 

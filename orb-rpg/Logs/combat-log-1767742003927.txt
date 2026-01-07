@@ -1,0 +1,28 @@
+Combat Event Log
+====================================================================================================
+Generated: 1/6/2026, 6:26:43 PM
+Total Events: 19
+Game Time: 138s
+
+[44.40s]     SHIELD ONLY: Player blocked 64.00 damage (raw: 64.00) | Shield absorbed all damage
+[45.08s]     SHIELD ONLY: Player blocked 64.00 damage (raw: 64.00) | Shield absorbed all damage
+[45.74s]     DAMAGE: Player took 11.26 HP (raw: 64.00, shield: 52.40, block: 0.00, def: 0.34) | HP: 160.00 → 148.74
+[46.40s]     SHIELD ONLY: Player blocked 64.00 damage (raw: 64.00) | Shield absorbed all damage
+[47.06s]     SHIELD ONLY: Player blocked 64.00 damage (raw: 64.00) | Shield absorbed all damage
+[47.72s]     SHIELD ONLY: Player blocked 64.00 damage (raw: 64.00) | Shield absorbed all damage
+[48.40s]     DAMAGE: Player took 23.79 HP (raw: 64.00, shield: 39.50, block: 0.00, def: 0.71) | HP: 160.00 → 136.21
+[56.43s]     DAMAGE: Player took 57.28 HP (raw: 59.00, shield: 0.00, block: 0.00, def: 1.72) | HP: 160.00 → 102.72
+[57.09s]     SHIELD ONLY: Player blocked 59.00 damage (raw: 59.00) | Shield absorbed all damage
+[57.77s]     DAMAGE: Player took 37.96 HP (raw: 59.00, shield: 19.90, block: 0.00, def: 1.14) | HP: 160.00 → 122.04
+[58.45s]     DAMAGE: Player took 37.48 HP (raw: 59.00, shield: 20.40, block: 0.00, def: 1.12) | HP: 139.99 → 102.51
+[132.44s]    SHIELD ONLY: Player blocked 59.00 damage (raw: 59.00) | Shield absorbed all damage
+[132.44s]    SHIELD ONLY: Player blocked 47.00 damage (raw: 47.00) | Shield absorbed all damage
+[132.44s]    SHIELD ONLY: Player blocked 47.00 damage (raw: 47.00) | Shield absorbed all damage
+[132.44s]    DAMAGE: Player took 36.89 HP (raw: 59.00, shield: 21.00, block: 0.00, def: 1.11) | HP: 184.00 → 147.11
+[132.44s]    DAMAGE: Player took 57.28 HP (raw: 59.00, shield: 0.00, block: 0.00, def: 1.72) | HP: 147.11 → 89.83
+[132.44s]    DAMAGE: Player took 45.63 HP (raw: 47.00, shield: 0.00, block: 0.00, def: 1.37) | HP: 114.28 → 68.64
+[132.44s]    DAMAGE: Player took 45.63 HP (raw: 47.00, shield: 0.00, block: 0.00, def: 1.37) | HP: 68.64 → 23.01
+[132.44s]    DAMAGE: Player took 45.63 HP (raw: 47.00, shield: 0.00, block: 0.00, def: 1.37) | HP: 18.01 → 0.00
+
+====================================================================================================
+END OF LOG

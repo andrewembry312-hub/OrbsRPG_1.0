@@ -463,6 +463,7 @@ export function spawnGuardsForSite(state, site, count=5){
     const guardObj = { 
       x, y, r:13, maxHp:50, hp:50, speed:0, contactDmg:10, hitCd:0, xp:8, 
       attacked:false, guard:true, homeSiteId:site.id, team: site.owner,
+      guardFlagId: site.id,
       guardRole: isHealer ? 'HEALER' : 'DPS',
       level: guardLevel,
       guardIndex: pi // Track which guard this is (0-4)
@@ -474,6 +475,7 @@ export function spawnGuardsForSite(state, site, count=5){
         name: `${v.charAt(0).toUpperCase()+v.slice(1)} Guard ${spawned+1}`,
         x:guardObj.x, y:guardObj.y, r:12, hp:guardObj.hp, maxHp:guardObj.maxHp, speed:0,
         dmg:10, hitCd:0, siteId:site.id, respawnT:0, guard:true, homeSiteId:site.id,
+        guardFlagId: site.id,
         _spawnX:guardObj.x, _spawnY:guardObj.y, attacked:false, variant: v,
         behavior: 'guard', buffs:[], dots:[], level: guardLevel,
         guardRole: guardObj.guardRole,
@@ -490,22 +492,7 @@ export function spawnGuardsForSite(state, site, count=5){
       }
       // Apply class stats and initialize abilities with weapon
       if(applyClassToUnit) applyClassToUnit(friendlyGuard, v);
-      if(npcInitAbilities) npcInitAbilities(friendlyGuard);
-      // Force tactical abilities for DPS warriors
-      if (v === 'warrior' && Array.isArray(friendlyGuard.npcAbilities)) {
-        const tacticals = ['gravity_well','meteor_slam','shoulder_charge'];
-        // Remove if already present, then unshift to front
-        friendlyGuard.npcAbilities = [
-          ...tacticals,
-          ...friendlyGuard.npcAbilities.filter(a => !tacticals.includes(a))
-        ].slice(0,5);
-        if (state.debugLog) state.debugLog.push({
-          time: (state.campaign?.time || 0).toFixed(2),
-          type: 'GUARD_ABILITY_ASSIGN',
-          unit: friendlyGuard.name,
-          abilities: friendlyGuard.npcAbilities
-        });
-      }
+      if(npcInitAbilities) npcInitAbilities(friendlyGuard, { state, source: 'spawnGuardsForSite' });
       
       // Apply gear based on site progression
       assignGuardGear(friendlyGuard, site.guardProgression?.gearRarity || 'common');
@@ -531,21 +518,7 @@ export function spawnGuardsForSite(state, site, count=5){
         if (guardObj.weapons) guardObj.weapons = [guardObj.weapons.find(w => w.weaponType === 'Healing Staff')];
       }
       if(applyClassToUnit) applyClassToUnit(guardObj, v);
-      if(npcInitAbilities) npcInitAbilities(guardObj);
-      // Force tactical abilities for DPS warriors
-      if (v === 'warrior' && Array.isArray(guardObj.npcAbilities)) {
-        const tacticals = ['gravity_well','meteor_slam','shoulder_charge'];
-        guardObj.npcAbilities = [
-          ...tacticals,
-          ...guardObj.npcAbilities.filter(a => !tacticals.includes(a))
-        ].slice(0,5);
-        if (state.debugLog) state.debugLog.push({
-          time: (state.campaign?.time || 0).toFixed(2),
-          type: 'GUARD_ABILITY_ASSIGN',
-          unit: guardObj.name || guardObj.variant,
-          abilities: guardObj.npcAbilities
-        });
-      }
+      if(npcInitAbilities) npcInitAbilities(guardObj, { state, source: 'spawnGuardsForSite' });
       // Guards start stationary but AI will set speed when needed
       guardObj.speed = 0;
       

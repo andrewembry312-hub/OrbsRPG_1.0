@@ -3639,6 +3639,7 @@ function bindUI(state){
     warrior_cleave: 'assets/skill icons/Rending Cleave.png',
     warrior_life_leech: 'assets/skill icons/Life Leech.png',
     warrior_charge: 'assets/skill icons/shoulder charge.png',
+    shoulder_charge: 'assets/skill icons/shoulder charge.png',
     warrior_fortitude: 'assets/skill icons/Fortitude.png',
     warrior_berserk: 'assets/skill icons/Berserk.png',
     mage_healing_burst: 'assets/skill icons/heal burst.png',
@@ -5893,7 +5894,20 @@ function bindUI(state){
           if(data.kind !== 'friendly') continue;
           friendlyCount++;
           const roleStats = Object.entries(data.byRole).map(([role, count]) => `${role}:${count}`).join(', ');
-          const cdInfo = data.expectedCd > 0 ? ` | CD: ${data.expectedCd.toFixed(1)}s (actual: ${(data.avgCooldown || 0).toFixed(1)}s)` : '';
+          const casterEntries = Object.values(data.byCaster || {});
+          const casterCount = casterEntries.length;
+          let intervalSum = 0;
+          let intervalN = 0;
+          let minInterval = Infinity;
+          for(const c of casterEntries){
+            intervalSum += (c.sumIntervals || 0);
+            intervalN += (c.intervalCount || 0);
+            if(typeof c.minInterval === 'number') minInterval = Math.min(minInterval, c.minInterval);
+          }
+          const perCasterAvg = intervalN > 0 ? (intervalSum / intervalN) : 0;
+          const cdInfo = data.expectedCd > 0
+            ? ` | CD: ${data.expectedCd.toFixed(1)}s (actual/per-caster: ${perCasterAvg.toFixed(1)}s, casters: ${casterCount}${minInterval < Infinity ? `, min: ${minInterval.toFixed(2)}s` : ''})`
+            : '';
           log += `${ability.padEnd(30)} Total: ${data.count.toString().padStart(5)} | ${roleStats}${cdInfo}\n`;
         }
         
@@ -5903,7 +5917,20 @@ function bindUI(state){
           if(data.kind !== 'enemy') continue;
           enemyCount++;
           const roleStats = Object.entries(data.byRole).map(([role, count]) => `${role}:${count}`).join(', ');
-          const cdInfo = data.expectedCd > 0 ? ` | CD: ${data.expectedCd.toFixed(1)}s (actual: ${(data.avgCooldown || 0).toFixed(1)}s)` : '';
+          const casterEntries = Object.values(data.byCaster || {});
+          const casterCount = casterEntries.length;
+          let intervalSum = 0;
+          let intervalN = 0;
+          let minInterval = Infinity;
+          for(const c of casterEntries){
+            intervalSum += (c.sumIntervals || 0);
+            intervalN += (c.intervalCount || 0);
+            if(typeof c.minInterval === 'number') minInterval = Math.min(minInterval, c.minInterval);
+          }
+          const perCasterAvg = intervalN > 0 ? (intervalSum / intervalN) : 0;
+          const cdInfo = data.expectedCd > 0
+            ? ` | CD: ${data.expectedCd.toFixed(1)}s (actual/per-caster: ${perCasterAvg.toFixed(1)}s, casters: ${casterCount}${minInterval < Infinity ? `, min: ${minInterval.toFixed(2)}s` : ''})`
+            : '';
           log += `${ability.padEnd(30)} Total: ${data.count.toString().padStart(5)} | ${roleStats}${cdInfo}\n`;
         }
         
@@ -6663,6 +6690,13 @@ function bindUI(state){
   ui._loadGroupMemberLoadout = (memberId, heroClass, slotIndex)=>{
     const friendly = state.friendlies.find(f => f.id === memberId);
     if(!friendly) return;
+
+    // Don't allow overwriting locked NPC kits (guards are locked by default).
+    if(friendly.npcLoadoutLocked || friendly.guard){
+      ui.toast('This unit\'s loadout is locked and cannot be overwritten.');
+      return;
+    }
+
     const loadouts = state.abilityLoadouts[heroClass];
     if(!loadouts || slotIndex < 0 || slotIndex >= loadouts.length) return;
     const loadout = loadouts[slotIndex];
@@ -6678,6 +6712,19 @@ function bindUI(state){
     // Load the abilities
     friendly.npcAbilities = [...loadout.slots];
     friendly.npcCd = [0, 0, 0, 0, 0];
+
+    if(state.debugLog) state.debugLog.push({
+      category: 'LOADOUT',
+      message: 'UI applied group member loadout',
+      time: (state.campaign?.time || 0).toFixed(2),
+      type: 'NPC_ABILITY_ASSIGN',
+      source: 'ui._loadGroupMemberLoadout',
+      unit: friendly.name || friendly.id,
+      variant: friendly.variant,
+      guard: !!friendly.guard,
+      loadoutId: friendly.npcLoadoutId || null,
+      abilities: friendly.npcAbilities.slice()
+    });
     
     ui.toast(`<b>${friendly.name}</b> loaded <b>${loadout.name}</b> (${heroClass})`);
     ui._selectGroupMember(memberId); // Refresh the panel
