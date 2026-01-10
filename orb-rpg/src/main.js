@@ -7,7 +7,6 @@ import { initGame, handleHotkeys, updateGame, importSave, hardResetGameState, in
 import { showCharSelect } from "./game/charselect.js";
 import { render } from "./game/render.js";
 import "./loadMapInit.js"; // Initialize map loader helper
-import { getAssetPath } from "./config.js";
 
 const engine = initCanvas("c");
 const input = initInput(engine.canvas);
@@ -142,7 +141,7 @@ async function initializeApp() {
   // Start main menu music when app loads
   if(!state.sounds) state.sounds = {};
   if(!state.sounds.mainMenuMusic){
-    state.sounds.mainMenuMusic = new Audio(getAssetPath('assets/sounds/Main Menu Music.mp3'));
+    state.sounds.mainMenuMusic = new Audio('assets/sounds/Main Menu Music.mp3');
     state.sounds.mainMenuMusic.loop = true;
     state.sounds.mainMenuMusic.volume = 0.4;
   }

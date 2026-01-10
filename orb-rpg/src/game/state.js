@@ -22,8 +22,66 @@ export function createState(engine, input, ui){
   }
 
   // Always start fresh progression at level 1 (ignore saved progression for now)
-  const progression = { level:1, xp:0, statPoints:1, spends:{vit:0,int:0,str:0,def:0,agi:0} };
+  const progression = { 
+    level: 1, 
+    xp: 0, 
+    statPoints: 1, 
+    spends: {vit:0,int:0,str:0,def:0,agi:0},
+    skillPoints: 0, // Skill points for slot unlocking/upgrading (1 per level)
+    totalSkillPoints: 0 // Total SP earned (never decreases)
+  };
   const campaign = loadJson('orb_rpg_mod_campaign') ?? { playerPoints:0, enemyPoints:0, targetPoints:250, time:0 };
+  
+  // Slot-based progression system
+  const slotSystem = {
+    guards: [
+      { id: 'guard_dps_1', role: 'dps', unlocked: false, level: 0, loadoutId: null },
+      { id: 'guard_dps_2', role: 'dps', unlocked: false, level: 0, loadoutId: null },
+      { id: 'guard_dps_3', role: 'dps', unlocked: false, level: 0, loadoutId: null },
+      { id: 'guard_healer_1', role: 'healer', unlocked: false, level: 0, loadoutId: null },
+      { id: 'guard_healer_2', role: 'healer', unlocked: false, level: 0, loadoutId: null }
+    ],
+    allies: [
+      { id: 'ally_dps_1', role: 'dps', unlocked: false, level: 0, loadoutId: null },
+      { id: 'ally_dps_2', role: 'dps', unlocked: false, level: 0, loadoutId: null },
+      { id: 'ally_dps_3', role: 'dps', unlocked: false, level: 0, loadoutId: null },
+      { id: 'ally_dps_4', role: 'dps', unlocked: false, level: 0, loadoutId: null },
+      { id: 'ally_dps_5', role: 'dps', unlocked: false, level: 0, loadoutId: null },
+      { id: 'ally_healer_1', role: 'healer', unlocked: false, level: 0, loadoutId: null },
+      { id: 'ally_healer_2', role: 'healer', unlocked: false, level: 0, loadoutId: null },
+      { id: 'ally_healer_3', role: 'healer', unlocked: false, level: 0, loadoutId: null },
+      { id: 'ally_tank_1', role: 'tank', unlocked: false, level: 0, loadoutId: null },
+      { id: 'ally_tank_2', role: 'tank', unlocked: false, level: 0, loadoutId: null }
+    ],
+    // Cost calculation: base cost + (slot.level * scalingFactor)
+    unlockCost: 1, // SP to unlock a slot
+    upgradeCostBase: 1, // Base SP to upgrade
+    upgradeCostScaling: 0.1, // Additional cost per level (diminishing returns)
+    
+    // AI team slot systems (mirror player instantly)
+    aiTeams: {
+      teamA: { guards: [], allies: [] },
+      teamB: { guards: [], allies: [] },
+      teamC: { guards: [], allies: [] }
+    }
+  };
+  
+  // Zone system for map progression (infinite tiers)
+  const zoneConfig = {
+    currentZone: 1,
+    maxZone: 1, // highest zone ever reached
+    zoneTier: 1, // Zone tier = Math.floor(player level / 5) + 1
+    zones: [
+      { id: 1, name: 'Starter Plains', minLevel: 1, maxLevel: 5, bossLevel: 10 },
+      { id: 2, name: 'Dark Forest', minLevel: 6, maxLevel: 10, bossLevel: 15 },
+      { id: 3, name: 'Volcanic Wastes', minLevel: 11, maxLevel: 15, bossLevel: 20 },
+      { id: 4, name: 'Frozen Tundra', minLevel: 16, maxLevel: 20, bossLevel: 25 },
+      { id: 5, name: 'Corrupted Realm', minLevel: 21, maxLevel: 25, bossLevel: 30 },
+    ],
+    bossActive: false,
+    bossEntity: null,
+    zoneComplete: false
+  };
 
   const basePlayer={
     maxHp:120,maxMana:70,maxStam:100,
@@ -54,7 +112,7 @@ export function createState(engine, input, ui){
   const state={
     engine,input,ui,
     options, binds,
-    progression, campaign,
+    progression, campaign, zoneConfig, slotSystem,
     basePlayer, player,
     currentHero: 'warrior', // track current hero class
     abilitySlots: defaultAbilitySlots(), // ALWAYS START EMPTY - new game always has empty ability slots

@@ -6,7 +6,7 @@ import { SKILLS, getSkillById, getAbilityById, DOT_REGISTRY, BUFF_REGISTRY, defa
 import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, updateWallDamage, updateFlagHealth, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
 import { META_LOADOUTS } from "./loadouts.js";
 import { LEVEL_CONFIG, getZoneForPosition, scaleAllyToPlayerLevel } from "./leveling.js";
-import { getAssetPath } from "../config.js";
+import * as LoadoutRegistry from "./loadout-registry.js";
 
 // Enemy / spawn tuning
 const MAX_DEFENDERS_PER_TEAM = 10; // non-guard fighters per team (excludes guards)
@@ -189,99 +189,103 @@ export async function initGame(state){
   // Spawn neutral creatures and unique boss
   spawnCreatures(state);
   spawnBossCreature(state);
-  // Ensure starting allies at home base so the player always has a squad
-  ensureBaseFriendlies(state, { initial:true });
-  // Seed each AI team with a standing force
-  seedTeamForces(state, 'teamA', 10);
-  seedTeamForces(state, 'teamB', 10);
-  seedTeamForces(state, 'teamC', 10);
+  
+  // NEW PROGRESSION SYSTEM: All teams start with 1 solo fighter
+  // Players unlock more ally slots by leveling up (levels 2, 3, 4, 5, etc.)
+  // Use PROGRESSION.recruitAlly() to add allies
+  // AI teams also start with 1 solo fighter each
+  
+  // Player starts with 0 allies (recruit via PROGRESSION.recruitAlly)
+  // AI teams start with 1 fighter each
+  seedTeamForces(state, 'teamA', 1);
+  seedTeamForces(state, 'teamB', 1);
+  seedTeamForces(state, 'teamC', 1);
   
   // Initialize walking sound
   if(!state.sounds) state.sounds = {};
-  const createAudio = (path) => new Audio(getAssetPath(path));
   if(!state.sounds.walking){
-    state.sounds.walking = createAudio('assets/sounds/Walking_in_grass.wav');
+    state.sounds.walking = new Audio('assets/sounds/Walking_in_grass.wav');
     state.sounds.walking.loop = true;
     state.sounds.walking.volume = 0.3;
   }
   if(!state.sounds.meleeAttack){
-    state.sounds.meleeAttack = createAudio('assets/sounds/melee_sword_attacks.wav');
+    state.sounds.meleeAttack = new Audio('assets/sounds/melee_sword_attacks.wav');
     state.sounds.meleeAttack.volume = 0.4;
   }
   if(!state.sounds.staffAttack){
-    state.sounds.staffAttack = createAudio('assets/sounds/magic_staffs_attacks.mp3');
+    state.sounds.staffAttack = new Audio('assets/sounds/magic_staffs_attacks.mp3');
     state.sounds.staffAttack.volume = 0.3;
   }
   if(!state.sounds.meteorSlam){
-    state.sounds.meteorSlam = createAudio('assets/sounds/Meteor_Slam.wav');
+    state.sounds.meteorSlam = new Audio('assets/sounds/Meteor_Slam.wav');
     state.sounds.meteorSlam.volume = 0.5;
   }
   if(!state.sounds.magicalRockSpell){
-    state.sounds.magicalRockSpell = createAudio('assets/sounds/magical-rock-spell.mp3');
+    state.sounds.magicalRockSpell = new Audio('assets/sounds/magical-rock-spell.mp3');
     state.sounds.magicalRockSpell.volume = 0.45;
   }
   if(!state.sounds.elementalImpact){
-    state.sounds.elementalImpact = createAudio('assets/sounds/elemental-magic-spell-impact-outgoing-228342.mp3');
+    state.sounds.elementalImpact = new Audio('assets/sounds/elemental-magic-spell-impact-outgoing-228342.mp3');
     state.sounds.elementalImpact.volume = 0.5;
   }
   if(!state.sounds.magicalRockSpellAlt){
-    state.sounds.magicalRockSpellAlt = createAudio('assets/sounds/magical-rock-spell-190273.mp3');
+    state.sounds.magicalRockSpellAlt = new Audio('assets/sounds/magical-rock-spell-190273.mp3');
     state.sounds.magicalRockSpellAlt.volume = 0.45;
   }
   if(!state.sounds.magicalWhooshFast){
-    state.sounds.magicalWhooshFast = createAudio('assets/sounds/magical-whoosh-355988.mp3');
+    state.sounds.magicalWhooshFast = new Audio('assets/sounds/magical-whoosh-355988.mp3');
     state.sounds.magicalWhooshFast.volume = 0.5;
   }
   if(!state.sounds.bufferSpell){
-    state.sounds.bufferSpell = createAudio('assets/sounds/buffer-spell-88994.mp3');
+    state.sounds.bufferSpell = new Audio('assets/sounds/buffer-spell-88994.mp3');
     state.sounds.bufferSpell.volume = 0.5;
   }
   if(!state.sounds.castingMagic1){
-    state.sounds.castingMagic1 = createAudio('assets/sounds/casting-magic-1-382382.mp3');
+    state.sounds.castingMagic1 = new Audio('assets/sounds/casting-magic-1-382382.mp3');
     state.sounds.castingMagic1.volume = 0.5;
   }
   if(!state.sounds.castingMagic2){
-    state.sounds.castingMagic2 = createAudio('assets/sounds/casting-magic-2-382383.mp3');
+    state.sounds.castingMagic2 = new Audio('assets/sounds/casting-magic-2-382383.mp3');
     state.sounds.castingMagic2.volume = 0.5;
   }
   if(!state.sounds.castingMagic3){
-    state.sounds.castingMagic3 = createAudio('assets/sounds/casting-magic-3-382381.mp3');
+    state.sounds.castingMagic3 = new Audio('assets/sounds/casting-magic-3-382381.mp3');
     state.sounds.castingMagic3.volume = 0.5;
   }
   if(!state.sounds.castingMagic4){
-    state.sounds.castingMagic4 = createAudio('assets/sounds/casting-magic-4-382380.mp3');
+    state.sounds.castingMagic4 = new Audio('assets/sounds/casting-magic-4-382380.mp3');
     state.sounds.castingMagic4.volume = 0.5;
   }
   if(!state.sounds.castingMagic5){
-    state.sounds.castingMagic5 = createAudio('assets/sounds/casting-magic-5-382378.mp3');
+    state.sounds.castingMagic5 = new Audio('assets/sounds/casting-magic-5-382378.mp3');
     state.sounds.castingMagic5.volume = 0.5;
   }
   if(!state.sounds.enchantedCast){
-    state.sounds.enchantedCast = createAudio('assets/sounds/enchanted-spell-casting-229208.mp3');
+    state.sounds.enchantedCast = new Audio('assets/sounds/enchanted-spell-casting-229208.mp3');
     state.sounds.enchantedCast.volume = 0.5;
   }
   if(!state.sounds.magicalSpellCast){
-    state.sounds.magicalSpellCast = createAudio('assets/sounds/magical-spell-cast-190272.mp3');
+    state.sounds.magicalSpellCast = new Audio('assets/sounds/magical-spell-cast-190272.mp3');
     state.sounds.magicalSpellCast.volume = 0.5;
   }
   if(!state.sounds.magicalWhooshAlt){
-    state.sounds.magicalWhooshAlt = createAudio('assets/sounds/magical-whoosh-148459.mp3');
+    state.sounds.magicalWhooshAlt = new Audio('assets/sounds/magical-whoosh-148459.mp3');
     state.sounds.magicalWhooshAlt.volume = 0.5;
   }
   if(!state.sounds.magicSpell353606){
-    state.sounds.magicSpell353606 = createAudio('assets/sounds/magic-spell-353606.mp3');
+    state.sounds.magicSpell353606 = new Audio('assets/sounds/magic-spell-353606.mp3');
     state.sounds.magicSpell353606.volume = 0.5;
   }
   if(!state.sounds.treeBurn){
-    state.sounds.treeBurn = createAudio('assets/sounds/tree-falls-and-burns-down-100283.mp3');
+    state.sounds.treeBurn = new Audio('assets/sounds/tree-falls-and-burns-down-100283.mp3');
     state.sounds.treeBurn.volume = 0.55;
   }
   if(!state.sounds.healingSpell1){
-    state.sounds.healingSpell1 = createAudio('assets/sounds/Healing spell 1.mp3');
+    state.sounds.healingSpell1 = new Audio('assets/sounds/Healing spell 1.mp3');
     state.sounds.healingSpell1.volume = 0.5;
   }
   if(!state.sounds.magicSpell6005){
-    state.sounds.magicSpell6005 = createAudio('assets/sounds/magic-spell-6005.mp3');
+    state.sounds.magicSpell6005 = new Audio('assets/sounds/magic-spell-6005.mp3');
     state.sounds.magicSpell6005.volume = 0.5;
   }
   if(!state.sounds.magicSpell333896){
@@ -369,6 +373,305 @@ export async function initGame(state){
     npcInitAbilities,
     spawnEnemyAt,
     spawnFriendlyAt
+  };
+  
+  // Expose loadout system for console testing
+  state._loadouts = LoadoutRegistry;
+  window.LOADOUTS = LoadoutRegistry;
+  
+  // Slot system helper functions
+  window.SLOTS = {
+    // Get slot unlock cost (always 1 SP)
+    getUnlockCost: (slotId) => {
+      if (!state.slotSystem) {
+        console.error('❌ Slot system not initialized! Hard refresh required (Ctrl+F5)');
+        return null;
+      }
+      return state.slotSystem.unlockCost;
+    },
+    
+    // Get slot upgrade cost (base + scaling based on current level)
+    getUpgradeCost: (slotId) => {
+      if (!state.slotSystem) {
+        console.error('❌ Slot system not initialized! Hard refresh required (Ctrl+F5)');
+        return null;
+      }
+      const slot = findSlot(state, slotId);
+      if (!slot) return null;
+      
+      // Cost = base + (slot.level * scaling)
+      const base = state.slotSystem.upgradeCostBase;
+      const scaling = state.slotSystem.upgradeCostScaling;
+      const cost = Math.ceil(base + (slot.level * scaling));
+      return cost;
+    },
+    
+    // Unlock a slot (costs 1 SP)
+    unlockSlot: (slotId) => {
+      if (!state.slotSystem) {
+        console.error('❌ Slot system not initialized! Hard refresh required (Ctrl+F5)');
+        return false;
+      }
+      if (!state.progression.skillPoints) state.progression.skillPoints = 0;
+      
+      const slot = findSlot(state, slotId);
+      if (!slot) {
+        console.log(`❌ Slot ${slotId} not found!`);
+        return false;
+      }
+      
+      if (slot.unlocked) {
+        console.log(`❌ Slot ${slotId} already unlocked!`);
+        return false;
+      }
+      
+      const cost = window.SLOTS.getUnlockCost(slotId);
+      if (state.progression.skillPoints < cost) {
+        console.log(`❌ Not enough skill points! Need ${cost}, have ${state.progression.skillPoints}`);
+        return false;
+      }
+      
+      // Spend SP and unlock slot
+      state.progression.skillPoints -= cost;
+      slot.unlocked = true;
+      console.log(`✅ Unlocked ${slotId}! (${state.progression.skillPoints} SP remaining)`);
+      
+      // Mirror to AI teams instantly
+      mirrorSlotToAI(state, slotId, 'unlock');
+      
+      // If guard slot and player owns any flags, spawn guards
+      if (slotId.startsWith('guard_')) {
+        const playerFlags = state.sites.filter(s => s.owner === 'player' && s.id?.startsWith('site_'));
+        if (playerFlags.length > 0) {
+          console.log(`🛡️ Guard slot unlocked! Spawning guards at ${playerFlags.length} player-owned flags...`);
+          playerFlags.forEach(flag => {
+            // Spawn one guard at each owned flag (respects slot limits)
+            if (typeof spawnGuardsForSite === 'function') {
+              spawnGuardsForSite(state, flag, 1);
+            }
+          });
+        }
+      }
+      
+      // Update UI if available
+      if (state.ui && state.ui.renderSlotTab) {
+        state.ui.renderSlotTab();
+      }
+      
+      return true;
+    },
+    
+    // Upgrade slot level (costs base + scaling SP)
+    upgradeSlot: (slotId) => {
+      const slot = findSlot(state, slotId);
+      if (!slot) {
+        console.log(`❌ Slot ${slotId} not found!`);
+        return false;
+      }
+      
+      if (!slot.unlocked) {
+        console.log(`❌ Slot ${slotId} not unlocked yet!`);
+        return false;
+      }
+      
+      const cost = window.SLOTS.getUpgradeCost(slotId);
+      if (state.progression.skillPoints < cost) {
+        console.log(`❌ Not enough skill points! Need ${cost}, have ${state.progression.skillPoints}`);
+        return false;
+      }
+      
+      // Spend SP and upgrade slot
+      state.progression.skillPoints -= cost;
+      slot.level += 1;
+      console.log(`✅ Upgraded ${slotId} to level ${slot.level}! (${state.progression.skillPoints} SP remaining)`);
+      
+      // Mirror to AI teams instantly
+      mirrorSlotToAI(state, slotId, 'upgrade');
+      
+      // Update UI if available
+      if (state.ui && state.ui.renderSlotTab) {
+        state.ui.renderSlotTab();
+      }
+      
+      // If guard slot and flag owned, respawn guard at new level
+      if (slotId.startsWith('guard_')) {
+        respawnGuardsForSlot(state, slotId);
+      }
+      
+      // If ally slot and ally exists, level up the ally
+      if (slotId.startsWith('ally_')) {
+        levelUpAllyForSlot(state, slotId);
+      }
+      
+      return true;
+    },
+    
+    // Assign loadout to slot (free, out of combat only)
+    assignLoadout: (slotId, loadoutId) => {
+      const slot = findSlot(state, slotId);
+      if (!slot) {
+        console.log(`❌ Slot ${slotId} not found!`);
+        return false;
+      }
+      
+      if (!slot.unlocked) {
+        console.log(`❌ Slot ${slotId} not unlocked yet!`);
+        return false;
+      }
+      
+      const loadout = LOADOUTS.getLoadout(loadoutId);
+      if (!loadout) {
+        console.log(`❌ Loadout ${loadoutId} not found!`);
+        return false;
+      }
+      
+      // Check role compatibility (flex slots can use any role)
+      if (slot.role !== 'flex' && loadout.role !== slot.role) {
+        console.log(`❌ Loadout role (${loadout.role}) doesn't match slot role (${slot.role})!`);
+        return false;
+      }
+      
+      slot.loadoutId = loadoutId;
+      console.log(`✅ Assigned ${loadout.name} to ${slotId}`);
+      
+      // Mirror to AI teams
+      mirrorSlotToAI(state, slotId, 'loadout', loadoutId);
+      
+      // Update UI if available
+      if (state.ui && state.ui.renderSlotTab) {
+        state.ui.renderSlotTab();
+      }
+      
+      return true;
+    },
+    
+    // View all slots
+    viewSlots: () => {
+      // Auto-initialize missing fields for backwards compatibility
+      if (!state.progression.skillPoints) state.progression.skillPoints = 0;
+      if (!state.progression.totalSkillPoints) state.progression.totalSkillPoints = 0;
+      if (!state.zoneConfig.zoneTier) state.zoneConfig.zoneTier = 1;
+      if (!state.slotSystem) {
+        console.error('❌ Slot system not initialized! Hard refresh required (Ctrl+F5)');
+        return;
+      }
+      
+      console.log(`
+╔═══════════════════════════════════════════════════════════╗
+║                    SLOT SYSTEM STATUS                     ║
+╠═══════════════════════════════════════════════════════════╣
+║ Skill Points: ${state.progression.skillPoints.toString().padEnd(44)} ║
+║ Player Level: ${state.progression.level.toString().padEnd(44)} ║
+║ Zone Tier: ${state.zoneConfig.zoneTier.toString().padEnd(47)} ║
+╠═══════════════════════════════════════════════════════════╣
+║                        GUARD SLOTS                        ║
+╠═══════════════════════════════════════════════════════════╣`);
+      
+      state.slotSystem.guards.forEach(slot => {
+        const status = slot.unlocked ? `Lvl ${slot.level}` : 'LOCKED';
+        const loadout = slot.loadoutId ? LOADOUTS.getLoadout(slot.loadoutId)?.name : 'None';
+        console.log(`║ ${slot.id.padEnd(16)} ${status.padEnd(8)} ${loadout.padEnd(24)} ║`);
+      });
+      
+      console.log(`╠═══════════════════════════════════════════════════════════╣
+║                        ALLY SLOTS                         ║
+╠═══════════════════════════════════════════════════════════╣`);
+      
+      state.slotSystem.allies.forEach(slot => {
+        const status = slot.unlocked ? `Lvl ${slot.level}` : 'LOCKED';
+        const loadout = slot.loadoutId ? LOADOUTS.getLoadout(slot.loadoutId)?.name : 'None';
+        console.log(`║ ${slot.id.padEnd(16)} ${status.padEnd(8)} ${loadout.padEnd(24)} ║`);
+      });
+      
+      console.log(`╚═══════════════════════════════════════════════════════════╝`);
+    },
+    
+    // Quick unlock + level + assign workflow
+    quickSetup: (slotId, loadoutId, targetLevel = 1) => {
+      // Unlock if needed
+      const slot = findSlot(state, slotId);
+      if (!slot.unlocked) {
+        if (!window.SLOTS.unlockSlot(slotId)) return false;
+      }
+      
+      // Upgrade to target level
+      while (slot.level < targetLevel) {
+        if (!window.SLOTS.upgradeSlot(slotId)) break;
+      }
+      
+      // Assign loadout
+      if (loadoutId) {
+        return window.SLOTS.assignLoadout(slotId, loadoutId);
+      }
+      
+      return true;
+    },
+    
+    // Unlock all slots for testing (gives free SP if needed)
+    unlockAllSlots: () => {
+      const allSlots = [...(state.slotSystem?.guards || []), ...(state.slotSystem?.allies || [])];
+      const lockedCount = allSlots.filter(s => !s.unlocked).length;
+      
+      // Give enough SP to unlock all
+      if (state.progression.skillPoints < lockedCount) {
+        const needed = lockedCount - state.progression.skillPoints;
+        state.progression.skillPoints += needed;
+        console.log(`💎 Added ${needed} SP for unlocking (total: ${state.progression.skillPoints})`);
+      }
+      
+      // Unlock all slots
+      let unlocked = 0;
+      allSlots.forEach(slot => {
+        if (!slot.unlocked) {
+          if (window.SLOTS.unlockSlot(slot.id)) unlocked++;
+        }
+      });
+      
+      console.log(`✅ Unlocked ${unlocked} slots! All 15 slots now available.`);
+      return true;
+    }
+  };
+  
+  // Expose progression testing helpers
+  window.PROGRESSION = {
+    // View current zone info
+    zoneInfo: () => {
+      const zone = state.zoneConfig.zones[state.zoneConfig.currentZone - 1];
+      console.log(`
+╔═══════════════════════════════════════╗
+║         ZONE INFORMATION              ║
+╠═══════════════════════════════════════╣
+║ Zone: ${zone.name.padEnd(31)} ║
+║ Level Range: ${zone.minLevel}-${zone.maxLevel}${' '.repeat(23)} ║
+║ Boss Level: ${zone.bossLevel}${' '.repeat(25)} ║
+║ Boss Active: ${state.zoneConfig.bossActive ? 'YES' : 'NO'}${' '.repeat(22)} ║
+║ Zone Complete: ${state.zoneConfig.zoneComplete ? 'YES' : 'NO'}${' '.repeat(20)} ║
+╠═══════════════════════════════════════╣
+║ Zone Tier: ${state.zoneConfig.zoneTier}${' '.repeat(26)} ║
+║ Player Level: ${state.progression.level}${' '.repeat(23)} ║
+║ Skill Points: ${state.progression.skillPoints}${' '.repeat(23)} ║
+╚═══════════════════════════════════════╝
+      `);
+      return zone;
+    },
+    
+    // Spawn boss manually (for testing)
+    spawnBoss: () => {
+      if (state.zoneConfig.bossActive) {
+        console.log('❌ Boss already active!');
+        return null;
+      }
+      spawnZoneBoss(state);
+      return state.zoneConfig.bossEntity;
+    },
+    
+    // Advance zone manually (for testing)
+    nextZone: () => {
+      if (!state.zoneConfig.zoneComplete) {
+        console.log('⚠️ Zone not complete - forcing advancement anyway');
+      }
+      advanceToNextZone(state);
+    }
   };
   
   // Initialize console error logger for debugging
@@ -1493,6 +1796,28 @@ function spawnProjectile(state, x,y,angle,speed,r,dmg,pierce=0, fromPlayer=true,
 }
 
 function awardXP(state, amount){
+  // Apply diminishing returns if player is over-leveled for current zone
+  const currentZone = state.zoneConfig.zones[state.zoneConfig.currentZone - 1];
+  let xpMult = 1.0;
+  if (currentZone && state.progression.level > currentZone.maxLevel) {
+    // Player is over-leveled for this zone - apply diminishing returns
+    const levelsOver = state.progression.level - currentZone.maxLevel;
+    if (levelsOver >= 3) {
+      xpMult = 0.05; // 95% reduction if 3+ levels over cap
+    } else if (levelsOver === 2) {
+      xpMult = 0.25; // 75% reduction if 2 levels over
+    } else if (levelsOver === 1) {
+      xpMult = 0.50; // 50% reduction if 1 level over
+    }
+    amount = Math.floor(amount * xpMult);
+    if (amount > 0) {
+      console.log(`[XP] Over-leveled for zone (${state.progression.level} > ${currentZone.maxLevel}). XP reduced by ${Math.floor((1-xpMult)*100)}%`);
+    } else {
+      console.log(`[XP] Too over-leveled for zone. No XP gained.`);
+      return; // No XP if reduced to 0
+    }
+  }
+  
   state.progression.xp += amount;
   console.log(`[XP] Awarded ${amount} XP. Total: ${state.progression.xp}/${xpForNext(state.progression.level)}`);
   let leveled=false;
@@ -1505,6 +1830,10 @@ function awardXP(state, amount){
     newLevel = state.progression.level;
     state.progression.statPoints += 2; // Always 2 stat points per level
     
+    // Award 1 skill point per level (slot system)
+    state.progression.skillPoints += 1;
+    state.progression.totalSkillPoints += 1;
+    
     // PERMANENT STAT INCREASES PER LEVEL (RPG best practice)
     if(!state.progression.baseStats) {
       state.progression.baseStats = {maxHp: 0, maxMana: 0, maxStam: 0};
@@ -1515,13 +1844,18 @@ function awardXP(state, amount){
     
     leveled=true;
     
+    // Update zone tier (every 5 levels)
+    state.zoneConfig.zoneTier = Math.floor(state.progression.level / 5) + 1;
+    
+    bonusMsg += ` +1 Skill Point (${state.progression.skillPoints} total)`;
+    
     // Milestone rewards (ESO/WoW style)
     
-    // Every 5 levels: bonus gold (working system)
+    // Every 5 levels: bonus gold + zone tier increase
     if (newLevel % 5 === 0) {
       const goldBonus = newLevel * 25;
       state.player.gold += goldBonus;
-      bonusMsg += ` +${goldBonus} gold bonus!`;
+      bonusMsg += ` +${goldBonus} gold! Zone Tier ${state.zoneConfig.zoneTier}`;
     }
     
     // Special milestones
@@ -1551,6 +1885,11 @@ function killEnemy(state, index, fromPlayer=true){
   // Close unit inspection if this was the selected unit
   if(state.selectedUnit && state.selectedUnit.unit===e){
     try{ state.ui.hideUnitPanel?.(); }catch{}
+  }
+  
+  // Check if this is the zone boss
+  if (e.boss && state.zoneConfig.bossActive && state.zoneConfig.bossEntity === e) {
+    handleZoneBossDefeat(state);
   }
   
   // Track kills for player
@@ -3728,22 +4067,22 @@ function npcUpdateAbilities(state, u, dt, kind){
 }
 
 function spawnEnemyAt(state, x,y, t, opts={}){
-  // Use zone-based leveling if map dimensions available, otherwise fall back to time-based
+  // Use current zone's level range for all enemies
   let level;
   if (opts.level) {
-    level = opts.level; // Explicitly set level (for respawns, etc.)
-  } else if (state.mapWidth && state.mapHeight) {
-    // Zone-based leveling (ESO/WoW style)
-    const zone = getZoneForPosition(x, y, state.mapWidth, state.mapHeight);
-    const zoneConfig = LEVEL_CONFIG.ZONES[zone] || LEVEL_CONFIG.ZONES.starter;
-    const playerLevel = state.progression?.level || 1;
-    // Enemies spawn at zone average, but scale slightly with player (±3 levels from zone avg)
-    const zoneAvg = Math.floor((zoneConfig.min + zoneConfig.max) / 2);
-    const playerInfluence = Math.floor((playerLevel - zoneAvg) * 0.3); // 30% player influence
-    level = Math.max(zoneConfig.min, Math.min(zoneConfig.max, zoneAvg + playerInfluence));
+    level = opts.level; // Explicitly set level (for bosses, respawns, etc.)
   } else {
-    // Fallback to time-based if no map data
-    level = Math.floor(t/60) + 1;
+    // Get current zone configuration
+    const currentZone = state.zoneConfig.zones[state.zoneConfig.currentZone - 1];
+    if (currentZone) {
+      // Spawn enemies within zone level range with ±2 variance
+      const zoneAvg = Math.floor((currentZone.minLevel + currentZone.maxLevel) / 2);
+      const variance = randi(-2, 2);
+      level = Math.max(currentZone.minLevel, Math.min(currentZone.maxLevel, zoneAvg + variance));
+    } else {
+      // Fallback to level 1 if zone not found
+      level = 1;
+    }
   }
   const eT=enemyTemplate(t);
   // boost initial speed for spawned enemies to ensure they move immediately
@@ -3833,9 +4172,13 @@ function spawnCreatureAt(state, x, y, type){
   const names = CREATURE_NAMES[type.key] || [];
   const name = names[Math.floor(Math.random() * names.length)];
   
-  // Level scaling: creatures match player level ±2 for variety
-  const playerLevel = state.progression?.level || 1;
-  const creatureLevel = Math.max(1, playerLevel + randi(-2, 2));
+  // Level scaling: creatures match current zone level range ±1 for variety
+  const currentZone = state.zoneConfig.zones[state.zoneConfig.currentZone - 1];
+  let creatureLevel = 1;
+  if (currentZone) {
+    const zoneAvg = Math.floor((currentZone.minLevel + currentZone.maxLevel) / 2);
+    creatureLevel = Math.max(1, zoneAvg + randi(-1, 1));
+  }
   
   // Apply level scaling to creature stats (8% per level, same as player)
   const levelMult = 1 + (creatureLevel - 1) * 0.08;
@@ -10333,7 +10676,236 @@ export function importSave(state, s){
   state.ui.renderAbilityBar();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// SLOT SYSTEM HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+// Find a slot by ID
+function findSlot(state, slotId) {
+  let slot = state.slotSystem.guards.find(s => s.id === slotId);
+  if (slot) return slot;
+  return state.slotSystem.allies.find(s => s.id === slotId);
+}
+
+// Mirror slot changes to AI teams (instant synchronization)
+function mirrorSlotToAI(state, slotId, action, data = null) {
+  const playerSlot = findSlot(state, slotId);
+  if (!playerSlot) return;
+  
+  const isGuard = slotId.startsWith('guard_');
+  const teams = ['teamA', 'teamB', 'teamC'];
+  
+  teams.forEach(teamName => {
+    const aiTeam = state.slotSystem.aiTeams[teamName];
+    if (!aiTeam) return;
+    
+    const slotArray = isGuard ? aiTeam.guards : aiTeam.allies;
+    
+    // Find or create AI slot
+    let aiSlot = slotArray.find(s => s.id === slotId);
+    if (!aiSlot) {
+      // Create mirrored slot
+      aiSlot = {
+        id: slotId,
+        role: playerSlot.role,
+        unlocked: false,
+        level: 0,
+        loadoutId: null
+      };
+      slotArray.push(aiSlot);
+    }
+    
+    // Apply action
+    switch (action) {
+      case 'unlock':
+        aiSlot.unlocked = true;
+        break;
+      case 'upgrade':
+        aiSlot.level = playerSlot.level;
+        break;
+      case 'loadout':
+        aiSlot.loadoutId = data;
+        break;
+    }
+  });
+  
+  console.log(`[SLOT] Mirrored ${action} for ${slotId} to AI teams`);
+}
+
+// Respawn guards for a specific slot at player-owned flags
+function respawnGuardsForSlot(state, slotId) {
+  const slot = findSlot(state, slotId);
+  if (!slot || !slot.unlocked || !slot.loadoutId) return;
+  
+  // Find all player-owned flags
+  const playerFlags = state.sites.filter(s => s.owner === 'player' && s.type === 'capture');
+  
+  playerFlags.forEach(flag => {
+    // Find guards at this flag with this slot ID
+    const guardsAtFlag = state.friendlies.filter(f => 
+      f.guard && 
+      f.slotId === slotId && 
+      Math.hypot(f.x - flag.x, f.y - flag.y) < 150
+    );
+    
+    // Update their level
+    guardsAtFlag.forEach(guard => {
+      guard.level = slot.level;
+      // Recalculate stats based on new level
+      const stats = friendlyStatsForLevel(guard.level);
+      Object.assign(guard, stats);
+      guard.hp = guard.maxHp;
+      guard.mana = guard.maxMana;
+    });
+  });
+}
+
+// Level up allies for a specific slot
+function levelUpAllyForSlot(state, slotId) {
+  const slot = findSlot(state, slotId);
+  if (!slot || !slot.unlocked) return;
+  
+  // Find allies with this slot ID
+  const alliesForSlot = state.friendlies.filter(f => !f.guard && f.slotId === slotId);
+  
+  alliesForSlot.forEach(ally => {
+    ally.level = slot.level;
+    // Recalculate stats based on new level
+    const stats = friendlyStatsForLevel(ally.level);
+    Object.assign(ally, stats);
+    ally.hp = Math.min(ally.hp, ally.maxHp); // Keep current HP if not over new max
+    ally.mana = Math.min(ally.mana, ally.maxMana);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ZONE BOSS SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
 // Check if any team controls ALL capture flags and award Emperor status
+// Spawn zone boss when player achieves Emperor status
+function spawnZoneBoss(state) {
+  const currentZone = state.zoneConfig.zones[state.zoneConfig.currentZone - 1];
+  if (!currentZone) return;
+  
+  // Spawn boss near center of map
+  const centerX = (state.mapWidth || state.engine.canvas.width) / 2;
+  const centerY = (state.mapHeight || state.engine.canvas.height) / 2;
+  
+  // Add some randomness to spawn position
+  const spawnX = centerX + randi(-200, 200);
+  const spawnY = centerY + randi(-200, 200);
+  
+  // Create boss enemy at zone boss level
+  const boss = spawnEnemyAt(state, spawnX, spawnY, state.campaign.time, {
+    level: currentZone.bossLevel,
+    team: 'boss', // Special boss team
+    variant: 'warden' // Boss appearance
+  });
+  
+  if (boss) {
+    boss.boss = true;
+    boss.name = `${currentZone.name} Champion`;
+    boss.maxHp = boss.maxHp * 5; // 5x HP for boss
+    boss.hp = boss.maxHp;
+    boss.contactDmg = boss.contactDmg * 2; // 2x damage
+    boss.xp = boss.xp * 10; // 10x XP reward
+    
+    state.zoneConfig.bossActive = true;
+    state.zoneConfig.bossEntity = boss;
+    
+    // Big notification
+    state.ui.toast(`<b>⚔️ ZONE BOSS AWAKENED! ⚔️</b><br><b>${boss.name}</b> has appeared!<br>Level ${currentZone.bossLevel} - Defeat to advance!`, 8000);
+    console.log(`%c[BOSS] ${boss.name} spawned at level ${currentZone.bossLevel}`, 'color: #ff0000; font-weight: bold; font-size: 14px');
+  }
+}
+
+// Handle zone boss defeat and zone advancement
+function handleZoneBossDefeat(state) {
+  const currentZone = state.zoneConfig.zones[state.zoneConfig.currentZone - 1];
+  if (!currentZone) return;
+  
+  // Mark zone complete
+  state.zoneConfig.bossActive = false;
+  state.zoneConfig.bossEntity = null;
+  state.zoneConfig.zoneComplete = true;
+  
+  // Big victory notification
+  state.ui.toast(`<b>🏆 ZONE COMPLETE! 🏆</b><br><b>${currentZone.name}</b> conquered!<br>Preparing next zone...`, 8000);
+  console.log(`%c[ZONE] ${currentZone.name} COMPLETE!`, 'color: #00ff00; font-weight: bold; font-size: 16px');
+  
+  // Auto-level player to zone max if below
+  if (state.progression.level < currentZone.maxLevel) {
+    const levelsGained = currentZone.maxLevel - state.progression.level;
+    state.progression.level = currentZone.maxLevel;
+    state.progression.statPoints += levelsGained * 2;
+    state.ui.toast(`<b>Level boost!</b> Reached level ${currentZone.maxLevel} (+${levelsGained * 2} stat points)`, 6000);
+  }
+  
+  // Advance to next zone after 5 seconds
+  setTimeout(() => {
+    advanceToNextZone(state);
+  }, 5000);
+}
+
+// Advance to the next zone
+function advanceToNextZone(state) {
+  const nextZoneIndex = state.zoneConfig.currentZone; // currentZone is 1-indexed
+  const nextZone = state.zoneConfig.zones[nextZoneIndex];
+  
+  if (!nextZone) {
+    // No more zones - game complete!
+    state.ui.toast(`<b>🎉 GAME COMPLETE! 🎉</b><br>All zones conquered!<br>You are the ultimate champion!`, 10000);
+    console.log(`%c[GAME] ALL ZONES COMPLETE!`, 'color: #ffd700; font-weight: bold; font-size: 20px');
+    return;
+  }
+  
+  // Advance zone
+  state.zoneConfig.currentZone += 1;
+  state.zoneConfig.maxZone = Math.max(state.zoneConfig.maxZone, state.zoneConfig.currentZone);
+  state.zoneConfig.zoneComplete = false;
+  
+  // Reset emperor status
+  state.emperorTeam = null;
+  removeEmperorEffect(state);
+  
+  // Reset all flags to neutral
+  for (const site of state.sites) {
+    if (site.id && site.id.startsWith('site_')) {
+      site.owner = null;
+      site.health = site.maxHealth || 100;
+    }
+  }
+  
+  // Clear all enemies
+  state.enemies = [];
+  
+  // Respawn player and allies at spawn point
+  const centerX = (state.mapWidth || state.engine.canvas.width) / 2;
+  const centerY = (state.mapHeight || state.engine.canvas.height) / 2;
+  state.player.x = centerX;
+  state.player.y = centerY;
+  state.player.hp = currentStats(state).maxHp;
+  state.player.mana = currentStats(state).maxMana;
+  state.player.stam = currentStats(state).maxStam;
+  
+  // Respawn allies near player
+  for (const ally of state.friendlies) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 50 + Math.random() * 30;
+    ally.x = state.player.x + Math.cos(angle) * dist;
+    ally.y = state.player.y + Math.sin(angle) * dist;
+    const allyStats = npcGetCurrentStats(ally, state);
+    ally.hp = allyStats.maxHp;
+    ally.mana = allyStats.maxMana;
+    ally.stam = allyStats.maxStam;
+  }
+  
+  // Big zone announcement
+  state.ui.toast(`<b>⚔️ ${nextZone.name.toUpperCase()} ⚔️</b><br>Levels ${nextZone.minLevel}-${nextZone.maxLevel}<br>Capture all flags to summon the boss!`, 8000);
+  console.log(`%c[ZONE] Entered ${nextZone.name} (Levels ${nextZone.minLevel}-${nextZone.maxLevel})`, 'color: #00ffff; font-weight: bold; font-size: 16px');
+}
+
 function checkEmperorStatus(state){
   const flagSites = state.sites.filter(s => s.id && s.id.startsWith('site_'));
   if(flagSites.length === 0) return; // No flags to control
@@ -10367,6 +10939,11 @@ function checkEmperorStatus(state){
       console.log('%c[EMPEROR] Player received emperor buff: +3x HP/Mana/Stamina, +50% CDR', 'color: #ffd700');
       // logDebugEvent(state, `EMPEROR_BUFF_APPLIED: Player gains emperor power (+3x resources, +50% CDR)`);
       addEmperorEffect(state); // Add visible effect to player
+      
+      // BOSS SPAWN: Spawn zone boss when player achieves Emperor status
+      if (!state.zoneConfig.bossActive && !state.zoneConfig.zoneComplete) {
+        spawnZoneBoss(state);
+      }
     }
     state.emperorSince = state.campaign.time;
   } else if(!newEmperorTeam && previousEmperor){
@@ -10422,27 +10999,13 @@ function addEmperorEffect(state){
       t: Infinity // Ensure timer never decrements
     });
     console.log(`%c[BUFF] Emperor power added to player.buffs (${state.player.buffs.length} total active effects)`, 'color: #4a9eff');
-    logEffectEvent(state, 'BUFF_APPLIED', {
-      unit: 'player',
-      buffId: 'emperor_power',
-      duration: 'Infinity',
-      stats: '+3x HP/Mana/Stamina, +50% CDR'
-    });
     // Restore player to full health/mana/stamina when becoming emperor
     const st = currentStats(state);
     const oldHP = state.player.hp;
     state.player.hp = st.maxHp;
     state.player.mana = st.maxMana;
     state.player.stam = st.maxStam;
-    
-    // Log the emperor heal
-    logPlayerEvent(state, 'HEAL', {
-      source: 'emperor_buff',
-      amount: (st.maxHp - oldHP).toFixed(1),
-      oldHP: oldHP.toFixed(1),
-      newHP: st.maxHp,
-      maxHP: st.maxHp
-    });
+    console.log(`[EMPEROR] Fully healed: HP ${oldHP.toFixed(0)} → ${st.maxHp.toFixed(0)}`);
     // Show big screen notification
     if(state.ui?.showEmperor){
       state.ui.showEmperor();
@@ -10462,11 +11025,6 @@ function removeEmperorEffect(state){
   
   if(hadEmperor){
     console.log(`%c[BUFF] Emperor power removed from player.buffs (${state.player.buffs.length} remaining effects)`, 'color: #ff6b6b');
-    logEffectEvent(state, 'BUFF_REMOVED', {
-      unit: 'player',
-      buffId: 'emperor_power',
-      reason: 'Lost all flags'
-    });
   }
   
   // Force UI updates to remove the buff from display

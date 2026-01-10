@@ -7,13 +7,15 @@ import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
 import { showCharSelect } from "./charselect.js";
 import { spawnGuardsForSite } from "./world.js";
-import { getAssetPath } from "../config.js";
+
+// Expose ABILITIES to window for console commands
+window.ABILITIES = ABILITIES;
 
 export function buildUI(state){
   const root=document.getElementById('ui-root');
   root.innerHTML = `
     <!-- Main Menu Overlay -->
-    <div id="mainMenu" class="overlay show" style="background: url('${getAssetPath('assets/ui/MainMenu.png')}') center center/105% auto no-repeat #000;">
+    <div id="mainMenu" class="overlay show" style="background: url('assets/ui/MainMenu.png') center center/105% auto no-repeat #000;">
       <div class="panel" style="width:min(560px,92vw); background: rgba(0,0,0,0.65); border:2px solid rgba(212,175,55,0.5); box-shadow:0 0 24px rgba(212,175,55,0.25);">
         <h2 style="margin:0; color:#e9d27b; letter-spacing:1px; text-shadow:0 0 12px rgba(212,175,55,0.55);">Orb RPG</h2>
         
@@ -219,6 +221,7 @@ export function buildUI(state){
           <button class="tab-btn active" data-tab="0" style="flex:1; padding:10px; background:rgba(212,175,55,0.3); border:1px solid #d4af37; color:#d4af37; border-radius:3px; cursor:pointer; font-size:14px; font-weight:bold;">🎒 Inventory</button>
           <button class="tab-btn" data-tab="1" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">⚔️ Skills ⚔️</button>
           <button class="tab-btn" data-tab="2" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">📈 Level Up</button>
+          <button class="tab-btn" data-tab="8" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">🔷 Slots</button>
           <button class="tab-btn" data-tab="4" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">👥 Group</button>
           <button class="tab-btn" data-tab="5" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">🤝 Allies</button>
           <button class="tab-btn" data-tab="7" style="flex:1; padding:10px; background:transparent; border:1px solid rgba(212,175,55,0.3); color:#b8941f; border-radius:3px; cursor:pointer; font-size:14px;">🗺️ Campaign</button>
@@ -239,7 +242,7 @@ export function buildUI(state){
                 <div class="small">Hero: <span id="heroClassName">Warrior</span> • Lv <span id="heroLevel">1</span></div>
               </div>
               <div id="equipCircle" class="equipCircle">
-                <img id="heroPortrait" src="${getAssetPath('assets/char/warrior.svg')}" alt="Hero" class="heroLarge"/>
+                <img id="heroPortrait" src="assets/char/warrior.svg" alt="Hero" class="heroLarge"/>
               </div>
               <div id="equipExtras" class="equipExtras" style="display:flex; justify-content:space-evenly; align-items:center;"></div>
               <div id="weaponSlot" class="weaponSlot" style="text-align:center;"></div>
@@ -1281,6 +1284,48 @@ export function buildUI(state){
             </div>
           </div>
         </div>
+
+        <!-- Tab 8: Slots -->
+        <div class="tab-content" data-tab="8" style="margin-top:10px; display:none;">
+          <!-- Header: SP & Zone Info -->
+          <div class="box" style="border-color:#d4af37; background:rgba(0,0,0,0.3);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-size:16px; font-weight:bold; color:#d4af37;">🔷 Slot Management</div>
+                <div class="small" style="color:#ccc; margin-top:2px;">Unlock and upgrade guard & ally slots</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:18px; font-weight:bold; color:#6cf;">
+                  💎 <span id="slotSP">0</span> SP
+                </div>
+                <div class="small" style="color:#b8941f;">
+                  Level <span id="slotPlayerLevel">1</span> • Zone <span id="slotZoneTier">1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Guards & Allies Side-by-Side -->
+          <div class="grid2" style="margin-top:10px;">
+            <!-- Left: Guard Slots Section -->
+            <div class="box" style="border-color:#d4af37; height:550px; display:flex; flex-direction:column;">
+              <div style="font-weight:bold; font-size:14px; color:#d4af37; margin-bottom:8px;">
+                🛡️ GUARD SLOTS (5) - Elite Site Defenders
+              </div>
+              <div class="small" style="color:#ccc; margin-bottom:12px;">Guards defend flags with coordinated combos. Site-bound tactical units.</div>
+              <div id="guardSlotList" style="display:flex; flex-direction:column; gap:8px; flex:1; overflow-y:auto;"></div>
+            </div>
+
+            <!-- Right: Ally Slots Section -->
+            <div class="box" style="border-color:#d4af37; height:550px; display:flex; flex-direction:column;">
+              <div style="font-weight:bold; font-size:14px; color:#d4af37; margin-bottom:8px;">
+                👥 ALLY SLOTS (10) - Mobile Squad
+              </div>
+              <div class="small" style="color:#ccc; margin-bottom:12px;">Allies auto-capture flags or join your group. Flexible fighters.</div>
+              <div id="allySlotList" style="display:flex; flex-direction:column; gap:8px; flex:1; overflow-y:auto;"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1741,6 +1786,9 @@ function bindUI(state){
     groupPanel: $('groupPanel'), groupPanelCount: $('groupPanelCount'), groupPanelList: $('groupPanelList'),
     groupMemberCount: $('groupMemberCount'), groupMembersList: $('groupMembersList'), groupMemberDetails: $('groupMemberDetails'),
     allyList: $('allyList'), allyDetails: $('allyDetails'), allyTabCount: $('allyTabCount'),
+    // Slot UI elements
+    slotSP: $('slotSP'), slotPlayerLevel: $('slotPlayerLevel'), slotZoneTier: $('slotZoneTier'),
+    guardSlotList: $('guardSlotList'), allySlotList: $('allySlotList'),
     invRight: $('invRight')
   };
   // Helper to get item image path
@@ -1948,7 +1996,7 @@ function bindUI(state){
   ui.hideMainMenu = ()=> ui.mainMenu.classList.remove('show');
   // Main menu background: use default path; you can override via localStorage if needed
   try{
-    const initBg = localStorage.getItem('orb_rpg_menu_bg') || getAssetPath('assets/ui/MainMenu.png');
+    const initBg = localStorage.getItem('orb_rpg_menu_bg') || 'assets/ui/MainMenu.png';
     ui.mainMenu.style.background = `url('${initBg}') center center/105% auto no-repeat #000`;
   }catch(e){}
 
@@ -3133,8 +3181,6 @@ function bindUI(state){
 
   // Render Campaign tab: leader/last banner, team metrics, captures summary
   ui.renderCampaignTab = ()=>{
-    console.log('%c🔔 CAMPAIGN TAB RENDERING NOW! ' + new Date().toLocaleTimeString(), 'background: #0f0; color: #000; font-size: 16px; padding: 5px;');
-    
     const headerEl = document.getElementById('campaignHeader');
     const teamsEl = document.getElementById('campaignTeams');
     const capsEl = document.getElementById('campaignCaptures');
@@ -3385,17 +3431,27 @@ function bindUI(state){
       ui.allyControlPanel.style.display = 'block';
       setAllyBehaviorDesc(u);
       if(ui.btnEditTarget){
-        const inGroup = state.group.members.includes(u.id);
-        ui.btnEditTarget.style.display = 'block';
-        ui.btnEditTarget.disabled = !inGroup;
-        ui.btnEditTarget.classList.toggle('secondary', !inGroup);
-        ui.btnEditTarget.textContent = inGroup ? 'Edit Equipment & Abilities' : 'Invite to group to edit';
+        if(u.guard){
+          ui.btnEditTarget.style.display = 'none';
+        } else {
+          const inGroup = state.group.members.includes(u.id);
+          ui.btnEditTarget.style.display = 'block';
+          ui.btnEditTarget.disabled = !inGroup;
+          ui.btnEditTarget.classList.toggle('secondary', !inGroup);
+          ui.btnEditTarget.textContent = inGroup ? 'Edit Equipment & Abilities' : 'Invite to group to edit';
+        }
       }
       // Update Invite/Kick button based on group membership
       if(ui.btnInviteToGroup){
-        const inGroup = state.group.members.includes(u.id);
-        ui.btnInviteToGroup.textContent = inGroup ? 'Kick from Group' : 'Invite to Group';
-        ui.btnInviteToGroup.classList.toggle('secondary', inGroup);
+        // Hide invite/kick button for guards (they can't join groups)
+        if(u.guard){
+          ui.btnInviteToGroup.style.display = 'none';
+        } else {
+          ui.btnInviteToGroup.style.display = '';
+          const inGroup = state.group.members.includes(u.id);
+          ui.btnInviteToGroup.textContent = inGroup ? 'Kick from Group' : 'Invite to Group';
+          ui.btnInviteToGroup.classList.toggle('secondary', inGroup);
+        }
       }
       // Set button visual states based on current behavior
       const currentBehavior = u.behavior || 'neutral';
@@ -3495,6 +3551,13 @@ function bindUI(state){
       if(!state.selectedUnit || state.selectedUnit.type !== 'friendly') return;
       const friendly = state.selectedUnit.unit;
       if(!friendly) { console.warn('[GROUP] Cannot invite/kick: no unit'); return; }
+      
+      // Guards cannot join groups
+      if(friendly.guard){
+        ui.toast(`Guards cannot join your group - they defend flags.`);
+        return;
+      }
+      
       if(!friendly.id){
         try{
           // Assign a stable ID and name if missing
@@ -3750,10 +3813,10 @@ function bindUI(state){
     
     // Update hero portrait based on class
     const classPortraits = {
-      'warden': getAssetPath('assets/char/Warden Player head.png'),
-      'mage': getAssetPath('assets/char/mage player head.png'),
-      'knight': getAssetPath('assets/char/knight player head.png'),
-      'warrior': getAssetPath('assets/char/Warior Player head.png')
+      'warden': 'assets/char/Warden Player head.png',
+      'mage': 'assets/char/mage player head.png',
+      'knight': 'assets/char/knight player head.png',
+      'warrior': 'assets/char/Warior Player head.png'
     };
     const className = (state.player.className || 'warrior').toLowerCase();
     const portraitSrc = classPortraits[className] || classPortraits['warrior'];
@@ -4249,7 +4312,7 @@ function bindUI(state){
     const heroCls = isGroupMemberMode ? (state.friendlies.find(f=>f.id===isGroupMemberMode)?.variant||'warrior') : (state.player.class||'warrior');
     const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Knight.png', warden: 'New Warden.png' };
     const heroImg = heroImgMap[heroCls] || `${heroCls}.svg`;
-    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="${getAssetPath(`assets/char/${heroImg}`)}" alt="Hero" class="heroLarge"/>`;
+    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="assets/char/${heroImg}" alt="Hero" class="heroLarge"/>`;
     ui.equipExtras.innerHTML = '';
     ui.weaponSlot.innerHTML = '';
 
@@ -4493,7 +4556,7 @@ function bindUI(state){
       const cls = isGroupMemberMode ? (targetUnit.variant || 'warrior') : (state.player.class || 'warrior');
       // Use PNG for all hero classes (newer images)
       const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Knight.png', warden: 'New Warden.png' };
-      ui.heroPortrait.src = getAssetPath(`assets/char/${heroImgMap[cls] || cls + '.svg'}`);
+      ui.heroPortrait.src = `assets/char/${heroImgMap[cls] || cls + '.svg'}`;
       if(!isGroupMemberMode){
         ui.heroClassName.textContent = cls.charAt(0).toUpperCase()+cls.slice(1);
         ui.heroClassName.style.color = '#fff';
@@ -4891,6 +4954,7 @@ function bindUI(state){
     else if(tabId === 4){ ui.renderGroupTab(); }
     else if(tabId === 5){ ui.renderAlliesTab(); }
     else if(tabId === 7){ ui.renderCampaignTab(); }
+    else if(tabId === 8){ ui.renderSlotTab(); }
   }
   const tabButtons = document.querySelectorAll('.tab-btn');
   tabButtons.forEach((btn) => { btn.onclick = () => activateTab(Number(btn.getAttribute('data-tab'))); });
@@ -4952,7 +5016,9 @@ function bindUI(state){
     for(let i=0;i<5;i++){
       const skId = abilitySlots[i];
       const sk = getSkillById(skId);
-      const iconSrc = ICON_IMAGES[skId];
+      const ability = ABILITIES[skId];
+      // Build icon path dynamically from ability.icon property
+      const iconSrc = ability?.icon ? `assets/skill icons/${ability.icon}` : null;
       const slotEl = document.createElement('div');
       slotEl.className = 'slot';
       slotEl.style.minWidth = '110px';
@@ -4960,7 +5026,7 @@ function bindUI(state){
       slotEl.style.position = 'relative';
       slotEl.style.padding = '0';
       slotEl.innerHTML = iconSrc 
-        ? `<img src="${iconSrc}" style="width:100%; height:100%; object-fit:contain; pointer-events:none; position:absolute; top:0; left:0;" />
+        ? `<img src="${iconSrc}" style="width:100%; height:100%; object-fit:contain; pointer-events:none; position:absolute; top:0; left:0;" onerror="this.style.display='none';" />
            <div style="position:absolute; bottom:20px; left:0; right:0; text-align:center; font-weight:900; font-size:11px; text-shadow:0 0 4px rgba(0,0,0,0.9);">Slot ${i+1}</div>
            <div style="position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:10px; color:#4a9eff; text-shadow:0 0 4px rgba(0,0,0,0.9);">${sk ? sk.name : '—'}</div>`
         : `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:900; font-size:11px;">Slot ${i+1}</div>
@@ -5089,8 +5155,9 @@ function bindUI(state){
       } else {
         for(const ability of activeAbilities){
           const emojiIcon = ability.type === 'passive' ? '✦' : (ability.targetType ? TARGET_TYPE_INFO[ability.targetType]?.icon || '→' : '→');
-          const iconSrc = ICON_IMAGES[ability.id];
-          const iconHtml = iconSrc ? `<img src="${iconSrc}" style="width:80px; height:80px; border-radius:6px; border:2px solid #d4af37; object-fit:cover;" />` : `<span style="font-size:48px;">${emojiIcon}</span>`;
+          // Build icon path dynamically from ability.icon property
+          const iconSrc = ability.icon ? `assets/skill icons/${ability.icon}` : null;
+          const iconHtml = iconSrc ? `<img src="${iconSrc}" style="width:80px; height:80px; border-radius:6px; border:2px solid #d4af37; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" /><span style="font-size:48px; display:none;">${emojiIcon}</span>` : `<span style="font-size:48px;">${emojiIcon}</span>`;
           
           // Check which slots have this ability assigned
           const assignedSlots = [];
@@ -5192,6 +5259,13 @@ function bindUI(state){
                   settings.abilities = [...friendly.npcAbilities];
                   ui.toast(`<b>${ability.name}</b> removed from ${settings.name} slot ${slotIndex+1}`);
                 } else {
+                  // PREVENT DUPLICATES: Remove this ability from all other slots first
+                  for(let j = 0; j < friendly.npcAbilities.length; j++) {
+                    if(friendly.npcAbilities[j] === abilityId) {
+                      friendly.npcAbilities[j] = null;
+                    }
+                  }
+                  // Now assign to the selected slot
                   friendly.npcAbilities[slotIndex] = abilityId;
                   settings.abilities = [...friendly.npcAbilities];
                   ui.toast(`<b>${ability.name}</b> assigned to ${settings.name} slot ${slotIndex+1}`);
@@ -5203,6 +5277,13 @@ function bindUI(state){
                 ui.renderAbilityBar();
                 ui.toast(`<b>${ability.name}</b> removed from slot ${slotIndex+1}`);
               } else {
+                // PREVENT DUPLICATES: Remove this ability from all other slots first
+                for(let j = 0; j < state.abilitySlots.length; j++) {
+                  if(state.abilitySlots[j] === abilityId) {
+                    state.abilitySlots[j] = null;
+                  }
+                }
+                // Now assign to the selected slot
                 state.abilitySlots[slotIndex] = abilityId;
                 ui.renderAbilityBar();
                 ui.toast(`<b>${ability.name}</b> assigned to slot ${slotIndex+1}`);
@@ -6832,6 +6913,1529 @@ function bindUI(state){
     ui.groupMembersList.innerHTML = actionsHtml + list.join('');
     ui.groupMemberCount.textContent = state.group.members.length.toString();
     console.log('[GROUP] Rendered', list.length, 'members in group tab');
+  };
+
+  // Render slot management tab
+  ui.renderSlotTab = () => {
+    if (!ui.guardSlotList || !ui.allySlotList) return;
+    
+    // Update header info
+    const sp = state.progression?.skillPoints || 0;
+    const level = state.level || 1;
+    const zoneTier = state.zoneConfig?.zoneTier || 1;
+    
+    if (ui.slotSP) ui.slotSP.textContent = sp.toString();
+    if (ui.slotPlayerLevel) ui.slotPlayerLevel.textContent = level.toString();
+    if (ui.slotZoneTier) ui.slotZoneTier.textContent = zoneTier.toString();
+    
+    // Render guard slots
+    const guards = state.slotSystem?.guards || [];
+    const guardCards = guards.map(slot => ui._renderSlotCard(slot, 'guard'));
+    ui.guardSlotList.innerHTML = guardCards.join('');
+    
+    // Render ally slots
+    const allies = state.slotSystem?.allies || [];
+    const allyCards = allies.map(slot => ui._renderSlotCard(slot, 'ally'));
+    ui.allySlotList.innerHTML = allyCards.join('');
+    
+    // Attach hover events for loadout tooltips
+    ui._attachSlotTooltips();
+  };
+
+  // Render individual slot card
+  ui._renderSlotCard = (slot, type) => {
+    const unlocked = slot.unlocked;
+    const level = slot.level || 0;
+    const loadoutId = slot.loadoutId || null;
+    const sp = state.progression?.skillPoints || 0;
+    
+    // Role styling
+    const roleColors = {
+      tank: { bg: 'rgba(255,200,120,0.15)', border: 'rgba(255,200,120,0.5)', text: '#ffc878' },
+      dps: { bg: 'rgba(255,100,100,0.15)', border: 'rgba(255,100,100,0.5)', text: '#ff6464' },
+      support: { bg: 'rgba(99,200,255,0.15)', border: 'rgba(99,200,255,0.5)', text: '#63c8ff' },
+      healer: { bg: 'rgba(99,200,255,0.15)', border: 'rgba(99,200,255,0.5)', text: '#63c8ff' },
+      flex: { bg: 'rgba(200,160,255,0.15)', border: 'rgba(200,160,255,0.5)', text: '#c8a0ff' },
+      elite: { bg: 'rgba(212,175,55,0.15)', border: 'rgba(212,175,55,0.5)', text: '#d4af37' }
+    };
+    const roleStyle = roleColors[slot.role] || roleColors.flex;
+    
+    // Loadout info
+    let loadoutName = 'None';
+    let loadoutInfo = '';
+    if (loadoutId && window.LOADOUTS) {
+      const loadout = window.LOADOUTS.getLoadout(loadoutId);
+      if (loadout) {
+        loadoutName = loadout.name;
+        const weapon = loadout.weapon?.name || 'No weapon';
+        const abilities = loadout.abilities?.map(a => a.name || 'Unknown').join(', ') || 'No abilities';
+        loadoutInfo = `<div class="small" style="color:#999; margin-top:2px;">${weapon} • ${abilities}</div>`;
+      }
+    }
+    
+    // Locked state
+    if (!unlocked) {
+      const unlockCost = 1; // Always 1 SP to unlock
+      const canAfford = sp >= unlockCost;
+      const btnStyle = canAfford ? '' : 'opacity:0.5; cursor:not-allowed;';
+      
+      return `
+        <div class="box" style="padding:10px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:bold; color:#666;">🔒 ${slot.id}</div>
+              <div class="small" style="color:#888;">${slot.role.toUpperCase()} • Locked</div>
+            </div>
+            <button class="secondary" style="padding:6px 12px; font-size:11px; ${btnStyle}" onclick="ui._unlockSlot('${slot.id}')" ${!canAfford ? 'disabled' : ''}>
+              Unlock (${unlockCost} SP)
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Unlocked state
+    const upgradeCost = Math.ceil(1 + (level * 0.1));
+    const canAffordUpgrade = sp >= upgradeCost;
+    const upgradeBtnStyle = canAffordUpgrade ? '' : 'opacity:0.5; cursor:not-allowed;';
+    
+    // Get full loadout details for portrait and tooltip
+    let loadoutData = null;
+    if (loadoutId && window.LOADOUTS) {
+      loadoutData = window.LOADOUTS.getLoadout(loadoutId);
+    }
+    
+    // Build equipment display for slot cards (weapon + armor)
+    const buildEquipmentDisplay = () => {
+      if (!loadoutData) return '';
+      
+      const loadoutRarity = loadoutData.rarity || 'common';
+      const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+      
+      let html = '<div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; padding:6px; background:rgba(0,0,0,0.3); border-radius:4px; max-width:340px;">';
+      html += '<div style="width:100%; color:#888; font-size:10px; margin-bottom:4px;">Equipment:</div>';
+      
+      // Weapon icon
+      if (loadoutData.weapon) {
+        const weaponType = loadoutData.weapon.weaponType;
+        const weaponImagePath = `assets/items/${capitalize(loadoutRarity)} ${weaponType}.png`;
+        html += `
+          <div style="
+            width: 32px;
+            height: 32px;
+            background: rgba(40,40,50,0.9);
+            border: 2px solid ${roleStyle.border};
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: help;
+            overflow: hidden;
+          " title="Weapon: ${weaponType}">
+            <img src="${weaponImagePath}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='⚔';" alt="${weaponType}" />
+          </div>
+        `;
+      }
+      
+      // Armor icons
+      if (loadoutData.armor) {
+        const armorSlots = ['helm', 'chest', 'shoulders', 'hands', 'belt', 'legs', 'feet', 'neck', 'accessory1', 'accessory2'];
+        armorSlots.forEach(slotName => {
+          const armorPiece = loadoutData.armor[slotName];
+          if (!armorPiece) return;
+          const armorType = armorPiece.armorType || 'Unknown';
+          
+          const slotDisplayName = slotName === 'accessory1' || slotName === 'accessory2' ? 'bracelet' : slotName;
+          const imagePath = `assets/items/${loadoutRarity} ${slotDisplayName}.png`;
+          
+          html += `
+            <div style="
+              width: 32px;
+              height: 32px;
+              background: rgba(40,40,50,0.9);
+              border: 1px solid ${roleStyle.border};
+              border-radius: 3px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: help;
+              overflow: hidden;
+            " title="${slotName}: ${armorType}">
+              <img src="${imagePath}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${slotName.charAt(0).toUpperCase()}';" alt="${slotName}" />
+            </div>
+          `;
+        });
+      }
+      
+      html += '</div>';
+      return html;
+    };
+    
+    return `
+      <div class="box slot-card" data-slot-id="${slot.id}" style="padding:10px; background:${roleStyle.bg}; border:1px solid ${roleStyle.border}; position:relative;">
+        <div style="display:flex; gap:10px;">
+          
+          <!-- Fighter Portrait -->
+          <div style="
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #333 0%, #222 100%);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 10px;
+            border: 2px solid ${roleStyle.border};
+            overflow: hidden;
+            ${loadoutData ? 'cursor: pointer;' : ''}
+            transition: all 0.2s;
+          " ${loadoutData ? `onclick="event.stopPropagation(); ui._showFighterPreview('${loadoutId}')" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='#d4af37';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='${roleStyle.border}';" title="Click to view full fighter details"` : ''}>
+            ${loadoutData && loadoutData.fighterImage && !loadoutData.fighterImage.includes('placeholder') ? 
+              `<img src="assets/fighter player cards/${loadoutData.fighterImage}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerHTML='${loadoutData.name || 'Fighter'}';" alt="${loadoutData.name}"/>` :
+              loadoutData ? loadoutData.name || 'Fighter' : '?'
+            }
+            ${loadoutData && level > 0 ? `<div style="position:absolute; top:4px; left:4px; width:28px; height:28px; border-radius:50%; background:#1a1a1a; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:bold; color:#d4af37; box-shadow:0 2px 4px rgba(0,0,0,0.8);">${level}</div>` : ''}
+          </div>
+          
+          <!-- Slot Info -->
+          <div style="flex: 1;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+              <div>
+                <div style="font-weight:bold; color:${roleStyle.text}; font-size:13px;">✓ ${slot.id}</div>
+                <div class="small" style="color:#ccc; font-size:11px;">${slot.role.toUpperCase()} • Level ${level}</div>
+                <div class="small" style="font-weight:bold; color:#d4af37; margin-top:4px; font-size:11px;">
+                  ${loadoutName}
+                  ${loadoutData?.weapon ? `<br><span style="color:#8cf; font-size:10px;">⚔ ${loadoutData.weapon.weaponType}</span>` : ''}
+                </div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button style="padding:6px 10px; font-size:11px; ${upgradeBtnStyle}" onclick="ui._upgradeSlot('${slot.id}')" ${!canAffordUpgrade ? 'disabled' : ''}>
+                  ⬆ ${upgradeCost} SP
+                </button>
+                <button class="secondary" style="padding:6px 10px; font-size:11px;" onclick="ui._openLoadoutPicker('${slot.id}')">
+                  Change
+                </button>
+              </div>
+            </div>
+            
+            <!-- Equipment Row -->
+            ${buildEquipmentDisplay()}
+            
+            <!-- Abilities Row -->
+            ${loadoutData?.abilities ? `
+              <div style="display:flex; gap:4px; margin-top:8px; padding:6px; background:rgba(0,0,0,0.3); border-radius:4px;">
+                <div style="color:#888; font-size:10px; margin-right:4px; align-self:center;">Abilities:</div>
+                ${loadoutData.abilities.slice(0, 5).map((abilityId, i) => {
+                  const ABILITIES = window.ABILITIES || {};
+                  const skillData = ABILITIES[abilityId];
+                  const iconPath = skillData?.icon ? `assets/skill icons/${skillData.icon}` : '';
+                  const abilityName = skillData?.name || abilityId;
+                  const fallbackNum = i + 1;
+                  return `
+                    <div style="
+                      position: relative;
+                      width: 32px;
+                      height: 32px;
+                      background: rgba(40,40,50,0.8);
+                      border: 1px solid ${roleStyle.border};
+                      border-radius: 4px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      cursor: pointer;
+                    " title="${abilityName}" onclick="event.stopPropagation(); ui._showFighterPreview('${loadoutId}')">
+                      <img src="${iconPath}" style="width: 28px; height: 28px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                      <span style="color:#666;font-size:12px;display:none;">${fallbackNum}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  // Unlock slot action
+  ui._unlockSlot = (slotId) => {
+    if (window.SLOTS && window.SLOTS.unlockSlot) {
+      const result = window.SLOTS.unlockSlot(slotId);
+      if (result) {
+        ui.renderSlotTab();
+        ui.toast('✅ Slot unlocked!');
+      }
+    }
+  };
+
+  // Upgrade slot action
+  ui._upgradeSlot = (slotId) => {
+    if (window.SLOTS && window.SLOTS.upgradeSlot) {
+      const result = window.SLOTS.upgradeSlot(slotId);
+      if (result) {
+        ui.renderSlotTab();
+        ui.toast('✅ Slot upgraded!');
+      }
+    }
+  };
+
+  // Open loadout picker modal (FIGHTER CARD UI)
+  ui._openLoadoutPicker = (slotId) => {
+    console.log('[LOADOUT PICKER] Opening for slot:', slotId);
+    
+    if (!window.LOADOUTS) {
+      console.error('[LOADOUT PICKER] LOADOUTS not available');
+      ui.toast('❌ LOADOUTS not available');
+      return;
+    }
+    
+    // Find the slot to get its role
+    const slot = (state.slotSystem?.guards || []).find(s => s.id === slotId) ||
+                 (state.slotSystem?.allies || []).find(s => s.id === slotId);
+    
+    console.log('[LOADOUT PICKER] Found slot:', slot);
+    
+    if (!slot) {
+      console.error('[LOADOUT PICKER] Slot not found:', slotId);
+      ui.toast('❌ Slot not found');
+      return;
+    }
+    
+    // Get all loadouts compatible with this role (exclude guard-only loadouts)
+    const allLoadouts = window.LOADOUTS.getAvailableLoadouts(state.progression.level || 1, false);
+    console.log('[LOADOUT PICKER] Total loadouts:', allLoadouts.length);
+    
+    const compatibleLoadouts = allLoadouts.filter(l => {
+      const loadoutRole = l.role?.toLowerCase() || 'dps';
+      const slotRole = slot.role.toLowerCase();
+      
+      // Flex slots accept any role
+      if (slotRole === 'flex') return true;
+      
+      // Support = healer
+      if (slotRole === 'support' && loadoutRole === 'healer') return true;
+      if (slotRole === 'healer' && loadoutRole === 'support') return true;
+      
+      // Elite accepts tank/dps
+      if (slotRole === 'elite' && (loadoutRole === 'tank' || loadoutRole === 'dps')) return true;
+      
+      // Exact match
+      return loadoutRole === slotRole;
+    });
+    
+    console.log('[LOADOUT PICKER] Compatible loadouts:', compatibleLoadouts.length);
+    console.log('[LOADOUT PICKER] Compatible loadout IDs:', compatibleLoadouts.map(l => l.id));
+    console.log('[LOADOUT PICKER] Slot role:', slot.role);
+    
+    if (compatibleLoadouts.length === 0) {
+      console.error('[LOADOUT PICKER] No compatible loadouts found for role:', slot.role);
+      ui.toast('❌ No compatible loadouts found');
+      return;
+    }
+    
+    // Group loadouts by role
+    const loadoutsByRole = {
+      tank: compatibleLoadouts.filter(l => (l.role || 'dps').toLowerCase() === 'tank'),
+      dps: compatibleLoadouts.filter(l => (l.role || 'dps').toLowerCase() === 'dps'),
+      healer: compatibleLoadouts.filter(l => ['healer', 'support'].includes((l.role || 'dps').toLowerCase()))
+    };
+    
+    console.log('[LOADOUT PICKER] Grouped:', {
+      tank: loadoutsByRole.tank.length,
+      dps: loadoutsByRole.dps.length,
+      healer: loadoutsByRole.healer.length
+    });
+    
+    // Build fighter cards (4 per row, matching hero selection UI)
+    const buildFighterCards = (loadouts) => {
+      return loadouts.map(l => {
+        const roleColor = (l.role === 'tank' || l.role === 'Tank') ? '#ff8c00' : 
+                         (l.role === 'dps' || l.role === 'DPS') ? '#ff4444' : '#44ff44';
+        const roleIcon = (l.role === 'tank' || l.role === 'Tank') ? '🛡' : 
+                        (l.role === 'dps' || l.role === 'DPS') ? '⚔' : '❤';
+        
+        const weapon = l.weapon?.weaponType || l.weapon?.name || 'Unarmed';
+        const abilities = l.abilities || [];
+        const description = l.description || '';
+        
+        // Rarity system (future fighter card drops - currently shows base "Common" template)
+        const rarity = l.rarity || 'common'; // Default to common for base loadouts
+        const rarityColors = {
+          common: '#9d9d9d',
+          uncommon: '#1eff00',
+          rare: '#0070dd',
+          epic: '#a335ee',
+          legendary: '#ff8000'
+        };
+        const rarityNames = {
+          common: 'Common',
+          uncommon: 'Uncommon',
+          rare: 'Rare',
+          epic: 'Epic',
+          legendary: 'Legendary'
+        };
+        const rarityColor = rarityColors[rarity] || rarityColors.common;
+        const rarityName = rarityNames[rarity] || 'Common';
+        
+        // Calculate rarity-enhanced stats (future: based on gear quality)
+        const baseWeaponAtk = l.weapon?.buffs?.atk || 5;
+        const rarityMultiplier = rarity === 'legendary' ? 2.0 : 
+                                 rarity === 'epic' ? 1.6 : 
+                                 rarity === 'rare' ? 1.3 : 
+                                 rarity === 'uncommon' ? 1.15 : 1.0;
+        const enhancedAtk = Math.round(baseWeaponAtk * rarityMultiplier);
+        
+        // Armor data for left/right columns
+        const armorLeft = l.armor ? ['helm', 'chest', 'shoulders', 'hands', 'belt'] : [];
+        const armorRight = l.armor ? ['legs', 'feet', 'neck', 'accessory1', 'accessory2'] : [];
+        
+        // Helper to capitalize first letter
+        const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        
+        const buildArmorIcon = (slotName) => {
+          const armorPiece = l.armor?.[slotName];
+          if (!armorPiece) return '';
+          const armorType = armorPiece.armorType || 'Unknown';
+          
+          // Generate image path from rarity and slot name
+          // Files are named like: "common helm.png", "epic chest.png", "rare shoulders.png"
+          let slotDisplayName = slotName;
+          if (slotName === 'accessory1' || slotName === 'accessory2') slotDisplayName = 'bracelet';
+          if (slotName === 'neck') slotDisplayName = 'necklace';
+          const imagePath = `assets/items/${rarity} ${slotDisplayName}.png`;
+          
+          return `
+            <div style="
+              width: 36px;
+              height: 36px;
+              background: rgba(40,40,50,0.9);
+              border: 2px solid ${rarityColor}60;
+              border-radius: 4px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: help;
+              margin-bottom: 4px;
+              overflow: hidden;
+            " title="${slotName}: ${armorType}">
+              <img src="${imagePath}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${slotName.charAt(0).toUpperCase()}';" alt="${slotName}" />
+            </div>
+          `;
+        };
+        
+        return `
+          <div class="fighter-card" style="
+            flex: 1;
+            max-width: 350px;
+            min-width: 300px;
+            text-align: center;
+            background: rgba(20,20,30,0.6);
+            border: 4px solid ${rarityColor};
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+            cursor: pointer;
+            box-shadow: 0 0 15px ${rarityColor}40;
+            position: relative;
+          " onmouseover="
+            this.style.borderColor='${rarityColor}';
+            this.style.transform='translateY(-4px)';
+            this.style.boxShadow='0 8px 30px ${rarityColor}80';
+          " onmouseout="
+            this.style.borderColor='${rarityColor}';
+            this.style.transform='translateY(0)';
+            this.style.boxShadow='0 0 15px ${rarityColor}40';
+          " onclick="ui._assignLoadout('${slotId}', '${l.id}')">
+            
+            <!-- Rarity Banner -->
+            <div style="
+              position: absolute;
+              top: -2px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: ${rarityColor};
+              color: #000;
+              font-size: 11px;
+              font-weight: bold;
+              padding: 4px 16px;
+              border-radius: 0 0 8px 8px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            ">${rarityName}</div>
+            
+            <!-- Fighter Portrait with Armor Columns -->
+            <div style="
+              display: flex;
+              gap: 8px;
+              justify-content: center;
+              align-items: center;
+              margin: 8px auto 16px;
+            ">
+              <!-- Left Armor Column -->
+              <div style="display: flex; flex-direction: column; align-items: center;">
+                ${armorLeft.map(buildArmorIcon).join('')}
+              </div>
+              
+              <!-- Fighter Portrait -->
+              <div style="
+                width: 240px;
+                height: 240px;
+                background: linear-gradient(135deg, #333 0%, #222 100%);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #666;
+                font-size: 14px;
+                position: relative;
+                overflow: hidden;
+                border: 2px solid ${rarityColor}80;
+                filter: drop-shadow(0 0 20px ${rarityColor}60);
+              ">
+                ${l.fighterImage && l.fighterImage !== 'placeholder.png' && !l.fighterImage.includes('placeholder') ? 
+                  `<img src="assets/fighter player cards/${l.fighterImage}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${l.name || 'Fighter'}';"/>` :
+                  `${l.name || 'Fighter'}`
+                }
+                <!-- Level Badge (Top Left Corner) -->
+                <div style="position:absolute; top:8px; left:8px; width:36px; height:36px; border-radius:50%; background:#1a1a1a; border:3px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; color:#d4af37; box-shadow:0 4px 8px rgba(0,0,0,0.8);">1</div>
+                <div style="
+                  position: absolute;
+                  top: 8px;
+                  right: 8px;
+                  width: 40px;
+                  height: 40px;
+                  background: ${roleColor};
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 20px;
+                  border: 2px solid rgba(0,0,0,0.3);
+                ">${roleIcon}</div>
+              </div>
+              
+              <!-- Right Armor Column -->
+              <div style="display: flex; flex-direction: column; align-items: center;">
+                ${armorRight.map(buildArmorIcon).join('')}
+              </div>
+            </div>
+            
+            <!-- Fighter Name -->
+            <div style="
+              font-size: 22px;
+              font-weight: 900;
+              color: ${rarityColor};
+              margin-bottom: 8px;
+              text-shadow: 0 0 10px ${rarityColor}80;
+            ">${l.name || 'Unknown Fighter'}</div>
+            
+            <!-- Description -->
+            <div style="
+              font-size: 13px;
+              color: #aaa;
+              margin-bottom: 12px;
+              line-height: 1.4;
+              min-height: 40px;
+            ">${description}</div>
+            
+            <!-- Stats Display -->
+            <div style="
+              background: rgba(0,0,0,0.3);
+              border: 1px solid ${rarityColor}40;
+              border-radius: 6px;
+              padding: 8px;
+              margin-bottom: 12px;
+              font-size: 12px;
+            ">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                ${l.weapon?.weaponType ? `
+                  <div style="width: 32px; height: 32px; background: rgba(0,0,0,0.5); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid ${rarityColor};">
+                    <img src="assets/items/${rarity.charAt(0).toUpperCase() + rarity.slice(1)} ${l.weapon.weaponType}.png" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='⚔';" alt="${l.weapon.weaponType}" />
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="color: #8cf;"><b>${weapon}</b></div>
+                    <div style="color: ${rarityColor}; font-size: 10px;">+${enhancedAtk} ATK</div>
+                  </div>
+                ` : '<div style="color: #666;">No weapon</div>'}
+              </div>
+              <div style="color: #888; font-size: 10px;">
+                Rarity Bonus: ${rarity === 'legendary' ? '+100%' : rarity === 'epic' ? '+60%' : rarity === 'rare' ? '+30%' : rarity === 'uncommon' ? '+15%' : 'Base'}
+              </div>
+            </div>
+            
+            <!-- Abilities (Icons with Tooltips) -->
+            <div style="
+              display: flex;
+              gap: 8px;
+              justify-content: center;
+              margin-bottom: 12px;
+              padding: 8px;
+              background: rgba(0,0,0,0.3);
+              border-radius: 6px;
+            ">
+              ${abilities.slice(0, 5).map((abilityId, i) => {
+                const ABILITIES = window.ABILITIES || {};
+                const skillData = ABILITIES[abilityId];
+                const iconPath = skillData?.icon ? `assets/skill icons/${skillData.icon}` : '';
+                const abilityName = skillData?.name || abilityId;
+                const abilityDesc = skillData?.desc || 'No description';
+                const cooldown = skillData?.cd || 0;
+                const manaCost = skillData?.mana || 0;
+                
+                return `
+                  <div style="
+                    position: relative;
+                    width: 48px;
+                    height: 48px;
+                    background: rgba(40,40,50,0.8);
+                    border: 2px solid ${rarityColor}60;
+                    border-radius: 6px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: help;
+                    transition: all 0.2s;
+                  " 
+                  onmouseover="
+                    this.style.borderColor='${rarityColor}';
+                    this.style.transform='scale(1.1)';
+                    this.querySelector('.ability-tooltip').style.display='block';
+                  " 
+                  onmouseout="
+                    this.style.borderColor='${rarityColor}60';
+                    this.style.transform='scale(1)';
+                    this.querySelector('.ability-tooltip').style.display='none';
+                  ">
+                    <img src="${iconPath}" style="width: 40px; height: 40px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    <span style="color: #666; font-size: 14px; display:none;">${i+1}</span>
+                    
+                    <!-- Tooltip -->
+                    <div class="ability-tooltip" style="
+                      display: none;
+                      position: absolute;
+                      bottom: 100%;
+                      left: 50%;
+                      transform: translateX(-50%);
+                      background: rgba(10,10,15,0.95);
+                      border: 2px solid ${rarityColor};
+                      border-radius: 6px;
+                      padding: 8px 12px;
+                      min-width: 180px;
+                      z-index: 10001;
+                      pointer-events: none;
+                      margin-bottom: 8px;
+                      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+                      text-align: left;
+                    ">
+                      <div style="color: ${rarityColor}; font-weight: bold; font-size: 13px; margin-bottom: 4px;">${abilityName}</div>
+                      <div style="color: #aaa; font-size: 11px; line-height: 1.4; margin-bottom: 6px;">${abilityDesc}</div>
+                      <div style="color: #8cf; font-size: 10px;">
+                        ${cooldown > 0 ? `⏱ ${cooldown}s CD` : ''}
+                        ${manaCost > 0 ? ` • 💧 ${manaCost} Mana` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 8px;">
+              <button style="
+                flex: 1;
+                padding: 12px;
+                font-size: 14px;
+                font-weight: bold;
+                background: linear-gradient(135deg, ${rarityColor} 0%, ${rarityColor}cc 100%);
+                color: ${rarity === 'common' ? '#000' : '#fff'};
+                border: none;
+                cursor: pointer;
+                border-radius: 6px;
+                transition: all 0.2s;
+                text-shadow: ${rarity === 'common' ? 'none' : '0 1px 2px rgba(0,0,0,0.5)'};
+              " onmouseover="
+                this.style.background='linear-gradient(135deg, ${rarityColor}ff 0%, ${rarityColor} 100%)';
+                this.style.transform='translateY(-2px)';
+              " onmouseout="
+                this.style.background='linear-gradient(135deg, ${rarityColor} 0%, ${rarityColor}cc 100%)';
+                this.style.transform='translateY(0)';
+              " onclick="event.stopPropagation(); ui._assignLoadout('${slotId}', '${l.id}')">
+                ✓ SELECT
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+    
+    // Build all fighter cards
+    const allFighterCards = buildFighterCards(compatibleLoadouts);
+    
+    console.log('[LOADOUT PICKER] Building modal HTML...');
+    
+    // Build modal HTML (4 cards per row, hero selection style)
+    const modalHtml = `
+      <div id="loadoutPickerModal" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.98);
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 40px 20px;
+        overflow-y: auto;
+      " onclick="if(event.target.id === 'loadoutPickerModal') ui._closeLoadoutPicker()">
+        
+        <!-- Close Button (Top-Right) -->
+        <button style="
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          padding: 10px 24px;
+          font-size: 16px;
+          background: rgba(85,85,85,0.6);
+          color: #fff;
+          border: 2px solid rgba(212,175,55,0.3);
+          cursor: pointer;
+          border-radius: 6px;
+          font-weight: bold;
+          transition: all 0.3s;
+          z-index: 10001;
+        " onmouseover="
+          this.style.background='rgba(100,100,100,0.6)';
+          this.style.borderColor='rgba(212,175,55,0.5)';
+        " onmouseout="
+          this.style.background='rgba(85,85,85,0.6)';
+          this.style.borderColor='rgba(212,175,55,0.3)';
+        " onclick="event.stopPropagation(); ui._closeLoadoutPicker()">✕ Close</button>
+        
+        <!-- Header (matches hero selection) -->
+        <div style="
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          color: #fff;
+          font-size: 14px;
+          opacity: 0.7;
+        ">Press ESC to cancel</div>
+        
+        <h1 style="
+          color: #d4af37;
+          font-size: 48px;
+          font-weight: bold;
+          margin: 0 0 20px 0;
+          text-shadow: 0 0 20px rgba(212,175,55,0.5);
+        ">Select Fighter</h1>
+        
+        <div style="
+          color: #aaa;
+          font-size: 16px;
+          margin-bottom: 40px;
+          text-align: center;
+        ">
+          ${slotId} • ${slot.role.toUpperCase()} • ${compatibleLoadouts.length} Fighter${compatibleLoadouts.length !== 1 ? 's' : ''} Available
+        </div>
+        
+        <!-- Fighter Cards Grid (4 per row) -->
+        <div style="
+          display: flex;
+          flex-wrap: wrap;
+          gap: 40px;
+          align-items: flex-start;
+          justify-content: center;
+          max-width: 1800px;
+          width: 100%;
+          margin-bottom: 40px;
+        ">
+          ${allFighterCards}
+        </div>
+        
+        <!-- Hint Text -->
+        <div style="margin-top: 20px; text-align: center; font-size: 14px; color: #999; max-width: 600px;">
+          Click any fighter card to assign them to this slot
+        </div>
+      </div>
+    `;
+    
+    // Inject modal into DOM
+    const existingModal = document.getElementById('loadoutPickerModal');
+    if (existingModal) {
+      console.log('[LOADOUT PICKER] Removing existing modal');
+      existingModal.remove();
+    }
+    
+    console.log('[LOADOUT PICKER] Injecting modal HTML into body');
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Add ESC key listener (matching hero selection behavior)
+    ui._loadoutPickerEscHandler = (e) => {
+      if (e.key === 'Escape') {
+        ui._closeLoadoutPicker();
+        // Switch back to slots tab
+        const slotsTabBtn = document.querySelector('[data-tab="slots"]');
+        if (slotsTabBtn) slotsTabBtn.click();
+      }
+    };
+    window.addEventListener('keydown', ui._loadoutPickerEscHandler);
+    
+    console.log('[LOADOUT PICKER] Modal should be visible now');
+  };
+
+  // Close loadout picker
+  ui._closeLoadoutPicker = (event) => {
+    if (event && event.target !== event.currentTarget) return;
+    const modal = document.getElementById('loadoutPickerModal');
+    if (modal) {
+      modal.remove();
+      // Remove ESC key listener
+      if (ui._loadoutPickerEscHandler) {
+        window.removeEventListener('keydown', ui._loadoutPickerEscHandler);
+        ui._loadoutPickerEscHandler = null;
+      }
+    }
+  };
+
+  // Assign loadout to slot
+  ui._assignLoadout = (slotId, loadoutId) => {
+    if (window.SLOTS && window.SLOTS.assignLoadout) {
+      const result = window.SLOTS.assignLoadout(slotId, loadoutId);
+      if (result) {
+        ui._closeLoadoutPicker();
+        ui.renderSlotTab();
+        ui.toast('✅ Loadout assigned!');
+      }
+    }
+  };
+
+  // Show comprehensive fighter preview (full screen - redesigned layout)
+  ui._showFighterPreview = (loadoutId) => {
+    const LOADOUTS = window.LOADOUTS;
+    const ABILITIES = window.ABILITIES || {};
+    
+    if (!LOADOUTS) {
+      console.error('[PREVIEW] LOADOUTS not available');
+      return;
+    }
+
+    const loadout = LOADOUTS.getLoadout(loadoutId);
+    if (!loadout) {
+      console.error('[PREVIEW] Loadout not found:', loadoutId);
+      return;
+    }
+
+    // Get rarity info
+    const rarity = loadout.rarity || 'common';
+    const rarityColors = {
+      common: '#aaa',
+      uncommon: '#1eff00',
+      rare: '#0070dd',
+      epic: '#a335ee',
+      legendary: '#ff8000'
+    };
+    const rarityColor = rarityColors[rarity] || rarityColors.common;
+    const rarityName = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+
+    // Rarity multiplier for stats
+    const rarityMultipliers = {
+      common: 1,
+      uncommon: 1.2,
+      rare: 1.5,
+      epic: 2,
+      legendary: 3
+    };
+    const mult = rarityMultipliers[rarity] || 1;
+
+    // Calculate ALL combat stats from equipment
+    let totalAtk = 0, totalDef = 0, totalMaxHp = 0, totalMaxMana = 0;
+    let totalCritChance = 0, totalSpeed = 0, totalLifeSteal = 0, totalCDR = 0;
+    let totalHpRegen = 0, totalManaRegen = 0, totalStamRegen = 0, totalMaxStam = 0;
+    let totalBlock = 0, totalCritMult = 0;
+    
+    // Weapon stats
+    if (loadout.weapon?.buffs) {
+      const buffs = loadout.weapon.buffs;
+      totalAtk += Math.floor((buffs.atk || 0) * mult);
+      totalCritChance += (buffs.critChance || 0);
+      totalSpeed += (buffs.spd || buffs.speed || 0);
+      totalManaRegen += (buffs.manaRegen || 0);
+      totalHpRegen += (buffs.hpRegen || 0);
+    }
+
+    // Armor stats
+    if (loadout.armor) {
+      Object.values(loadout.armor).forEach(piece => {
+        if (piece?.buffs) {
+          const buffs = piece.buffs;
+          totalDef += Math.floor((buffs.def || 0) * mult);
+          totalMaxHp += Math.floor((buffs.maxHp || 0) * mult);
+          totalMaxMana += Math.floor((buffs.maxMana || 0) * mult);
+          totalMaxStam += Math.floor((buffs.maxStam || buffs.maxStamina || 0) * mult);
+          totalCritChance += (buffs.critChance || 0);
+          totalSpeed += (buffs.spd || buffs.speed || 0);
+          totalHpRegen += (buffs.hpRegen || 0);
+          totalManaRegen += (buffs.manaRegen || 0);
+          totalStamRegen += (buffs.stamRegen || buffs.staminaRegen || 0);
+          totalLifeSteal += (buffs.lifeSteal || buffs.lifesteal || 0);
+          totalCDR += (buffs.cdr || buffs.cooldownReduction || 0);
+          totalBlock += (buffs.block || 0);
+          totalCritMult += (buffs.critMult || buffs.critMultiplier || 0);
+        }
+      });
+    }
+
+    // Build left column items (weapon + armor pieces 1-5)
+    const buildLeftItems = () => {
+      let html = '';
+      
+      // Weapon first
+      if (loadout.weapon) {
+        const weaponType = loadout.weapon.weaponType || 'Unknown';
+        const weaponImagePath = `assets/items/${rarity} ${weaponType}.png`;
+        const attackBonus = Math.floor((loadout.weapon.buffs?.atk || 0) * mult);
+        
+        html += `
+          <div style="
+            width: 80px;
+            height: 80px;
+            background: rgba(0,0,0,0.9);
+            border: 3px solid ${rarityColor};
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+          " title="${weaponType}: +${attackBonus} ATK">
+            <img src="${weaponImagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:40px;>⚔</span>';" />
+            <div style="position: absolute; bottom: 2px; right: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; font-weight: bold; padding: 2px 4px; border-radius: 3px;">+${attackBonus}</div>
+          </div>
+        `;
+      }
+
+      // Armor pieces (first 5: helm, chest, shoulders, hands, belt)
+      if (loadout.armor) {
+        const leftSlots = ['helm', 'chest', 'shoulders', 'hands', 'belt'];
+        leftSlots.forEach(slotName => {
+          const piece = loadout.armor[slotName];
+          if (!piece) return;
+          
+          const slotDisplayName = slotName === 'neck' ? 'necklace' : slotName;
+          const imagePath = `assets/items/${rarity} ${slotDisplayName}.png`;
+          
+          html += `
+            <div style="
+              width: 80px;
+              height: 80px;
+              background: rgba(0,0,0,0.9);
+              border: 3px solid ${rarityColor}80;
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+            " title="${slotName}">
+              <img src="${imagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:24px;>${slotName.charAt(0).toUpperCase()}</span>';" />
+            </div>
+          `;
+        });
+      }
+
+      return html;
+    };
+
+    // Build right column items (armor pieces 6-10)
+    const buildRightItems = () => {
+      let html = '';
+      
+      if (loadout.armor) {
+        const rightSlots = ['legs', 'feet', 'neck', 'accessory1', 'accessory2'];
+        rightSlots.forEach(slotName => {
+          const piece = loadout.armor[slotName];
+          if (!piece) return;
+          
+          let slotDisplayName = slotName;
+          if (slotName === 'accessory1' || slotName === 'accessory2') slotDisplayName = 'bracelet';
+          if (slotName === 'neck') slotDisplayName = 'necklace';
+          const imagePath = `assets/items/${rarity} ${slotDisplayName}.png`;
+          
+          html += `
+            <div style="
+              width: 80px;
+              height: 80px;
+              background: rgba(0,0,0,0.9);
+              border: 3px solid ${rarityColor}80;
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+            " title="${slotName}">
+              <img src="${imagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:24px;>${slotName.charAt(0).toUpperCase()}</span>';" />
+            </div>
+          `;
+        });
+      }
+
+      return html;
+    };
+
+    // Build abilities row for bottom border
+    const buildBottomAbilities = () => {
+      let html = '';
+      
+      if (loadout.abilities && loadout.abilities.length > 0) {
+        const uniqueAbilities = [...new Set(loadout.abilities)];
+        uniqueAbilities.slice(0, 5).forEach((abilityId, index) => {
+          const ability = ABILITIES[abilityId];
+          if (ability) {
+            const iconPath = ability.icon ? `assets/skill icons/${ability.icon}` : '';
+            const cooldown = ability.cd || 0;
+            const manaCost = ability.mana || 0;
+            
+            html += `
+              <div style="
+                width: 80px;
+                height: 80px;
+                background: rgba(0,0,0,0.9);
+                border: 3px solid ${rarityColor};
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                position: relative;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+              " title="${ability.name}&#10;Mana: ${manaCost} | CD: ${cooldown}s">
+                <img src="${iconPath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:24px;color:#666;>${index + 1}</span>';" />
+                <div style="position: absolute; bottom: 2px; left: 4px; background: rgba(0,0,0,0.8); color: #4af; font-size: 9px; font-weight: bold; padding: 2px 4px; border-radius: 3px;">${manaCost}💧</div>
+                <div style="position: absolute; bottom: 2px; right: 4px; background: rgba(0,0,0,0.8); color: #fa8; font-size: 9px; font-weight: bold; padding: 2px 4px; border-radius: 3px;">${cooldown}s</div>
+              </div>
+            `;
+          }
+        });
+      }
+      
+      return html;
+    };
+
+    const critMultDisplay = totalCritMult > 0 ? totalCritMult.toFixed(2) : '1.70';
+    const blockDisplay = totalBlock > 0 ? totalBlock : 50;
+
+    // Build creative fighter lore/strategy box
+    const buildFighterLore = () => {
+      const roleStrategies = {
+        tank: {
+          title: '🛡️ FRONTLINE DEFENDER',
+          style: 'Masters of protection and battlefield control',
+          strengths: ['High survivability', 'Crowd control', 'Threat generation'],
+          playstyle: 'Engage first, lock down enemies, protect allies from harm'
+        },
+        dps: {
+          title: '⚔️ DAMAGE DEALER',
+          style: 'Elite warriors focused on devastating offense',
+          strengths: ['High damage output', 'Burst windows', 'Target elimination'],
+          playstyle: 'Focus priority targets, maximize burst damage, maintain pressure'
+        },
+        healer: {
+          title: '💚 TEAM SUSTAINER',
+          style: 'Vital support keeping allies alive',
+          strengths: ['Emergency healing', 'Shielding', 'Debuff cleansing'],
+          playstyle: 'Monitor health bars, shield before damage, cleanse debuffs quickly'
+        }
+      };
+      
+      const roleInfo = roleStrategies[loadout.role] || roleStrategies.dps;
+      const characterDesc = loadout.description || `A skilled ${loadout.class} specialized in ${loadout.role} combat.`;
+      
+      // Count ability types for combo info
+      const uniqueAbilities = [...new Set(loadout.abilities)];
+      const slotCounts = {};
+      loadout.abilities.forEach(abilityId => {
+        slotCounts[abilityId] = (slotCounts[abilityId] || 0) + 1;
+      });
+      
+      const multiSlotted = Object.entries(slotCounts).filter(([id, count]) => count > 1);
+      
+      return `
+        <div style="
+          position: absolute;
+          left: -460px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 380px;
+          background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));
+          border: 3px solid ${rarityColor};
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 0 40px ${rarityColor}60;
+          z-index: 5;
+        ">
+          <div style="
+            font-size: 18px;
+            font-weight: bold;
+            color: ${rarityColor};
+            margin-bottom: 12px;
+            text-align: center;
+            border-bottom: 2px solid ${rarityColor};
+            padding-bottom: 8px;
+          ">
+            ${roleInfo.title}
+          </div>
+          
+          <div style="color: #ccc; font-size: 13px; line-height: 1.6; margin-bottom: 16px; font-style: italic; text-align: center;">
+            "${characterDesc}"
+          </div>
+          
+          <div style="margin-bottom: 16px;">
+            <div style="color: #d4af37; font-size: 12px; font-weight: bold; margin-bottom: 8px;">✨ FIGHTING STYLE</div>
+            <div style="color: #aaa; font-size: 11px; line-height: 1.5;">${roleInfo.style}</div>
+          </div>
+          
+          <div style="margin-bottom: 16px;">
+            <div style="color: #d4af37; font-size: 12px; font-weight: bold; margin-bottom: 8px;">💪 STRENGTHS</div>
+            ${roleInfo.strengths.map(s => `<div style="color: #8f8; font-size: 11px; margin-bottom: 4px;">• ${s}</div>`).join('')}
+          </div>
+          
+          <div style="margin-bottom: 16px;">
+            <div style="color: #d4af37; font-size: 12px; font-weight: bold; margin-bottom: 8px;">🎯 COMBAT TACTICS</div>
+            <div style="color: #8cf; font-size: 11px; line-height: 1.5;">${roleInfo.playstyle}</div>
+          </div>
+          
+          ${multiSlotted.length > 0 ? `
+            <div style="
+              background: rgba(212,175,55,0.1);
+              border: 1px solid ${rarityColor}40;
+              border-radius: 6px;
+              padding: 10px;
+              margin-top: 12px;
+            ">
+              <div style="color: #d4af37; font-size: 11px; font-weight: bold; margin-bottom: 6px;">⚡ COMBO SYSTEM</div>
+              <div style="color: #fa8; font-size: 10px; line-height: 1.4;">
+                ${multiSlotted.length} ${multiSlotted.length === 1 ? 'ability' : 'abilities'} multi-slotted for reduced cooldown!
+              </div>
+            </div>
+          ` : ''}
+          
+          <div style="
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid ${rarityColor}40;
+            color: #888;
+            font-size: 10px;
+            text-align: center;
+          ">
+            ${uniqueAbilities.length} unique abilities • ${loadout.abilities.length} total slots
+          </div>
+        </div>
+      `;
+    };
+
+    // Build modal with new layout: name at top (no overlap), centered side panels, larger stats
+    const modalHtml = `
+      <div id="fighterPreviewModal" class="overlay" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        
+        <!-- Close Button (Top Right) -->
+        <button style="
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          width: 48px;
+          height: 48px;
+          background: rgba(40,40,40,0.9);
+          border: 2px solid ${rarityColor};
+          border-radius: 50%;
+          color: #fff;
+          font-size: 24px;
+          cursor: pointer;
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        " onclick="ui._closeFighterPreview()" onmouseover="this.style.background='rgba(60,60,60,0.9)'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(40,40,40,0.9)'; this.style.transform='scale(1)';" title="Close (ESC)">
+          ✕
+        </button>
+        
+        <!-- Main Content Container -->
+        <div style="
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+        ">
+          
+          <!-- Dramatic Fighter Name (At Top Border - No Overlap) -->
+          <div style="
+            font-size: 48px;
+            font-weight: 900;
+            color: ${rarityColor};
+            text-shadow: 0 0 20px ${rarityColor}, 0 0 40px ${rarityColor}, 0 4px 8px rgba(0,0,0,0.8);
+            text-align: center;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            border: 4px solid ${rarityColor};
+            padding: 16px 48px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));
+            border-radius: 16px;
+            box-shadow: 0 0 40px ${rarityColor}80, inset 0 0 20px ${rarityColor}20;
+            margin-bottom: 0;
+            white-space: nowrap;
+          ">
+            ${loadout.name}
+          </div>
+          
+          <!-- Main Fighter Display Area with Side Panels -->
+          <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+          
+            <!-- Fighter Lore Box (Left Side - Centered) -->
+            ${buildFighterLore()}
+            
+            <!-- Left Items Column (overlapping left border) -->
+            <div style="
+              position: absolute;
+              left: -40px;
+              top: 50%;
+              transform: translateY(-50%);
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              z-index: 10;
+            ">
+              ${buildLeftItems()}
+            </div>
+            
+            <!-- Fighter Image Center -->
+            <div style="
+              width: 600px;
+              height: 600px;
+              border: 6px solid ${rarityColor};
+              border-radius: 16px;
+              overflow: hidden;
+              box-shadow: 0 0 60px ${rarityColor}60, inset 0 0 40px rgba(0,0,0,0.5);
+              background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              position: relative;
+            ">
+              <img 
+                src="assets/fighter player cards/${loadout.fighterImage || 'default.png'}" 
+                style="
+                  max-width: 100%;
+                  max-height: 100%;
+                  object-fit: contain;
+                "
+                onerror="this.style.display='none'; this.parentElement.innerHTML+='<div style=color:#666;font-size:72px;>👤</div>';"
+              />
+            </div>
+            
+            <!-- Right Items Column (overlapping right border) -->
+            <div style="
+              position: absolute;
+              right: -40px;
+              top: 50%;
+              transform: translateY(-50%);
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              z-index: 10;
+            ">
+              ${buildRightItems()}
+            </div>
+            
+            <!-- Bottom Abilities Row (overlapping bottom border) -->
+            <div style="
+              position: absolute;
+              bottom: -40px;
+              left: 50%;
+              transform: translateX(-50%);
+              display: flex;
+              gap: 8px;
+              z-index: 10;
+            ">
+              ${buildBottomAbilities()}
+            </div>
+          </div>
+          
+          <!-- All Stats in White Text (Right Side - Centered, No Scrollbar) -->
+          <div style="
+            position: absolute;
+            right: -460px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 380px;
+            background: rgba(0,0,0,0.95);
+            border: 3px solid ${rarityColor};
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 0 40px ${rarityColor}60;
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+          ">
+            <div style="
+              color: #fff;
+              font-size: 18px;
+              font-weight: bold;
+              margin-bottom: 16px;
+              text-align: center;
+              border-bottom: 2px solid ${rarityColor};
+              padding-bottom: 8px;
+            ">
+              ⚔️ STATISTICS ⚔️
+            </div>
+            
+            <div style="color: #fff; font-size: 14px;">
+              <div style="margin-bottom: 18px;">
+                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">⚔️ OFFENSE</div>
+                <div style="margin-bottom: 8px;"><b>⚔ Attack:</b> +${totalAtk}</div>
+                <div style="margin-bottom: 8px;"><b>🎯 Crit Chance:</b> ${totalCritChance}%</div>
+                <div style="margin-bottom: 8px;"><b>💥 Crit Mult:</b> ${critMultDisplay}</div>
+                <div style="margin-bottom: 8px;"><b>🩸 Lifesteal:</b> ${totalLifeSteal}%</div>
+              </div>
+              
+              <div style="margin-bottom: 18px;">
+                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">🛡️ DEFENSE</div>
+                <div style="margin-bottom: 8px;"><b>🛡 Defense:</b> +${totalDef}</div>
+                <div style="margin-bottom: 8px;"><b>❤ Max HP:</b> +${totalMaxHp}</div>
+                <div style="margin-bottom: 8px;"><b>💓 HP Regen:</b> ${totalHpRegen.toFixed(1)}/s</div>
+                <div style="margin-bottom: 8px;"><b>🛡 Block:</b> ${blockDisplay}%</div>
+              </div>
+              
+              <div style="margin-bottom: 18px;">
+                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">💧 RESOURCES</div>
+                <div style="margin-bottom: 8px;"><b>💧 Max Mana:</b> +${totalMaxMana}</div>
+                <div style="margin-bottom: 8px;"><b>💦 Mana Regen:</b> ${totalManaRegen.toFixed(1)}/s</div>
+                <div style="margin-bottom: 8px;"><b>🏃 Max Stamina:</b> +${totalMaxStam}</div>
+                <div style="margin-bottom: 8px;"><b>⚡ Stam Regen:</b> ${totalStamRegen.toFixed(1)}/s</div>
+              </div>
+              
+              <div style="margin-bottom: 18px;">
+                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">⚡ UTILITY</div>
+                <div style="margin-bottom: 8px;"><b>⚡ Speed:</b> +${totalSpeed}</div>
+                <div style="margin-bottom: 8px;"><b>⏱ CDR:</b> ${totalCDR}%</div>
+              </div>
+              
+              <div style="
+                background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(0,0,0,0.4));
+                border: 2px solid ${rarityColor};
+                border-radius: 8px;
+                padding: 12px;
+                text-align: center;
+                margin-top: auto;
+              ">
+                <div style="color: ${rarityColor}; font-size: 16px; font-weight: bold; margin-bottom: 4px;">⭐ ${rarityName.toUpperCase()}</div>
+                <div style="color: #fff; font-size: 12px;">Stats Multiplier: ×${mult}</div>
+                <div style="color: #888; font-size: 11px; margin-top: 4px;">${loadout.class}</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Role & Class Badge -->
+          <div style="
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            font-weight: bold;
+            color: #FFD700;
+            background: linear-gradient(135deg, ${rarityColor}, ${rarityColor}cc);
+            padding: 8px 24px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            letter-spacing: 2px;
+            z-index: 15;
+          ">
+            ${loadout.role.toUpperCase()} • ${loadout.class.toUpperCase()}
+          </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Inject modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Add ESC listener
+    ui._fighterPreviewEscHandler = (e) => {
+      if (e.key === 'Escape') {
+        ui._closeFighterPreview();
+      }
+    };
+    window.addEventListener('keydown', ui._fighterPreviewEscHandler);
+
+    // Add click-outside-to-close listener
+    ui._fighterPreviewClickHandler = (e) => {
+      const modal = document.getElementById('fighterPreviewModal');
+      if (modal && e.target === modal) {
+        ui._closeFighterPreview();
+      }
+    };
+    const modal = document.getElementById('fighterPreviewModal');
+    if (modal) {
+      modal.addEventListener('click', ui._fighterPreviewClickHandler);
+    }
+  };
+
+  // Close fighter preview
+  ui._closeFighterPreview = () => {
+    const modal = document.getElementById('fighterPreviewModal');
+    if (modal) {
+      modal.remove();
+      if (ui._fighterPreviewEscHandler) {
+        window.removeEventListener('keydown', ui._fighterPreviewEscHandler);
+        ui._fighterPreviewEscHandler = null;
+      }
+    }
+  };
+  
+  // Attach hover tooltips to slot cards
+  ui._attachSlotTooltips = () => {
+    const slotCards = document.querySelectorAll('.slot-card');
+    
+    slotCards.forEach(card => {
+      const slotId = card.dataset.slotId;
+      if (!slotId) return;
+      
+      // Find the slot
+      const slot = (state.slotSystem?.guards || []).find(s => s.id === slotId) ||
+                   (state.slotSystem?.allies || []).find(s => s.id === slotId);
+      
+      if (!slot || !slot.loadoutId) return;
+      
+      // Get loadout data
+      const loadout = window.LOADOUTS?.getLoadout(slot.loadoutId);
+      if (!loadout) return;
+      
+      // Create tooltip on mouseenter
+      card.addEventListener('mouseenter', (e) => {
+        const tooltip = ui._createLoadoutTooltip(loadout, slot);
+        document.body.appendChild(tooltip);
+        card._tooltip = tooltip;
+      });
+      
+      // Update tooltip position on mousemove
+      card.addEventListener('mousemove', (e) => {
+        if (card._tooltip) {
+          card._tooltip.style.left = (e.clientX + 15) + 'px';
+          card._tooltip.style.top = (e.clientY + 15) + 'px';
+        }
+      });
+      
+      // Remove tooltip on mouseleave
+      card.addEventListener('mouseleave', () => {
+        if (card._tooltip) {
+          card._tooltip.remove();
+          card._tooltip = null;
+        }
+      });
+    });
+  };
+  
+  // Create detailed loadout tooltip
+  ui._createLoadoutTooltip = (loadout, slot) => {
+    const tooltip = document.createElement('div');
+    tooltip.style.cssText = `
+      position: fixed;
+      background: linear-gradient(135deg, rgba(20,20,20,0.98) 0%, rgba(10,10,10,0.98) 100%);
+      border: 2px solid #d4af37;
+      border-radius: 8px;
+      padding: 12px;
+      min-width: 280px;
+      max-width: 350px;
+      z-index: 100000;
+      pointer-events: none;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+    `;
+    
+    const roleColor = slot.role === 'tank' ? '#ff8c00' : 
+                      slot.role === 'dps' ? '#ff4444' :
+                      slot.role === 'healer' ? '#44ff44' : '#aa44ff';
+    
+    // Build abilities list
+    const abilities = [];
+    if (loadout.ability1) abilities.push(loadout.ability1);
+    if (loadout.ability2) abilities.push(loadout.ability2);
+    if (loadout.ability3) abilities.push(loadout.ability3);
+    if (loadout.ability4) abilities.push(loadout.ability4);
+    
+    const abilityHTML = abilities.map(a => `
+      <div style="margin-bottom: 6px; padding: 4px; background: rgba(255,255,255,0.05); border-radius: 3px;">
+        <div style="font-weight: bold; color: #6cf; font-size: 11px;">${a.name}</div>
+        <div style="color: #999; font-size: 10px;">${a.description || 'No description'}</div>
+        ${a.cooldown ? `<div style="color: #888; font-size: 9px;">Cooldown: ${a.cooldown}s</div>` : ''}
+      </div>
+    `).join('');
+    
+    // Build combo plan
+    const comboHTML = loadout.combo ? `
+      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div style="font-weight: bold; color: #ff8c00; font-size: 11px; margin-bottom: 4px;">Combo Plan:</div>
+        <div style="color: #ccc; font-size: 10px; line-height: 1.4;">${loadout.combo}</div>
+      </div>
+    ` : '';
+    
+    // Build stats
+    const stats = loadout.stats || {};
+    const statsHTML = stats.maxHP || stats.baseDamage || stats.defense ? `
+      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div style="font-weight: bold; color: #6cf; font-size: 11px; margin-bottom: 4px;">Base Stats:</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; font-size: 10px;">
+          ${stats.maxHP ? `<div style="color: #44ff44;">HP: ${stats.maxHP}</div>` : ''}
+          ${stats.baseDamage ? `<div style="color: #ff4444;">DMG: ${stats.baseDamage}</div>` : ''}
+          ${stats.defense ? `<div style="color: #ff8c00;">DEF: ${stats.defense}</div>` : ''}
+          ${stats.critChance ? `<div style="color: #ffff44;">CRIT: ${(stats.critChance * 100).toFixed(0)}%</div>` : ''}
+        </div>
+      </div>
+    ` : '';
+    
+    tooltip.innerHTML = `
+      <!-- Header -->
+      <div style="margin-bottom: 8px;">
+        <div style="font-size: 14px; font-weight: bold; color: #d4af37;">${loadout.name}</div>
+        <div style="font-size: 10px; color: ${roleColor};">${slot.role.toUpperCase()} • Level ${slot.level || 0}</div>
+      </div>
+      
+      <!-- Weapon -->
+      <div style="margin-bottom: 8px; padding: 4px; background: rgba(212,175,55,0.1); border-radius: 3px;">
+        <div style="font-size: 10px; color: #d4af37;">⚔ ${loadout.weapon?.name || loadout.weapon || 'Unarmed'}</div>
+      </div>
+      
+      <!-- Abilities -->
+      <div style="margin-bottom: 4px;">
+        <div style="font-weight: bold; color: #fff; font-size: 11px; margin-bottom: 4px;">Abilities:</div>
+        ${abilityHTML}
+      </div>
+      
+      ${comboHTML}
+      ${statsHTML}
+    `;
+    
+    return tooltip;
   };
   
   // Select group member for detailed management

@@ -405,10 +405,31 @@ export function spawnGuardsForSite(state, site, count=5){
   const applyClassToUnit = state._npcUtils?.applyClassToUnit;
   const npcInitAbilities = state._npcUtils?.npcInitAbilities;
   
-  // Enforce a hard cap of 5 guards per site
+  // SLOT SYSTEM: Determine how many guards can spawn based on unlocked slots
+  let maxGuardsAllowed = 0;
+  let slotData = null;
+  
+  if (site.owner === 'player') {
+    // Player team: check unlocked guard slots
+    slotData = state.slotSystem?.guards || [];
+    maxGuardsAllowed = slotData.filter(s => s.unlocked).length;
+    console.log('[spawnGuardsForSite] Player team - unlocked guard slots:', maxGuardsAllowed);
+  } else if (site.owner === 'teamA' || site.owner === 'teamB' || site.owner === 'teamC') {
+    // AI team: mirror player's unlocked slots
+    const teamKey = site.owner; // 'teamA', 'teamB', or 'teamC'
+    slotData = state.slotSystem?.aiTeams?.[teamKey]?.guards || [];
+    maxGuardsAllowed = slotData.filter(s => s.unlocked).length;
+    console.log(`[spawnGuardsForSite] ${site.owner} - mirrored unlocked guard slots:`, maxGuardsAllowed);
+  } else {
+    // Fallback for other teams (shouldn't happen in normal gameplay)
+    maxGuardsAllowed = 5;
+    console.log('[spawnGuardsForSite] Unknown team, defaulting to 5 guards');
+  }
+  
+  // Count current guards at this site
   const currentGuards = state.friendlies.filter(f=>f.guard && f.homeSiteId===site.id && f.respawnT<=0).length + (site.guardRespawns?.length||0);
-  const remaining = Math.max(0, 5 - currentGuards);
-  console.log('[spawnGuardsForSite] currentGuards:', currentGuards, 'remaining:', remaining);
+  const remaining = Math.max(0, maxGuardsAllowed - currentGuards);
+  console.log('[spawnGuardsForSite] currentGuards:', currentGuards, 'maxAllowed:', maxGuardsAllowed, 'remaining:', remaining);
   
   if(remaining<=0) {
     console.log('[spawnGuardsForSite] No slots remaining, returning');

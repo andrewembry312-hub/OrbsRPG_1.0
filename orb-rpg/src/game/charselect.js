@@ -1,5 +1,3 @@
-import { getAssetPath } from "../config.js";
-
 export function showCharSelect(state, onPick, inGame=false){
   console.log('showCharSelect: creating overlay');
   const root = document.getElementById('ui-root');
@@ -18,7 +16,7 @@ export function showCharSelect(state, onPick, inGame=false){
         
         <!-- MAGE -->
         <div style="flex:1; max-width:350px; text-align:center; background:rgba(20,20,30,0.6); border:2px solid rgba(212,175,55,0.3); border-radius:12px; padding:24px; transition:all 0.3s; cursor:pointer;" onmouseover="this.style.borderColor='rgba(212,175,55,0.7)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.borderColor='rgba(212,175,55,0.3)'; this.style.transform='translateY(0)';">
-          <img src="${getAssetPath('assets/char/New Mage.png')}" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(100,150,255,0.4));"/>
+          <img src="assets/char/New Mage.png" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(100,150,255,0.4));"/>
           <div style="font-size:28px; font-weight:900; color:#d4af37; margin-bottom:8px;">MAGE</div>
           <div style="font-size:14px; color:#aaa; margin-bottom:16px; line-height:1.6;">High mana, ranged power.<br/>Healing & support specialist.</div>
           <div id="stats-mage" style="display:none; font-size:13px; color:#8cf; margin-bottom:16px; line-height:1.8; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; border:1px solid rgba(136,204,255,0.3);"></div>
@@ -30,7 +28,7 @@ export function showCharSelect(state, onPick, inGame=false){
         
         <!-- WARRIOR -->
         <div style="flex:1; max-width:350px; text-align:center; background:rgba(20,20,30,0.6); border:2px solid rgba(212,175,55,0.3); border-radius:12px; padding:24px; transition:all 0.3s; cursor:pointer;" onmouseover="this.style.borderColor='rgba(212,175,55,0.7)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.borderColor='rgba(212,175,55,0.3)'; this.style.transform='translateY(0)';">
-          <img src="${getAssetPath('assets/char/New Warrior.png')}" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(255,100,100,0.4));"/>
+          <img src="assets/char/New Warrior.png" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(255,100,100,0.4));"/>
           <div style="font-size:28px; font-weight:900; color:#d4af37; margin-bottom:8px;">WARRIOR</div>
           <div style="font-size:14px; color:#aaa; margin-bottom:16px; line-height:1.6;">Balanced fighter.<br/>Steady damage & versatility.</div>
           <div id="stats-warrior" style="display:none; font-size:13px; color:#f88; margin-bottom:16px; line-height:1.8; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; border:1px solid rgba(255,136,136,0.3);"></div>
@@ -42,7 +40,7 @@ export function showCharSelect(state, onPick, inGame=false){
         
         <!-- KNIGHT -->
         <div style="flex:1; max-width:350px; text-align:center; background:rgba(20,20,30,0.6); border:2px solid rgba(212,175,55,0.3); border-radius:12px; padding:24px; transition:all 0.3s; cursor:pointer;" onmouseover="this.style.borderColor='rgba(212,175,55,0.7)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.borderColor='rgba(212,175,55,0.3)'; this.style.transform='translateY(0)';">
-          <img src="${getAssetPath('assets/char/New Knight.png')}" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(150,255,150,0.4));"/>
+          <img src="assets/char/New Knight.png" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(150,255,150,0.4));"/>
           <div style="font-size:28px; font-weight:900; color:#d4af37; margin-bottom:8px;">KNIGHT</div>
           <div style="font-size:14px; color:#aaa; margin-bottom:16px; line-height:1.6;">Tough defender.<br/>Good sustain & armor.</div>
           <div id="stats-knight" style="display:none; font-size:13px; color:#8f8; margin-bottom:16px; line-height:1.8; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; border:1px solid rgba(136,255,136,0.3);"></div>
@@ -54,7 +52,7 @@ export function showCharSelect(state, onPick, inGame=false){
         
         <!-- WARDEN -->
         <div style="flex:1; max-width:350px; text-align:center; background:rgba(20,20,30,0.6); border:2px solid rgba(212,175,55,0.3); border-radius:12px; padding:24px; transition:all 0.3s; cursor:pointer;" onmouseover="this.style.borderColor='rgba(212,175,55,0.7)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.borderColor='rgba(212,175,55,0.3)'; this.style.transform='translateY(0)';">
-          <img src="${getAssetPath('assets/char/New Warden.png')}" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(255,200,100,0.4));"/>
+          <img src="assets/char/New Warden.png" style="width:280px; height:280px; object-fit:contain; margin-bottom:16px; filter:drop-shadow(0 0 20px rgba(255,200,100,0.4));"/>
           <div style="font-size:28px; font-weight:900; color:#d4af37; margin-bottom:8px;">WARDEN</div>
           <div style="font-size:14px; color:#aaa; margin-bottom:16px; line-height:1.6;">Massive HP.<br/>Ultimate defense & survival.</div>
           <div id="stats-warden" style="display:none; font-size:13px; color:#fc8; margin-bottom:16px; line-height:1.8; background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; border:1px solid rgba(255,204,136,0.3);"></div>
