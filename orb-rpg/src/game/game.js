@@ -6,6 +6,7 @@ import { SKILLS, getSkillById, getAbilityById, DOT_REGISTRY, BUFF_REGISTRY, defa
 import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, updateWallDamage, updateFlagHealth, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
 import { META_LOADOUTS } from "./loadouts.js";
 import { LEVEL_CONFIG, getZoneForPosition, scaleAllyToPlayerLevel } from "./leveling.js";
+import { getAssetPath } from "../config.js";
 
 // Enemy / spawn tuning
 const MAX_DEFENDERS_PER_TEAM = 10; // non-guard fighters per team (excludes guards)
@@ -197,89 +198,90 @@ export async function initGame(state){
   
   // Initialize walking sound
   if(!state.sounds) state.sounds = {};
+  const createAudio = (path) => new Audio(getAssetPath(path));
   if(!state.sounds.walking){
-    state.sounds.walking = new Audio('assets/sounds/Walking_in_grass.wav');
+    state.sounds.walking = createAudio('assets/sounds/Walking_in_grass.wav');
     state.sounds.walking.loop = true;
     state.sounds.walking.volume = 0.3;
   }
   if(!state.sounds.meleeAttack){
-    state.sounds.meleeAttack = new Audio('assets/sounds/melee_sword_attacks.wav');
+    state.sounds.meleeAttack = createAudio('assets/sounds/melee_sword_attacks.wav');
     state.sounds.meleeAttack.volume = 0.4;
   }
   if(!state.sounds.staffAttack){
-    state.sounds.staffAttack = new Audio('assets/sounds/magic_staffs_attacks.mp3');
+    state.sounds.staffAttack = createAudio('assets/sounds/magic_staffs_attacks.mp3');
     state.sounds.staffAttack.volume = 0.3;
   }
   if(!state.sounds.meteorSlam){
-    state.sounds.meteorSlam = new Audio('assets/sounds/Meteor_Slam.wav');
+    state.sounds.meteorSlam = createAudio('assets/sounds/Meteor_Slam.wav');
     state.sounds.meteorSlam.volume = 0.5;
   }
   if(!state.sounds.magicalRockSpell){
-    state.sounds.magicalRockSpell = new Audio('assets/sounds/magical-rock-spell.mp3');
+    state.sounds.magicalRockSpell = createAudio('assets/sounds/magical-rock-spell.mp3');
     state.sounds.magicalRockSpell.volume = 0.45;
   }
   if(!state.sounds.elementalImpact){
-    state.sounds.elementalImpact = new Audio('assets/sounds/elemental-magic-spell-impact-outgoing-228342.mp3');
+    state.sounds.elementalImpact = createAudio('assets/sounds/elemental-magic-spell-impact-outgoing-228342.mp3');
     state.sounds.elementalImpact.volume = 0.5;
   }
   if(!state.sounds.magicalRockSpellAlt){
-    state.sounds.magicalRockSpellAlt = new Audio('assets/sounds/magical-rock-spell-190273.mp3');
+    state.sounds.magicalRockSpellAlt = createAudio('assets/sounds/magical-rock-spell-190273.mp3');
     state.sounds.magicalRockSpellAlt.volume = 0.45;
   }
   if(!state.sounds.magicalWhooshFast){
-    state.sounds.magicalWhooshFast = new Audio('assets/sounds/magical-whoosh-355988.mp3');
+    state.sounds.magicalWhooshFast = createAudio('assets/sounds/magical-whoosh-355988.mp3');
     state.sounds.magicalWhooshFast.volume = 0.5;
   }
   if(!state.sounds.bufferSpell){
-    state.sounds.bufferSpell = new Audio('assets/sounds/buffer-spell-88994.mp3');
+    state.sounds.bufferSpell = createAudio('assets/sounds/buffer-spell-88994.mp3');
     state.sounds.bufferSpell.volume = 0.5;
   }
   if(!state.sounds.castingMagic1){
-    state.sounds.castingMagic1 = new Audio('assets/sounds/casting-magic-1-382382.mp3');
+    state.sounds.castingMagic1 = createAudio('assets/sounds/casting-magic-1-382382.mp3');
     state.sounds.castingMagic1.volume = 0.5;
   }
   if(!state.sounds.castingMagic2){
-    state.sounds.castingMagic2 = new Audio('assets/sounds/casting-magic-2-382383.mp3');
+    state.sounds.castingMagic2 = createAudio('assets/sounds/casting-magic-2-382383.mp3');
     state.sounds.castingMagic2.volume = 0.5;
   }
   if(!state.sounds.castingMagic3){
-    state.sounds.castingMagic3 = new Audio('assets/sounds/casting-magic-3-382381.mp3');
+    state.sounds.castingMagic3 = createAudio('assets/sounds/casting-magic-3-382381.mp3');
     state.sounds.castingMagic3.volume = 0.5;
   }
   if(!state.sounds.castingMagic4){
-    state.sounds.castingMagic4 = new Audio('assets/sounds/casting-magic-4-382380.mp3');
+    state.sounds.castingMagic4 = createAudio('assets/sounds/casting-magic-4-382380.mp3');
     state.sounds.castingMagic4.volume = 0.5;
   }
   if(!state.sounds.castingMagic5){
-    state.sounds.castingMagic5 = new Audio('assets/sounds/casting-magic-5-382378.mp3');
+    state.sounds.castingMagic5 = createAudio('assets/sounds/casting-magic-5-382378.mp3');
     state.sounds.castingMagic5.volume = 0.5;
   }
   if(!state.sounds.enchantedCast){
-    state.sounds.enchantedCast = new Audio('assets/sounds/enchanted-spell-casting-229208.mp3');
+    state.sounds.enchantedCast = createAudio('assets/sounds/enchanted-spell-casting-229208.mp3');
     state.sounds.enchantedCast.volume = 0.5;
   }
   if(!state.sounds.magicalSpellCast){
-    state.sounds.magicalSpellCast = new Audio('assets/sounds/magical-spell-cast-190272.mp3');
+    state.sounds.magicalSpellCast = createAudio('assets/sounds/magical-spell-cast-190272.mp3');
     state.sounds.magicalSpellCast.volume = 0.5;
   }
   if(!state.sounds.magicalWhooshAlt){
-    state.sounds.magicalWhooshAlt = new Audio('assets/sounds/magical-whoosh-148459.mp3');
+    state.sounds.magicalWhooshAlt = createAudio('assets/sounds/magical-whoosh-148459.mp3');
     state.sounds.magicalWhooshAlt.volume = 0.5;
   }
   if(!state.sounds.magicSpell353606){
-    state.sounds.magicSpell353606 = new Audio('assets/sounds/magic-spell-353606.mp3');
+    state.sounds.magicSpell353606 = createAudio('assets/sounds/magic-spell-353606.mp3');
     state.sounds.magicSpell353606.volume = 0.5;
   }
   if(!state.sounds.treeBurn){
-    state.sounds.treeBurn = new Audio('assets/sounds/tree-falls-and-burns-down-100283.mp3');
+    state.sounds.treeBurn = createAudio('assets/sounds/tree-falls-and-burns-down-100283.mp3');
     state.sounds.treeBurn.volume = 0.55;
   }
   if(!state.sounds.healingSpell1){
-    state.sounds.healingSpell1 = new Audio('assets/sounds/Healing spell 1.mp3');
+    state.sounds.healingSpell1 = createAudio('assets/sounds/Healing spell 1.mp3');
     state.sounds.healingSpell1.volume = 0.5;
   }
   if(!state.sounds.magicSpell6005){
-    state.sounds.magicSpell6005 = new Audio('assets/sounds/magic-spell-6005.mp3');
+    state.sounds.magicSpell6005 = createAudio('assets/sounds/magic-spell-6005.mp3');
     state.sounds.magicSpell6005.volume = 0.5;
   }
   if(!state.sounds.magicSpell333896){

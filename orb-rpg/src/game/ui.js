@@ -7,12 +7,13 @@ import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
 import { showCharSelect } from "./charselect.js";
 import { spawnGuardsForSite } from "./world.js";
+import { getAssetPath } from "../config.js";
 
 export function buildUI(state){
   const root=document.getElementById('ui-root');
   root.innerHTML = `
     <!-- Main Menu Overlay -->
-    <div id="mainMenu" class="overlay show" style="background: url('assets/ui/MainMenu.png') center center/105% auto no-repeat #000;">
+    <div id="mainMenu" class="overlay show" style="background: url('${getAssetPath('assets/ui/MainMenu.png')}') center center/105% auto no-repeat #000;">
       <div class="panel" style="width:min(560px,92vw); background: rgba(0,0,0,0.65); border:2px solid rgba(212,175,55,0.5); box-shadow:0 0 24px rgba(212,175,55,0.25);">
         <h2 style="margin:0; color:#e9d27b; letter-spacing:1px; text-shadow:0 0 12px rgba(212,175,55,0.55);">Orb RPG</h2>
         
@@ -238,7 +239,7 @@ export function buildUI(state){
                 <div class="small">Hero: <span id="heroClassName">Warrior</span> • Lv <span id="heroLevel">1</span></div>
               </div>
               <div id="equipCircle" class="equipCircle">
-                <img id="heroPortrait" src="assets/char/warrior.svg" alt="Hero" class="heroLarge"/>
+                <img id="heroPortrait" src="${getAssetPath('assets/char/warrior.svg')}" alt="Hero" class="heroLarge"/>
               </div>
               <div id="equipExtras" class="equipExtras" style="display:flex; justify-content:space-evenly; align-items:center;"></div>
               <div id="weaponSlot" class="weaponSlot" style="text-align:center;"></div>
@@ -1947,7 +1948,7 @@ function bindUI(state){
   ui.hideMainMenu = ()=> ui.mainMenu.classList.remove('show');
   // Main menu background: use default path; you can override via localStorage if needed
   try{
-    const initBg = localStorage.getItem('orb_rpg_menu_bg') || 'assets/ui/MainMenu.png';
+    const initBg = localStorage.getItem('orb_rpg_menu_bg') || getAssetPath('assets/ui/MainMenu.png');
     ui.mainMenu.style.background = `url('${initBg}') center center/105% auto no-repeat #000`;
   }catch(e){}
 
@@ -3749,10 +3750,10 @@ function bindUI(state){
     
     // Update hero portrait based on class
     const classPortraits = {
-      'warden': 'assets/char/Warden Player head.png',
-      'mage': 'assets/char/mage player head.png',
-      'knight': 'assets/char/knight player head.png',
-      'warrior': 'assets/char/Warior Player head.png'
+      'warden': getAssetPath('assets/char/Warden Player head.png'),
+      'mage': getAssetPath('assets/char/mage player head.png'),
+      'knight': getAssetPath('assets/char/knight player head.png'),
+      'warrior': getAssetPath('assets/char/Warior Player head.png')
     };
     const className = (state.player.className || 'warrior').toLowerCase();
     const portraitSrc = classPortraits[className] || classPortraits['warrior'];
@@ -4248,7 +4249,7 @@ function bindUI(state){
     const heroCls = isGroupMemberMode ? (state.friendlies.find(f=>f.id===isGroupMemberMode)?.variant||'warrior') : (state.player.class||'warrior');
     const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Knight.png', warden: 'New Warden.png' };
     const heroImg = heroImgMap[heroCls] || `${heroCls}.svg`;
-    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="assets/char/${heroImg}" alt="Hero" class="heroLarge"/>`;
+    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="${getAssetPath(`assets/char/${heroImg}`)}" alt="Hero" class="heroLarge"/>`;
     ui.equipExtras.innerHTML = '';
     ui.weaponSlot.innerHTML = '';
 
@@ -4492,7 +4493,7 @@ function bindUI(state){
       const cls = isGroupMemberMode ? (targetUnit.variant || 'warrior') : (state.player.class || 'warrior');
       // Use PNG for all hero classes (newer images)
       const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Knight.png', warden: 'New Warden.png' };
-      ui.heroPortrait.src = `assets/char/${heroImgMap[cls] || cls + '.svg'}`;
+      ui.heroPortrait.src = getAssetPath(`assets/char/${heroImgMap[cls] || cls + '.svg'}`);
       if(!isGroupMemberMode){
         ui.heroClassName.textContent = cls.charAt(0).toUpperCase()+cls.slice(1);
         ui.heroClassName.style.color = '#fff';

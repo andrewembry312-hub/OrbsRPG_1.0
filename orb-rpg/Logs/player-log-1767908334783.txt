@@ -1,0 +1,34 @@
+Player Event Log
+========================================================================================================================
+Generated: 1/8/2026, 4:38:54 PM
+Total Events: 56
+Game Time: 69s
+Player Level: 7
+Player HP: 163/326
+Player Shield: 0
+
+[32.36s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (135.0 → 124.3)
+[32.55s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (99.6 → 88.9)
+[32.65s]   DAMAGE: 4.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.1 → HP: -3.9 (89.1 → 85.2)
+[32.90s]   DAMAGE: 4.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.1 → HP: -3.9 (85.5 → 81.6)
+[33.01s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (81.8 → 71.1)
+[33.21s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (71.4 → 60.7)
+[33.65s]   DAMAGE: 4.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.1 → HP: -3.9 (61.3 → 57.5)
+[33.68s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (57.5 → 46.8)
+[34.08s]   DAMAGE: 4.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.1 → HP: -3.9 (47.4 → 43.5)
+[34.90s]   DAMAGE: 4.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.1 → HP: -3.9 (28.6 → 24.8)
+[35.05s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (25.0 → 14.3)
+[35.66s]   DAMAGE: 4.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.1 → HP: -3.9 (15.1 → 11.3)
+[35.71s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (11.3 → 0.7)
+[36.36s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (1.6 → 0.0)
+[57.64s]   BUFF: Haste applied (duration: 5s, stacks: 1)
+[57.67s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (135.0 → 124.3)
+[57.69s]   DAMAGE: 4.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.1 → HP: -3.9 (108.4 → 104.5)
+[58.06s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (80.0 → 69.3)
+[58.17s]   DAMAGE: 4.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.1 → HP: -3.9 (53.5 → 49.6)
+[58.34s]   DAMAGE: 8.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.2 → HP: -7.8 (24.8 → 17.1)
+[58.36s]   DAMAGE: 11.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.3 → HP: -10.7 (17.1 → 6.4)
+[67.33s]   DAMAGE: 4.0 raw → Shield: -0.0 → Block: -0.0 → Def: -0.2 → HP: -3.8 (162.5 → 158.6)
+
+========================================================================================================================
+END OF PLAYER LOG

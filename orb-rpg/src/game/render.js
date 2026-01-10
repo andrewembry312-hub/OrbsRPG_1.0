@@ -1,4 +1,5 @@
 import { clamp, cssVar } from "../engine/util.js";
+import { getAssetPath } from "../config.js";
 
 // Pre-load grass textures
 const grassTextures = {
@@ -35,16 +36,16 @@ function loadGrassTextures(){
   };
   
   Promise.all([
-    loadImage('assets/Environment/grass.png'),
-    loadImage('assets/Environment/grass 2.png'),
-    loadImage('assets/Environment/winter tree.png'),
-    loadImage('assets/Environment/purple chrystal.png'),
-    loadImage('assets/Environment/water pond.png'),
-    loadImage('assets/Environment/pond 1.png'),
-    loadImage('assets/Environment/pond 2.png'),
-    loadImage('assets/Environment/pond 3.png'),
-    loadImage('assets/Environment/rocks 1.png'),
-    loadImage('assets/Environment/rocks 2.png')
+    loadImage(getAssetPath('assets/Environment/grass.png')),
+    loadImage(getAssetPath('assets/Environment/grass 2.png')),
+    loadImage(getAssetPath('assets/Environment/winter tree.png')),
+    loadImage(getAssetPath('assets/Environment/purple chrystal.png')),
+    loadImage(getAssetPath('assets/Environment/water pond.png')),
+    loadImage(getAssetPath('assets/Environment/pond 1.png')),
+    loadImage(getAssetPath('assets/Environment/pond 2.png')),
+    loadImage(getAssetPath('assets/Environment/pond 3.png')),
+    loadImage(getAssetPath('assets/Environment/rocks 1.png')),
+    loadImage(getAssetPath('assets/Environment/rocks 2.png'))
   ]).then(([img1, img2, tree, crystal, waterPond, pond1, pond2, pond3, rocks1, rocks2]) => {
     if(img1) grassTextures.grass1 = img1;
     if(img2) grassTextures.grass2 = img2;
@@ -566,7 +567,7 @@ export function render(state){
     // Note: warden class uses tank.svg sprite
     const variantName = e.variant || (e.boss ? 'warden' : (e.knight ? 'knight' : null));
     const spriteFile = (variantName==='warden') ? 'tank' : variantName;
-    const path = spriteFile ? `assets/char/${spriteFile}.svg` : null;
+    const path = spriteFile ? getAssetPath(`assets/char/${spriteFile}.svg`) : null;
     const img = path ? loadCachedImage(state, path) : null;
     if(img){
       const size = Math.max(16, Math.floor(e.r*1.6));
@@ -603,7 +604,7 @@ export function render(state){
       ctx.beginPath(); ctx.arc(c.x, c.y, (c.r||12)+2, 0, Math.PI*2); ctx.fill();
       ctx.globalAlpha = 1;
       // draw creature variant image
-      const path = c.variant ? `assets/char/${c.variant}.svg` : null;
+      const path = c.variant ? getAssetPath(`assets/char/${c.variant}.svg`) : null;
       const img = path ? loadCachedImage(state, path) : null;
       if(img){
         const size = Math.max(18, Math.floor((c.r||12)*1.8));
@@ -634,7 +635,7 @@ export function render(state){
     ctx.globalAlpha = 0.92; ctx.fillStyle = fcol; ctx.beginPath(); ctx.arc(a.x,a.y,a.r+2,0,Math.PI*2); ctx.fill(); ctx.globalAlpha = 1;
     // draw variant image on top
     const v = a.variant || 'warrior';
-    const p = `assets/char/${v}.svg`;
+    const p = getAssetPath(`assets/char/${v}.svg`);
     const im = loadCachedImage(state, p);
     if(im){ const sz = Math.max(14, Math.floor(a.r*1.6)); ctx.drawImage(im, a.x - sz/2, a.y - sz/2, sz, sz); }
     drawHpBar(ctx, a.x, a.y-a.r-16, 28, 5, a.hp/a.maxHp, a.level);
@@ -700,7 +701,7 @@ export function render(state){
   ctx.globalAlpha=1;
   // draw class image in the center of the player orb
   const pClass = state.player.class || 'warrior';
-  const pPath = `assets/char/${pClass}.svg`;
+  const pPath = getAssetPath(`assets/char/${pClass}.svg`);
   const pImg = loadCachedImage(state, pPath);
   if(pImg){
     const size = Math.max(16, Math.floor(state.player.r * 1.4));

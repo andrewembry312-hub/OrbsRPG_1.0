@@ -1,0 +1,1044 @@
+Debug Diagnostic Log
+========================================================================================================================
+Generated: 1/8/2026, 4:38:54 PM
+Total Events: 1546
+Game Time: 69s
+
+CURRENT STATE:
+  Player Level: 7
+  Player HP: 163/326
+  Player Mana: 56/148
+  Player Stamina: 7/192
+  Player Shield: 0 (cap: 326)
+  Base Player MaxMana: 70
+  Stat Spends: {"vit":0,"int":0,"str":0,"def":0,"agi":0}
+
+
+======================================== ENEMY_ATTACK_OUT_OF_RANGE ========================================
+[45.83s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:626, requiredRange:31, inWater:false
+[45.84s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Hero", distance:959, requiredRange:31, inWater:false
+[45.88s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:686, requiredRange:31, inWater:false
+[45.91s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:520, requiredRange:31, inWater:false
+[45.94s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:674, requiredRange:31, inWater:false
+[45.98s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:570, requiredRange:31, inWater:false
+[45.98s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:886, requiredRange:31, inWater:false
+[46.08s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:982, requiredRange:30, inWater:false
+[46.18s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:746, requiredRange:31, inWater:false
+[46.29s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[46.31s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1098, requiredRange:30, inWater:false
+[46.39s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:885, requiredRange:31, inWater:false
+[46.48s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:504, requiredRange:31, inWater:false
+[46.54s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:810, requiredRange:31, inWater:false
+[46.63s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1080, requiredRange:30, inWater:false
+[46.69s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:800, requiredRange:31, inWater:false
+[46.86s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:628, requiredRange:31, inWater:false
+[46.99s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:498, requiredRange:31, inWater:false
+[46.99s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:780, requiredRange:31, inWater:false
+[47.18s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:436, requiredRange:31, inWater:false
+[47.31s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:407, requiredRange:31, inWater:false
+[47.34s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Hero", distance:939, requiredRange:31, inWater:false
+[47.43s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:628, requiredRange:31, inWater:false
+[47.59s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:764, requiredRange:31, inWater:false
+[47.63s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:433, requiredRange:30, inWater:false
+[47.64s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:626, requiredRange:31, inWater:false
+[47.71s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:436, requiredRange:31, inWater:false
+[47.74s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:928, requiredRange:31, inWater:false
+[47.96s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:734, requiredRange:31, inWater:false
+[47.98s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1080, requiredRange:30, inWater:false
+[48.53s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:757, requiredRange:31, inWater:false
+[48.54s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:660, requiredRange:31, inWater:false
+[48.56s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1112, requiredRange:30, inWater:false
+[48.58s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:840, requiredRange:31, inWater:false
+[48.61s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:660, requiredRange:31, inWater:false
+[48.64s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:618, requiredRange:31, inWater:false
+[48.96s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:331, requiredRange:30, inWater:false
+[48.96s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:840, requiredRange:31, inWater:false
+[49.01s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:857, requiredRange:30, inWater:false
+[49.31s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1082, requiredRange:31, inWater:false
+[49.36s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:470, requiredRange:31, inWater:false
+[49.36s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:300, requiredRange:30, inWater:false
+[49.37s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1077, requiredRange:30, inWater:false
+[49.44s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:537, requiredRange:31, inWater:false
+[49.51s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:968, requiredRange:31, inWater:false
+[49.67s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:714, requiredRange:31, inWater:false
+[49.67s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1037, requiredRange:30, inWater:false
+[49.69s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:968, requiredRange:31, inWater:false
+[49.76s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:804, requiredRange:31, inWater:false
+[49.84s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:358, requiredRange:31, inWater:false
+[49.91s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:358, requiredRange:31, inWater:false
+[50.02s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:618, requiredRange:31, inWater:false
+[50.04s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:714, requiredRange:31, inWater:false
+[50.04s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:982, requiredRange:31, inWater:false
+[50.07s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1030, requiredRange:30, inWater:false
+[50.17s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Hero", distance:1134, requiredRange:31, inWater:false
+[50.39s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:470, requiredRange:31, inWater:false
+[50.49s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:840, requiredRange:31, inWater:false
+[50.59s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:205, requiredRange:30, inWater:false
+[50.66s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:757, requiredRange:31, inWater:false
+[50.71s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:804, requiredRange:31, inWater:false
+[50.74s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:660, requiredRange:31, inWater:false
+[50.76s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:539, requiredRange:31, inWater:false
+[50.82s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:804, requiredRange:31, inWater:false
+[50.84s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:539, requiredRange:31, inWater:false
+[50.84s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:982, requiredRange:31, inWater:false
+[51.01s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:173, requiredRange:30, inWater:false
+[51.09s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:757, requiredRange:31, inWater:false
+[51.11s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:710, requiredRange:31, inWater:false
+[51.14s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[51.14s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:865, requiredRange:30, inWater:false
+[51.14s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:795, requiredRange:30, inWater:false
+[51.24s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1009, requiredRange:30, inWater:false
+[51.49s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Hero", distance:1234, requiredRange:31, inWater:false
+[51.56s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1008, requiredRange:30, inWater:false
+[51.66s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:660, requiredRange:31, inWater:false
+[51.69s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:660, requiredRange:31, inWater:false
+[51.71s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:119, requiredRange:30, inWater:false
+[51.82s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[51.94s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:74, requiredRange:30, inWater:false
+[52.06s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1082, requiredRange:31, inWater:false
+[52.11s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[52.16s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:103, requiredRange:30, inWater:false
+[52.29s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1082, requiredRange:31, inWater:false
+[52.41s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1041, requiredRange:30, inWater:false
+[52.42s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1020, requiredRange:30, inWater:false
+[52.47s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:544, requiredRange:31, inWater:false
+[52.64s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1025, requiredRange:30, inWater:false
+[52.77s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:216, requiredRange:30, inWater:false
+[52.77s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[52.84s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:358, requiredRange:31, inWater:false
+[52.89s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:87, requiredRange:30, inWater:false
+[52.92s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:840, requiredRange:31, inWater:false
+[52.96s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:358, requiredRange:31, inWater:false
+[53.06s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:202, requiredRange:30, inWater:false
+[53.17s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:275, requiredRange:30, inWater:false
+[53.24s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:968, requiredRange:31, inWater:false
+[53.27s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:968, requiredRange:31, inWater:false
+[53.32s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:544, requiredRange:31, inWater:false
+[53.42s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:164, requiredRange:30, inWater:false
+[53.47s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:618, requiredRange:31, inWater:false
+[53.47s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:710, requiredRange:31, inWater:false
+[53.79s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[53.87s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[53.92s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:166, requiredRange:30, inWater:false
+[53.94s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[53.96s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:840, requiredRange:31, inWater:false
+[54.11s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:968, requiredRange:31, inWater:false
+[54.17s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:876, requiredRange:30, inWater:false
+[54.21s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:470, requiredRange:31, inWater:false
+[54.22s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:822, requiredRange:30, inWater:false
+[54.24s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:804, requiredRange:31, inWater:false
+[54.29s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:544, requiredRange:31, inWater:false
+[54.31s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:275, requiredRange:30, inWater:false
+[54.34s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:982, requiredRange:31, inWater:false
+[54.36s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[54.37s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:660, requiredRange:31, inWater:false
+[54.39s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:824, requiredRange:30, inWater:false
+[54.39s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:85, requiredRange:30, inWater:false
+[54.51s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1027, requiredRange:30, inWater:false
+[54.51s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:823, requiredRange:30, inWater:false
+[54.61s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:618, requiredRange:31, inWater:false
+[54.69s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:804, requiredRange:31, inWater:false
+[54.81s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[54.87s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:358, requiredRange:31, inWater:false
+[55.11s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:660, requiredRange:31, inWater:false
+[55.12s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:710, requiredRange:31, inWater:false
+[55.14s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:875, requiredRange:30, inWater:false
+[55.17s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[55.24s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[55.29s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:1360, requiredRange:30, inWater:false
+[55.36s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:824, requiredRange:30, inWater:false
+[55.37s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:825, requiredRange:30, inWater:false
+[55.47s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:216, requiredRange:30, inWater:false
+[55.56s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1028, requiredRange:30, inWater:false
+[55.57s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:539, requiredRange:31, inWater:false
+[55.59s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[55.66s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:163, requiredRange:30, inWater:false
+[55.72s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:968, requiredRange:31, inWater:false
+[55.77s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:968, requiredRange:31, inWater:false
+[55.77s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:446, requiredRange:30, inWater:false
+[55.79s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:165, requiredRange:30, inWater:false
+[55.82s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[55.86s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:539, requiredRange:31, inWater:false
+[55.96s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:275, requiredRange:30, inWater:false
+[56.06s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:968, requiredRange:31, inWater:false
+[56.21s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:757, requiredRange:31, inWater:false
+[56.22s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:544, requiredRange:31, inWater:false
+[56.22s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1050, requiredRange:30, inWater:false
+[56.26s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:757, requiredRange:31, inWater:false
+[56.27s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:804, requiredRange:31, inWater:false
+[56.31s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:968, requiredRange:31, inWater:false
+[56.39s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1082, requiredRange:31, inWater:false
+[56.42s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:88, requiredRange:30, inWater:false
+[56.47s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:804, requiredRange:31, inWater:false
+[56.56s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:221, requiredRange:30, inWater:false
+[56.56s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1048, requiredRange:30, inWater:false
+[56.71s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:660, requiredRange:31, inWater:false
+[56.84s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:982, requiredRange:31, inWater:false
+[56.89s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[56.96s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:538, requiredRange:31, inWater:false
+[56.97s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:216, requiredRange:30, inWater:false
+[56.97s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:822, requiredRange:30, inWater:false
+[57.01s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:556, requiredRange:30, inWater:false
+[57.04s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1082, requiredRange:31, inWater:false
+[57.14s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:804, requiredRange:31, inWater:false
+[57.17s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:757, requiredRange:31, inWater:false
+[57.21s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1082, requiredRange:31, inWater:false
+[57.31s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1026, requiredRange:30, inWater:false
+[57.37s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:714, requiredRange:31, inWater:false
+[57.42s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:277, requiredRange:30, inWater:false
+[57.49s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:453, requiredRange:31, inWater:false
+[57.52s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:982, requiredRange:31, inWater:false
+[57.56s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1050, requiredRange:30, inWater:false
+[57.61s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:714, requiredRange:31, inWater:false
+[57.71s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:164, requiredRange:30, inWater:false
+[57.71s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:274, requiredRange:30, inWater:false
+[57.74s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:274, requiredRange:30, inWater:false
+[57.74s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:477, requiredRange:31, inWater:false
+[57.84s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:767, requiredRange:31, inWater:false
+[57.92s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:611, requiredRange:31, inWater:false
+[57.97s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1079, requiredRange:31, inWater:false
+[57.99s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:216, requiredRange:30, inWater:false
+[58.07s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:417, requiredRange:31, inWater:false
+[58.19s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:1314, requiredRange:30, inWater:false
+[58.36s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:663, requiredRange:31, inWater:false
+[58.39s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:165, requiredRange:30, inWater:false
+[58.39s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:2389, requiredRange:30, inWater:false
+[58.46s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:1534, requiredRange:30, inWater:false
+[58.49s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:690, requiredRange:30, inWater:false
+[58.52s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:1893, requiredRange:30, inWater:false
+[58.54s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:2421, requiredRange:30, inWater:false
+[58.64s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:2396, requiredRange:30, inWater:false
+[58.71s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1028, requiredRange:30, inWater:false
+[58.72s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:85, requiredRange:30, inWater:false
+[58.81s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:220, requiredRange:30, inWater:false
+[58.82s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:164, requiredRange:30, inWater:false
+[58.84s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:721, requiredRange:30, inWater:false
+[58.91s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:88, requiredRange:30, inWater:false
+[58.97s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:88, requiredRange:30, inWater:false
+[59.02s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:823, requiredRange:30, inWater:false
+[59.04s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:2331, requiredRange:30, inWater:false
+[59.11s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1028, requiredRange:30, inWater:false
+[59.11s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:2133, requiredRange:30, inWater:false
+[59.14s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:2068, requiredRange:30, inWater:false
+[59.19s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:217, requiredRange:30, inWater:false
+[59.21s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:1832, requiredRange:30, inWater:false
+[59.22s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:2345, requiredRange:30, inWater:false
+[59.24s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:1306, requiredRange:30, inWater:false
+[59.27s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:165, requiredRange:30, inWater:false
+[59.27s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:2025, requiredRange:30, inWater:false
+[59.29s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:2309, requiredRange:30, inWater:false
+[59.34s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:276, requiredRange:30, inWater:false
+[59.46s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:2007, requiredRange:30, inWater:false
+[59.51s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[59.54s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:1470, requiredRange:30, inWater:false
+[59.61s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:791, requiredRange:30, inWater:false
+[59.62s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:792, requiredRange:30, inWater:false
+[59.76s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"Ember", distance:76, requiredRange:28, inWater:false
+[59.77s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:165, requiredRange:30, inWater:false
+[59.81s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[59.87s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:89, requiredRange:30, inWater:false
+[59.87s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:2290, requiredRange:30, inWater:false
+[60.02s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1052, requiredRange:30, inWater:false
+[60.16s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:1735, requiredRange:30, inWater:false
+[60.21s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:275, requiredRange:30, inWater:false
+[60.26s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:2223, requiredRange:30, inWater:false
+[60.32s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1049, requiredRange:30, inWater:false
+[60.32s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"warrior", distance:1732, requiredRange:30, inWater:false
+[60.37s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:1199, requiredRange:31, inWater:false
+[60.39s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:875, requiredRange:30, inWater:false
+[60.61s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:1231, requiredRange:31, inWater:false
+[60.72s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:1096, requiredRange:31, inWater:false
+[60.92s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:1097, requiredRange:31, inWater:false
+[61.04s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:1200, requiredRange:31, inWater:false
+[61.12s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1413, requiredRange:31, inWater:false
+[61.17s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:216, requiredRange:30, inWater:false
+[61.34s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:86, requiredRange:30, inWater:false
+[61.37s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1454, requiredRange:31, inWater:false
+[61.50s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:823, requiredRange:30, inWater:false
+[61.65s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1051, requiredRange:30, inWater:false
+[61.72s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1421, requiredRange:31, inWater:false
+[62.20s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:974, requiredRange:30, inWater:false
+[62.45s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:1333, requiredRange:30, inWater:false
+[62.48s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:899, requiredRange:31, inWater:false
+[62.48s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1199, requiredRange:31, inWater:false
+[62.57s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:218, requiredRange:30, inWater:false
+[62.63s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:220, requiredRange:30, inWater:false
+[62.67s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:971, requiredRange:31, inWater:false
+[62.68s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:876, requiredRange:30, inWater:false
+[62.85s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:1324, requiredRange:30, inWater:false
+[62.87s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1031, requiredRange:30, inWater:false
+[62.97s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1080, requiredRange:31, inWater:false
+[63.17s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[63.18s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1064, requiredRange:31, inWater:false
+[63.23s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:874, requiredRange:30, inWater:false
+[63.28s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:795, requiredRange:31, inWater:false
+[63.52s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:1310, requiredRange:30, inWater:false
+[63.57s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1051, requiredRange:30, inWater:false
+[63.57s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1040, requiredRange:31, inWater:false
+[63.60s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:757, requiredRange:31, inWater:false
+[63.62s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:849, requiredRange:30, inWater:false
+[63.67s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:163, requiredRange:30, inWater:false
+[63.68s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:738, requiredRange:31, inWater:false
+[63.75s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:1306, requiredRange:30, inWater:false
+[63.92s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:822, requiredRange:30, inWater:false
+[64.03s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:276, requiredRange:30, inWater:false
+[64.05s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:916, requiredRange:31, inWater:false
+[64.08s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:89, requiredRange:30, inWater:false
+[64.23s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1179, requiredRange:31, inWater:false
+[64.25s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:620, requiredRange:31, inWater:false
+[64.27s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:616, requiredRange:31, inWater:false
+[64.28s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:855, requiredRange:31, inWater:false
+[64.30s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:1051, requiredRange:31, inWater:false
+[64.35s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:277, requiredRange:30, inWater:false
+[64.58s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:762, requiredRange:30, inWater:false
+[64.60s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:788, requiredRange:31, inWater:false
+[64.67s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:702, requiredRange:31, inWater:false
+[64.68s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Norg", distance:31, requiredRange:28, inWater:false
+[64.72s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:752, requiredRange:30, inWater:false
+[64.73s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:430, requiredRange:31, inWater:false
+[64.75s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:687, requiredRange:31, inWater:false
+[64.78s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:825, requiredRange:30, inWater:false
+[64.83s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:845, requiredRange:31, inWater:false
+[64.87s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:876, requiredRange:30, inWater:false
+[64.88s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:985, requiredRange:31, inWater:false
+[64.92s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:460, requiredRange:31, inWater:false
+[65.03s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:654, requiredRange:31, inWater:false
+[65.13s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:354, requiredRange:31, inWater:false
+[65.22s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:961, requiredRange:31, inWater:false
+[65.38s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:619, requiredRange:31, inWater:false
+[65.50s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:1289, requiredRange:30, inWater:false
+[65.58s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:702, requiredRange:31, inWater:false
+[65.60s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1028, requiredRange:30, inWater:false
+[65.63s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:895, requiredRange:31, inWater:false
+[65.73s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:504, requiredRange:31, inWater:false
+[65.77s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1005, requiredRange:31, inWater:false
+[65.92s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:875, requiredRange:30, inWater:false
+[65.95s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:274, requiredRange:30, inWater:false
+[66.02s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:671, requiredRange:31, inWater:false
+[66.07s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:997, requiredRange:31, inWater:false
+[66.08s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:220, requiredRange:30, inWater:false
+[66.13s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:909, requiredRange:31, inWater:false
+[66.17s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:609, requiredRange:31, inWater:false
+[66.17s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:358, requiredRange:31, inWater:false
+[66.25s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:591, requiredRange:31, inWater:false
+[66.27s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:778, requiredRange:31, inWater:false
+[66.30s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1054, requiredRange:30, inWater:false
+[66.30s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:1289, requiredRange:30, inWater:false
+[66.38s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:494, requiredRange:31, inWater:false
+[66.65s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:1049, requiredRange:30, inWater:false
+[66.83s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"mage", distance:1289, requiredRange:30, inWater:false
+[67.05s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:696, requiredRange:31, inWater:false
+[67.20s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:85, requiredRange:30, inWater:false
+[67.25s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:553, requiredRange:31, inWater:false
+[67.25s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:1028, requiredRange:30, inWater:false
+[67.27s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:899, requiredRange:31, inWater:false
+[67.33s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:221, requiredRange:30, inWater:false
+[67.33s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:999, requiredRange:31, inWater:false
+[67.38s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"knight", target:"warrior", distance:88, requiredRange:30, inWater:false
+[67.45s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:730, requiredRange:31, inWater:false
+[67.46s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:583, requiredRange:31, inWater:false
+[67.48s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:273, requiredRange:30, inWater:false
+[67.56s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"knight", distance:275, requiredRange:30, inWater:false
+[67.65s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:497, requiredRange:30, inWater:false
+[67.70s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:437, requiredRange:31, inWater:false
+[67.73s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:875, requiredRange:30, inWater:false
+[67.81s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:482, requiredRange:30, inWater:false
+[67.93s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:797, requiredRange:31, inWater:false
+[67.98s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:486, requiredRange:31, inWater:false
+[68.01s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1063, requiredRange:31, inWater:false
+[68.03s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:464, requiredRange:30, inWater:false
+[68.25s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:824, requiredRange:31, inWater:false
+[68.33s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:88, requiredRange:30, inWater:false
+[68.41s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:497, requiredRange:31, inWater:false
+[68.45s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:707, requiredRange:31, inWater:false
+[68.55s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:588, requiredRange:31, inWater:false
+[68.58s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:891, requiredRange:31, inWater:false
+[68.66s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:1020, requiredRange:31, inWater:false
+[68.68s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:640, requiredRange:30, inWater:false
+[68.71s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"Hero", distance:870, requiredRange:31, inWater:false
+[68.75s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:217, requiredRange:30, inWater:false
+[68.76s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"warrior", distance:633, requiredRange:30, inWater:false
+[68.78s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:874, requiredRange:30, inWater:false
+[68.81s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"knight", distance:821, requiredRange:30, inWater:false
+[69.01s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"mage", target:"Hero", distance:1119, requiredRange:31, inWater:false
+[69.18s]   ENEMY_ATTACK_OUT_OF_RANGE | type:"ENEMY_ATTACK_OUT_OF_RANGE", attacker:"warrior", target:"mage", distance:368, requiredRange:30, inWater:false
+
+======================================== MANA_STARVED ========================================
+[45.84s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:60
+[45.86s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:13, max:60
+[45.94s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:13, max:60
+[45.98s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:14, max:60
+[46.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:14, max:60
+[46.11s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:14, max:60
+[46.14s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:7, max:60
+[46.18s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:8, max:60
+[46.36s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:15, max:60
+[46.38s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:15, max:60
+[46.38s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:26, max:60
+[46.44s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:27, max:60
+[46.49s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:15, max:60
+[46.53s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:8, max:40
+[46.59s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:16, max:60
+[46.64s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:16, max:60
+[46.66s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:9, max:60
+[46.69s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:9, max:40
+[46.71s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:16, max:60
+[46.71s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:16, max:60
+[46.76s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:16, max:60
+[46.76s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:10, max:40
+[46.83s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:10, max:40
+[46.89s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:17, max:60
+[46.93s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:17, max:60
+[46.93s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:17, max:60
+[46.93s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:10, max:40
+[46.94s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:17, max:60
+[47.03s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:17, max:60
+[47.03s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:17, max:60
+[47.08s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:10, max:60
+[47.08s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:19, max:60
+[47.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:17, max:60
+[47.11s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:17, max:60
+[47.13s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:18, max:60
+[47.18s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:29, max:60
+[47.21s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:18, max:60
+[47.23s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:11, max:60
+[47.24s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:29, max:60
+[47.26s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:18, max:60
+[47.29s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:18, max:60
+[47.36s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:11, max:60
+[47.49s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:19, max:60
+[47.53s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:19, max:60
+[47.58s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:27, max:60
+[47.66s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:19, max:60
+[47.76s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:13, max:60
+[47.81s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:20, max:60
+[48.03s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:20, max:60
+[48.44s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:6, max:60
+[48.53s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:7, max:60
+[48.58s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:7, max:60
+[48.59s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:7, max:60
+[48.61s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:7, max:60
+[48.64s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:7, max:60
+[48.81s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:8, max:60
+[48.82s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:24, max:60
+[48.89s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:24, max:60
+[48.92s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:23, max:60
+[48.94s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:16, max:60
+[48.99s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:8, max:60
+[49.06s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:8, max:60
+[49.06s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:24, max:60
+[49.12s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:9, max:60
+[49.27s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:9, max:60
+[49.29s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:9, max:60
+[49.42s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:18, max:60
+[49.51s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:10, max:60
+[49.56s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:10, max:60
+[49.59s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:25, max:60
+[49.67s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:26, max:60
+[49.71s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:26, max:60
+[49.86s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:26, max:60
+[49.87s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:26, max:60
+[49.94s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:11, max:60
+[50.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:21, max:60
+[50.51s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:28, max:60
+[50.54s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:13, max:60
+[50.69s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:3, max:40
+[51.07s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:15, max:60
+[51.29s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:16, max:60
+[51.47s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:16, max:60
+[51.56s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:8, max:40
+[51.57s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:17, max:60
+[51.66s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:17, max:60
+[51.91s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:0, max:60
+[52.01s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:0, max:60
+[52.02s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:1, max:60
+[52.06s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:1, max:60
+[52.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:1, max:60
+[52.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:1, max:60
+[52.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:1, max:60
+[52.19s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:19, max:60
+[52.24s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:12, max:40
+[52.34s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:19, max:60
+[52.37s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:19, max:60
+[52.44s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:2, max:60
+[52.47s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:2, max:60
+[52.47s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:19, max:60
+[52.51s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:20, max:60
+[52.54s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:2, max:60
+[52.56s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:2, max:60
+[52.57s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:2, max:60
+[52.61s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:2, max:60
+[52.64s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[52.66s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:3, max:60
+[52.67s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[52.69s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[52.76s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:3, max:60
+[52.79s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[52.82s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:3, max:60
+[52.82s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:21, max:60
+[52.84s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:60
+[52.84s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:3, max:60
+[52.87s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:21, max:60
+[52.94s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:3, max:60
+[52.94s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:3, max:60
+[53.06s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:22, max:60
+[53.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:21, max:60
+[53.14s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:26, max:60
+[53.16s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:4, max:60
+[53.22s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:4, max:60
+[53.26s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:27, max:60
+[53.27s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:5, max:60
+[53.29s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:27, max:60
+[53.31s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:5, max:60
+[53.39s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:5, max:60
+[53.44s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:27, max:60
+[53.46s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:5, max:60
+[53.46s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:5, max:60
+[53.56s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:23, max:60
+[53.56s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:28, max:60
+[53.57s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:5, max:60
+[53.69s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:23, max:60
+[53.71s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:6, max:60
+[53.71s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:6, max:60
+[53.71s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:23, max:60
+[53.72s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:6, max:60
+[53.77s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:24, max:60
+[53.82s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:24, max:60
+[53.87s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:6, max:60
+[53.94s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:7, max:60
+[54.01s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:7, max:60
+[54.04s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:29, max:60
+[54.12s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:30, max:60
+[54.21s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:30, max:60
+[54.24s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:25, max:60
+[54.26s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:25, max:60
+[54.29s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:8, max:60
+[54.31s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:8, max:60
+[54.34s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:8, max:60
+[54.36s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:30, max:60
+[54.37s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:30, max:60
+[54.42s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:8, max:60
+[54.44s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:8, max:60
+[54.44s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:8, max:60
+[54.44s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:26, max:60
+[54.51s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:8, max:60
+[54.51s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:8, max:60
+[54.52s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:9, max:60
+[54.54s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:12, max:60
+[54.57s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:9, max:60
+[54.59s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:26, max:60
+[54.74s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:27, max:60
+[54.76s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:9, max:60
+[54.79s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:9, max:60
+[54.82s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:9, max:60
+[54.89s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:10, max:60
+[54.89s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:27, max:60
+[54.92s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:5, max:40
+[54.92s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:5, max:40
+[54.97s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:10, max:60
+[54.99s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:27, max:60
+[55.01s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:10, max:60
+[55.01s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[55.07s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:10, max:60
+[55.07s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:14, max:60
+[55.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:10, max:60
+[55.11s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:9, max:60
+[55.12s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_fortitude", required:15, current:10, max:60
+[55.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[55.31s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:11, max:60
+[55.36s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:11, max:60
+[55.37s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:29, max:60
+[55.51s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:10, max:60
+[55.51s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:15, max:60
+[55.52s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:15, max:60
+[55.54s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:12, max:60
+[55.64s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:12, max:60
+[55.66s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:30, max:60
+[55.67s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:12, max:60
+[55.71s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:12, max:60
+[55.77s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:13, max:60
+[55.77s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:11, max:60
+[55.82s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:60
+[55.87s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:13, max:60
+[56.01s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:13, max:60
+[56.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:14, max:60
+[56.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:14, max:60
+[56.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:12, max:60
+[56.16s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[56.16s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:11, max:40
+[56.26s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:14, max:60
+[56.27s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:13, max:60
+[56.46s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:15, max:60
+[56.49s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:60
+[56.64s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:15, max:60
+[56.67s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:15, max:60
+[56.69s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:15, max:60
+[56.69s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:28, max:60
+[56.76s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:16, max:60
+[56.76s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:3, max:60
+[56.82s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:16, max:60
+[57.04s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:19, max:60
+[57.07s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:17, max:60
+[57.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:19, max:60
+[57.16s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:17, max:60
+[57.21s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[57.24s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:17, max:60
+[57.31s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[57.39s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:20, max:60
+[57.51s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:18, max:60
+[57.51s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:18, max:60
+[57.56s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:6, max:60
+[57.64s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:19, max:60
+[57.67s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:21, max:60
+[57.81s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:7, max:60
+[57.91s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:19, max:60
+[57.97s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:5, max:60
+[57.99s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:5, max:60
+[58.01s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:5, max:60
+[58.11s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:5, max:60
+[58.26s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"warrior_life_leech", required:8, current:5, max:60
+[58.31s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:21, max:60
+[58.47s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:6, max:60
+[58.49s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:9, max:60
+[58.52s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:6, max:60
+[58.62s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:6, max:60
+[58.67s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"shoulder_charge", required:10, current:7, max:60
+[58.87s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:7, max:60
+[58.89s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:7, max:60
+[58.92s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:21, max:60
+[58.97s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:8, max:60
+[58.97s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:7, max:60
+[59.04s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:25, max:60
+[59.21s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:8, max:60
+[59.27s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:9, max:60
+[59.36s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:9, max:60
+[59.39s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:9, max:60
+[59.62s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:9, max:60
+[59.66s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:10, max:60
+[59.76s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:10, max:60
+[59.84s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:11, max:60
+[59.89s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:11, max:60
+[59.94s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:10, max:60
+[59.96s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:5, max:40
+[60.06s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:11, max:60
+[60.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:10, max:60
+[60.16s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:11, max:60
+[60.42s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:12, max:60
+[60.54s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:10, max:60
+[60.69s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:13, max:60
+[60.77s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:14, max:60
+[60.81s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:60
+[60.86s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:14, max:60
+[60.92s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:14, max:60
+[61.07s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:12, max:60
+[61.09s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:14, max:60
+[61.14s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[61.15s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:17, max:60
+[61.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:14, max:60
+[61.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:25, max:60
+[61.19s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:15, max:60
+[61.24s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:15, max:60
+[61.24s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:18, max:60
+[61.32s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:26, max:60
+[61.42s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:16, max:60
+[61.47s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:13, max:60
+[61.47s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:13, max:60
+[61.49s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:13, max:60
+[61.59s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:14, max:60
+[61.65s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[61.90s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:26, max:60
+[61.95s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:26, max:60
+[62.00s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:17, max:60
+[62.02s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:17, max:60
+[62.03s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:17, max:60
+[62.05s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:18, max:60
+[62.13s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:28, max:60
+[62.22s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:18, max:60
+[62.30s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:18, max:60
+[62.30s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:27, max:60
+[62.38s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:19, max:60
+[62.53s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:19, max:60
+[62.57s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:19, max:60
+[62.65s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:19, max:60
+[62.67s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[62.67s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:19, max:60
+[62.70s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:17, max:60
+[62.90s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:18, max:60
+[62.93s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:18, max:60
+[62.95s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[62.97s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:21, max:60
+[63.05s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:20, max:60
+[63.32s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:19, max:60
+[63.40s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:19, max:60
+[63.55s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:20, max:60
+[63.57s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:22, max:60
+[63.60s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:22, max:60
+[63.75s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:23, max:60
+[63.75s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:6, max:60
+[63.87s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:23, max:60
+[63.87s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:4, max:60
+[63.88s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:23, max:60
+[63.93s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:7, max:60
+[64.02s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:24, max:60
+[64.25s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:6, max:40
+[64.35s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:24, max:60
+[64.43s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:25, max:60
+[64.48s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:8, max:60
+[64.57s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:25, max:60
+[64.62s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:7, max:60
+[64.68s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:8, max:40
+[64.95s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:10, max:60
+[65.00s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:11, max:60
+[65.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:28, max:60
+[65.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:12, max:60
+[65.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:26, max:60
+[65.17s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"knight_rally", required:12, current:11, max:40
+[65.23s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:11, max:60
+[65.28s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:11, max:60
+[65.32s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:11, max:60
+[65.35s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:11, max:60
+[65.45s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:28, max:60
+[65.48s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:13, max:60
+[65.58s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:13, max:60
+[65.80s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:14, max:60
+[66.03s]   MANA_STARVED | type:"MANA_STARVED", unit:"knight", kind:"enemy", ability:"heal_burst", required:18, current:16, max:40
+[66.12s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:11, max:60
+[66.20s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:12, max:60
+[66.35s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[66.43s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"cleanse_wave", required:14, current:12, max:60
+[66.78s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:13, max:60
+[66.85s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:17, max:60
+[66.93s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:16, max:60
+[67.03s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"ward_barrier", required:22, current:17, max:60
+[67.10s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:14, max:60
+[67.27s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_divine_touch", required:16, current:15, max:60
+[67.46s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:19, max:60
+[67.63s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"mage_radiant_aura", required:18, current:16, max:60
+[67.65s]   MANA_STARVED | type:"MANA_STARVED", unit:"mage", kind:"enemy", ability:"heal_burst", required:18, current:16, max:60
+[67.66s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:21, max:60
+[67.71s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[67.73s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:20, max:60
+[67.78s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:20, max:60
+[67.93s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:21, max:60
+[68.21s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:26, max:60
+[68.25s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:22, max:60
+[68.43s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:27, max:60
+[68.48s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:23, max:60
+[68.48s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:23, max:60
+[68.55s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:23, max:60
+[68.63s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:23, max:60
+[68.65s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:23, max:60
+[68.73s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:23, max:60
+[68.78s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:24, max:60
+[68.85s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:24, max:60
+[68.88s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"meteor_slam", required:28, current:24, max:60
+[69.00s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:25, max:60
+[69.06s]   MANA_STARVED | type:"MANA_STARVED", unit:"warrior", kind:"enemy", ability:"gravity_well", required:30, current:25, max:60
+
+======================================== ENEMY_ROLE_TARGET ========================================
+[45.84s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:572, hp:82, mana:27, speed:77
+[45.88s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:1322, hp:99, mana:5, speed:77
+[45.96s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:99, hp:59, mana:40, speed:90
+[45.98s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:98, hp:59, mana:40, speed:90
+[46.24s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:541, hp:82, mana:29, speed:77
+[46.64s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:1263, hp:99, mana:9, speed:77
+[46.71s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:32, hp:59, mana:40, speed:90
+[46.83s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:1248, hp:99, mana:10, speed:77
+[46.84s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:1247, hp:99, mana:10, speed:77
+[46.96s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:9, hp:59, mana:25, speed:90
+[47.31s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:1211, hp:99, mana:13, speed:77
+[47.43s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:28, speed:90
+[47.48s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:28, speed:90
+[47.53s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:28, speed:90
+[47.84s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:418, hp:82, mana:38, speed:77
+[47.96s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:30, speed:90
+[47.99s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:1159, hp:99, mana:16, speed:77
+[48.76s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:1100, hp:99, mana:20, speed:77
+[48.96s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:35, speed:90
+[48.97s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:35, speed:90
+[49.02s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:327, hp:82, mana:40, speed:77
+[49.27s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:1060, hp:99, mana:23, speed:77
+[49.36s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:301, hp:82, mana:40, speed:77
+[49.64s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:279, hp:82, mana:40, speed:77
+[49.81s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:40, speed:90
+[49.92s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:40, speed:90
+[49.99s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:252, hp:82, mana:40, speed:77
+[50.01s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:251, hp:82, mana:40, speed:77
+[50.04s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:40, speed:90
+[50.07s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:246, hp:82, mana:40, speed:77
+[50.17s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:40, speed:90
+[50.22s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:987, hp:99, mana:29, speed:77
+[50.26s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:232, hp:82, mana:40, speed:77
+[50.27s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:983, hp:99, mana:29, speed:77
+[50.41s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:40, speed:90
+[50.44s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:218, hp:82, mana:24, speed:77
+[50.56s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:209, hp:82, mana:3, speed:77
+[50.64s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:955, hp:99, mana:31, speed:77
+[50.66s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:201, hp:82, mana:3, speed:77
+[50.84s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:187, hp:82, mana:4, speed:77
+[50.94s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:932, hp:99, mana:33, speed:77
+[50.97s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:177, hp:82, mana:5, speed:77
+[51.19s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:160, hp:82, mana:6, speed:77
+[51.26s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:40, speed:90
+[51.41s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:40, speed:90
+[51.44s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:141, hp:82, mana:8, speed:77
+[51.44s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:893, hp:99, mana:35, speed:77
+[51.51s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:888, hp:99, mana:36, speed:77
+[51.64s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:878, hp:99, mana:36, speed:77
+[51.74s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:870, hp:99, mana:37, speed:77
+[51.82s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:0, hp:59, mana:40, speed:90
+[51.84s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 2", distance:110, hp:82, mana:10, speed:77
+[51.91s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:66, hp:82, mana:10, speed:77
+[52.12s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:840, hp:99, mana:39, speed:77
+[52.24s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:42, hp:82, mana:12, speed:77
+[52.26s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:830, hp:99, mana:40, speed:77
+[52.41s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1926, hp:59, mana:40, speed:90
+[52.62s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:14, speed:77
+[52.69s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:797, hp:99, mana:40, speed:77
+[52.82s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1890, hp:59, mana:40, speed:90
+[52.86s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:784, hp:99, mana:40, speed:77
+[52.87s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:783, hp:99, mana:40, speed:77
+[53.11s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1869, hp:59, mana:40, speed:90
+[53.17s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:17, speed:77
+[53.32s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1850, hp:59, mana:40, speed:90
+[53.32s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:748, hp:99, mana:40, speed:77
+[53.54s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1830, hp:59, mana:40, speed:90
+[53.71s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:20, speed:77
+[53.71s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:719, hp:99, mana:40, speed:77
+[54.16s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:23, speed:77
+[54.32s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1760, hp:59, mana:40, speed:90
+[54.34s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1758, hp:59, mana:40, speed:90
+[54.49s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:658, hp:99, mana:14, speed:77
+[54.52s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1742, hp:59, mana:40, speed:90
+[54.81s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1716, hp:59, mana:40, speed:90
+[54.89s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:627, hp:99, mana:4, speed:77
+[55.11s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:28, speed:77
+[55.17s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1683, hp:59, mana:40, speed:90
+[55.26s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1676, hp:59, mana:40, speed:90
+[55.47s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1656, hp:59, mana:40, speed:90
+[55.51s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:580, hp:99, mana:8, speed:77
+[55.52s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1652, hp:59, mana:40, speed:90
+[55.86s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1622, hp:59, mana:40, speed:90
+[55.87s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:32, speed:77
+[55.94s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1614, hp:59, mana:25, speed:90
+[56.16s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:530, hp:99, mana:11, speed:77
+[56.21s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1590, hp:59, mana:27, speed:90
+[56.26s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:522, hp:99, mana:12, speed:77
+[56.29s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:520, hp:99, mana:12, speed:77
+[56.34s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1578, hp:59, mana:27, speed:90
+[56.36s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:514, hp:99, mana:12, speed:77
+[56.41s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1572, hp:59, mana:28, speed:90
+[56.71s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:488, hp:99, mana:14, speed:77
+[56.77s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1539, hp:59, mana:29, speed:90
+[56.99s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:38, speed:77
+[57.02s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:38, speed:77
+[57.12s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1508, hp:59, mana:31, speed:90
+[57.14s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:39, speed:77
+[57.34s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:32, hp:82, mana:40, speed:77
+[57.36s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1487, hp:59, mana:32, speed:90
+[57.49s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1475, hp:59, mana:33, speed:90
+[57.51s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1473, hp:59, mana:33, speed:90
+[57.57s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[57.71s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:411, hp:99, mana:20, speed:77
+[57.76s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[57.91s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1437, hp:59, mana:35, speed:90
+[57.92s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[58.19s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[58.22s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:32, hp:82, mana:40, speed:77
+[58.24s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:32, hp:82, mana:40, speed:77
+[58.24s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1407, hp:59, mana:37, speed:90
+[58.59s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:343, hp:99, mana:25, speed:77
+[58.71s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1365, hp:59, mana:39, speed:90
+[58.74s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:331, hp:99, mana:26, speed:77
+[58.92s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1346, hp:59, mana:40, speed:90
+[59.02s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[59.16s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[59.62s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:3, speed:77
+[59.62s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:263, hp:99, mana:30, speed:77
+[59.77s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_creature", target:"Creature", distance:74, hp:99, mana:31, speed:77
+[59.86s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1262, hp:59, mana:40, speed:90
+[59.86s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_creature", target:"Creature", distance:60, hp:99, mana:32, speed:77
+[59.87s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:4, speed:77
+[59.87s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_creature", target:"Creature", distance:57, hp:99, mana:32, speed:77
+[60.16s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_creature", target:"Creature", distance:21, hp:99, mana:33, speed:77
+[60.22s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:6, speed:77
+[60.26s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:6, speed:77
+[60.27s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_creature", target:"Creature", distance:12, hp:99, mana:34, speed:77
+[60.91s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_creature", target:"Creature", distance:0, hp:99, mana:37, speed:77
+[60.92s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:32, hp:82, mana:10, speed:77
+[61.00s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1158, hp:59, mana:40, speed:90
+[61.14s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_creature", target:"Creature", distance:0, hp:99, mana:39, speed:77
+[61.22s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1141, hp:59, mana:40, speed:90
+[61.29s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1135, hp:59, mana:40, speed:90
+[61.74s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:14, speed:77
+[61.84s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1084, hp:59, mana:40, speed:90
+[61.93s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:221, hp:99, mana:40, speed:77
+[61.97s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:219, hp:99, mana:40, speed:77
+[62.20s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:201, hp:99, mana:40, speed:77
+[62.43s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:18, speed:77
+[62.55s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:174, hp:99, mana:40, speed:77
+[62.67s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:1009, hp:59, mana:40, speed:90
+[62.73s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:160, hp:99, mana:40, speed:77
+[62.95s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:32, hp:82, mana:21, speed:77
+[63.00s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:139, hp:99, mana:40, speed:77
+[63.15s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:22, speed:77
+[63.45s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:105, hp:99, mana:40, speed:77
+[63.53s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:24, speed:77
+[63.73s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:83, hp:99, mana:3, speed:77
+[63.77s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:910, hp:59, mana:40, speed:90
+[63.80s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:907, hp:59, mana:40, speed:90
+[63.82s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:76, hp:99, mana:4, speed:77
+[64.10s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:55, hp:99, mana:5, speed:77
+[64.42s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:852, hp:59, mana:40, speed:90
+[64.55s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:30, speed:77
+[64.72s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:7, hp:99, mana:9, speed:77
+[64.82s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:816, hp:59, mana:40, speed:90
+[64.83s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:814, hp:59, mana:40, speed:90
+[65.13s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:0, hp:99, mana:11, speed:77
+[65.18s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:33, speed:77
+[65.60s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:36, speed:77
+[65.62s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:744, hp:59, mana:28, speed:90
+[65.88s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:0, hp:99, mana:15, speed:77
+[65.92s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:0, hp:99, mana:15, speed:77
+[66.17s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:0, hp:99, mana:17, speed:77
+[66.50s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:0, hp:99, mana:18, speed:77
+[66.63s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:0, hp:99, mana:19, speed:77
+[66.70s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[66.80s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:0, hp:99, mana:20, speed:77
+[66.87s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[67.00s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:619, hp:59, mana:35, speed:90
+[67.05s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:0, hp:99, mana:21, speed:77
+[67.30s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:592, hp:59, mana:37, speed:90
+[67.32s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:591, hp:59, mana:37, speed:90
+[67.35s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"capture_objective", target:"Flag 1", distance:0, hp:99, mana:23, speed:77
+[67.45s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[67.58s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[67.78s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[67.88s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[67.91s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[67.96s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[68.01s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[68.30s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:40, speed:77
+[68.71s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"warrior", role:"DPS", decision:"attack_objective", target:"Flag 5", distance:465, hp:59, mana:40, speed:90
+[69.10s]   ENEMY_ROLE_TARGET | type:"ENEMY_ROLE_TARGET", enemy:"knight", role:"DPS", decision:"attack_objective", target:"Flag 2", distance:33, hp:82, mana:5, speed:77
+
+======================================== DPS_RECOVERY ========================================
+[46.01s]   Entering recovery mode | type:"DPS_RECOVERY_ENTER", mana:14, until:49.01
+[51.87s]   Entering recovery mode | type:"DPS_RECOVERY_ENTER", mana:0, until:54.87
+[51.87s]   Entering recovery mode | type:"DPS_RECOVERY_ENTER", mana:0, until:54.87
+[54.87s]   Entering recovery mode | type:"DPS_RECOVERY_ENTER", mana:10, until:57.87
+[57.89s]   Entering recovery mode | type:"DPS_RECOVERY_ENTER", mana:19, until:60.89
+[60.91s]   Entering recovery mode | type:"DPS_RECOVERY_ENTER", mana:14, until:63.91
+[66.93s]   Entering recovery mode | type:"DPS_RECOVERY_ENTER", mana:18, until:69.93
+
+======================================== MANA_STARVATION ========================================
+[47.78s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:4, reason:"damage_rotation"
+[48.04s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[48.39s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:6, reason:"damage_rotation"
+[48.46s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[48.79s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:8, reason:"damage_rotation"
+[48.84s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:8, reason:"damage_rotation"
+[52.02s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:1, reason:"damage_rotation"
+[52.04s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:1, reason:"damage_rotation"
+[52.46s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:2, reason:"damage_rotation"
+[52.64s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:3, reason:"damage_rotation"
+[52.67s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:3, reason:"damage_rotation"
+[52.77s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:3, reason:"damage_rotation"
+[52.96s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:4, reason:"damage_rotation"
+[53.09s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:4, reason:"damage_rotation"
+[53.37s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:5, reason:"damage_rotation"
+[53.82s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:6, reason:"damage_rotation"
+[54.07s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[54.19s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:7, reason:"damage_rotation"
+[54.27s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:8, reason:"damage_rotation"
+[54.31s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:8, reason:"damage_rotation"
+[57.91s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:4, reason:"damage_rotation"
+[58.89s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:8, reason:"damage_rotation"
+[59.02s]   MANA_STARVATION | type:"MANA_STARVATION", unit:"warrior", ability:"warrior_life_leech", required:8, current:8, reason:"damage_rotation"
+
+======================================== CREATURE_AI_STATE ========================================
+[47.86s]   CREATURE_AI_STATE | type:"CREATURE_AI_STATE", creature:"goblin", boss:false, hp:58, target:"mage", distance:31, hitCd:"0.00", attacked:true
+[56.27s]   CREATURE_AI_STATE | type:"CREATURE_AI_STATE", creature:"goblin", boss:false, hp:58, target:"mage", distance:31, hitCd:"0.00", attacked:true
+[60.42s]   CREATURE_AI_STATE | type:"CREATURE_AI_STATE", creature:"goblin", boss:false, hp:58, target:"mage", distance:31, hitCd:"0.00", attacked:true
+[63.82s]   CREATURE_AI_STATE | type:"CREATURE_AI_STATE", creature:"goblin", boss:false, hp:58, target:"mage", distance:31, hitCd:"0.00", attacked:true
+
+======================================== FLAG_CAPTURED ========================================
+[51.87s]   FLAG_CAPTURED | type:"FLAG_CAPTURED", flag:"Flag 2", previousOwner:"neutral", newOwner:"teamB", playerUnits:1
+
+======================================== LOADOUT ========================================
+[51.87s]   NPC abilities assigned | type:"NPC_ABILITY_ASSIGN", source:"spawnGuardsForSite", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[51.87s]   Fighter spawn loadout | type:"FIGHTER_SPAWN_LOADOUT", source:"spawnGuardsForSite", unit:"mage", id:"unknown_npc_21", kind:"unknown", guard:true, guardRole:"HEALER", variant:"mage", role:"HEALER", weaponType:"Healing Staff", loadoutId:"guard_mage_healer", locked:true, slots:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"], emptySlots:null, missingSkills:null, missingMeta:null
+[51.87s]   NPC abilities assigned | type:"NPC_ABILITY_ASSIGN", source:"spawnGuardsForSite", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[51.87s]   Fighter spawn loadout | type:"FIGHTER_SPAWN_LOADOUT", source:"spawnGuardsForSite", unit:"mage", id:"unknown_npc_22", kind:"unknown", guard:true, guardRole:"HEALER", variant:"mage", role:"HEALER", weaponType:"Healing Staff", loadoutId:"guard_mage_healer", locked:true, slots:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"], emptySlots:null, missingSkills:null, missingMeta:null
+[51.87s]   NPC abilities assigned | type:"NPC_ABILITY_ASSIGN", source:"spawnGuardsForSite", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[51.87s]   Fighter spawn loadout | type:"FIGHTER_SPAWN_LOADOUT", source:"spawnGuardsForSite", unit:"warrior", id:"unknown_npc_23", kind:"unknown", guard:true, guardRole:"DPS", variant:"warrior", role:"DPS", weaponType:"Destruction Staff", loadoutId:"guard_warrior_dps", locked:true, slots:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"], emptySlots:null, missingSkills:null, missingMeta:null
+[51.87s]   NPC abilities assigned | type:"NPC_ABILITY_ASSIGN", source:"spawnGuardsForSite", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[51.87s]   Fighter spawn loadout | type:"FIGHTER_SPAWN_LOADOUT", source:"spawnGuardsForSite", unit:"warrior", id:"unknown_npc_24", kind:"unknown", guard:true, guardRole:"DPS", variant:"warrior", role:"DPS", weaponType:"Destruction Staff", loadoutId:"guard_warrior_dps", locked:true, slots:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"], emptySlots:null, missingSkills:null, missingMeta:null
+[51.87s]   NPC abilities assigned | type:"NPC_ABILITY_ASSIGN", source:"spawnGuardsForSite", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[51.87s]   Fighter spawn loadout | type:"FIGHTER_SPAWN_LOADOUT", source:"spawnGuardsForSite", unit:"warrior", id:"unknown_npc_25", kind:"unknown", guard:true, guardRole:"DPS", variant:"warrior", role:"DPS", weaponType:"Destruction Staff", loadoutId:"guard_warrior_dps", locked:true, slots:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"], emptySlots:null, missingSkills:null, missingMeta:null
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"enemy:enemy:7", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"enemy:enemy:6", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"enemy:enemy:8", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"warrior", variant:"warrior", guard:true, loadoutId:"guard_warrior_dps", abilities:["gravity_well","meteor_slam","shoulder_charge","warrior_life_leech","warrior_fortitude"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+[60.01s]   NPC loadout locked (skip reinit) | type:"NPC_LOADOUT_LOCKED", source:"enemyLevelUp", unit:"mage", variant:"mage", guard:true, loadoutId:"guard_mage_healer", abilities:["heal_burst","mage_divine_touch","cleanse_wave","mage_radiant_aura","ward_barrier"]
+
+======================================== GUARD_BALL ========================================
+[51.87s]   Guard ball created | type:"GUARD_BALL_INIT", ballId:"enemy:site_1"
+[51.87s]   Guard ball leader elected | type:"GUARD_BALL_LEADER", ballId:"enemy:site_1", leaderId:"unknown_npc_23"
+[53.84s]   Guard healer cast (policy) | type:"GUARD_HEALER_POLICY_CAST", ballId:"enemy:site_3", policy:"H1", gateKind:"shield", reason:"H1_shield_topoff", ability:"ward_barrier", casterId:"unknown_npc_11", targetId:undefined, healUntil:0, shieldUntil:44.93, cleanseUntil:0
+[57.71s]   Ball focus target selected | type:"GUARD_BALL_FOCUS", ballId:"enemy:site_4", leaderId:"unknown_npc_18", focusTarget:"Hero", focusTargetId:"player:player:5", prevFocusTargetId:null, score:0, burstUntil:59.96
+[57.71s]   Ball focus heartbeat | type:"GUARD_BALL_FOCUS_HEARTBEAT", ballId:"enemy:site_4", leaderId:"unknown_npc_18", focusTargetId:"player:player:5", x:1431.64, y:2253.28, score:0
+[58.04s]   AoE cast targeted at ball focus position | type:"GUARD_BALL_AOE_TARGET", ballId:"enemy:site_4", ability:"shoulder_charge", casterId:"unknown_npc_20", focusTargetId:"player:player:5", x:1431.6430449453032, y:2253.277951230586
+[58.34s]   AoE cast targeted at ball focus position | type:"GUARD_BALL_AOE_TARGET", ballId:"enemy:site_4", ability:"shoulder_charge", casterId:"unknown_npc_18", focusTargetId:"player:player:5", x:1431.6430449453032, y:2253.277951230586
+[58.47s]   Ball reset armed (no valid targets) | type:"GUARD_BALL_RESET_ARM", ballId:"enemy:site_4", leaderId:"unknown_npc_18", resetAt:59.47
+[59.97s]   Ball focus reset (no valid targets) | type:"GUARD_BALL_RESET", ballId:"enemy:site_4", leaderId:"unknown_npc_18", prevFocusTargetId:"player:player:5"
+[63.85s]   Guard healer cast (policy) | type:"GUARD_HEALER_POLICY_CAST", ballId:"enemy:site_3", policy:"H1", gateKind:"shield", reason:"H1_shield_topoff", ability:"ward_barrier", casterId:"unknown_npc_11", targetId:undefined, healUntil:0, shieldUntil:54.94, cleanseUntil:0
+
+======================================== PARTY_MACRO_CHANGE ========================================
+[57.66s]   PARTY_MACRO_CHANGE | type:"PARTY_MACRO_CHANGE", previousState:"stack", newState:"engage", reason:"has_focus", playerHP:"NaN%"
+[58.92s]   PARTY_MACRO_CHANGE | type:"PARTY_MACRO_CHANGE", previousState:"engage", newState:"stack", reason:"low_hp", playerHP:"0%"
+[66.12s]   PARTY_MACRO_CHANGE | type:"PARTY_MACRO_CHANGE", previousState:"stack", newState:"engage", reason:"has_focus", playerHP:"NaN%"
+[67.51s]   PARTY_MACRO_CHANGE | type:"PARTY_MACRO_CHANGE", previousState:"engage", newState:"stack", reason:"has_focus", playerHP:"NaN%"
+
+======================================== GUARD_COMBO ========================================
+[57.66s]   GUARD_COMBO | type:"GUARD_COMBO", site:"site_4", stage:"GRAVITY", target:"Hero"
+[58.87s]   GUARD_COMBO | type:"GUARD_COMBO", site:"site_4", stage:"METEOR", target:"Hero", note:"gravity_skipped"
+[59.54s]   GUARD_COMBO | type:"GUARD_COMBO", site:"site_4", stage:"CHARGE", target:"Hero"
+[66.58s]   GUARD_COMBO | type:"GUARD_COMBO", site:"site_4", stage:"GRAVITY", target:"Hero"
+[67.80s]   GUARD_COMBO | type:"GUARD_COMBO", site:"site_4", stage:"METEOR", target:"Hero", note:"gravity_skipped"
+[68.45s]   GUARD_COMBO | type:"GUARD_COMBO", site:"site_4", stage:"CHARGE", target:"Hero"
+
+======================================== DAMAGE ========================================
+[57.67s]   Damage attempt to player | rawDamage:11, currentShield:0, currentHP:135.02296000000004, blocking:false, stamina:100
+[57.69s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:108.36672834951453, blocking:false, stamina:100
+[58.06s]   Damage attempt to player | rawDamage:11, currentShield:0, currentHP:79.99591320388356, blocking:false, stamina:100
+[58.17s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:53.479821553398104, blocking:false, stamina:100
+[58.34s]   Damage attempt to player | rawDamage:8, currentShield:0, currentHP:24.829566407767004, blocking:false, stamina:100
+[58.36s]   Damage attempt to player | rawDamage:11, currentShield:0, currentHP:17.085956116504885, blocking:false, stamina:100
+[67.33s]   Damage attempt to player | rawDamage:4, currentShield:0, currentHP:162.48275800000013, blocking:false, stamina:47.355399999993374
+
+======================================== ENEMY_ATTACK_BLOCKED ========================================
+[58.11s]   ENEMY_ATTACK_BLOCKED | type:"ENEMY_ATTACK_BLOCKED", attacker:"warrior", reason:"cooldown", cooldownRemaining:"0.20"
+
+========================================================================================================================
+END OF DEBUG LOG
