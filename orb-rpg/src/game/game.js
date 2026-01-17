@@ -190,16 +190,28 @@ export async function initGame(state){
   spawnCreatures(state);
   spawnBossCreature(state);
   
-  // NEW PROGRESSION SYSTEM: All teams start with 1 solo fighter
-  // Players unlock more ally slots by leveling up (levels 2, 3, 4, 5, etc.)
-  // Use PROGRESSION.recruitAlly() to add allies
-  // AI teams also start with 1 solo fighter each
+  // NEW PROGRESSION SYSTEM:
+  // Player starts SOLO and must build team through progression (levels 2, 3, 4, 5, etc.)
+  // AI teams start with FULL rosters to create immediate competition
   
   // Player starts with 0 allies (recruit via PROGRESSION.recruitAlly)
-  // AI teams start with 1 fighter each
-  seedTeamForces(state, 'teamA', 1);
-  seedTeamForces(state, 'teamB', 1);
-  seedTeamForces(state, 'teamC', 1);
+  // AI teams start with FULL teams (10 fighters each at their bases)
+  console.log('[INIT] Spawning AI team forces...');
+  seedTeamForces(state, 'teamA', MAX_DEFENDERS_PER_TEAM); // 10 fighters
+  seedTeamForces(state, 'teamB', MAX_DEFENDERS_PER_TEAM); // 10 fighters
+  seedTeamForces(state, 'teamC', MAX_DEFENDERS_PER_TEAM); // 10 fighters
+  
+  // Spawn 5 guards at each AI team's base (instant defense)
+  console.log('[INIT] Spawning AI team guards...');
+  const teamABase = state.sites.find(s => s.id === 'team_a_base');
+  const teamBBase = state.sites.find(s => s.id === 'team_b_base');
+  const teamCBase = state.sites.find(s => s.id === 'team_c_base');
+  
+  if(teamABase && spawnGuardsForSite) spawnGuardsForSite(state, teamABase, 5);
+  if(teamBBase && spawnGuardsForSite) spawnGuardsForSite(state, teamBBase, 5);
+  if(teamCBase && spawnGuardsForSite) spawnGuardsForSite(state, teamCBase, 5);
+  
+  console.log('[INIT] AI teams initialized with full rosters + guards');
   
   // Initialize walking sound
   if(!state.sounds) state.sounds = {};
@@ -3051,12 +3063,24 @@ function npcUpdateAbilities(state, u, dt, kind){
   const hostileCreatures = [];
   if(kind==='friendly'){
     for(const c of state.creatures||[]){
+      // Skip creatures that don't match current context
+      if(state.inDungeon){
+        if(c.dungeonId !== state.inDungeon) continue;
+      } else {
+        if(c.dungeonId) continue;
+      }
       const tgt = c.target;
       const hostile = c.attacked && (tgt===state.player || state.friendlies.includes(tgt) || tgt===u);
       if(hostile) hostileCreatures.push(c);
     }
   } else if(kind==='enemy'){
     for(const c of state.creatures||[]){
+      // Skip creatures that don't match current context
+      if(state.inDungeon){
+        if(c.dungeonId !== state.inDungeon) continue;
+      } else {
+        if(c.dungeonId) continue;
+      }
       const tgt = c.target;
       const hostile = c.attacked && (tgt===state.player || state.friendlies.includes(tgt) || tgt===u);
       if(hostile) hostileCreatures.push(c);
@@ -4224,6 +4248,10 @@ function spawnBossCreature(state){
   const bossHp = Math.round(520 * levelMult);
   const bossDmg = Math.round(16 * levelMult);
   
+  // Randomly select a boss icon
+  const bossIconNames = ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venomQueen', 'vorrak', 'zalthor'];
+  const randomIcon = bossIconNames[Math.floor(Math.random() * bossIconNames.length)];
+  
   state.creatures.push({ 
     x, y, 
     r: 24, 
@@ -4234,7 +4262,9 @@ function spawnBossCreature(state){
     contactDmg: bossDmg, 
     color: cssVar('--legend'), 
     key:'boss', 
+    name: 'World Boss',
     boss:true, 
+    bossIcon: randomIcon,
     attacked:false, 
     hitCd: 0, 
     wander:{ t: rand(0.5,1.6), ang: Math.random()*Math.PI*2 }, 
@@ -4905,6 +4935,12 @@ function updateFriendlies(state, dt){
     // consider hostile creatures that are attacking us or allies
     let nearCreature=null, nearCreatureD=Infinity;
     for(const c of state.creatures){
+      // Skip creatures that don't match current context
+      if(state.inDungeon){
+        if(c.dungeonId !== state.inDungeon) continue;
+      } else {
+        if(c.dungeonId) continue;
+      }
       if(!c.attacked) continue;
       const isHostile = c.target===state.player || state.friendlies.includes(c.target) || c.target===a;
       if(!isHostile) continue;
@@ -6118,6 +6154,12 @@ function updateFriendlies(state, dt){
     // incidental collisions with creatures: friendlies can aggro creatures if they hit them
     for(let ci=state.creatures.length-1; ci>=0; ci--){
       const c = state.creatures[ci];
+      // Skip creatures that don't match current context
+      if(state.inDungeon){
+        if(c.dungeonId !== state.inDungeon) continue;
+      } else {
+        if(c.dungeonId) continue;
+      }
       const d = Math.hypot(c.x - a.x, c.y - a.y);
       const hitDist = a.r + (c.r||12) + 4;
       if(d <= hitDist && a.hitCd<=0){
@@ -6786,6 +6828,12 @@ function updateEnemies(state, dt){
       // Find hostile creatures (same as friendly AI)
       let nearCreature = null, nearCreatureD = Infinity;
       for(const c of state.creatures){
+        // Skip creatures that don't match current context
+        if(state.inDungeon){
+          if(c.dungeonId !== state.inDungeon) continue;
+        } else {
+          if(c.dungeonId) continue;
+        }
         if(!c.attacked) continue;
         const isHostile = state.enemies.includes(c.target) || c.target === e;
         if(!isHostile) continue;
@@ -6901,6 +6949,12 @@ function updateEnemies(state, dt){
       for(const other of state.enemies){ if(other===e) continue; if(!other.team || !e.team) continue; if(other.team === e.team) continue; if(!shouldAttackTeam(e.team, other.team, state)) continue; const d=Math.hypot(other.x - e.x, other.y - e.y); if(d < bestD){ bestD = d; bestTarget = other; bestType='enemy'; } }
       // hostile creatures (attacked and targeting an enemy/friendly/player)
       for(const c of state.creatures){
+        // Skip creatures that don't match current context
+        if(state.inDungeon){
+          if(c.dungeonId !== state.inDungeon) continue;
+        } else {
+          if(c.dungeonId) continue;
+        }
         if(!c.attacked) continue;
         const tgt = c.target;
         const hostile = tgt===state.player || state.friendlies.includes(tgt) || tgt===e;
@@ -6954,6 +7008,12 @@ function updateEnemies(state, dt){
           // incidental collision: damage creatures and aggro them to this enemy
           for(let ci=state.creatures.length-1; ci>=0; ci--){
             const c = state.creatures[ci];
+            // Skip creatures that don't match current context
+            if(state.inDungeon){
+              if(c.dungeonId !== state.inDungeon) continue;
+            } else {
+              if(c.dungeonId) continue;
+            }
             const dc = Math.hypot(c.x - e.x, c.y - e.y);
             const cdst = e.r + (c.r||12) + 4;
             if(dc <= cdst && !e.inWater){
@@ -8249,6 +8309,12 @@ function updateProjectiles(state, dt){
       // player projectiles can hit creatures (neutral)
       for(let ci=state.creatures.length-1; ci>=0; ci--){
         const c = state.creatures[ci];
+        // Skip creatures that don't match current context
+        if(state.inDungeon){
+          if(c.dungeonId !== state.inDungeon) continue;
+        } else {
+          if(c.dungeonId) continue;
+        }
         if(Math.hypot(p.x-c.x, p.y-c.y) <= (c.r||12) + p.r){
           const dead = applyDamageToCreature(c, p.dmg, state);
           
@@ -8651,20 +8717,73 @@ function awardCampaignLegendary(state){
 
 // Dungeon utilities
 function spawnDungeonEnemies(state, dungeon){
-  // spawn 10 regular mobs + 1 boss at dungeon location
+  // Spawn 10 dungeon creatures + 1 boss creature at dungeon location
   const cx = dungeon.x, cy = dungeon.y;
+  
+  // Use existing CREATURE_TYPES for dungeon spawns (goblins, wolves, bears)
+  const dungeonCreatureTypes = CREATURE_TYPES.filter(ct => ct); // All creature types
+  
+  // Spawn 10 regular dungeon creatures (hostile wildlife)
   for(let i=0;i<10;i++){
-    const ang = Math.random()*Math.PI*2; const dist = 20 + Math.random()*80;
-    const VARS = ['warrior','mage','knight','tank'];
-    const variant = VARS[randi(0, VARS.length-1)];
-    const e = { x: cx + Math.cos(ang)*dist, y: cy + Math.sin(ang)*dist, r: 12, maxHp: 40, hp: 40, speed: 62, contactDmg: 8, hitCd:0, xp: 12, attacked:false, dungeonId: dungeon.id, team: null, homeSiteId: null, spawnTargetSiteId: null, variant };
-    ensureEntityId(state, e, { kind:'enemy', team: 'dungeon' });
-    state.enemies.push(e);
+    const ang = Math.random()*Math.PI*2; 
+    const dist = 20 + Math.random()*80;
+    const ct = dungeonCreatureTypes[randi(0, dungeonCreatureTypes.length-1)];
+    
+    // Create creature with dungeon-scaled stats (tougher than world creatures)
+    const creature = { 
+      x: cx + Math.cos(ang)*dist, 
+      y: cy + Math.sin(ang)*dist, 
+      r: ct.r || 12, 
+      key: ct.key,
+      name: ct.name,
+      color: ct.color || '#8b4513',
+      maxHp: Math.floor(ct.hp * 1.3),  // 30% tougher than world creatures
+      hp: Math.floor(ct.hp * 1.3), 
+      speed: ct.speed || 70, 
+      contactDmg: ct.dmg + 3, // +3 damage in dungeons
+      hitCd: 0, 
+      xp: 15, 
+      attacked: false,
+      agro_range: ct.agro || 110,
+      dungeonId: dungeon.id,
+      variant: ct.variant || ct.key,
+      wander: { t: 1.0, ang: Math.random()*Math.PI*2 }
+    };
+    
+    state.creatures.push(creature);
   }
-  // boss
-  const boss = { x: cx, y: cy, r: 26, maxHp: 620, hp: 620, speed: 36, contactDmg: 22, hitCd:0, xp: 120, attacked:false, boss:true, dungeonId: dungeon.id, team: null, homeSiteId: null, spawnTargetSiteId: null, variant: 'tank' };
-  ensureEntityId(state, boss, { kind:'enemy', team: 'dungeon' });
-  state.enemies.push(boss);
+  
+  // Spawn dungeon boss creature (much tougher bear-type)
+  const bearType = CREATURE_TYPES.find(ct => ct.key === 'bear') || CREATURE_TYPES[0];
+  
+  // Randomly select a boss icon for dungeon boss
+  const bossIconNames = ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venomQueen', 'vorrak', 'zalthor'];
+  const randomIcon = bossIconNames[Math.floor(Math.random() * bossIconNames.length)];
+  
+  const boss = { 
+    x: cx, 
+    y: cy, 
+    r: 26, 
+    key: 'boss_bear',
+    name: 'Dungeon Boss',
+    color: '#8b0000',
+    maxHp: 620, 
+    hp: 620, 
+    speed: 50, 
+    contactDmg: 22, 
+    hitCd: 0, 
+    xp: 120, 
+    attacked: false,
+    agro_range: 150,
+    boss: true, 
+    bossIcon: randomIcon,
+    dungeonId: dungeon.id,
+    variant: 'bear',
+    wander: { t: 1.0, ang: Math.random()*Math.PI*2 }
+  };
+  
+  state.creatures.push(boss);
+  console.log('[DUNGEON] Spawned 10 creatures + 1 boss creature at', dungeon.name);
 }
 
 function enterDungeon(state, dungeon){
@@ -8705,8 +8824,14 @@ function exitDungeon(state){
   if(!id) return;
   const dungeon = state.dungeons.find(d=>d.id===id);
   if(dungeon) dungeon.cleared = true;
-  // remove any remaining dungeon enemies
-  for(let i=state.enemies.length-1;i>=0;i--){ if(state.enemies[i].dungeonId === id) state.enemies.splice(i,1); }
+  // Remove any remaining dungeon creatures
+  for(let i=state.creatures.length-1;i>=0;i--){ 
+    if(state.creatures[i].dungeonId === id) state.creatures.splice(i,1); 
+  }
+  // Also remove any dungeon enemies (in case there are any legacy ones)
+  for(let i=state.enemies.length-1;i>=0;i--){ 
+    if(state.enemies[i].dungeonId === id) state.enemies.splice(i,1); 
+  }
   // restore player position and camera
   if(state._savedWorld){ state.player.x = state._savedWorld.px; state.player.y = state._savedWorld.py; state.camera.x = state._savedWorld.cam.x; state.camera.y = state._savedWorld.cam.y; state.camera.zoom = state._savedWorld.cam.zoom; }
   
@@ -9528,7 +9653,15 @@ export function handleHotkeys(state, dt){
     // check friendlies
     if(!clicked) for(const f of state.friendlies){ if(f.respawnT>0) continue; if(Math.hypot(f.x - wx, f.y - wy) <= (f.r||12) + 6){ clicked = { unit: f, type: 'friendly' }; break; } }
     // check creatures
-    if(!clicked) for(const c of state.creatures){ if(Math.hypot(c.x - wx, c.y - wy) <= (c.r||12) + 6){ clicked = { unit: c, type: 'creature' }; break; } }
+    if(!clicked) for(const c of state.creatures){ 
+      // Skip creatures that don't match current context
+      if(state.inDungeon){
+        if(c.dungeonId !== state.inDungeon) continue;
+      } else {
+        if(c.dungeonId) continue;
+      }
+      if(Math.hypot(c.x - wx, c.y - wy) <= (c.r||12) + 6){ clicked = { unit: c, type: 'creature' }; break; } 
+    }
     if(clicked){
       state.selectedUnit = clicked;
       state.ui.showUnitInspection(clicked);
@@ -10442,6 +10575,15 @@ function updateCreatures(state, dt){
   for(let i=state.creatures.length-1;i>=0;i--){
     const c = state.creatures[i];
     
+    // Skip creatures that don't match current context (dungeon vs world)
+    // If in dungeon: only update creatures with matching dungeonId
+    // If in world: only update creatures without dungeonId
+    if(state.inDungeon){
+      if(c.dungeonId !== state.inDungeon) continue;
+    } else {
+      if(c.dungeonId) continue;
+    }
+    
     // CRITICAL: Check if creature died (hp <= 0) and kill it
     if(c.hp <= 0){
       if(state.debugLog){
@@ -10810,6 +10952,10 @@ function spawnZoneBoss(state) {
     boss.hp = boss.maxHp;
     boss.contactDmg = boss.contactDmg * 2; // 2x damage
     boss.xp = boss.xp * 10; // 10x XP reward
+    
+    // Randomly select a boss icon
+    const bossIconNames = ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venomQueen', 'vorrak', 'zalthor'];
+    boss.bossIcon = bossIconNames[Math.floor(Math.random() * bossIconNames.length)];
     
     state.zoneConfig.bossActive = true;
     state.zoneConfig.bossEntity = boss;

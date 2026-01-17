@@ -17,6 +17,68 @@ const grassTextures = {
   patches: [] // Store static patch positions
 };
 
+// Pre-load boss icons
+const bossIcons = {
+  archmage: null,
+  balrogath: null,
+  bloodfang: null,
+  gorothar: null,
+  malakir: null,
+  tarrasque: null,
+  venomQueen: null,
+  vorrak: null,
+  zalthor: null,
+  loaded: false,
+  loading: false,
+  iconNames: ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venomQueen', 'vorrak', 'zalthor']
+};
+
+function loadBossIcons(){
+  if(bossIcons.loading || bossIcons.loaded) return;
+  bossIcons.loading = true;
+  
+  const loadImage = (path) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => {
+        console.warn(`Failed to load boss icon: ${path}`);
+        resolve(null);
+      };
+      img.crossOrigin = 'anonymous';
+      img.src = path;
+    });
+  };
+  
+  Promise.all([
+    loadImage('assets/boss icons/Archmage.PNG'),
+    loadImage('assets/boss icons/Balrogath.PNG'),
+    loadImage('assets/boss icons/Bloodfang.PNG'),
+    loadImage('assets/boss icons/Gorothar.PNG'),
+    loadImage('assets/boss icons/Malakir.PNG'),
+    loadImage('assets/boss icons/Tarrasque.PNG'),
+    loadImage('assets/boss icons/Venom Queen.PNG'),
+    loadImage('assets/boss icons/Vorrak.PNG'),
+    loadImage('assets/boss icons/Zalthor.PNG')
+  ]).then(([archmage, balrogath, bloodfang, gorothar, malakir, tarrasque, venomQueen, vorrak, zalthor]) => {
+    if(archmage) bossIcons.archmage = archmage;
+    if(balrogath) bossIcons.balrogath = balrogath;
+    if(bloodfang) bossIcons.bloodfang = bloodfang;
+    if(gorothar) bossIcons.gorothar = gorothar;
+    if(malakir) bossIcons.malakir = malakir;
+    if(tarrasque) bossIcons.tarrasque = tarrasque;
+    if(venomQueen) bossIcons.venomQueen = venomQueen;
+    if(vorrak) bossIcons.vorrak = vorrak;
+    if(zalthor) bossIcons.zalthor = zalthor;
+    bossIcons.loaded = true;
+    
+    console.log('[Boss Icons] Loaded successfully');
+  });
+}
+
+// Load boss icons on module import
+loadBossIcons();
+
 function loadGrassTextures(){
   if(grassTextures.loading || grassTextures.loaded) return;
   grassTextures.loading = true;
@@ -553,32 +615,79 @@ export function render(state){
   // enemies
   for(const e of state.enemies){
     if(activeDungeon && e.dungeonId !== activeDungeon) continue;
-    // draw orb (team-colored) under the sprite
+    // Boss enemies have doubled orb size
+    const orbRadius = e.boss ? ((e.r||18) * 2) : (e.r||18);
+    const orbPadding = e.boss ? 4 : 2;
+    
+    // draw orb (team-colored or orange for bosses)
     let ec = null;
-    if(e.team) ec = teamColor(e.team);
-    else if(e.boss) ec = cssVar('--legend');
-    else ec = '#9b6b4b';
+    if(e.boss) {
+      ec = '#ff8c00'; // Orange for bosses
+    } else if(e.team) {
+      ec = teamColor(e.team);
+    } else {
+      ec = '#9b6b4b';
+    }
     ctx.globalAlpha = 0.92;
     ctx.fillStyle = ec;
-    ctx.beginPath(); ctx.arc(e.x,e.y,e.r+2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(e.x, e.y, orbRadius + orbPadding, 0, Math.PI*2); ctx.fill();
     ctx.globalAlpha = 1;
-    // draw variant image on top (smaller than orb)
-    // Note: warden class uses tank.svg sprite
-    const variantName = e.variant || (e.boss ? 'warden' : (e.knight ? 'knight' : null));
-    const spriteFile = (variantName==='warden') ? 'tank' : variantName;
-    const path = spriteFile ? `assets/char/${spriteFile}.svg` : null;
-    const img = path ? loadCachedImage(state, path) : null;
-    if(img){
-      const size = Math.max(16, Math.floor(e.r*1.6));
-      ctx.drawImage(img, e.x - size/2, e.y - size/2, size, size);
+    
+    // Thick black border for boss orbs
+    if(e.boss){
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.arc(e.x, e.y, orbRadius + orbPadding, 0, Math.PI*2); ctx.stroke();
     }
-    drawHpBar(ctx, e.x, e.y-e.r-18, 34, 6, Math.max(0, (e.hp||0)/(e.maxHp||1)), e.level, true);
+    
+    // For bosses with boss icons, draw icon overlay instead of variant sprite
+    if(e.boss && bossIcons.loaded && e.bossIcon){
+      const bossImg = bossIcons[e.bossIcon];
+      if(bossImg){
+        // Fit boss icon inside the orb
+        const iconSize = orbRadius * 1.6;
+        ctx.save();
+        ctx.globalAlpha = 1;
+        // Draw circular clipping mask for boss icon
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, orbRadius - 2, 0, Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(bossImg, e.x - iconSize/2, e.y - iconSize/2, iconSize, iconSize);
+        ctx.restore();
+      }
+    } else {
+      // Regular enemies use variant sprite
+      // Note: warden class uses tank.svg sprite
+      const variantName = e.variant || (e.boss ? 'warden' : (e.knight ? 'knight' : null));
+      const spriteFile = (variantName==='warden') ? 'tank' : variantName;
+      const path = spriteFile ? `assets/char/${spriteFile}.svg` : null;
+      const img = path ? loadCachedImage(state, path) : null;
+      if(img){
+        const size = Math.max(16, Math.floor((e.r||18)*1.6));
+        ctx.drawImage(img, e.x - size/2, e.y - size/2, size, size);
+      }
+    }
+    
+    // HP bar (adjusted for boss size)
+    const hpBarY = e.y - orbRadius - (e.boss ? 22 : 18);
+    const hpBarWidth = e.boss ? 50 : 34;
+    drawHpBar(ctx, e.x, hpBarY, hpBarWidth, 6, Math.max(0, (e.hp||0)/(e.maxHp||1)), e.level, true);
+    
+    // Boss name label
+    if(e.boss && e.name){
+      ctx.font = 'bold 13px system-ui';
+      ctx.fillStyle = 'rgba(255,215,0,0.95)';
+      ctx.textAlign = 'center';
+      const nameY = e.y - orbRadius - (e.boss ? 26 : 18);
+      ctx.fillText(e.name, e.x, nameY);
+    }
+    
     // draw block indicator (blue ring when actively blocking - guards only)
     if(e.blocking && e.stam > 0){
       ctx.globalAlpha = 0.6;
       ctx.strokeStyle='#6ec0ff';
       ctx.lineWidth=4;
-      ctx.beginPath(); ctx.arc(e.x, e.y, e.r+14, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(e.x, e.y, orbRadius + 14, 0, Math.PI*2); ctx.stroke();
       ctx.globalAlpha = 1;
     }
     // draw shield indicator (cyan shield ring for enemy shields - different from block ring)
@@ -587,36 +696,79 @@ export function render(state){
       ctx.globalAlpha = 0.5 + 0.3*shieldRatio;
       ctx.strokeStyle = '#80e5ff'; // Lighter cyan to distinguish from block
       ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(e.x, e.y, e.r+8, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(e.x, e.y, orbRadius + 8, 0, Math.PI*2); ctx.stroke();
       ctx.globalAlpha = 1;
     }
-    drawDebuffBadges(ctx, e.x, e.y - e.r - 28, collectDebuffBadges(e));
+    drawDebuffBadges(ctx, e.x, e.y - orbRadius - (e.boss ? 34 : 28), collectDebuffBadges(e));
   }
 
   // creatures (neutral wildlife)
   if(state.creatures){
     for(const c of state.creatures){
+      // Skip creatures that don't match current context (dungeon vs world)
+      // If in dungeon: only render creatures with matching dungeonId
+      // If in world: only render creatures without dungeonId
+      if(activeDungeon){
+        if(c.dungeonId !== activeDungeon) continue;
+      } else {
+        if(c.dungeonId) continue;
+      }
+      
+      // Boss creatures have doubled orb size (r=48 instead of 24)
+      const orbRadius = c.boss ? ((c.r||12) * 2) : (c.r||12);
+      const orbPadding = c.boss ? 4 : 2;
+      
       // base orb
-      const col = c.boss ? cssVar('--legend') : (c.color || '#6ab06a');
+      const col = c.boss ? '#ff8c00' : (c.color || '#6ab06a'); // Orange for boss
       ctx.globalAlpha = 0.92;
       ctx.fillStyle = col;
-      ctx.beginPath(); ctx.arc(c.x, c.y, (c.r||12)+2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(c.x, c.y, orbRadius + orbPadding, 0, Math.PI*2); ctx.fill();
       ctx.globalAlpha = 1;
-      // draw creature variant image
-      const path = c.variant ? `assets/char/${c.variant}.svg` : null;
-      const img = path ? loadCachedImage(state, path) : null;
-      if(img){
-        const size = Math.max(18, Math.floor((c.r||12)*1.8));
-        ctx.drawImage(img, c.x - size/2, c.y - size/2, size, size);
+      
+      // Thick black border for boss orbs
+      if(c.boss){
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(c.x, c.y, orbRadius + orbPadding, 0, Math.PI*2); ctx.stroke();
       }
-      // small HP bar
-      drawHpBar(ctx, c.x, c.y - (c.r||12) - 16, 26, 5, Math.max(0, (c.hp||0)/(c.maxHp||1)), c.level);
-      // name label (small text above creature)
+      
+      // For bosses, draw boss icon overlay instead of creature variant
+      if(c.boss && bossIcons.loaded && c.bossIcon){
+        const bossImg = bossIcons[c.bossIcon];
+        if(bossImg){
+          // Fit boss icon inside the orb (slightly smaller than orb diameter)
+          const iconSize = orbRadius * 1.6;
+          ctx.save();
+          ctx.globalAlpha = 1;
+          // Draw circular clipping mask for boss icon
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, orbRadius - 2, 0, Math.PI*2);
+          ctx.clip();
+          ctx.drawImage(bossImg, c.x - iconSize/2, c.y - iconSize/2, iconSize, iconSize);
+          ctx.restore();
+        }
+      } else if(!c.boss) {
+        // Regular creatures use variant image
+        const path = c.variant ? `assets/char/${c.variant}.svg` : null;
+        const img = path ? loadCachedImage(state, path) : null;
+        if(img){
+          const size = Math.max(18, Math.floor((c.r||12)*1.8));
+          ctx.drawImage(img, c.x - size/2, c.y - size/2, size, size);
+        }
+      }
+      
+      // HP bar (adjusted position for boss size)
+      const hpBarY = c.y - orbRadius - (c.boss ? 20 : 16);
+      const hpBarWidth = c.boss ? 40 : 26;
+      drawHpBar(ctx, c.x, hpBarY, hpBarWidth, 5, Math.max(0, (c.hp||0)/(c.maxHp||1)), c.level);
+      
+      // name label (adjusted position for boss size)
       if(c.name){
-        ctx.font = '11px system-ui';
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = c.boss ? 'bold 13px system-ui' : '11px system-ui';
+        ctx.fillStyle = c.boss ? 'rgba(255,215,0,0.95)' : 'rgba(255,255,255,0.85)';
         ctx.textAlign = 'center';
-        ctx.fillText(c.name, c.x, c.y - (c.r||12) - 20);
+        const nameY = c.y - orbRadius - (c.boss ? 24 : 20);
+        ctx.fillText(c.name, c.x, nameY);
       }
     }
   }
