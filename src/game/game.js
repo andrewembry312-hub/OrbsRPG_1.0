@@ -9080,6 +9080,9 @@ function showBossIntro(state, bossIcon, dungeonName, bossProfile, onComplete){
 function enterDungeon(state, dungeon){
   if(!dungeon || dungeon.cleared) return;
   
+  // Set interaction lock to prevent rapid multi-dungeon clicks
+  state._dungeonInteracting = true;
+  
   // Play dungeon entrance sound
   if(state.sounds?.castingMagic5){
     const audio = state.sounds.castingMagic5.cloneNode();
@@ -9087,8 +9090,16 @@ function enterDungeon(state, dungeon){
     audio.play().catch(e => {});
   }
   
+  // Mark dungeon as cleared (one-time playable)
+  dungeon.cleared = true;
+  
   // Just spawn enemies - nothing else changes
   spawnDungeonEnemies(state, dungeon);
+  
+  // Release interaction lock after small delay to prevent spam
+  setTimeout(() => {
+    state._dungeonInteracting = false;
+  }, 200);
   
   state.ui.toast(`<b>Entered</b> ${dungeon.name}`);
 }
@@ -9510,15 +9521,21 @@ export function handleHotkeys(state, dt){
     state._pickLatch=true;
     let interacted = false;
     
-    // Priority 1: Check for dungeon entry
-    if(state.dungeons){
+    // Priority 1: Check for dungeon entry - ONLY IF NOT ALREADY INTERACTING
+    if(state.dungeons && !state._dungeonInteracting){
       for(const d of state.dungeons){ 
         const dd = Math.hypot(state.player.x-d.x, state.player.y-d.y); 
+        // Allow entry only if: within range, not cleared, and not already interacting
         if(dd <= Math.max(72, d.r+20) && !d.cleared){ 
           enterDungeon(state, d); 
           interacted = true; 
           break; 
-        } 
+        } else if(dd <= Math.max(72, d.r+20) && d.cleared){
+          // Feedback when trying to enter cleared dungeon
+          state.ui.toast('⚔️ <span class="neg">Dungeon already cleared!</span>');
+          interacted = true;
+          break;
+        }
       }
     }
     
