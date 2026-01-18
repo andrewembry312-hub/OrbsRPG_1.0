@@ -9,6 +9,17 @@
 body{margin:0; background:radial-gradient(1200px 700px at 30% 0%, #121b3a 0%, var(--bg) 55%, #070a14 100%);
   color:var(--text); font-family:system-ui,Segoe UI,Arial; overflow:hidden;
 }
+
+/* MOBILE: Global scale - make EVERYTHING 50% size */
+@media (max-width: 768px), (hover: none) {
+  body {
+    transform: scale(0.5);
+    transform-origin: top left;
+    width: 200vw;
+    height: 200vh;
+    overflow: hidden;
+  }
+}
 canvas{display:block}
 .hud{
   position:fixed; left:12px; top:12px; width:392px; padding:10px;
