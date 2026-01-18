@@ -7,6 +7,7 @@ import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
 import { showCharSelect } from "./charselect.js";
 import { spawnGuardsForSite } from "./world.js";
+import { getAssetPath } from "../config.js";
 
 // Expose ABILITIES to window for console commands
 window.ABILITIES = ABILITIES;
@@ -15,7 +16,7 @@ export function buildUI(state){
   const root=document.getElementById('ui-root');
   root.innerHTML = `
     <!-- Main Menu Overlay -->
-    <div id="mainMenu" class="overlay show" style="background: url('assets/ui/MainMenu.png') center center/105% auto no-repeat #000;">
+    <div id="mainMenu" class="overlay show" style="background: url('" + getAssetPath('assets/ui/MainMenu.png') + "') center center/105% auto no-repeat #000;">
       <div class="panel" style="width:min(560px,92vw); background: rgba(0,0,0,0.65); border:2px solid rgba(212,175,55,0.5); box-shadow:0 0 24px rgba(212,175,55,0.25);">
         <h2 style="margin:0; color:#e9d27b; letter-spacing:1px; text-shadow:0 0 12px rgba(212,175,55,0.55);">Orb RPG</h2>
         
@@ -242,7 +243,7 @@ export function buildUI(state){
                 <div class="small">Hero: <span id="heroClassName">Warrior</span> • Lv <span id="heroLevel">1</span></div>
               </div>
               <div id="equipCircle" class="equipCircle">
-                <img id="heroPortrait" src="assets/char/warrior.svg" alt="Hero" class="heroLarge"/>
+                <img id="heroPortrait" src="${getAssetPath('assets/char/warrior.svg')}" alt="Hero" class="heroLarge"/>
               </div>
               <div id="equipExtras" class="equipExtras" style="display:flex; justify-content:space-evenly; align-items:center;"></div>
               <div id="weaponSlot" class="weaponSlot" style="text-align:center;"></div>
@@ -1102,7 +1103,7 @@ export function buildUI(state){
                   • Tier 5: Legendary (★★★★★) - Max power<br><br>
                   
                   <div style="text-align:left; margin:12px 0;">
-                    <img src="assets/items/Sword progression from common to legendary.png" alt="Sword Progression" style="max-width:24%; height:auto; border-radius:4px; border:1px solid rgba(255,255,255,0.2);"/>
+                    <img src="${getAssetPath('assets/items/Sword progression from common to legendary.png')}" alt="Sword Progression" style="max-width:24%; height:auto; border-radius:4px; border:1px solid rgba(255,255,255,0.2);"/>
                     <div style="font-size:10px; color:#999; margin-top:4px;">Visual progression from Common to Legendary tier</div>
                   </div>
                   
@@ -1996,7 +1997,7 @@ function bindUI(state){
   ui.hideMainMenu = ()=> ui.mainMenu.classList.remove('show');
   // Main menu background: use default path; you can override via localStorage if needed
   try{
-    const initBg = localStorage.getItem('orb_rpg_menu_bg') || 'assets/ui/MainMenu.png';
+    const initBg = localStorage.getItem('orb_rpg_menu_bg') || getAssetPath('assets/ui/MainMenu.png');
     ui.mainMenu.style.background = `url('${initBg}') center center/105% auto no-repeat #000`;
   }catch(e){}
 
@@ -3922,10 +3923,10 @@ function bindUI(state){
     
     // Update hero portrait based on class
     const classPortraits = {
-      'warden': 'assets/char/Warden Player head.png',
-      'mage': 'assets/char/mage player head.png',
-      'knight': 'assets/char/knight player head.png',
-      'warrior': 'assets/char/Warior Player head.png'
+      'warden': getAssetPath('assets/char/Warden Player head.png'),
+      'mage': getAssetPath('assets/char/mage player head.png'),
+      'knight': getAssetPath('assets/char/knight player head.png'),
+      'warrior': getAssetPath('assets/char/Warior Player head.png')
     };
     const className = (state.player.className || 'warrior').toLowerCase();
     const portraitSrc = classPortraits[className] || classPortraits['warrior'];
@@ -3950,155 +3951,155 @@ function bindUI(state){
   // Shared icon mapping for buffs/debuffs/skills/items (PNG overrides, otherwise emoji fallback)
   const ICON_IMAGES = {
     // Buff icons
-    temporal_flux: 'assets/Buff icons/Temporal Flux.PNG',
-    arcane_power: 'assets/Buff icons/Arcane Power.PNG',
-    arcane_burn: 'assets/Buff icons/Arcane Burn.png',
-    battle_fury: 'assets/Buff icons/Battle Fury.PNG',
-    berserker_rage: 'assets/Buff icons/Berserker Rage.PNG',
-    berserk: 'assets/Buff icons/Berserker.PNG',
-    blessed: 'assets/Buff icons/Blessed.PNG',
-    bleed: 'assets/Buff icons/Bleed.png',
-    burn: 'assets/Buff icons/burn.PNG',
-    clarity: 'assets/Buff icons/clarity.PNG',
-    curse: 'assets/Buff icons/curse.PNG',
-    divine_shield: 'assets/Buff icons/devine shield.PNG',
-    flight: 'assets/Buff icons/flight.png',
-    fortified: 'assets/Buff icons/fortified.PNG',
-    guardian_stance: 'assets/Buff icons/Guardian Stance.PNG',
-    haste: 'assets/Buff icons/haste.PNG',
-    healing_empowerment: 'assets/Buff icons/Healing Empowerment.PNG',
-    iron_will: 'assets/Buff icons/Iron Will.PNG',
-    lucky: 'assets/Buff icons/lucky.PNG',
-    mana_surge: 'assets/Buff icons/mana surge.PNG',
-    poison: 'assets/Buff icons/Poison.png',
-    radiance: 'assets/Buff icons/Radiance.PNG',
-    regeneration: 'assets/Buff icons/Regeneration.PNG',
-    root: 'assets/Buff icons/root.PNG',
-    slow: 'assets/Buff icons/slow.PNG',
-    sprint: 'assets/Buff icons/sprint.png',
-    stealth: 'assets/Buff icons/Stealth.png',
-    swift_strikes: 'assets/Buff icons/Swift Strikes.PNG',
-    vigor: 'assets/Buff icons/vigor.PNG',
+    temporal_flux: getAssetPath('assets/Buff icons/Temporal Flux.PNG'),
+    arcane_power: getAssetPath('assets/Buff icons/Arcane Power.PNG'),
+    arcane_burn: getAssetPath('assets/Buff icons/Arcane Burn.png'),
+    battle_fury: getAssetPath('assets/Buff icons/Battle Fury.PNG'),
+    berserker_rage: getAssetPath('assets/Buff icons/Berserker Rage.PNG'),
+    berserk: getAssetPath('assets/Buff icons/Berserker.PNG'),
+    blessed: getAssetPath('assets/Buff icons/Blessed.PNG'),
+    bleed: getAssetPath('assets/Buff icons/Bleed.png'),
+    burn: getAssetPath('assets/Buff icons/burn.PNG'),
+    clarity: getAssetPath('assets/Buff icons/clarity.PNG'),
+    curse: getAssetPath('assets/Buff icons/curse.PNG'),
+    divine_shield: getAssetPath('assets/Buff icons/devine shield.PNG'),
+    flight: getAssetPath('assets/Buff icons/flight.png'),
+    fortified: getAssetPath('assets/Buff icons/fortified.PNG'),
+    guardian_stance: getAssetPath('assets/Buff icons/Guardian Stance.PNG'),
+    haste: getAssetPath('assets/Buff icons/haste.PNG'),
+    healing_empowerment: getAssetPath('assets/Buff icons/Healing Empowerment.PNG'),
+    iron_will: getAssetPath('assets/Buff icons/Iron Will.PNG'),
+    lucky: getAssetPath('assets/Buff icons/lucky.PNG'),
+    mana_surge: getAssetPath('assets/Buff icons/mana surge.PNG'),
+    poison: getAssetPath('assets/Buff icons/Poison.png'),
+    radiance: getAssetPath('assets/Buff icons/Radiance.PNG'),
+    regeneration: getAssetPath('assets/Buff icons/Regeneration.PNG'),
+    root: getAssetPath('assets/Buff icons/root.PNG'),
+    slow: getAssetPath('assets/Buff icons/slow.PNG'),
+    sprint: getAssetPath('assets/Buff icons/sprint.png'),
+    stealth: getAssetPath('assets/Buff icons/Stealth.png'),
+    swift_strikes: getAssetPath('assets/Buff icons/Swift Strikes.PNG'),
+    vigor: getAssetPath('assets/Buff icons/vigor.PNG'),
     // Skill icons
-    arc_bolt: 'assets/skill icons/Arc Bolt.png',
-    chain_light: 'assets/skill icons/Chain Zap.png',
-    meteor_slam: 'assets/skill icons/Meteor Slam.png',
-    piercing_lance: 'assets/skill icons/Piercing Lance.png',
-    gravity_well: 'assets/skill icons/Gravity Well.png',
-    warrior_cleave: 'assets/skill icons/Rending Cleave.png',
-    warrior_life_leech: 'assets/skill icons/Life Leech.png',
-    warrior_charge: 'assets/skill icons/shoulder charge.png',
-    shoulder_charge: 'assets/skill icons/shoulder charge.png',
-    warrior_fortitude: 'assets/skill icons/Fortitude.png',
-    warrior_berserk: 'assets/skill icons/Berserk.png',
-    mage_healing_burst: 'assets/skill icons/heal burst.png',
-    renewal_field: 'assets/skill icons/Renewal Field.png',
-    endurance: 'assets/skill icons/Endurance.png',
-    spirit: 'assets/skill icons/Spirit.png',
-    knight_shield_wall: 'assets/skill icons/Ward Barrier.png'
+    arc_bolt: getAssetPath('assets/skill icons/Arc Bolt.png'),
+    chain_light: getAssetPath('assets/skill icons/Chain Zap.png'),
+    meteor_slam: getAssetPath('assets/skill icons/Meteor Slam.png'),
+    piercing_lance: getAssetPath('assets/skill icons/Piercing Lance.png'),
+    gravity_well: getAssetPath('assets/skill icons/Gravity Well.png'),
+    warrior_cleave: getAssetPath('assets/skill icons/Rending Cleave.png'),
+    warrior_life_leech: getAssetPath('assets/skill icons/Life Leech.png'),
+    warrior_charge: getAssetPath('assets/skill icons/shoulder charge.png'),
+    shoulder_charge: getAssetPath('assets/skill icons/shoulder charge.png'),
+    warrior_fortitude: getAssetPath('assets/skill icons/Fortitude.png'),
+    warrior_berserk: getAssetPath('assets/skill icons/Berserk.png'),
+    mage_healing_burst: getAssetPath('assets/skill icons/heal burst.png'),
+    renewal_field: getAssetPath('assets/skill icons/Renewal Field.png'),
+    endurance: getAssetPath('assets/skill icons/Endurance.png'),
+    spirit: getAssetPath('assets/skill icons/Spirit.png'),
+    knight_shield_wall: getAssetPath('assets/skill icons/Ward Barrier.png')
   };
 
   // Item icon mapping - maps rarity + item type to PNG
   const ITEM_ICON_MAP = {
     // Weapons - Axes
-    'common_axe': 'assets/items/Common Axe.png',
-    'uncommon_axe': 'assets/items/Uncommon Axe.png',
-    'rare_axe': 'assets/items/Rare Axe.png',
-    'epic_axe': 'assets/items/Epic Axe.png',
-    'legendary_axe': 'assets/items/Legendary Axe.png',
+    'common_axe': getAssetPath('assets/items/Common Axe.png'),
+    'uncommon_axe': getAssetPath('assets/items/Uncommon Axe.png'),
+    'rare_axe': getAssetPath('assets/items/Rare Axe.png'),
+    'epic_axe': getAssetPath('assets/items/Epic Axe.png'),
+    'legendary_axe': getAssetPath('assets/items/Legendary Axe.png'),
     // Weapons - Swords
-    'common_sword': 'assets/items/Common Sword.png',
-    'uncommon_sword': 'assets/items/Uncommon Sword.png',
-    'rare_sword': 'assets/items/Rare Sword.png',
-    'epic_sword': 'assets/items/Epic Sword.png',
-    'legendary_sword': 'assets/items/Legendary sword.png',
+    'common_sword': getAssetPath('assets/items/Common Sword.png'),
+    'uncommon_sword': getAssetPath('assets/items/Uncommon Sword.png'),
+    'rare_sword': getAssetPath('assets/items/Rare Sword.png'),
+    'epic_sword': getAssetPath('assets/items/Epic Sword.png'),
+    'legendary_sword': getAssetPath('assets/items/Legendary sword.png'),
     // Weapons - Daggers
-    'common_dagger': 'assets/items/Common Dagger.png',
-    'uncommon_dagger': 'assets/items/Uncommon Dagger.png',
-    'rare_dagger': 'assets/items/Rare Dagger.png',
-    'epic_dagger': 'assets/items/Epic Dagger.png',
-    'legendary_dagger': 'assets/items/Legendary Dagger.png',
+    'common_dagger': getAssetPath('assets/items/Common Dagger.png'),
+    'uncommon_dagger': getAssetPath('assets/items/Uncommon Dagger.png'),
+    'rare_dagger': getAssetPath('assets/items/Rare Dagger.png'),
+    'epic_dagger': getAssetPath('assets/items/Epic Dagger.png'),
+    'legendary_dagger': getAssetPath('assets/items/Legendary Dagger.png'),
     // Weapons - Great Swords
-    'common_greatsword': 'assets/items/Common Great Sword.png',
-    'uncommon_greatsword': 'assets/items/Uncommon Great Sword.png',
-    'rare_greatsword': 'assets/items/Rare Great Sword.png',
-    'epic_greatsword': 'assets/items/Epic Great Sword.png',
-    'legendary_greatsword': 'assets/items/Legendary Great Sword.png',
+    'common_greatsword': getAssetPath('assets/items/Common Great Sword.png'),
+    'uncommon_greatsword': getAssetPath('assets/items/Uncommon Great Sword.png'),
+    'rare_greatsword': getAssetPath('assets/items/Rare Great Sword.png'),
+    'epic_greatsword': getAssetPath('assets/items/Epic Great Sword.png'),
+    'legendary_greatsword': getAssetPath('assets/items/Legendary Great Sword.png'),
     // Weapons - Destruction Staffs
-    'common_destruction_staff': 'assets/items/Common Destruction Staff.png',
-    'uncommon_destruction_staff': 'assets/items/Uncommon Destruction Staff.png',
-    'rare_destruction_staff': 'assets/items/Rare Destruction Staff.png',
-    'epic_destruction_staff': 'assets/items/Epic Destruction Staff.png',
-    'legendary_destruction_staff': 'assets/items/Legendary Destruction Staff.png',
+    'common_destruction_staff': getAssetPath('assets/items/Common Destruction Staff.png'),
+    'uncommon_destruction_staff': getAssetPath('assets/items/Uncommon Destruction Staff.png'),
+    'rare_destruction_staff': getAssetPath('assets/items/Rare Destruction Staff.png'),
+    'epic_destruction_staff': getAssetPath('assets/items/Epic Destruction Staff.png'),
+    'legendary_destruction_staff': getAssetPath('assets/items/Legendary Destruction Staff.png'),
     // Weapons - Healing Staffs
-    'common_healing_staff': 'assets/items/Common Healing Staff.png',
-    'uncommon_healing_staff': 'assets/items/Uncommon Healing Staff.png',
-    'rare_healing_staff': 'assets/items/Rare Healing Staff.png',
-    'epic_healing_staff': 'assets/items/Epic Healing Staff.png',
-    'legendary_healing_staff': 'assets/items/Legendary Healing Staff.png',
+    'common_healing_staff': getAssetPath('assets/items/Common Healing Staff.png'),
+    'uncommon_healing_staff': getAssetPath('assets/items/Uncommon Healing Staff.png'),
+    'rare_healing_staff': getAssetPath('assets/items/Rare Healing Staff.png'),
+    'epic_healing_staff': getAssetPath('assets/items/Epic Healing Staff.png'),
+    'legendary_healing_staff': getAssetPath('assets/items/Legendary Healing Staff.png'),
     // Armor - Helms
-    'common_helm': 'assets/items/Common Helm.png',
-    'uncommon_helm': 'assets/items/Uncommon Helm.png',
-    'rare_helm': 'assets/items/Rare Helm.png',
-    'epic_helm': 'assets/items/Epic Helm.png',
-    'legendary_helm': 'assets/items/Legendary Helm.png',
+    'common_helm': getAssetPath('assets/items/Common Helm.png'),
+    'uncommon_helm': getAssetPath('assets/items/Uncommon Helm.png'),
+    'rare_helm': getAssetPath('assets/items/Rare Helm.png'),
+    'epic_helm': getAssetPath('assets/items/Epic Helm.png'),
+    'legendary_helm': getAssetPath('assets/items/Legendary Helm.png'),
     // Armor - Chest
-    'common_chest': 'assets/items/Common Chest.png',
-    'uncommon_chest': 'assets/items/Uncommon Chest.png',
-    'rare_chest': 'assets/items/Rare Chest.png',
-    'epic_chest': 'assets/items/Epic Chest.png',
-    'legendary_chest': 'assets/items/Legendary Chest.png',
+    'common_chest': getAssetPath('assets/items/Common Chest.png'),
+    'uncommon_chest': getAssetPath('assets/items/Uncommon Chest.png'),
+    'rare_chest': getAssetPath('assets/items/Rare Chest.png'),
+    'epic_chest': getAssetPath('assets/items/Epic Chest.png'),
+    'legendary_chest': getAssetPath('assets/items/Legendary Chest.png'),
     // Armor - Shoulders
-    'common_shoulders': 'assets/items/common shoulders.png',
-    'uncommon_shoulders': 'assets/items/uncommon shoulders.png',
-    'rare_shoulders': 'assets/items/Rare Shoulders.png',
-    'epic_shoulders': 'assets/items/epic shoulders.png',
-    'legendary_shoulders': 'assets/items/legendary shoulders.png',
+    'common_shoulders': getAssetPath('assets/items/common shoulders.png'),
+    'uncommon_shoulders': getAssetPath('assets/items/uncommon shoulders.png'),
+    'rare_shoulders': getAssetPath('assets/items/Rare Shoulders.png'),
+    'epic_shoulders': getAssetPath('assets/items/epic shoulders.png'),
+    'legendary_shoulders': getAssetPath('assets/items/legendary shoulders.png'),
     // Armor - Hands
-    'common_hands': 'assets/items/common hands.png',
-    'uncommon_hands': 'assets/items/uncommon hands.png',
-    'rare_hands': 'assets/items/rare hands.png',
-    'epic_hands': 'assets/items/epic hands.png',
-    'legendary_hands': 'assets/items/legendary hands.png',
+    'common_hands': getAssetPath('assets/items/common hands.png'),
+    'uncommon_hands': getAssetPath('assets/items/uncommon hands.png'),
+    'rare_hands': getAssetPath('assets/items/rare hands.png'),
+    'epic_hands': getAssetPath('assets/items/epic hands.png'),
+    'legendary_hands': getAssetPath('assets/items/legendary hands.png'),
     // Armor - Legs
-    'common_legs': 'assets/items/common legs.png',
-    'uncommon_legs': 'assets/items/uncommon legs.png',
-    'rare_legs': 'assets/items/rare legs.png',
-    'epic_legs': 'assets/items/epic legs.png',
-    'legendary_legs': 'assets/items/legendary legs.png',
+    'common_legs': getAssetPath('assets/items/common legs.png'),
+    'uncommon_legs': getAssetPath('assets/items/uncommon legs.png'),
+    'rare_legs': getAssetPath('assets/items/rare legs.png'),
+    'epic_legs': getAssetPath('assets/items/epic legs.png'),
+    'legendary_legs': getAssetPath('assets/items/legendary legs.png'),
     // Armor - Feet
-    'common_feet': 'assets/items/common feet.png',
-    'uncommon_feet': 'assets/items/uncommon feet.png',
-    'rare_feet': 'assets/items/rare feet.png',
-    'epic_feet': 'assets/items/epic feet.png',
-    'legendary_feet': 'assets/items/legendary feet.png',
+    'common_feet': getAssetPath('assets/items/common feet.png'),
+    'uncommon_feet': getAssetPath('assets/items/uncommon feet.png'),
+    'rare_feet': getAssetPath('assets/items/rare feet.png'),
+    'epic_feet': getAssetPath('assets/items/epic feet.png'),
+    'legendary_feet': getAssetPath('assets/items/legendary feet.png'),
     // Armor - Belts
-    'common_belt': 'assets/items/common belt.png',
-    'uncommon_belt': 'assets/items/uncommon belt.png',
-    'rare_belt': 'assets/items/rare belt.png',
-    'epic_belt': 'assets/items/epic belt.png',
-    'legendary_belt': 'assets/items/legendary belt.png',
+    'common_belt': getAssetPath('assets/items/common belt.png'),
+    'uncommon_belt': getAssetPath('assets/items/uncommon belt.png'),
+    'rare_belt': getAssetPath('assets/items/rare belt.png'),
+    'epic_belt': getAssetPath('assets/items/epic belt.png'),
+    'legendary_belt': getAssetPath('assets/items/legendary belt.png'),
     // Armor - Bracelets
-    'common_bracelet': 'assets/items/common bracelet.png',
-    'uncommon_bracelet': 'assets/items/uncommon bracelet.png',
-    'rare_bracelet': 'assets/items/rare bracelet.png',
-    'epic_bracelet': 'assets/items/epic bracelet.png',
-    'legendary_bracelet': 'assets/items/legendary bracelet.png',
+    'common_bracelet': getAssetPath('assets/items/common bracelet.png'),
+    'uncommon_bracelet': getAssetPath('assets/items/uncommon bracelet.png'),
+    'rare_bracelet': getAssetPath('assets/items/rare bracelet.png'),
+    'epic_bracelet': getAssetPath('assets/items/epic bracelet.png'),
+    'legendary_bracelet': getAssetPath('assets/items/legendary bracelet.png'),
     // Armor - Rings
-    'common_ring': 'assets/items/common ring.png',
-    'uncommon_ring': 'assets/items/uncommon ring.png',
-    'rare_ring': 'assets/items/rare ring.png',
-    'epic_ring': 'assets/items/epic ring.png',
-    'legendary_ring': 'assets/items/legendary ring.png',
+    'common_ring': getAssetPath('assets/items/common ring.png'),
+    'uncommon_ring': getAssetPath('assets/items/uncommon ring.png'),
+    'rare_ring': getAssetPath('assets/items/rare ring.png'),
+    'epic_ring': getAssetPath('assets/items/epic ring.png'),
+    'legendary_ring': getAssetPath('assets/items/legendary ring.png'),
     // Armor - Necklaces (slot is 'neck')
-    'common_neck': 'assets/items/common necklace.png',
-    'uncommon_neck': 'assets/items/uncommon necklace.png',
-    'rare_neck': 'assets/items/rare necklace.png',
-    'epic_neck': 'assets/items/epic necklace.png',
-    'legendary_neck': 'assets/items/legendary necklace.png',
+    'common_neck': getAssetPath('assets/items/common necklace.png'),
+    'uncommon_neck': getAssetPath('assets/items/uncommon necklace.png'),
+    'rare_neck': getAssetPath('assets/items/rare necklace.png'),
+    'epic_neck': getAssetPath('assets/items/epic necklace.png'),
+    'legendary_neck': getAssetPath('assets/items/legendary necklace.png'),
     // Potions
-    'hp_potion': 'assets/items/HP Potion.png',
-    'mana_potion': 'assets/items/Mana Potion.png'
+    'hp_potion': getAssetPath('assets/items/HP Potion.png'),
+    'mana_potion': getAssetPath('assets/items/Mana Potion.png')
   };
 
   // Helper to get item icon from item object
@@ -4355,7 +4356,7 @@ function bindUI(state){
       
       // Get icon from ABILITIES object (same as skills tab)
       const ability = sk ? ABILITIES[sk.id] : null;
-      const iconSrc = ability?.icon ? `assets/skill icons/${ability.icon}` : null;
+      const iconSrc = ability?.icon ? getAssetPath(`assets/skill icons/${ability.icon}`) : null;
       
       el.innerHTML = iconSrc
         ? `<img src="${iconSrc}" style="width:100%; height:100%; object-fit:contain; pointer-events:none; position:absolute; top:0; left:0;" />
@@ -4422,7 +4423,7 @@ function bindUI(state){
     const heroCls = isGroupMemberMode ? (state.friendlies.find(f=>f.id===isGroupMemberMode)?.variant||'warrior') : (state.player.class||'warrior');
     const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Knight.png', warden: 'New Warden.png' };
     const heroImg = heroImgMap[heroCls] || `${heroCls}.svg`;
-    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="assets/char/${heroImg}" alt="Hero" class="heroLarge"/>`;
+    ui.equipCircle.innerHTML = `<img id="heroPortrait" src="${getAssetPath('assets/char/' + heroImg)}" alt="Hero" class="heroLarge"/>`;
     ui.equipExtras.innerHTML = '';
     ui.weaponSlot.innerHTML = '';
 
@@ -4666,7 +4667,7 @@ function bindUI(state){
       const cls = isGroupMemberMode ? (targetUnit.variant || 'warrior') : (state.player.class || 'warrior');
       // Use PNG for all hero classes (newer images)
       const heroImgMap = { warrior: 'New Warrior.png', mage: 'New Mage.png', knight: 'New Knight.png', warden: 'New Warden.png' };
-      ui.heroPortrait.src = `assets/char/${heroImgMap[cls] || cls + '.svg'}`;
+      ui.heroPortrait.src = getAssetPath(`assets/char/${heroImgMap[cls] || cls + '.svg'}`);
       if(!isGroupMemberMode){
         ui.heroClassName.textContent = cls.charAt(0).toUpperCase()+cls.slice(1);
         ui.heroClassName.style.color = '#fff';
@@ -5130,7 +5131,7 @@ function bindUI(state){
       const sk = getSkillById(skId);
       const ability = ABILITIES[skId];
       // Build icon path dynamically from ability.icon property
-      const iconSrc = ability?.icon ? `assets/skill icons/${ability.icon}` : null;
+      const iconSrc = ability?.icon ? getAssetPath(`assets/skill icons/${ability.icon}`) : null;
       const slotEl = document.createElement('div');
       slotEl.className = 'slot';
       slotEl.style.minWidth = '110px';
@@ -5268,7 +5269,7 @@ function bindUI(state){
         for(const ability of activeAbilities){
           const emojiIcon = ability.type === 'passive' ? '✦' : (ability.targetType ? TARGET_TYPE_INFO[ability.targetType]?.icon || '→' : '→');
           // Build icon path dynamically from ability.icon property
-          const iconSrc = ability.icon ? `assets/skill icons/${ability.icon}` : null;
+          const iconSrc = ability.icon ? getAssetPath(`assets/skill icons/${ability.icon}`) : null;
           const iconHtml = iconSrc ? `<img src="${iconSrc}" style="width:80px; height:80px; border-radius:6px; border:2px solid #d4af37; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" /><span style="font-size:48px; display:none;">${emojiIcon}</span>` : `<span style="font-size:48px;">${emojiIcon}</span>`;
           
           // Check which slots have this ability assigned
@@ -7130,7 +7131,7 @@ function bindUI(state){
       // Weapon icon
       if (loadoutData.weapon) {
         const weaponType = loadoutData.weapon.weaponType;
-        const weaponImagePath = `assets/items/${capitalize(loadoutRarity)} ${weaponType}.png`;
+        const weaponImagePath = getAssetPath(`assets/items/${capitalize(loadoutRarity)} ${weaponType}.png`);
         html += `
           <div style="
             width: 32px;
@@ -7158,7 +7159,7 @@ function bindUI(state){
           const armorType = armorPiece.armorType || 'Unknown';
           
           const slotDisplayName = slotName === 'accessory1' || slotName === 'accessory2' ? 'bracelet' : slotName;
-          const imagePath = `assets/items/${loadoutRarity} ${slotDisplayName}.png`;
+          const imagePath = getAssetPath(`assets/items/${loadoutRarity} ${slotDisplayName}.png`);
           
           html += `
             <div style="
@@ -7205,7 +7206,7 @@ function bindUI(state){
             transition: all 0.2s;
           " ${loadoutData ? `onclick="event.stopPropagation(); ui._showFighterPreview('${loadoutId}')" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='#d4af37';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='${roleStyle.border}';" title="Click to view full fighter details"` : ''}>
             ${loadoutData && loadoutData.fighterImage && !loadoutData.fighterImage.includes('placeholder') ? 
-              `<img src="assets/fighter player cards/${loadoutData.fighterImage}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerHTML='${loadoutData.name || 'Fighter'}';" alt="${loadoutData.name}"/>` :
+              `<img src="${getAssetPath('assets/fighter player cards/' + loadoutData.fighterImage)}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerHTML='${loadoutData.name || 'Fighter'}';" alt="${loadoutData.name}"/>` :
               loadoutData ? loadoutData.name || 'Fighter' : '?'
             }
             ${loadoutData && level > 0 ? `<div style="position:absolute; top:4px; left:4px; width:28px; height:28px; border-radius:50%; background:#1a1a1a; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:bold; color:#d4af37; box-shadow:0 2px 4px rgba(0,0,0,0.8);">${level}</div>` : ''}
@@ -7242,7 +7243,7 @@ function bindUI(state){
                 ${loadoutData.abilities.slice(0, 5).map((abilityId, i) => {
                   const ABILITIES = window.ABILITIES || {};
                   const skillData = ABILITIES[abilityId];
-                  const iconPath = skillData?.icon ? `assets/skill icons/${skillData.icon}` : '';
+                  const iconPath = skillData?.icon ? getAssetPath(`assets/skill icons/${skillData.icon}`) : '';
                   const abilityName = skillData?.name || abilityId;
                   const fallbackNum = i + 1;
                   return `
@@ -7508,7 +7509,7 @@ function bindUI(state){
                 filter: drop-shadow(0 0 20px ${rarityColor}60);
               ">
                 ${l.fighterImage && l.fighterImage !== 'placeholder.png' && !l.fighterImage.includes('placeholder') ? 
-                  `<img src="assets/fighter player cards/${l.fighterImage}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${l.name || 'Fighter'}';"/>` :
+                  `<img src="${getAssetPath('assets/fighter player cards/' + l.fighterImage)}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${l.name || 'Fighter'}';"/>` :
                   `${l.name || 'Fighter'}`
                 }
                 <!-- Level Badge (Top Left Corner) -->
@@ -7565,7 +7566,7 @@ function bindUI(state){
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                 ${l.weapon?.weaponType ? `
                   <div style="width: 32px; height: 32px; background: rgba(0,0,0,0.5); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid ${rarityColor};">
-                    <img src="assets/items/${rarity.charAt(0).toUpperCase() + rarity.slice(1)} ${l.weapon.weaponType}.png" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='⚔';" alt="${l.weapon.weaponType}" />
+                    <img src="${getAssetPath('assets/items/' + rarity.charAt(0).toUpperCase() + rarity.slice(1) + ' ' + l.weapon.weaponType + '.png')}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='⚔';" alt="${l.weapon.weaponType}" />
                   </div>
                   <div style="flex: 1;">
                     <div style="color: #8cf;"><b>${weapon}</b></div>
@@ -8254,7 +8255,7 @@ function bindUI(state){
               position: relative;
             ">
               <img 
-                src="assets/fighter player cards/${loadout.fighterImage || 'default.png'}" 
+                src="${getAssetPath('assets/fighter player cards/' + (loadout.fighterImage || 'default.png'))}" 
                 style="
                   max-width: 100%;
                   max-height: 100%;

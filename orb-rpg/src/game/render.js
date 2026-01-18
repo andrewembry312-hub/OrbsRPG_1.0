@@ -1,4 +1,5 @@
 import { clamp, cssVar } from "../engine/util.js";
+import { getAssetPath } from "../config.js";
 
 // Pre-load grass textures
 const grassTextures = {
@@ -47,7 +48,7 @@ async function loadDungeonAtlas(){
   
   try {
     // Load metadata first
-    const response = await fetch('assets/dungeons/atlas_metadata.json');
+    const response = await fetch(getAssetPath('assets/dungeons/atlas_metadata.json'));
     dungeonAtlas.metadata = await response.json();
     console.log('[Dungeon Atlas] Metadata loaded - Tiles:', dungeonAtlas.metadata.tiles.length);
     
@@ -57,7 +58,7 @@ async function loadDungeonAtlas(){
       img.onload = () => resolve();
       img.onerror = () => reject(new Error('Failed to load dungeon atlas image'));
       img.crossOrigin = 'anonymous';
-      img.src = 'assets/dungeons/atlas.png';
+      img.src = getAssetPath('assets/dungeons/atlas.png');
     });
     
     dungeonAtlas.image = img;
@@ -91,15 +92,15 @@ function loadBossIcons(){
   };
   
   Promise.all([
-    loadImage('assets/boss icons/Archmage.PNG'),
-    loadImage('assets/boss icons/Balrogath.PNG'),
-    loadImage('assets/boss icons/Bloodfang.PNG'),
-    loadImage('assets/boss icons/Gorothar.PNG'),
-    loadImage('assets/boss icons/Malakir.PNG'),
-    loadImage('assets/boss icons/Tarrasque.PNG'),
-    loadImage('assets/boss icons/Venom Queen.PNG'),
-    loadImage('assets/boss icons/Vorrak.PNG'),
-    loadImage('assets/boss icons/Zalthor.PNG')
+    loadImage(getAssetPath('assets/boss icons/Archmage.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Balrogath.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Bloodfang.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Gorothar.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Malakir.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Tarrasque.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Venom Queen.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Vorrak.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Zalthor.PNG'))
   ]).then(([archmage, balrogath, bloodfang, gorothar, malakir, tarrasque, venomQueen, vorrak, zalthor]) => {
     if(archmage) bossIcons.archmage = archmage;
     if(balrogath) bossIcons.balrogath = balrogath;
@@ -137,16 +138,16 @@ function loadGrassTextures(){
   };
   
   Promise.all([
-    loadImage('assets/Environment/grass.png'),
-    loadImage('assets/Environment/grass 2.png'),
-    loadImage('assets/Environment/winter tree.png'),
-    loadImage('assets/Environment/purple chrystal.png'),
-    loadImage('assets/Environment/water pond.png'),
-    loadImage('assets/Environment/pond 1.png'),
-    loadImage('assets/Environment/pond 2.png'),
-    loadImage('assets/Environment/pond 3.png'),
-    loadImage('assets/Environment/rocks 1.png'),
-    loadImage('assets/Environment/rocks 2.png')
+    loadImage(getAssetPath('assets/Environment/grass.png')),
+    loadImage(getAssetPath('assets/Environment/grass 2.png')),
+    loadImage(getAssetPath('assets/Environment/winter tree.png')),
+    loadImage(getAssetPath('assets/Environment/purple chrystal.png')),
+    loadImage(getAssetPath('assets/Environment/water pond.png')),
+    loadImage(getAssetPath('assets/Environment/pond 1.png')),
+    loadImage(getAssetPath('assets/Environment/pond 2.png')),
+    loadImage(getAssetPath('assets/Environment/pond 3.png')),
+    loadImage(getAssetPath('assets/Environment/rocks 1.png')),
+    loadImage(getAssetPath('assets/Environment/rocks 2.png'))
   ]).then(([img1, img2, tree, crystal, waterPond, pond1, pond2, pond3, rocks1, rocks2]) => {
     if(img1) grassTextures.grass1 = img1;
     if(img2) grassTextures.grass2 = img2;
@@ -503,7 +504,7 @@ export function render(state){
   // draw dungeon entrances with circular image display
   if(state.dungeons){
     for(const d of state.dungeons){
-      const dungeonImg = loadCachedImage(state, 'assets/structure/Dungeon Entrance.png');
+      const dungeonImg = loadCachedImage(state, getAssetPath('assets/structure/Dungeon Entrance.png'));
       if(dungeonImg){
         try{
           // Draw circular clipping mask
@@ -779,7 +780,7 @@ export function render(state){
       // Note: warden class uses tank.svg sprite
       const variantName = e.variant || (e.boss ? 'warden' : (e.knight ? 'knight' : null));
       const spriteFile = (variantName==='warden') ? 'tank' : variantName;
-      const path = spriteFile ? `assets/char/${spriteFile}.svg` : null;
+      const path = spriteFile ? getAssetPath(`assets/char/${spriteFile}.svg`) : null;
       const img = path ? loadCachedImage(state, path) : null;
       if(img){
         const size = Math.max(16, Math.floor((e.r||18)*1.6));
@@ -860,7 +861,7 @@ export function render(state){
         }
       } else if(!c.boss) {
         // Regular creatures use variant image
-        const path = c.variant ? `assets/char/${c.variant}.svg` : null;
+        const path = c.variant ? getAssetPath(`assets/char/${c.variant}.svg`) : null;
         const img = path ? loadCachedImage(state, path) : null;
         if(img){
           const size = Math.max(18, Math.floor((c.r||12)*1.8));
@@ -899,7 +900,7 @@ export function render(state){
     ctx.globalAlpha = 0.92; ctx.fillStyle = fcol; ctx.beginPath(); ctx.arc(a.x,a.y,a.r+2,0,Math.PI*2); ctx.fill(); ctx.globalAlpha = 1;
     // draw variant image on top
     const v = a.variant || 'warrior';
-    const p = `assets/char/${v}.svg`;
+    const p = getAssetPath(`assets/char/${v}.svg`);
     const im = loadCachedImage(state, p);
     if(im){ const sz = Math.max(14, Math.floor(a.r*1.6)); ctx.drawImage(im, a.x - sz/2, a.y - sz/2, sz, sz); }
     drawHpBar(ctx, a.x, a.y-a.r-16, 28, 5, a.hp/a.maxHp, a.level);
@@ -965,7 +966,7 @@ export function render(state){
   ctx.globalAlpha=1;
   // draw class image in the center of the player orb
   const pClass = state.player.class || 'warrior';
-  const pPath = `assets/char/${pClass}.svg`;
+  const pPath = getAssetPath(`assets/char/${pClass}.svg`);
   const pImg = loadCachedImage(state, pPath);
   if(pImg){
     const size = Math.max(16, Math.floor(state.player.r * 1.4));
@@ -1182,7 +1183,7 @@ function drawSite(ctx, s, state){
     // Draw home base image in circular crop
     let imageDrawn = false;
     try{
-      const homeBaseImg = loadCachedImage(state, 'assets/structure/Home Base.png');
+      const homeBaseImg = loadCachedImage(state, getAssetPath('assets/structure/Home Base.png'));
       if(homeBaseImg){
         // Save context for circular clipping
         ctx.save();
@@ -1227,7 +1228,7 @@ function drawSite(ctx, s, state){
     ctx.strokeStyle='rgba(255,255,255,.14)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.stroke();
     // draw flag image for flag sites, with a small colored accent behind it
     try{
-      const img = loadCachedImage(state, 'assets/structure/castle_flag.svg');
+      const img = loadCachedImage(state, getAssetPath('assets/structure/castle_flag.svg'));
       if(img){ const sz = Math.min(s.r*0.8, 48); ctx.drawImage(img, s.x - sz/2, s.y - sz/2 - 6, sz, sz); }
       // small colored halo
       ctx.globalAlpha = 0.9; ctx.fillStyle = ownerColor; ctx.beginPath(); ctx.arc(s.x, s.y + s.r*0.6, 6, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1;
@@ -1241,13 +1242,13 @@ function drawSite(ctx, s, state){
     let flagImage = null;
     if(!s.owner || (s.health !== undefined && s.health <= 0)){
       // Uncaptured flag (no owner or destroyed)
-      flagImage = 'assets/structure/Uncaptured Flag.png';
+      flagImage = getAssetPath('assets/structure/Uncaptured Flag.png');
     } else if(s.damageState === 'damaged'){
       // Damaged captured flag (70% health or below)
-      flagImage = 'assets/structure/Damaged Outpost.png';
+      flagImage = getAssetPath('assets/structure/Damaged Outpost.png');
     } else if(s.owner && prog >= 1){
       // Fully captured healthy flag (show for all teams, not just player)
-      flagImage = 'assets/structure/Captured Flag Outpost.png';
+      flagImage = getAssetPath('assets/structure/Captured Flag Outpost.png');
     }
     
     // Draw the appropriate flag image in circular crop
@@ -1276,7 +1277,7 @@ function drawSite(ctx, s, state){
       ctx.strokeStyle='rgba(255,255,255,.14)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.stroke();
       // draw flag image for flag sites, with a small colored accent behind it
       try{
-        const img = loadCachedImage(state, 'assets/structure/castle_flag.svg');
+        const img = loadCachedImage(state, getAssetPath('assets/structure/castle_flag.svg'));
         if(img){ const sz = Math.min(s.r*0.8, 48); ctx.drawImage(img, s.x - sz/2, s.y - sz/2 - 6, sz, sz); }
         // small colored halo
         ctx.globalAlpha = 0.9; ctx.fillStyle = ownerColor; ctx.beginPath(); ctx.arc(s.x, s.y + s.r*0.6, 6, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1;
