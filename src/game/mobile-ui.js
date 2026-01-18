@@ -1,126 +1,196 @@
-// Mobile UI enhancements - touch-friendly ability buttons
+// Mobile UI - Complete touch control system
 import { isMobile } from "../engine/mobile.js";
 
-export function createMobileAbilityButtons(state) {
+// Create all mobile UI elements
+export function createMobileUI(state) {
   if (!isMobile()) return;
 
-  const container = document.createElement('div');
-  container.id = 'mobileAbilityButtons';
-  container.style.cssText = `
-    position: fixed;
-    bottom: 52px;
-    right: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    z-index: 200;
-  `;
+  // Remove any existing mobile UI
+  const existing = document.getElementById('mobileUIContainer');
+  if (existing) existing.remove();
 
-  // Create buttons for abilities 1-4
-  for (let i = 1; i <= 4; i++) {
+  // Create main container
+  const container = document.createElement('div');
+  container.id = 'mobileUIContainer';
+  document.body.appendChild(container);
+
+  // Create action buttons (A/B/X/Y style)
+  createActionButtons(container, state);
+  
+  // Create ability buttons (top bar)
+  createAbilityButtons(container, state);
+  
+  // Create menu buttons (top-left corner)
+  createMenuButtons(container, state);
+  
+  return container;
+}
+
+// Action buttons (bottom-right) - A/B/X/Y style for attack, dodge, block, interact
+function createActionButtons(container, state) {
+  const actionContainer = document.createElement('div');
+  actionContainer.id = 'mobileActionButtons';
+  actionContainer.className = 'mobile-action-container';
+  
+  // Button configuration: [label, key, color, position]
+  const buttons = [
+    { label: 'A', key: null, action: 'attack', color: '#ff6b6b', emoji: '⚔️', top: '50%', left: '85%' }, // Attack (mouse)
+    { label: 'B', key: 'KeyF', action: 'interact', color: '#4aa3ff', emoji: '💬', top: '20%', left: '60%' }, // Interact
+    { label: 'X', key: null, action: 'block', color: '#b56cff', emoji: '🛡️', top: '80%', left: '60%' }, // Block (right mouse)
+    { label: 'Y', key: 'Space', action: 'dodge', color: '#7dff9b', emoji: '💨', top: '50%', left: '35%' } // Dodge/Dash
+  ];
+
+  buttons.forEach(config => {
     const btn = document.createElement('button');
-    btn.className = 'mobileAbilityBtn';
-    btn.textContent = i;
-    btn.dataset.slot = i;
-    btn.style.cssText = `
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 2px solid rgba(212, 175, 55, 0.6);
-      background: rgba(0, 0, 0, 0.85);
-      color: #d4af37;
-      font-size: 16px;
-      font-weight: bold;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      cursor: pointer;
-      transition: all 0.15s;
-      padding: 0;
-      margin: 0;
-    `;
+    btn.className = 'mobile-action-btn';
+    btn.dataset.action = config.action;
+    btn.innerHTML = `<span class="action-emoji">${config.emoji}</span><span class="action-label">${config.label}</span>`;
+    btn.style.top = config.top;
+    btn.style.left = config.left;
+    btn.style.borderColor = config.color;
+    btn.style.setProperty('--btn-color', config.color);
+
+    // Touch handlers
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (config.action === 'attack') {
+        state.input.mouse.lDown = true;
+        state.input.mouse.lHeldMs = 0;
+      } else if (config.action === 'block') {
+        state.input.mouse.rDown = true;
+      } else if (config.key) {
+        state.input.keysDown.add(config.key);
+      }
+      
+      btn.classList.add('active');
+    });
+
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (config.action === 'attack') {
+        state.input.mouse.lDown = false;
+      } else if (config.action === 'block') {
+        state.input.mouse.rDown = false;
+      } else if (config.key) {
+        state.input.keysDown.delete(config.key);
+      }
+      
+      btn.classList.remove('active');
+    });
+
+    actionContainer.appendChild(btn);
+  });
+
+  container.appendChild(actionContainer);
+}
+
+// Ability buttons (horizontal bar at top)
+function createAbilityButtons(container, state) {
+  const abilityContainer = document.createElement('div');
+  abilityContainer.id = 'mobileAbilityBar';
+  abilityContainer.className = 'mobile-ability-bar';
+
+  // Abilities Q, E, R, T, G + Potion C
+  const abilities = [
+    { label: '1', key: 'KeyQ', slot: 0 },
+    { label: '2', key: 'KeyE', slot: 1 },
+    { label: '3', key: 'KeyR', slot: 2 },
+    { label: '4', key: 'KeyT', slot: 3 },
+    { label: '5', key: 'KeyG', slot: 4 },
+    { label: '🧪', key: 'KeyC', slot: 'potion', color: '#ff6b6b' }
+  ];
+
+  abilities.forEach(config => {
+    const btn = document.createElement('button');
+    btn.className = 'mobile-ability-btn';
+    btn.dataset.key = config.key;
+    btn.dataset.slot = config.slot;
+    btn.textContent = config.label;
+    if (config.color) btn.style.borderColor = config.color;
 
     btn.addEventListener('touchstart', (e) => {
       e.preventDefault();
       e.stopPropagation();
       
-      // Trigger ability via keyboard simulation
-      const keyMap = { 1: 'Digit1', 2: 'Digit2', 3: 'Digit3', 4: 'Digit4' };
-      state.input.keysDown.add(keyMap[i]);
-      
-      // Visual feedback
-      btn.style.transform = 'scale(0.9)';
-      btn.style.borderColor = '#ffd700';
+      state.input.keysDown.add(config.key);
+      btn.classList.add('active');
       
       setTimeout(() => {
-        state.input.keysDown.delete(keyMap[i]);
-        btn.style.transform = 'scale(1)';
-        btn.style.borderColor = 'rgba(212, 175, 55, 0.6)';
-      }, 200);
+        state.input.keysDown.delete(config.key);
+        btn.classList.remove('active');
+      }, 150);
     });
 
-    container.appendChild(btn);
-  }
-
-  // Add potion button (Q key)
-  const potionBtn = document.createElement('button');
-  potionBtn.className = 'mobileAbilityBtn';
-  potionBtn.textContent = '🧪';
-  potionBtn.style.cssText = `
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 107, 107, 0.6);
-    background: rgba(0, 0, 0, 0.85);
-    color: #ff6b6b;
-    font-size: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    cursor: pointer;
-    transition: all 0.15s;
-    padding: 0;
-    margin: 0;
-  `;
-
-  potionBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    state.input.keysDown.add('KeyQ');
-    potionBtn.style.transform = 'scale(0.9)';
-    
-    setTimeout(() => {
-      state.input.keysDown.delete('KeyQ');
-      potionBtn.style.transform = 'scale(1)';
-    }, 200);
+    abilityContainer.appendChild(btn);
   });
 
-  container.appendChild(potionBtn);
-
-  document.body.appendChild(container);
-  
-  return container;
+  container.appendChild(abilityContainer);
 }
 
-// Update ability button icons dynamically
+// Menu buttons (top-left corner) - Inventory, Skills, Map, etc.
+function createMenuButtons(container, state) {
+  const menuContainer = document.createElement('div');
+  menuContainer.id = 'mobileMenuButtons';
+  menuContainer.className = 'mobile-menu-buttons';
+
+  const menus = [
+    { label: '🎒', key: 'KeyI', title: 'Inventory' },
+    { label: '🗺️', key: 'KeyM', title: 'Map' },
+    { label: '⚡', key: 'KeyK', title: 'Skills' },
+    { label: '⬆️', key: 'KeyL', title: 'Level Up' }
+  ];
+
+  menus.forEach(config => {
+    const btn = document.createElement('button');
+    btn.className = 'mobile-menu-btn';
+    btn.textContent = config.label;
+    btn.title = config.title;
+
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      state.input.keysDown.add(config.key);
+      
+      setTimeout(() => {
+        state.input.keysDown.delete(config.key);
+      }, 100);
+    });
+
+    menuContainer.appendChild(btn);
+  });
+
+  container.appendChild(menuContainer);
+}
+
+// Update ability cooldowns
 export function updateMobileAbilityIcons(state) {
   if (!isMobile()) return;
   
-  const container = document.getElementById('mobileAbilityButtons');
-  if (!container) return;
+  const buttons = document.querySelectorAll('.mobile-ability-btn');
+  if (!buttons.length) return;
 
-  const abilities = state.player?.abilities || [];
-  const buttons = container.querySelectorAll('.mobileAbilityBtn');
-  
-  buttons.forEach((btn, index) => {
-    if (index < abilities.length) {
-      const ability = abilities[index];
-      const cooldown = state.cooldowns?.[ability] || 0;
-      
-      // Show cooldown overlay
-      if (cooldown > 0) {
-        btn.style.opacity = '0.5';
-        btn.style.borderColor = '#666';
-      } else {
-        btn.style.opacity = '1';
-        btn.style.borderColor = 'rgba(212, 175, 55, 0.6)';
+  buttons.forEach((btn) => {
+    const key = btn.dataset.key;
+    const slot = btn.dataset.slot;
+    
+    // Check cooldown based on ability slot
+    if (slot !== 'potion' && state.player?.abilities) {
+      const ability = state.player.abilities[parseInt(slot)];
+      if (ability) {
+        const cooldown = state.cooldowns?.[ability] || 0;
+        
+        if (cooldown > 0) {
+          btn.classList.add('on-cooldown');
+          btn.style.opacity = '0.4';
+        } else {
+          btn.classList.remove('on-cooldown');
+          btn.style.opacity = '1';
+        }
       }
     }
   });

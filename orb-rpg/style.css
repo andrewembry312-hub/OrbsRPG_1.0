@@ -329,3 +329,298 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   scrollbar-width: thin;
   scrollbar-color: #d4af37 #000000;
 }
+
+/* ============================================
+   MOBILE UI STYLES - Complete Touch Control System
+   ============================================ */
+
+/* Mobile Action Buttons (A/B/X/Y style - bottom right) */
+.mobile-action-container {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  width: 180px;
+  height: 180px;
+  z-index: 300;
+  pointer-events: none;
+}
+
+.mobile-action-btn {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 20px var(--btn-color, #fff);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-action-btn .action-emoji {
+  font-size: 24px;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 0 4px var(--btn-color));
+}
+
+.mobile-action-btn .action-label {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--btn-color);
+  text-shadow: 0 0 8px var(--btn-color);
+}
+
+.mobile-action-btn:active,
+.mobile-action-btn.active {
+  transform: translate(-50%, -50%) scale(0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), inset 0 0 15px var(--btn-color);
+  background: rgba(0, 0, 0, 0.95);
+}
+
+/* Mobile Ability Bar (horizontal at top) */
+.mobile-ability-bar {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 250;
+}
+
+.mobile-ability-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: 2px solid rgba(212, 175, 55, 0.6);
+  background: rgba(10, 10, 10, 0.9);
+  color: #d4af37;
+  font-size: 18px;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-ability-btn:active,
+.mobile-ability-btn.active {
+  transform: scale(0.9);
+  background: rgba(212, 175, 55, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(212, 175, 55, 0.4);
+}
+
+.mobile-ability-btn.on-cooldown {
+  opacity: 0.4;
+  border-color: #555;
+  color: #666;
+}
+
+/* Mobile Menu Buttons (top-left corner) */
+.mobile-menu-buttons {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  gap: 6px;
+  z-index: 250;
+}
+
+.mobile-menu-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 2px solid rgba(74, 163, 255, 0.6);
+  background: rgba(0, 0, 0, 0.85);
+  color: #4aa3ff;
+  font-size: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-menu-btn:active {
+  transform: scale(0.9);
+  background: rgba(74, 163, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(74, 163, 255, 0.4);
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px), (hover: none) {
+  /* Hide desktop HUD elements to save space */
+  .hud {
+    width: 280px !important;
+    padding: 6px !important;
+    font-size: 10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: 70px !important;
+    max-width: 90vw !important;
+  }
+
+  .hud .row {
+    gap: 6px !important;
+  }
+
+  .hud .bar {
+    height: 10px !important;
+  }
+
+  .hud .small {
+    font-size: 10px !important;
+  }
+
+  /* Bottom ability bar - hide on mobile (replaced by mobile ability bar) */
+  .abilBar {
+    display: none !important;
+  }
+
+  /* Bottom stats - compact */
+  .bottomStats {
+    bottom: 10px !important;
+    padding: 4px 8px !important;
+    font-size: 9px !important;
+    gap: 6px !important;
+  }
+
+  .bottomStats .bar {
+    height: 8px !important;
+  }
+
+  /* Buff icons - smaller */
+  .buffIconsHud {
+    bottom: 50px !important;
+    gap: 3px !important;
+  }
+
+  .buffIcon {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 18px !important;
+  }
+
+  .buffIcon .timer,
+  .buffIcon .stack {
+    font-size: 8px !important;
+    padding: 1px 3px !important;
+  }
+
+  /* Minimap - smaller */
+  #miniMap {
+    width: 100px !important;
+    height: 100px !important;
+    bottom: 10px !important;
+    left: 10px !important;
+  }
+
+  /* Toast messages - top center */
+  .toast {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: 140px !important;
+    font-size: 11px !important;
+    max-width: 80vw !important;
+  }
+
+  /* Overlays - full screen */
+  .overlay .panel {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* Landscape mode optimizations */
+@media (max-width: 900px) and (orientation: landscape) {
+  .hud {
+    top: 10px !important;
+    font-size: 9px !important;
+    padding: 4px !important;
+  }
+
+  .mobile-ability-bar {
+    top: 6px !important;
+    padding: 4px 8px !important;
+  }
+
+  .mobile-ability-btn {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 16px !important;
+  }
+
+  .mobile-action-container {
+    width: 150px !important;
+    height: 150px !important;
+  }
+
+  .mobile-action-btn {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .mobile-action-btn .action-emoji {
+    font-size: 20px !important;
+  }
+
+  .mobile-menu-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+  }
+
+  .buffIcon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  #miniMap {
+    width: 80px !important;
+    height: 80px !important;
+  }
+}
+
+/* Safe area padding for notched devices (iPhone X+, etc.) */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .mobile-action-container {
+    bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+    right: calc(10px + env(safe-area-inset-right)) !important;
+  }
+
+  .mobile-menu-buttons {
+    top: calc(10px + env(safe-area-inset-top)) !important;
+    left: calc(10px + env(safe-area-inset-left)) !important;
+  }
+
+  .mobile-ability-bar {
+    top: calc(10px + env(safe-area-inset-top)) !important;
+  }
+
+  #miniMap {
+    bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+    left: calc(10px + env(safe-area-inset-left)) !important;
+  }
+}
+

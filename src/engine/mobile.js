@@ -9,9 +9,10 @@ export function initMobileControls(canvas, input) {
 
   const mobile = {
     joystick: { active: false, startX: 0, startY: 0, currentX: 0, currentY: 0, dx: 0, dy: 0 },
-    touchButtons: new Map(), // ability buttons
-    lastTap: 0,
-    doubleTapDelay: 300
+    actionButtons: new Map(), // A/B/X/Y buttons
+    activeActionTouch: null,
+    isBlocking: false,
+    isSprinting: false
   };
 
   // Virtual joystick for movement
@@ -25,8 +26,8 @@ export function initMobileControls(canvas, input) {
       const x = touch.clientX - rect.left;
       const y = touch.clientY - rect.top;
       
-      // Left side = movement joystick
-      if (x < canvas.width / 2) {
+      // Left bottom quarter = movement joystick
+      if (x < canvas.width * 0.35 && y > canvas.height * 0.5) {
         if (!joystickTouch) {
           joystickTouch = touch.identifier;
           mobile.joystick.active = true;
@@ -35,21 +36,6 @@ export function initMobileControls(canvas, input) {
           mobile.joystick.currentX = x;
           mobile.joystick.currentY = y;
         }
-      }
-      // Right side = attack/interact
-      else {
-        // Simulate mouse for abilities/attacks
-        input.mouse.x = touch.clientX;
-        input.mouse.y = touch.clientY;
-        input.mouse.lDown = true;
-        
-        // Check for double tap (dash/dodge)
-        const now = Date.now();
-        if (now - mobile.lastTap < mobile.doubleTapDelay) {
-          // Trigger dodge/dash ability
-          input.keysDown.add('Space');
-        }
-        mobile.lastTap = now;
       }
     }
   });
@@ -69,7 +55,7 @@ export function initMobileControls(canvas, input) {
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         // Normalize and clamp to max radius
-        const maxRadius = 60;
+        const maxRadius = 50;
         if (distance > maxRadius) {
           mobile.joystick.dx = (dx / distance) * maxRadius;
           mobile.joystick.dy = (dy / distance) * maxRadius;
@@ -79,18 +65,32 @@ export function initMobileControls(canvas, input) {
         }
         
         // Convert to WASD input
-        const threshold = 15;
-        input.keysDown.clear();
+        const threshold = 12;
+        // Clear only movement keys
+        input.keysDown.delete('KeyW');
+        input.keysDown.delete('KeyS');
+        input.keysDown.delete('KeyA');
+        input.keysDown.delete('KeyD');
+        
         if (Math.abs(mobile.joystick.dx) > threshold || Math.abs(mobile.joystick.dy) > threshold) {
           if (mobile.joystick.dy < -threshold) input.keysDown.add('KeyW');
           if (mobile.joystick.dy > threshold) input.keysDown.add('KeyS');
           if (mobile.joystick.dx < -threshold) input.keysDown.add('KeyA');
           if (mobile.joystick.dx > threshold) input.keysDown.add('KeyD');
         }
-      } else {
-        // Update mouse position for right-side touches
-        input.mouse.x = touch.clientX;
-        input.mouse.y = touch.clientY;
+        
+        // Enable sprint when joystick is pushed to edge
+        if (distance > maxRadius * 0.8) {
+          if (!mobile.isSprinting) {
+            input.keysDown.add('ShiftLeft');
+            mobile.isSprinting = true;
+          }
+        } else {
+          if (mobile.isSprinting) {
+            input.keysDown.delete('ShiftLeft');
+            mobile.isSprinting = false;
+          }
+        }
       }
     }
   });
@@ -104,10 +104,13 @@ export function initMobileControls(canvas, input) {
         mobile.joystick.active = false;
         mobile.joystick.dx = 0;
         mobile.joystick.dy = 0;
-        input.keysDown.clear();
-      } else {
-        input.mouse.lDown = false;
-        input.keysDown.delete('Space');
+        // Clear movement keys only
+        input.keysDown.delete('KeyW');
+        input.keysDown.delete('KeyS');
+        input.keysDown.delete('KeyA');
+        input.keysDown.delete('KeyD');
+        input.keysDown.delete('ShiftLeft');
+        mobile.isSprinting = false;
       }
     }
   });
@@ -118,8 +121,12 @@ export function initMobileControls(canvas, input) {
     mobile.joystick.active = false;
     mobile.joystick.dx = 0;
     mobile.joystick.dy = 0;
-    input.keysDown.clear();
-    input.mouse.lDown = false;
+    input.keysDown.delete('KeyW');
+    input.keysDown.delete('KeyS');
+    input.keysDown.delete('KeyA');
+    input.keysDown.delete('KeyD');
+    input.keysDown.delete('ShiftLeft');
+    mobile.isSprinting = false;
   });
 
   return mobile;
@@ -133,17 +140,34 @@ export function renderMobileControls(ctx, mobile) {
 
   // Draw base circle
   ctx.save();
-  ctx.globalAlpha = 0.3;
+  ctx.globalAlpha = 0.25;
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
-  ctx.arc(startX, startY, 60, 0, Math.PI * 2);
+  ctx.arc(startX, startY, 50, 0, Math.PI * 2);
   ctx.fill();
 
+  // Draw outer ring
+  ctx.globalAlpha = 0.4;
+  ctx.strokeStyle = '#00aaff';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(startX, startY, 50, 0, Math.PI * 2);
+  ctx.stroke();
+
   // Draw stick
-  ctx.globalAlpha = 0.6;
+  ctx.globalAlpha = 0.7;
   ctx.fillStyle = '#00aaff';
   ctx.beginPath();
-  ctx.arc(currentX, currentY, 25, 0, Math.PI * 2);
+  ctx.arc(currentX, currentY, 22, 0, Math.PI * 2);
   ctx.fill();
+  
+  // Draw stick border
+  ctx.globalAlpha = 0.9;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(currentX, currentY, 22, 0, Math.PI * 2);
+  ctx.stroke();
+  
   ctx.restore();
 }

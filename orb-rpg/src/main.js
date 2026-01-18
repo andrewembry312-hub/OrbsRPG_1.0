@@ -7,6 +7,7 @@ import { initGame, handleHotkeys, updateGame, importSave, hardResetGameState, in
 import { showCharSelect } from "./game/charselect.js";
 import { render } from "./game/render.js";
 import { getAssetPath } from "./config.js";
+import { createMobileUI, updateMobileAbilityIcons } from "./game/mobile-ui.js";
 import "./loadMapInit.js"; // Initialize map loader helper
 
 const engine = initCanvas("c");
@@ -237,6 +238,9 @@ function setupEventHandlers(){
           hardResetGameState(state); // Hard reset ALL game state first
           await initGame(state); // This initializes the game music sounds
           
+          // Create mobile UI controls
+          createMobileUI(state);
+          
           // NOW start game non-combat music after sounds are initialized
           if(state.sounds?.gameNonCombatMusic){
             console.log('[MUSIC] Starting non-combat music after initGame');
@@ -261,6 +265,8 @@ function setupEventHandlers(){
         try{ 
           hardResetGameState(state); // Hard reset ALL game state first
           await initGame(state); // This initializes the game music sounds
+          // Create mobile UI controls
+          createMobileUI(state);
         }catch(err){ console.error('initGame error',err); ui.toast(`Error initializing: ${err && err.message?err.message:err}`); showFatalError('initGame failed', err); return; }
         // Now import the loaded save data to overwrite initialized state
         importSave(state, saveData);
