@@ -78,7 +78,7 @@ export const ABILITIES = {
   // ARCANE ARTS (Utility Buffs) - 5 active + 2 passive
   'arcane_concentration': { id:'arcane_concentration', type:'active', name:'Concentration', category:'Arcane Arts', targetType:'area', mana:18, cd:12.0, castTime:0.4, range:0, radius:20, target:'Self AoE', desc:'Reduce costs and cooldowns.', details:'Grants Focus buff (+20% CDR, -50% mana costs, 8s) to allies. Powerful utility.', scaling:'Buff Only', buffs:['focus'], icon:'Arcane Intellect.png' },
   'arcane_mental_clarity': { id:'arcane_mental_clarity', type:'active', name:'Mental Clarity', category:'Arcane Arts', targetType:'area', mana:16, cd:10.0, castTime:0.3, range:0, radius:18, target:'Self AoE', desc:'Silence immunity and mana regen.', details:'Grants Clarity buff (Immune to silence, +25% mana regen, 10s) to allies.', scaling:'Buff Only', buffs:['clarity'], icon:'Divine Touch.png' },
-  'arcane_shadow_veil': { id:'arcane_shadow_veil', type:'active', name:'Shadow Veil', category:'Arcane Arts', targetType:'area', mana:20, cd:15.0, castTime:0.5, range:0, radius:16, target:'Self AoE', desc:'Stealth and enhanced crits.', details:'Grants Stealth buff (Invisible to enemies, +50% crit chance, 5s) to allies. Break on damage.', scaling:'Buff Only', buffs:['stealth'], icon:'Blessed Healing.png' },
+  'arcane_shadow_veil': { id:'arcane_shadow_veil', type:'active', name:'Shadow Veil', category:'Arcane Arts', targetType:'area', mana:20, cd:15.0, castTime:0.5, range:0, radius:16, target:'Self AoE', desc:'Stealth with guaranteed crits.', details:'Grants Stealth buff (Invisible to enemies, +100% crit chance, 5s) to allies. Breaks on damage taken or dealt. 1s cooldown before re-cast.', scaling:'Buff Only', buffs:['stealth'], icon:'Blessed Healing.png' },
   'arcane_power_surge': { id:'arcane_power_surge', type:'active', name:'Arcane Power', category:'Arcane Arts', targetType:'area', mana:18, cd:13.0, castTime:0.4, range:0, radius:20, target:'Self AoE', desc:'Magic damage boost.', details:'Grants Arcane Power buff (+30% magic damage, +15% mana regen, 10s) to allies.', scaling:'Buff Only', buffs:['arcane_power'], icon:'Arc Bolt.png' },
   'arcane_swiftness': { id:'arcane_swiftness', type:'active', name:'Swiftness', category:'Arcane Arts', targetType:'area', mana:14, cd:8.0, castTime:0.2, range:0, radius:18, target:'Self AoE', desc:'Movement speed boost.', details:'Grants Haste buff (+30% movement speed, 5s) to allies. Quick repositioning.', scaling:'Buff Only', buffs:['haste'], icon:'Time Warp.png' },
 
@@ -180,7 +180,7 @@ export const BUFF_REGISTRY = {
   // UTILITY BUFFS
   'focus': { name:'Focus', desc:'+20% CDR, -50% mana costs', duration:8, stats:{cdr:0.20, manaCostReduction:0.50} },
   'clarity': { name:'Clarity', desc:'Immune to silence, +25% mana regen', duration:10, stats:{silenceImmune:true, manaRegen:0.25} },
-  'stealth': { name:'Stealth', desc:'Invisible to enemies, +50% crit chance', duration:5, stats:{invisible:true, critChance:0.50} },
+  'stealth': { name:'Stealth', desc:'Invisible, guaranteed crits (breaks on damage)', duration:5, stats:{invisible:true, critChance:1.0}, breakOnDamage:true, castCooldown:1.0 },
   'divine_shield': { name:'Divine Shield', desc:'Immune to damage and CC', duration:3, stats:{invulnerable:true, ccImmune:true} },
   'lucky': { name:'Lucky', desc:'+25% crit chance, +50% crit multiplier', duration:10, stats:{critChance:0.25, critMult:0.50} },
   'berserk': { name:'Berserk', desc:'+50% attack, +30% speed, -30% defense', duration:8, stats:{atk:0.50, speed:0.30, def:-0.30} },

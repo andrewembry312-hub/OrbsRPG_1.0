@@ -1469,12 +1469,22 @@ export function buildUI(state){
                   <input type="checkbox" id="trackEnemyAbilities" checked style="cursor:pointer;">
                   <span class="small" style="color:#f66;">Track Enemy Abilities</span>
                 </label>
-                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Control which abilities are tracked in the Ability Usage Log.</div>
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px; cursor:pointer;">
+                  <input type="checkbox" id="showAbilityDisplay" checked style="cursor:pointer;">
+                  <span class="small" style="color:#fc6;">Show Ability Cast Display</span>
+                </label>
+                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Control which abilities are tracked in the Ability Usage Log and show real-time ability casts in corner.</div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Ability Cast Display (Corner Overlay) -->
+    <div id="abilityCastDisplay" style="position: fixed; bottom: 20px; left: 20px; width: 280px; max-height: 300px; background: rgba(0,0,0,0.85); border: 2px solid rgba(252,198,102,0.5); border-radius: 6px; padding: 8px; font-family: monospace; font-size: 11px; color: #aaf; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 0 10px rgba(0,0,0,0.8);">
+      <div style="color: #d4af37; font-weight: bold; margin-bottom: 6px;">Recent Ability Casts</div>
+      <div id="abilityCastList" style="max-height: 260px; overflow-y: auto;"></div>
     </div>
 
     <!-- Marketplace Overlay -->
@@ -1723,6 +1733,7 @@ function bindUI(state){
     btnResetBinds:$('btnResetBinds'),
     trackFriendlyAbilities:$('trackFriendlyAbilities'),
     trackEnemyAbilities:$('trackEnemyAbilities'),
+    showAbilityDisplay:$('showAbilityDisplay'),
     enablePlayerLog:$('enablePlayerLog'),
     enableCombatLog:$('enableCombatLog'),
     enableDebugLog:$('enableDebugLog'),

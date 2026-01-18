@@ -92,28 +92,29 @@ function loadBossIcons(){
   };
   
   Promise.all([
-    loadImage(getAssetPath('assets/boss icons/Archmage.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Balrogath.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Bloodfang.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Gorothar.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Malakir.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Tarrasque.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Venom Queen.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Vorrak.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Zalthor.PNG'))
+    loadImage(getAssetPath('assets/boss icons/archmage.png')),
+    loadImage(getAssetPath('assets/boss icons/balrogath.png')),
+    loadImage(getAssetPath('assets/boss icons/bloodfang.png')),
+    loadImage(getAssetPath('assets/boss icons/gorothar.png')),
+    loadImage(getAssetPath('assets/boss icons/malakir.png')),
+    loadImage(getAssetPath('assets/boss icons/tarrasque.png')),
+    loadImage(getAssetPath('assets/boss icons/venom_queen.png')),
+    loadImage(getAssetPath('assets/boss icons/vorrak.png')),
+    loadImage(getAssetPath('assets/boss icons/zalthor.png'))
   ]).then(([archmage, balrogath, bloodfang, gorothar, malakir, tarrasque, venomQueen, vorrak, zalthor]) => {
-    if(archmage) bossIcons.archmage = archmage;
-    if(balrogath) bossIcons.balrogath = balrogath;
-    if(bloodfang) bossIcons.bloodfang = bloodfang;
-    if(gorothar) bossIcons.gorothar = gorothar;
-    if(malakir) bossIcons.malakir = malakir;
-    if(tarrasque) bossIcons.tarrasque = tarrasque;
-    if(venomQueen) bossIcons.venomQueen = venomQueen;
-    if(vorrak) bossIcons.vorrak = vorrak;
-    if(zalthor) bossIcons.zalthor = zalthor;
+    // Store with lowercase keys that match game.js boss icon assignment
+    if(archmage) bossIcons['archmage'] = archmage;
+    if(balrogath) bossIcons['balrogath'] = balrogath;
+    if(bloodfang) bossIcons['bloodfang'] = bloodfang;
+    if(gorothar) bossIcons['gorothar'] = gorothar;
+    if(malakir) bossIcons['malakir'] = malakir;
+    if(tarrasque) bossIcons['tarrasque'] = tarrasque;
+    if(venomQueen) bossIcons['venom_queen'] = venomQueen;
+    if(vorrak) bossIcons['vorrak'] = vorrak;
+    if(zalthor) bossIcons['zalthor'] = zalthor;
     bossIcons.loaded = true;
     
-    console.log('[Boss Icons] Loaded successfully');
+    console.log('[Boss Icons] Loaded successfully - Available keys:', Object.keys(bossIcons).filter(k => k !== 'loaded' && k !== 'loading' && k !== 'iconNames'));
   });
 }
 
@@ -761,7 +762,7 @@ export function render(state){
     }
     
     // For bosses with boss icons, draw icon overlay instead of variant sprite
-    if(e.boss && bossIcons.loaded && e.bossIcon){
+    if(e.boss && e.bossIcon){
       const bossImg = bossIcons[e.bossIcon];
       if(bossImg){
         // Fit boss icon inside the orb
@@ -774,6 +775,13 @@ export function render(state){
         ctx.clip();
         ctx.drawImage(bossImg, e.x - iconSize/2, e.y - iconSize/2, iconSize, iconSize);
         ctx.restore();
+      } else {
+        // Boss icon not yet loaded - render placeholder
+        ctx.fillStyle = '#ffaa00';
+        ctx.font = 'bold 20px system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚔️', e.x, e.y);
       }
     } else {
       // Regular enemies use variant sprite
@@ -845,7 +853,7 @@ export function render(state){
       }
       
       // For bosses, draw boss icon overlay instead of creature variant
-      if(c.boss && bossIcons.loaded && c.bossIcon){
+      if(c.boss && c.bossIcon){
         const bossImg = bossIcons[c.bossIcon];
         if(bossImg){
           // Fit boss icon inside the orb (slightly smaller than orb diameter)
@@ -858,6 +866,13 @@ export function render(state){
           ctx.clip();
           ctx.drawImage(bossImg, c.x - iconSize/2, c.y - iconSize/2, iconSize, iconSize);
           ctx.restore();
+        } else {
+          // Boss icon not yet loaded - render placeholder text
+          ctx.fillStyle = '#ffaa00';
+          ctx.font = 'bold 20px system-ui';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⚔️', c.x, c.y);
         }
       } else if(!c.boss) {
         // Regular creatures use variant image
@@ -1607,5 +1622,51 @@ function drawFullMap(ctx, canvas, state){
       ctx.fillStyle = d.cleared ? '#A0A0A0' : '#FFD700';
       ctx.fillText(label, dx, dy + 23);
     } 
+  }
+}
+
+// Update on-screen ability cast display
+export function updateAbilityCastDisplay(state, ui){
+  const display = document.getElementById('abilityCastDisplay');
+  const list = document.getElementById('abilityCastList');
+  
+  if(!display || !list) return;
+  
+  // Only hide display if checkbox is explicitly UNCHECKED
+  const isDisplayEnabled = !ui || !ui.showAbilityDisplay || ui.showAbilityDisplay.checked !== false;
+  
+  if(!isDisplayEnabled){
+    display.style.display = 'none';
+    return;  // Stop tracking/rendering if disabled
+  }
+  
+  display.style.display = 'block';
+  
+  const recentCasts = state.recentAbilityCasts || [];
+  
+  // Clear and rebuild list
+  list.innerHTML = '';
+  const currentTime = state.campaign?.time || 0;
+  
+  const showFriendly = !ui || !ui.trackFriendlyAbilities || ui.trackFriendlyAbilities.checked !== false;
+  const showEnemy = !ui || !ui.trackEnemyAbilities || ui.trackEnemyAbilities.checked !== false;
+  
+  for(const cast of recentCasts){
+    // Filter based on checkboxes
+    if(cast.kind === 'friendly' && !showFriendly) continue;
+    if(cast.kind === 'enemy' && !showEnemy) continue;
+    
+    const timeSince = currentTime - cast.time;
+    const timeStr = timeSince < 1 ? 'now' : `${Math.round(timeSince)}s`;
+    
+    const entry = document.createElement('div');
+    entry.style.marginBottom = '4px';
+    entry.style.padding = '4px';
+    entry.style.borderBottom = '1px solid rgba(170,170,255,0.1)';
+    entry.style.color = cast.kind === 'friendly' ? '#2f2' : '#f22';  // Green for friendly, Red for enemy
+    
+    const html = `<span style="color: #d4af37;">${timeStr}</span> - <span style="color: #aaf;">${cast.caster}</span><br><span style="color: #fc6; font-size: 10px;">${cast.ability}</span>`;
+    entry.innerHTML = html;
+    list.appendChild(entry);
   }
 }

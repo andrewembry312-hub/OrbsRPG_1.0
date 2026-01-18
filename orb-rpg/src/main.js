@@ -5,7 +5,7 @@ import { createState } from "./game/state.js";
 import { buildUI } from "./game/ui.js";
 import { initGame, handleHotkeys, updateGame, importSave, hardResetGameState, initGameLogging, currentStats } from "./game/game.js";
 import { showCharSelect } from "./game/charselect.js";
-import { render } from "./game/render.js";
+import { render, updateAbilityCastDisplay } from "./game/render.js";
 import { getAssetPath } from "./config.js";
 import { createMobileUI, updateMobileAbilityIcons } from "./game/mobile-ui.js";
 import "./loadMapInit.js"; // Initialize map loader helper
@@ -204,6 +204,7 @@ function startGameLoop(){
     try{ handleHotkeys(state, dt); }catch(e){ console.error('hotkeys',e); showFatalError('Error in handleHotkeys', e); }
     try{ updateGame(state, dt); }catch(e){ console.error('update',e); showFatalError('Error in updateGame', e); }
     try{ render(state); }catch(e){ console.error('render',e); showFatalError('Error in render', e); }
+    try{ updateAbilityCastDisplay(state, ui); }catch(e){ console.error('updateAbilityCastDisplay',e); }
     
     // Throttle UI updates to reduce DOM manipulation lag
     uiUpdateTimer += dt;

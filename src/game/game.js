@@ -3088,6 +3088,26 @@ function npcUpdateAbilities(state, u, dt, kind){
       state.abilityLog[ability].count++;
       state.abilityLog[ability].byRole[role] = (state.abilityLog[ability].byRole[role] || 0) + 1;
     }
+    
+    // TRACK RECENT ABILITY CASTS FOR ON-SCREEN DISPLAY (always track, independent of log checkbox)
+    if((action === 'cast' || action === 'cast-prio') && extra.ability){
+      state.recentAbilityCasts = state.recentAbilityCasts || [];
+      const casterName = u.name || u.variant || 'Unknown';
+      const abilityName = extra.ability.replace(/_/g, ' ').toUpperCase();
+      const team = kind === 'friendly' ? '🟦 ALLY' : '🟥 ENEMY';
+      
+      state.recentAbilityCasts.unshift({
+        time: state.campaign?.time || 0,
+        caster: casterName,
+        ability: abilityName,
+        team: team,
+        kind: kind,
+        role: extra.role || u.role || u.variant || 'unknown'
+      });
+      
+      // Keep only last 20 casts to avoid excessive memory use
+      if(state.recentAbilityCasts.length > 20) state.recentAbilityCasts.pop();
+    }
   };
 
   const fromPlayer = (kind === 'friendly');

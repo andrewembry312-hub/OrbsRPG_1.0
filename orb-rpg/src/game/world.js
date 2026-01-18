@@ -546,6 +546,24 @@ export function spawnGuardsForSite(state, site, count=5){
       
       state.friendlies.push(friendlyGuard);
       console.log('[spawnGuardsForSite] Spawned friendly guard:', friendlyGuard.name, `L${guardLevel}`, friendlyGuard.guardRole, 'at', friendlyGuard.x, friendlyGuard.y);
+      
+      // COMPREHENSIVE LOGGING FOR AUDIT TRAIL
+      if(state.debugLog){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'GUARD_SPAWNED',
+          team: 'player',
+          guardName: friendlyGuard.name,
+          variant: v,
+          role: friendlyGuard.guardRole,
+          level: guardLevel,
+          maxHp: friendlyGuard.maxHp,
+          position: { x: Math.round(friendlyGuard.x), y: Math.round(friendlyGuard.y) },
+          site: site.name || site.id,
+          sitePosition: { x: Math.round(site.x), y: Math.round(site.y) },
+          index: spawned
+        });
+      }
     } else {
       // Enemy guards with composition and level
       guardObj.variant = v;
@@ -571,6 +589,24 @@ export function spawnGuardsForSite(state, site, count=5){
       
       state.enemies.push(guardObj);
       console.log('[spawnGuardsForSite] Spawned enemy guard:', v, `L${guardLevel}`, guardObj.guardRole, 'HP:', guardObj.maxHp, 'at', guardObj.x, guardObj.y);
+      
+      // COMPREHENSIVE LOGGING FOR AUDIT TRAIL
+      if(state.debugLog){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'GUARD_SPAWNED',
+          team: site.owner,
+          guardName: guardObj.team + '_guard_' + pi,
+          variant: v,
+          role: guardObj.guardRole,
+          level: guardLevel,
+          maxHp: guardObj.maxHp,
+          position: { x: Math.round(guardObj.x), y: Math.round(guardObj.y) },
+          site: site.name || site.id,
+          sitePosition: { x: Math.round(site.x), y: Math.round(site.y) },
+          index: spawned
+        });
+      }
     }
     spawned++;
   }

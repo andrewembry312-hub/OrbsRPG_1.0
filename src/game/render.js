@@ -1618,3 +1618,42 @@ function drawFullMap(ctx, canvas, state){
     renderMobileControls(ctx, state.input.mobile);
   }
 }
+
+// Update on-screen ability cast display
+export function updateAbilityCastDisplay(state, ui){
+  // Allow display to show unless explicitly disabled
+  if(ui && ui.showAbilityDisplay && ui.showAbilityDisplay.checked === false) return;
+  
+  const display = document.getElementById('abilityCastDisplay');
+  const list = document.getElementById('abilityCastList');
+  
+  if(!display || !list) return;
+  
+  const recentCasts = state.recentAbilityCasts || [];
+  
+  if(recentCasts.length === 0){
+    display.style.display = 'none';
+    return;
+  }
+  
+  display.style.display = 'block';
+  
+  // Clear and rebuild list
+  list.innerHTML = '';
+  const currentTime = state.campaign?.time || 0;
+  
+  for(const cast of recentCasts){
+    const timeSince = currentTime - cast.time;
+    const timeStr = timeSince < 1 ? 'now' : `${Math.round(timeSince)}s`;
+    
+    const entry = document.createElement('div');
+    entry.style.marginBottom = '4px';
+    entry.style.padding = '4px';
+    entry.style.borderBottom = '1px solid rgba(170,170,255,0.1)';
+    entry.style.color = cast.kind === 'friendly' ? '#6cf' : '#f66';
+    
+    const html = `<span style="color: #d4af37;">${timeStr}</span> - <span style="color: #aaf;">${cast.caster}</span><br><span style="color: #fc6; font-size: 10px;">${cast.ability}</span>`;
+    entry.innerHTML = html;
+    list.appendChild(entry);
+  }
+}

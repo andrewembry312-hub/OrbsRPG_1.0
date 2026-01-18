@@ -19,6 +19,28 @@ const CHASE_DISTANCE = 160; // how close the player must be for an enemy to chas
 const CHASE_FROM_HOME_MAX = 220; // max distance from home an enemy will pursue before returning
 const RETURN_THRESHOLD = 260; // if farther than this from home, force return
 
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILITY: Dynamic role detection for NPCs
+// Determines whether a unit is a HEALER or DPS based on their actual abilities
+// ─────────────────────────────────────────────────────────────────────────────
+function detectNpcRole(unit){
+  // Healing/support ability keywords (case-insensitive)
+  const healingKeywords = ['heal', 'regen', 'shield', 'cure', 'revive', 'buff', 'bless', 'holy'];
+  
+  if(!unit.npcAbilities || !Array.isArray(unit.npcAbilities)){
+    // Fallback: use variant if no abilities defined
+    return unit.variant === 'mage' ? 'HEALER' : 'DPS';
+  }
+  
+  // Check if any abilities match healing keywords
+  const hasHealingAbility = unit.npcAbilities.some(abilityName => {
+    const nameLower = (abilityName || '').toLowerCase();
+    return healingKeywords.some(keyword => nameLower.includes(keyword));
+  });
+  
+  return hasHealingAbility ? 'HEALER' : 'DPS';
+}
+
 // Hard reset: completely reinitialize all game state properties (called before initGame on new game)
 export function hardResetGameState(state){
   try{ console.log('[RESET] Hard reset - clearing all game state'); }catch(e){}
@@ -425,29 +447,15 @@ export async function initGame(state){
   
   // Slot system helper functions
   window.SLOTS = {
-    // Get slot unlock cost (always 1 SP)
+    // Get slot unlock cost (always 1 SP - simple unlock only system)
     getUnlockCost: (slotId) => {
-      if (!state.slotSystem) {
-        console.error('❌ Slot system not initialized! Hard refresh required (Ctrl+F5)');
-        return null;
-      }
-      return state.slotSystem.unlockCost;
+      return 1; // All slots cost 1 SP to unlock
     },
     
-    // Get slot upgrade cost (base + scaling based on current level)
+    // Get slot upgrade cost (DEPRECATED - no upgrades in new system)
     getUpgradeCost: (slotId) => {
-      if (!state.slotSystem) {
-        console.error('❌ Slot system not initialized! Hard refresh required (Ctrl+F5)');
-        return null;
-      }
-      const slot = findSlot(state, slotId);
-      if (!slot) return null;
-      
-      // Cost = base + (slot.level * scaling)
-      const base = state.slotSystem.upgradeCostBase;
-      const scaling = state.slotSystem.upgradeCostScaling;
-      const cost = Math.ceil(base + (slot.level * scaling));
-      return cost;
+      console.warn('⚠️ Slot upgrade system removed. Slots are unlock-only (1 SP each)');
+      return 0; // No upgrades
     },
     
     // Unlock a slot (costs 1 SP)
@@ -505,49 +513,11 @@ export async function initGame(state){
       return true;
     },
     
-    // Upgrade slot level (costs base + scaling SP)
+    // Upgrade slot level (DEPRECATED - upgrade system removed)
     upgradeSlot: (slotId) => {
-      const slot = findSlot(state, slotId);
-      if (!slot) {
-        console.log(`❌ Slot ${slotId} not found!`);
-        return false;
-      }
-      
-      if (!slot.unlocked) {
-        console.log(`❌ Slot ${slotId} not unlocked yet!`);
-        return false;
-      }
-      
-      const cost = window.SLOTS.getUpgradeCost(slotId);
-      if (state.progression.skillPoints < cost) {
-        console.log(`❌ Not enough skill points! Need ${cost}, have ${state.progression.skillPoints}`);
-        return false;
-      }
-      
-      // Spend SP and upgrade slot
-      state.progression.skillPoints -= cost;
-      slot.level += 1;
-      console.log(`✅ Upgraded ${slotId} to level ${slot.level}! (${state.progression.skillPoints} SP remaining)`);
-      
-      // Mirror to AI teams instantly
-      mirrorSlotToAI(state, slotId, 'upgrade');
-      
-      // Update UI if available
-      if (state.ui && state.ui.renderSlotTab) {
-        state.ui.renderSlotTab();
-      }
-      
-      // If guard slot and flag owned, respawn guard at new level
-      if (slotId.startsWith('guard_')) {
-        respawnGuardsForSlot(state, slotId);
-      }
-      
-      // If ally slot and ally exists, level up the ally
-      if (slotId.startsWith('ally_')) {
-        levelUpAllyForSlot(state, slotId);
-      }
-      
-      return true;
+      console.warn('⚠️ Slot upgrade system removed. Slots are unlock-only (1 SP each)');
+      console.log('Slots no longer level up - unlock new slots with skill points instead');
+      return false;
     },
     
     // Assign loadout to slot (free, out of combat only)
@@ -2717,9 +2687,9 @@ export function npcInitAbilities(u){
   const baseManaRegen = { mage: 7.5, warrior: 5.0, knight: 5.5, tank: 5.0 };
   u.manaRegen = u.manaRegen || baseManaRegen[variant] || 5.5;
   
-  // Assign an explicit party role for AI behavior
+  // Assign an explicit party role for AI behavior - detect dynamically from abilities
   if(!u.role){
-    u.role = (variant==='mage') ? 'HEALER' : 'DPS';
+    u.role = detectNpcRole(u);
   }
   
   // Debug log to verify loadouts for all variants
@@ -3087,6 +3057,26 @@ function npcUpdateAbilities(state, u, dt, kind){
       
       state.abilityLog[ability].count++;
       state.abilityLog[ability].byRole[role] = (state.abilityLog[ability].byRole[role] || 0) + 1;
+    }
+    
+    // TRACK RECENT ABILITY CASTS FOR ON-SCREEN DISPLAY (always track, independent of log checkbox)
+    if((action === 'cast' || action === 'cast-prio') && extra.ability){
+      state.recentAbilityCasts = state.recentAbilityCasts || [];
+      const casterName = u.name || u.variant || 'Unknown';
+      const abilityName = extra.ability.replace(/_/g, ' ').toUpperCase();
+      const team = kind === 'friendly' ? '🟦 ALLY' : '🟥 ENEMY';
+      
+      state.recentAbilityCasts.unshift({
+        time: state.campaign?.time || 0,
+        caster: casterName,
+        ability: abilityName,
+        team: team,
+        kind: kind,
+        role: extra.role || u.role || u.variant || 'unknown'
+      });
+      
+      // Keep only last 1000 casts (much larger limit - user can disable if needed)
+      if(state.recentAbilityCasts.length > 1000) state.recentAbilityCasts.pop();
     }
   };
 
@@ -4271,8 +4261,8 @@ function spawnBossCreature(state){
   const bossHp = Math.round(520 * levelMult);
   const bossDmg = Math.round(16 * levelMult);
   
-  // Randomly select a boss icon
-  const bossIconNames = ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venomQueen', 'vorrak', 'zalthor'];
+  // Randomly select a boss icon (using lowercase names that match render.js loading)
+  const bossIconNames = ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venom_queen', 'vorrak', 'zalthor'];
   const randomIcon = bossIconNames[Math.floor(Math.random() * bossIconNames.length)];
   
   // Randomly assign abilities to world boss
@@ -4804,7 +4794,7 @@ function spawnFriendlyAt(state, site, forceVariant=null){
     // Only guards/garrison should have site association
     respawnT: 0,
     variant: v,
-    role: (v==='mage' ? 'HEALER' : (v==='warden' || v==='knight' ? 'TANK' : 'DPS')),
+    role: null, // Will be set dynamically after abilities are assigned
     behavior: 'neutral', // default behavior for all friendlies
     buffs: [],
     dots: [],
@@ -4835,6 +4825,9 @@ function spawnFriendlyAt(state, site, forceVariant=null){
   f.contactDmg = scaledStats.contactDmg;
   
   npcInitAbilities(f, { state, source: 'spawnFriendly' });
+  
+  // Now that abilities are assigned, detect role dynamically
+  f.role = detectNpcRole(f);
   state.friendlies.push(f);
   
   // Log friendly spawn
@@ -4953,6 +4946,22 @@ function updateFriendlies(state, dt){
           const allyType = a.guard ? 'Guard' : (isGroupMember ? 'Group Member' : 'Ally');
           console.log(`[${allyType.toUpperCase()}] ${a.name} respawned at ${respawnSite.name}`);
           state.ui?.toast(`✅ <b>${a.name}</b> respawned at <b>${respawnSite.name}</b>.`);
+          
+          // LOG RESPAWN CONFIRMATION
+          if(state.debugLog){
+            state.debugLog.push({
+              time: (state.campaign?.time || 0).toFixed(2),
+              type: a.guard ? 'GUARD_RESPAWNED' : 'ALLY_RESPAWNED',
+              unitName: a.name,
+              variant: a.variant,
+              role: a.guard ? a.guardRole : (a.role || 'UNKNOWN'),
+              level: a.level,
+              maxHp: a.maxHp,
+              position: { x: Math.round(a.x), y: Math.round(a.y) },
+              site: respawnSite.name || respawnSite.id,
+              timeDead: (state.campaign?.time || 0) - (a._deathTime || state.campaign?.time || 0)
+            });
+          }
         } else {
           state.friendlies.splice(i,1);
         }
@@ -5267,7 +5276,7 @@ function updateFriendlies(state, dt){
       // - Elects a leader
       // - Leader computes/logs focus target + focusPos (does NOT affect current AI yet)
       // ─────────────────────────────────────────────────────────────────────────────
-      {
+      if(state.ui?.enableGuardBallLogging?.checked !== false) { // Disabled by default if checkbox missing, enabled by default if checked
         const kind = 'friendly';
         const siteKey = a.guardFlagId || a.homeSiteId || a.siteId || (guardSite?.id || null) || 'unknown';
         const ballId = `${kind}:${siteKey}`;
@@ -5388,7 +5397,7 @@ function updateFriendlies(state, dt){
             });
           }
         }
-      }
+      } // end guard ball logging guard (friendly)
       
       // ─────────────────────────────────────────────────────────────────────────────
       // TARGET SELECTION WITH COMMIT TIMER
@@ -5744,6 +5753,47 @@ function updateFriendlies(state, dt){
           }
         }
         
+        // ─────────────────────────────────────────────────────────────────────────────
+        // AI PRIORITY TRACKER: Log state changes and time spent in each priority
+        // ─────────────────────────────────────────────────────────────────────────────
+        const now = state.campaign?.time || 0;
+        
+        // Initialize tracking on unit if not already done
+        if(!a._aiPriorityTracker){
+          a._aiPriorityTracker = {
+            currentDecision: 'idle',
+            decisionStartTime: now,
+            decisionDuration: 0,
+            previousDecision: null,
+            stateChangeCount: 0,
+            checks: {}
+          };
+        }
+        
+        const tracker = a._aiPriorityTracker;
+        
+        // Calculate how long in current decision state
+        const durationInState = now - tracker.decisionStartTime;
+        tracker.decisionDuration = durationInState;
+        
+        // Prepare decision context for detailed logging
+        const decisionContext = {
+          unit: a.name || a.variant,
+          role: role,
+          currentDecision: 'idle', // Will be set in role logic
+          currentPos: {x: Math.round(a.x), y: Math.round(a.y)},
+          nearestEnemy: near.e ? {name: near.e.name || near.e.variant, dist: Math.round(near.d), pos: {x: Math.round(near.e.x), y: Math.round(near.e.y)}} : null,
+          closestObjective: closestObjective ? {name: closestObjective.name || closestObjective.id, pos: {x: Math.round(closestObjective.x), y: Math.round(closestObjective.y)}} : null,
+          aggro_range: AGGRO_RANGE,
+          checks: {
+            hasEnemy: !!near.e,
+            enemyInRange: near.e && near.d <= AGGRO_RANGE,
+            hasObjective: !!closestObjective,
+            hasWall: !!wallTarget,
+            hasCreature: !!nearCreature
+          }
+        };
+        
         // ROLE-BASED PRIORITY SYSTEM
         let decision = 'idle';
         let targetInfo = '';
@@ -5758,70 +5808,53 @@ function updateFriendlies(state, dt){
         if(role === 'TANK'){
           // TANK PRIORITY: Move to objectives > Attack walls in range > Stay near allies when threatened
           
-          // Debug: Log tank AI activation (temporary)
-          if(state.debugLog && Math.random() < 0.15){
-            state.debugLog.push({
-              time: (state.campaign?.time || 0).toFixed(2),
-              type: 'TANK_AI_START',
-              tank: a.name || a.variant,
-              position: {x: Math.round(a.x), y: Math.round(a.y)},
-              closestObjective: closestObjective ? (closestObjective.name || closestObjective.id) : 'NULL',
-              closestObjectivePos: closestObjective ? {x: Math.round(closestObjective.x), y: Math.round(closestObjective.y)} : null,
-              wallTarget: wallTarget ? 'YES' : 'NO',
-              initialDecision: decision
-            });
-          }
+          const decisions = {
+            wall: {condition: wallTarget && Math.hypot(a.x - wallTarget.x, a.y - wallTarget.y) <= 150, note: wallTarget ? Math.hypot(a.x - wallTarget.x, a.y - wallTarget.y).toFixed(0) + 'u to wall' : 'no wall'},
+            objective: {condition: closestObjective && decision === 'idle', note: closestObjective ? 'available' : 'none'},
+            enemy: {condition: near.e && near.d <= AGGRO_RANGE * 0.8, note: near.e ? near.d.toFixed(0) + 'u, range=' + Math.round(AGGRO_RANGE * 0.8) : 'none'}
+          };
           
           // EXCEPTION: Attack walls when in range (highest priority)
-          if(wallTarget){
-            const distToWall = Math.hypot(a.x - wallTarget.x, a.y - wallTarget.y);
-            if(distToWall <= 150){
-              tx = wallTarget.x;
-              ty = wallTarget.y;
-              decision = 'attack_wall';
-              targetInfo = `${wallTarget.site.name || wallTarget.site.id} wall`;
-            }
+          if(decisions.wall.condition){
+            tx = wallTarget.x;
+            ty = wallTarget.y;
+            decision = 'attack_wall';
+            targetInfo = `${wallTarget.site.name || wallTarget.site.id} wall`;
           }
           
           // Move to closest objective when not attacking walls
-          if(decision === 'idle' && closestObjective){
+          if(decisions.objective.condition){
             tx = closestObjective.x;
             ty = closestObjective.y;
             decision = 'capture_objective';
             targetInfo = closestObjective.name || closestObjective.id;
-            
-            // Debug: Log tank movement decision
-            if(state.debugLog && Math.random() < 0.05){
-              state.debugLog.push({
-                time: (state.campaign?.time || 0).toFixed(2),
-                type: 'TANK_DECISION',
-                tank: a.name || a.variant,
-                decision: decision,
-                target: targetInfo,
-                hasPosition: a.x !== undefined && a.x !== null
-              });
-            }
-            
-            // Debug: Log objective targeting
-            if(state.debugLog && Math.random() < 0.1){
-              state.debugLog.push({
-                time: (state.campaign?.time || 0).toFixed(2),
-                type: 'TANK_OBJECTIVE_SET',
-                tank: a.name || a.variant,
-                objective: closestObjective.name || closestObjective.id,
-                objectivePos: {x: Math.round(closestObjective.x), y: Math.round(closestObjective.y)},
-                tankPos: {x: Math.round(a.x), y: Math.round(a.y)},
-                distance: Math.round(Math.hypot(closestObjective.x - a.x, closestObjective.y - a.y))
-              });
-            }
           }
           
           // Fallback: Attack nearby enemies
-          if(decision === 'idle' && near.e && near.d <= AGGRO_RANGE * 0.8){
+          if(decision === 'idle' && decisions.enemy.condition){
             tx = near.e.x;
             ty = near.e.y;
             decision = 'attack_enemy';
             targetInfo = `${near.e.name || near.e.variant} (defensive)`;
+          }
+          
+          // Log decision conditions every 0.5s
+          if(state.debugLog && (a._lastLogTime || 0) + 0.5 < now){
+            state.debugLog.push({
+              time: now.toFixed(2),
+              type: 'TANK_PRIORITY_CHECK',
+              tank: a.name || a.variant,
+              position: {x: Math.round(a.x), y: Math.round(a.y)},
+              decision: decision,
+              targetInfo: targetInfo,
+              priorityChecks: {
+                wall_in_range: {met: decisions.wall.condition, detail: decisions.wall.note},
+                objective_available: {met: decisions.objective.condition, detail: decisions.objective.note},
+                enemy_nearby: {met: decisions.enemy.condition, detail: decisions.enemy.note}
+              },
+              stuck_in_idle: decision === 'idle'
+            });
+            a._lastLogTime = now;
           }
         }
         else if(role === 'DPS'){
@@ -5831,33 +5864,59 @@ function updateFriendlies(state, dt){
           const currentlyAttacking = (a._lastDecision === 'attack_enemy');
           const aggroThreshold = currentlyAttacking ? AGGRO_RANGE * 1.15 : AGGRO_RANGE * 0.85; // 253 disengage / 187 engage
           
-          if(near.e && near.d <= aggroThreshold){
+          const conditions = {
+            enemy: {condition: near.e && near.d <= aggroThreshold, note: near.e ? `${near.d.toFixed(0)}u (thresh=${aggroThreshold.toFixed(0)})` : 'none'},
+            creature: {condition: nearCreature && nearCreatureD <= AGGRO_RANGE, note: nearCreature ? `${nearCreatureD.toFixed(0)}u` : 'none'},
+            wall: {condition: wallTarget, note: wallTarget ? 'exists' : 'none'},
+            objective: {condition: closestObjective, note: closestObjective ? closestObjective.name || closestObjective.id : 'none'}
+          };
+          
+          if(conditions.enemy.condition){
             tx = near.e.x;
             ty = near.e.y;
             decision = 'attack_enemy';
             targetInfo = near.e.name || near.e.variant || 'Unknown';
-          } else if(nearCreature && nearCreatureD <= AGGRO_RANGE){
+          } else if(conditions.creature.condition){
             tx = nearCreature.x;
             ty = nearCreature.y;
             decision = 'attack_creature';
             targetInfo = 'Creature';
-          } else if(wallTarget){
+          } else if(conditions.wall.condition){
             tx = wallTarget.x;
             ty = wallTarget.y;
             decision = 'attack_objective';
             targetInfo = wallTarget.site.name || wallTarget.site.id;
-          } else if(closestObjective){
+          } else if(conditions.objective.condition){
             tx = closestObjective.x;
             ty = closestObjective.y;
             decision = 'capture_objective';
             targetInfo = closestObjective.name || closestObjective.id;
+          }
+          
+          // Log DPS priority checks every 0.5s
+          if(state.debugLog && (a._lastLogTime || 0) + 0.5 < now){
+            state.debugLog.push({
+              time: now.toFixed(2),
+              type: 'DPS_PRIORITY_CHECK',
+              dps: a.name || a.variant,
+              position: {x: Math.round(a.x), y: Math.round(a.y)},
+              decision: decision,
+              targetInfo: targetInfo,
+              priorityChecks: {
+                enemy_in_range: {met: conditions.enemy.condition, detail: conditions.enemy.note},
+                creature_nearby: {met: conditions.creature.condition, detail: conditions.creature.note},
+                wall_exists: {met: conditions.wall.condition, detail: conditions.wall.note},
+                objective_available: {met: conditions.objective.condition, detail: conditions.objective.note}
+              },
+              stuck_in_idle: decision === 'idle'
+            });
+            a._lastLogTime = now;
           }
         }
         else if(role === 'HEALER'){
           // HEALER PRIORITY: Stay near allies (cached position to reduce recalculation)
           
           // Cache cluster center calculation (only recalc every 1 second)
-          const now = state.campaign?.time || 0;
           if(!a._clusterCacheTime || now - a._clusterCacheTime > 1.0){
             let allyX = 0, allyY = 0, allyCount = 0;
             for(const f of state.friendlies){
@@ -5894,32 +5953,68 @@ function updateFriendlies(state, dt){
           if(a._cachedClusterX !== null && a._cachedClusterX !== undefined){
             const distToCluster = Math.hypot(a.x - a._cachedClusterX, a.y - a._cachedClusterY);
             
+            // Check if team is safe: no nearby enemies or enemies are far away
+            const teamIsSafe = !near.e || near.d > AGGRO_RANGE * 1.5; // Safe when no enemies within 1.5x aggro range
+            
             // HYSTERESIS: Different thresholds for moving vs staying
             const isCurrentlyMoving = (a._lastDecision === 'support_allies');
             const moveThreshold = isCurrentlyMoving ? 120 : 160; // 120 to stop, 160 to start
             
-            if(distToCluster > moveThreshold){
+            const conditions = {
+              objective_and_safe: {condition: closestObjective && teamIsSafe && distToCluster <= 150, note: closestObjective ? `safe=${teamIsSafe}, dist=${distToCluster.toFixed(0)}` : 'no objective'},
+              out_of_position: {condition: distToCluster > moveThreshold, note: `dist=${distToCluster.toFixed(0)}, thresh=${moveThreshold}`},
+              safe_to_attack: {condition: near.e && near.d <= AGGRO_RANGE * 0.6 && distToCluster <= 100, note: near.e ? `${near.d.toFixed(0)}u to ${near.e.name}` : 'no enemy'},
+              maintain_position: {condition: true, note: 'default'}
+            };
+            
+            // SMART CLUSTER FLEXIBILITY:
+            // If team is healthy and no nearby threats, prioritize capturing objectives
+            if(conditions.objective_and_safe.condition){
+              // Team is safe and healer is reasonably close: pursue objective
+              tx = closestObjective.x;
+              ty = closestObjective.y;
+              decision = 'capture_objective';
+              targetInfo = closestObjective.name || closestObjective.id;
+            } else if(conditions.out_of_position.condition){
+              // Out of position: return to cluster
               tx = a._cachedClusterX;
               ty = a._cachedClusterY;
               decision = 'support_allies';
               targetInfo = `Allied cluster (${a._cachedAllyCount} units)`;
-            } else if(near.e && near.d <= AGGRO_RANGE * 0.6 && distToCluster <= 100){
+            } else if(conditions.safe_to_attack.condition){
               // Only attack when very safe and very close to allies
               tx = near.e.x;
               ty = near.e.y;
               decision = 'attack_enemy';
               targetInfo = `${near.e.name || near.e.variant} (safe)`;
-            } else if(closestObjective && !near.e){
-              tx = closestObjective.x;
-              ty = closestObjective.y;
-              decision = 'capture_objective';
-              targetInfo = closestObjective.name || closestObjective.id;
             } else {
-              // Stay in position
+              // Stay in position: either threat nearby or maintaining cluster
               tx = a._cachedClusterX;
               ty = a._cachedClusterY;
               decision = 'support_allies';
               targetInfo = 'Maintaining position';
+            }
+            
+            // Log HEALER priority checks every 0.5s
+            if(state.debugLog && (a._lastLogTime || 0) + 0.5 < now){
+              state.debugLog.push({
+                time: now.toFixed(2),
+                type: 'HEALER_PRIORITY_CHECK',
+                healer: a.name || a.variant,
+                position: {x: Math.round(a.x), y: Math.round(a.y)},
+                decision: decision,
+                targetInfo: targetInfo,
+                allyCount: a._cachedAllyCount,
+                distToCluster: distToCluster.toFixed(0),
+                teamSafe: teamIsSafe,
+                priorityChecks: {
+                  objective_and_team_safe: {met: conditions.objective_and_safe.condition, detail: conditions.objective_and_safe.note},
+                  out_of_position: {met: conditions.out_of_position.condition, detail: conditions.out_of_position.note},
+                  safe_to_attack: {met: conditions.safe_to_attack.condition, detail: conditions.safe_to_attack.note}
+                },
+                stuck_in_idle: decision === 'idle'
+              });
+              a._lastLogTime = now;
             }
           } else {
             // No allies - move to objective cautiously
@@ -5928,6 +6023,19 @@ function updateFriendlies(state, dt){
               ty = closestObjective.y;
               decision = 'capture_objective';
               targetInfo = closestObjective.name || closestObjective.id;
+            }
+            
+            // Log when healer has no allies
+            if(state.debugLog && (a._lastLogTime || 0) + 0.5 < now){
+              state.debugLog.push({
+                time: now.toFixed(2),
+                type: 'HEALER_NO_ALLIES',
+                healer: a.name || a.variant,
+                decision: decision,
+                targetInfo: targetInfo,
+                moving_to_objective: !!closestObjective
+              });
+              a._lastLogTime = now;
             }
           }
         }
@@ -6041,17 +6149,48 @@ function updateFriendlies(state, dt){
           newDecision: decision,
           target: targetInfo,
           targetPos: tx && ty ? { x: Math.round(tx), y: Math.round(ty) } : null,
-          distance: tx && ty ? Math.round(Math.hypot(tx - a.x, ty - a.y)) : 0
+          distance: tx && ty ? Math.round(Math.hypot(tx - a.x, ty - a.y)) : 0,
+          stateChangedFrom: tracker.currentDecision,
+          timeInPreviousState: tracker.decisionDuration.toFixed(2),
+          nearestEnemy: near.e ? {dist: Math.round(near.d), range: AGGRO_RANGE} : null,
+          objectiveAvailable: !!closestObjective
         });
+        
+        // Store last decision on unit for hysteresis checks (used by distance thresholds)
+        a._lastDecision = decision;
+        
+        // Update tracker
+        if(tracker.currentDecision !== decision){
+          tracker.previousDecision = tracker.currentDecision;
+          tracker.currentDecision = decision;
+          tracker.decisionStartTime = now;
+          tracker.stateChangeCount++;
+        }
+        
+        // AI STUCK DETECTOR: Log when stuck in idle for too long with available options
+        if(decision === 'idle' && tracker.decisionDuration > 2.0){
+          const reason = [];
+          if(closestObjective) reason.push('ObjectiveExists');
+          if(near.e) reason.push('EnemyNearby');
+          if(nearCreature) reason.push('CreatureNearby');
+          if(wallTarget) reason.push('WallExists');
+          
+          logAIBehavior(state, a, 'stuck_in_idle', {
+            unit: a.name || a.variant,
+            role: role,
+            duration: tracker.decisionDuration.toFixed(2),
+            availableActions: reason.length > 0 ? reason : ['NoTargets'],
+            position: {x: Math.round(a.x), y: Math.round(a.y)},
+            nearestEnemy: near.e ? {dist: Math.round(near.d), inRange: near.d <= AGGRO_RANGE} : null,
+            objectiveCheck: closestObjective ? {name: closestObjective.name || closestObjective.id, dist: Math.round(Math.hypot(closestObjective.x - a.x, closestObjective.y - a.y))} : 'NULL'
+          });
+        }
         
         // Check for stuck/looping behavior (position tracking)
         logAIBehavior(state, a, 'position_check', {
           isMoving: (tx !== a.x || ty !== a.y),
           decision: decision
         });
-        
-        // Store last decision on unit for hysteresis checks (used by distance thresholds)
-        a._lastDecision = decision;
         
         // Debug logging for role-based decisions (5% sample rate)
         if(state.debugLog && Math.random() < 0.05){
@@ -6202,6 +6341,36 @@ function updateFriendlies(state, dt){
         }
       }
     }
+    
+    // NPC MOVEMENT TRACKING (Sampled at 10% to avoid log spam)
+    // Track movement for idle detection and behavioral verification
+    if(state.debugLog && Math.random() < 0.10 && !a.guard){
+      const prevX = a._lastLoggedX ?? a.x;
+      const prevY = a._lastLoggedY ?? a.y;
+      const distance = Math.hypot(a.x - prevX, a.y - prevY);
+      const isIdle = distance < 5; // Idle if moved less than 5 units
+      
+      // Log movement sample
+      state.debugLog.push({
+        time: (state.campaign?.time || 0).toFixed(2),
+        type: 'ALLY_MOVEMENT',
+        allyName: a.name,
+        position: { x: Math.round(a.x), y: Math.round(a.y) },
+        previousPosition: { x: Math.round(prevX), y: Math.round(prevY) },
+        distance: Math.round(distance),
+        isIdle: isIdle,
+        role: a.role || 'UNKNOWN',
+        level: a.level,
+        hp: Math.round(a.hp),
+        maxHp: a.maxHp,
+        status: isIdle ? 'idle' : 'moving'
+      });
+      
+      // Update last logged position
+      a._lastLoggedX = a.x;
+      a._lastLoggedY = a.y;
+    }
+    
     // Note: Removed siteId-based deletion check - non-group allies no longer use siteId
     // They always seek next objective instead of being tied to one flag
   }
@@ -6237,8 +6406,24 @@ function killFriendly(state, idx, scheduleRespawn=true){
     if(nearestFlag){
       f.respawnT = 8.0; // 8 second respawn time for group members
       f.siteId = nearestFlag.id; // Respawn at this flag
+      f._deathTime = state.campaign?.time || 0; // Track death time for respawn confirmation
       console.log(`[GROUP] ${f.name} will respawn at ${nearestFlag.name} in 8s`);
       state.ui?.toast(`⚠️ <b>${f.name}</b> died. Respawning at <b>${nearestFlag.name}</b> in 8s.`);
+      // Log group member death with respawn tracking
+      if(state.debugLog){
+        state.debugLog.push({
+          time: (state.campaign?.time || 0).toFixed(2),
+          type: 'ALLY_DIED',
+          allyName: f.name,
+          variant: f.variant,
+          role: f.role || 'UNKNOWN',
+          level: f.level,
+          maxHp: f.maxHp,
+          position: { x: Math.round(f.x), y: Math.round(f.y) },
+          respawnTime: 8.0,
+          respawnSite: nearestFlag.id
+        });
+      }
       // Don't remove from friendlies array - just set respawn timer
       return;
     } else {
@@ -6258,6 +6443,26 @@ function killFriendly(state, idx, scheduleRespawn=true){
         site.guardRespawns.push(30.0);
         console.log(`[GUARD] ${f.name} at ${site.name} died. Respawning in 30s.`);
         state.ui?.toast(`⚠️ Guard <b>${f.name}</b> at <b>${site.name}</b> died. Respawning in 30s.`);
+        
+        // Track death time for respawn confirmation
+        f._deathTime = state.campaign?.time || 0;
+        
+        // COMPREHENSIVE LOGGING FOR GUARD DEATH
+        if(state.debugLog){
+          state.debugLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'GUARD_DIED',
+            guardName: f.name,
+            variant: f.variant,
+            role: f.guardRole,
+            level: f.level,
+            maxHp: f.maxHp,
+            position: { x: Math.round(f.x), y: Math.round(f.y) },
+            site: site.name || site.id,
+            respawnTime: 30.0,
+            respawnSite: site.id
+          });
+        }
       }
       state.friendlies.splice(idx,1);
     } else {
@@ -6267,8 +6472,25 @@ function killFriendly(state, idx, scheduleRespawn=true){
         // DON'T set siteId for non-guard, non-garrison allies - they should always seek next objective
         // f.siteId = nearestFlag.id; // REMOVED - causes allies to stay at flags
         f.dead = true;
+        f._deathTime = state.campaign?.time || 0; // Track death time for respawn confirmation
         console.log(`[ALLY] ${f.name} died. Will respawn at ${nearestFlag.name} in 8s.`);
         state.ui?.toast(`⚠️ <b>${f.name}</b> fell in battle. Respawning at <b>${nearestFlag.name}</b> in 8s.`);
+        
+        // COMPREHENSIVE LOGGING FOR ALLY DEATH
+        if(state.debugLog){
+          state.debugLog.push({
+            time: (state.campaign?.time || 0).toFixed(2),
+            type: 'ALLY_DIED',
+            allyName: f.name,
+            variant: f.variant,
+            role: f.role || 'UNKNOWN',
+            level: f.level,
+            maxHp: f.maxHp,
+            position: { x: Math.round(f.x), y: Math.round(f.y) },
+            respawnTime: 8.0,
+            respawnSite: nearestFlag.id
+          });
+        }
         return;
       }
       state.friendlies.splice(idx,1);
@@ -6452,7 +6674,7 @@ function updateEnemies(state, dt){
       // ─────────────────────────────────────────────────────────────────────────────
       // SHARED GUARD BALL STATE (LOG-ONLY STEP)
       // ─────────────────────────────────────────────────────────────────────────────
-      {
+      if(state.ui?.enableGuardBallLogging?.checked !== false) { // Disabled by default if checkbox missing, enabled by default if checked
         const kind = 'enemy';
         const siteKey = e.guardFlagId || e.homeSiteId || e.siteId || (guardSite?.id || null) || 'unknown';
         const ballId = `${kind}:${siteKey}`;
@@ -6575,7 +6797,7 @@ function updateEnemies(state, dt){
             });
           }
         }
-      }
+      } // end guard ball logging guard (enemy)
       
       // ─────────────────────────────────────────────────────────────────────────────
       // TARGET SELECTION WITH COMMIT TIMER
@@ -8973,7 +9195,7 @@ function showBossIntro(state, bossIcon, dungeonName, bossProfile, onComplete){
   
   // Boss image
   const img = document.createElement('img');
-  img.src = `assets/boss icons/${bossIcon}.png`;
+  img.src = getAssetPath(`assets/boss icons/${bossIcon}.PNG`);
   img.style.cssText = `
     width: 300px;
     height: 300px;
@@ -9136,9 +9358,10 @@ function fireLightOrHeavy(state, heldMs){
   const unarmed = !hasWeapon;
   let base;
   if(unarmed){
+    // REDUCED UNARMED DAMAGE: nerf per audit
     base = isHeavy
-      ? { t:0.22, arc:1.25, range:70, dmg:6 + st.atk*0.45 }
-      : { t:0.16, arc:1.05, range:60, dmg:3 + st.atk*0.30 };
+      ? { t:0.22, arc:1.25, range:70, dmg:2 + st.atk*0.15 }
+      : { t:0.16, arc:1.05, range:60, dmg:1 + st.atk*0.08 };
   } else {
     base = isHeavy
       ? { t:0.22, arc:1.6, range:95, dmg:14 + st.atk*1.0 }
@@ -11472,7 +11695,7 @@ function spawnZoneBoss(state) {
     boss.xp = boss.xp * 10; // 10x XP reward
     
     // Randomly select a boss icon
-    const bossIconNames = ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venomQueen', 'vorrak', 'zalthor'];
+    const bossIconNames = ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venom_queen', 'vorrak', 'zalthor'];
     boss.bossIcon = bossIconNames[Math.floor(Math.random() * bossIconNames.length)];
     
     state.zoneConfig.bossActive = true;
