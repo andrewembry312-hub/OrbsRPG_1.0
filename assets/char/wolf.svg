@@ -1,0 +1,30 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Body -->
+  <ellipse cx="32" cy="36" rx="13" ry="15" fill="#555"/>
+  <!-- Head -->
+  <circle cx="32" cy="20" r="10" fill="#666"/>
+  <!-- Left ear -->
+  <polygon points="24,12 20,6 26,8" fill="#555"/>
+  <!-- Right ear -->
+  <polygon points="40,12 44,6 38,8" fill="#555"/>
+  <!-- Eyes (fierce yellow) -->
+  <circle cx="28" cy="18" r="2.5" fill="#ffcc00"/>
+  <circle cx="36" cy="18" r="2.5" fill="#ffcc00"/>
+  <!-- Pupils -->
+  <circle cx="28" cy="18" r="1.2" fill="#000"/>
+  <circle cx="36" cy="18" r="1.2" fill="#000"/>
+  <!-- Nose -->
+  <ellipse cx="32" cy="24" rx="2" ry="1.5" fill="#000"/>
+  <!-- Mouth (wolf snarl) -->
+  <path d="M 32 24 L 26 28 M 32 24 L 38 28" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Front legs -->
+  <rect x="22" y="44" width="4" height="14" rx="2" fill="#555"/>
+  <rect x="38" y="44" width="4" height="14" rx="2" fill="#555"/>
+  <!-- Back legs -->
+  <rect x="26" y="45" width="3.5" height="13" rx="2" fill="#555"/>
+  <rect x="34.5" y="45" width="3.5" height="13" rx="2" fill="#555"/>
+  <!-- Tail (curled) -->
+  <path d="M 45 34 Q 52 30 50 20" stroke="#555" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Chest fur lighter -->
+  <ellipse cx="32" cy="40" rx="8" ry="6" fill="#777" opacity="0.6"/>
+</svg>

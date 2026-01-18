@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#9fe0ff"/>
+      <stop offset="1" stop-color="#5aa8ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" rx="16" fill="#0b1f2e"/>
+  <circle cx="128" cy="96" r="56" fill="url(#g1)" opacity="0.12"/>
+  <!-- robe -->
+  <path d="M84 164 Q128 120 172 164 L160 216 L96 216 Z" fill="#6b2f9b" stroke="#3e1850" stroke-width="2"/>
+  <!-- head -->
+  <circle cx="128" cy="72" r="22" fill="#ffdcb3" stroke="#c29a78" stroke-width="2"/>
+  <!-- hat -->
+  <path d="M100 56 Q128 20 156 56 Z" fill="#2f1b66" stroke="#1b1033" stroke-width="2"/>
+  <rect x="94" y="64" width="68" height="8" fill="#2f1b66" stroke="#1b1033" stroke-width="2" rx="4"/>
+  <!-- staff -->
+  <rect x="170" y="42" width="8" height="120" rx="3" fill="#8b5a2b"/>
+  <circle cx="174" cy="40" r="12" fill="#ffe48a" stroke="#d6b04d" stroke-width="2"/>
+  <!-- eyes -->
+  <circle cx="120" cy="70" r="3" fill="#2b2b2b"/>
+  <circle cx="136" cy="70" r="3" fill="#2b2b2b"/>
+</svg>
