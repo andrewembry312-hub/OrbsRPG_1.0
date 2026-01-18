@@ -7,6 +7,8 @@ import { initGame, handleHotkeys, updateGame, importSave, hardResetGameState, in
 import { showCharSelect } from "./game/charselect.js";
 import { render } from "./game/render.js";
 import { getAssetPath } from "./config.js";
+import { isMobile } from "./engine/mobile.js";
+import { createMobileAbilityButtons, updateMobileAbilityIcons } from "./game/mobile-ui.js";
 import "./loadMapInit.js"; // Initialize map loader helper
 
 const engine = initCanvas("c");
@@ -249,6 +251,12 @@ function setupEventHandlers(){
         }catch(err){ console.error('initGame error',err); ui.toast(`Error initializing: ${err && err.message?err.message:err}`); showFatalError('initGame failed', err); return; }
         state.paused = false;
         ui.setGameUIVisible(true);
+        
+        // Create mobile ability buttons if on mobile device
+        if (isMobile()) {
+          createMobileAbilityButtons(state);
+        }
+        
         startGameLoop();
       });
     }catch(err){ console.error('NewGame failed', err); showFatalError('New Game failed', err); }
@@ -282,6 +290,12 @@ function setupEventHandlers(){
         ui.hideMainMenu();
         state.paused = false;
         ui.setGameUIVisible(true);
+        
+        // Create mobile ability buttons if on mobile device
+        if (isMobile()) {
+          createMobileAbilityButtons(state);
+        }
+        
         startGameLoop();
       })();
     }catch(err){ console.error('LoadGame failed', err); showFatalError('Load Game failed', err); }

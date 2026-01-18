@@ -1,4 +1,6 @@
 // Input module keeps *state* only. Game decides what to do with it.
+import { initMobileControls, isMobile } from "./mobile.js";
+
 export function initInput(canvas){
   const keysDown=new Set();
   const mouse={x:0,y:0,lDown:false,rDown:false,lHeldMs:0, lastShot:0};
@@ -33,5 +35,8 @@ export function initInput(canvas){
   });
   addEventListener('keyup',e=>{ if(isTypingIntoUi(e)) return; keysDown.delete(e.code); });
 
-  return { keysDown, mouse };
+  // Initialize mobile controls if on mobile device
+  const mobileControls = initMobileControls(canvas, { keysDown, mouse });
+
+  return { keysDown, mouse, mobile: mobileControls };
 }

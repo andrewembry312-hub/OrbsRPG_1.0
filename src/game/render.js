@@ -1,5 +1,6 @@
 import { clamp, cssVar } from "../engine/util.js";
 import { getAssetPath } from "../config.js";
+import { renderMobileControls } from "../engine/mobile.js";
 
 // Pre-load grass textures
 const grassTextures = {
@@ -1607,5 +1608,10 @@ function drawFullMap(ctx, canvas, state){
       ctx.fillStyle = d.cleared ? '#A0A0A0' : '#FFD700';
       ctx.fillText(label, dx, dy + 23);
     } 
+  }
+
+  // Mobile touch controls overlay (render at the very end, in screen space)
+  if(state.input.mobile){
+    renderMobileControls(ctx, state.input.mobile);
   }
 }
