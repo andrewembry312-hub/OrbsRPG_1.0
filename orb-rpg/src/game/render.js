@@ -33,6 +33,46 @@ const bossIcons = {
   iconNames: ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venomQueen', 'vorrak', 'zalthor']
 };
 
+// Pre-load dungeon atlas for arena rendering
+const dungeonAtlas = {
+  image: null,
+  metadata: null,
+  loaded: false,
+  loading: false
+};
+
+async function loadDungeonAtlas(){
+  if(dungeonAtlas.loading || dungeonAtlas.loaded) return;
+  dungeonAtlas.loading = true;
+  
+  try {
+    // Load metadata first
+    const response = await fetch('assets/dungeons/atlas_metadata.json');
+    dungeonAtlas.metadata = await response.json();
+    console.log('[Dungeon Atlas] Metadata loaded - Tiles:', dungeonAtlas.metadata.tiles.length);
+    
+    // Load image
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error('Failed to load dungeon atlas image'));
+      img.crossOrigin = 'anonymous';
+      img.src = 'assets/dungeons/atlas.png';
+    });
+    
+    dungeonAtlas.image = img;
+    dungeonAtlas.loaded = true;
+    console.log('[Dungeon Atlas] Loaded successfully:', img.width, 'x', img.height);
+  } catch(e) {
+    console.warn('Failed to load dungeon atlas:', e);
+    dungeonAtlas.loaded = false;
+    dungeonAtlas.loading = false;
+  }
+}
+
+// Load dungeon atlas on module import
+loadDungeonAtlas();
+
 function loadBossIcons(){
   if(bossIcons.loading || bossIcons.loaded) return;
   bossIcons.loading = true;
@@ -236,14 +276,93 @@ export function render(state){
 
   // draw background (grass) or dungeon interior
   if(activeDungeon){
+    // DUNGEON ARENA: Draw with dungeon tileset (not dimmed, fully visible)
     ctx.fillStyle = '#000';
     ctx.fillRect(0,0,state.mapWidth || canvas.width, state.mapHeight || canvas.height);
-    // cave floor / walls
-    ctx.fillStyle='#5C3A21';
-    ctx.beginPath(); ctx.arc(state.player.x, state.player.y, 220, 0, Math.PI*2); ctx.fill();
-    ctx.globalAlpha=0.12;
-    for(let i=0;i<18;i++){ const ang=i*(Math.PI*2/18); ctx.beginPath(); ctx.arc(state.player.x + Math.cos(ang)*160 + (Math.random()*24-12), state.player.y + Math.sin(ang)*100 + (Math.random()*18-9), 18 + Math.random()*10, 0, Math.PI*2); ctx.fill(); }
-    ctx.globalAlpha=1;
+    
+    const currentDungeon = state.dungeons && state.dungeons.find(d => d.id === activeDungeon);
+    if(currentDungeon && currentDungeon.arenaX && currentDungeon.arenaY){
+      const arenaX = currentDungeon.arenaX;
+      const arenaY = currentDungeon.arenaY;
+      const arenaRadius = currentDungeon.arenaRadius || 500;
+      
+      // Draw dungeon atlas tiles individually using metadata
+      if(dungeonAtlas.loaded && dungeonAtlas.image && dungeonAtlas.metadata){
+        const tileSize = 64; // World tile size
+        const arenaGridSize = 16; // 16x16 grid of tiles for arena floor
+        const startX = arenaX - (arenaGridSize * tileSize) / 2;
+        const startY = arenaY - (arenaGridSize * tileSize) / 2;
+        
+        // Create a simple floor pattern using floor tiles (skip VOID tiles)
+        const tiles = dungeonAtlas.metadata.tiles;
+        const floorTiles = tiles.filter(t => t.classification !== 'VOID').slice(0, 50); // Get first 50 non-void tiles
+        
+        if(floorTiles.length === 0){
+          // If no classified tiles, use tiles 100-200 as floor
+          for(let row = 0; row < arenaGridSize; row++){
+            for(let col = 0; col < arenaGridSize; col++){
+              const tileId = 100 + ((row + col) % 100);
+              const tile = tiles[tileId];
+              if(!tile) continue;
+              
+              const worldX = startX + col * tileSize;
+              const worldY = startY + row * tileSize;
+              
+              // Draw tile from atlas
+              ctx.drawImage(
+                dungeonAtlas.image,
+                tile.atlasX, tile.atlasY, tile.width, tile.height,
+                worldX, worldY, tileSize, tileSize
+              );
+            }
+          }
+        } else {
+          // Use classified floor tiles
+          for(let row = 0; row < arenaGridSize; row++){
+            for(let col = 0; col < arenaGridSize; col++){
+              const tileIndex = (row * arenaGridSize + col) % floorTiles.length;
+              const tile = floorTiles[tileIndex];
+              
+              const worldX = startX + col * tileSize;
+              const worldY = startY + row * tileSize;
+              
+              // Draw tile from atlas at exact position
+              ctx.drawImage(
+                dungeonAtlas.image,
+                tile.atlasX, tile.atlasY, tile.width, tile.height,
+                worldX, worldY, tileSize, tileSize
+              );
+            }
+          }
+        }
+        
+        if(!state._arenaRendered){
+          console.log('[ARENA_RENDER] Drew', arenaGridSize * arenaGridSize, 'dungeon tiles - Start:', startX, startY, 'TileSize:', tileSize);
+          state._arenaRendered = true;
+        }
+      } else {
+        // Fallback: draw stone circle floor
+        ctx.fillStyle='#3a2f2f';
+        ctx.beginPath();
+        ctx.arc(arenaX, arenaY, arenaRadius, 0, Math.PI*2);
+        ctx.fill();
+      }
+      
+      // Draw arena boundary circle (wall)
+      ctx.strokeStyle = '#1a0f0f';
+      ctx.lineWidth = 40;
+      ctx.globalAlpha = 1.0; // FULL BRIGHTNESS
+      ctx.beginPath();
+      ctx.arc(arenaX, arenaY, arenaRadius, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
+    } else {
+      // Fallback: old dungeon rendering (shouldn't happen with arena system)
+      ctx.fillStyle='#5C3A21';
+      ctx.beginPath();
+      ctx.arc(state.player.x, state.player.y, 220, 0, Math.PI*2);
+      ctx.fill();
+    }
   } else {
     // Draw grass base color
     ctx.fillStyle = '#89c97a';
@@ -702,20 +821,12 @@ export function render(state){
     drawDebuffBadges(ctx, e.x, e.y - orbRadius - (e.boss ? 34 : 28), collectDebuffBadges(e));
   }
 
-  // creatures (neutral wildlife)
-  if(state.creatures){
+  // creatures (neutral wildlife) - same array for world and dungeon
+  if(state.creatures && state.creatures.length > 0){
     for(const c of state.creatures){
-      // Skip creatures that don't match current context (dungeon vs world)
-      // If in dungeon: only render creatures with matching dungeonId
-      // If in world: only render creatures without dungeonId
-      if(activeDungeon){
-        if(c.dungeonId !== activeDungeon) continue;
-      } else {
-        if(c.dungeonId) continue;
-      }
-      
-      // Boss creatures have doubled orb size (r=48 instead of 24)
+      // Skip off-screen creatures for performance
       const orbRadius = c.boss ? ((c.r||12) * 2) : (c.r||12);
+      if(!inView(c.x, c.y, orbRadius + 50)) continue;
       const orbPadding = c.boss ? 4 : 2;
       
       // base orb
@@ -781,6 +892,8 @@ export function render(state){
       if(!isGroupMember) continue;
     }
     if(a.respawnT>0) continue;
+    // Skip off-screen friendlies for performance
+    if(!inView(a.x, a.y, a.r + 30)) continue;
     // draw orb first (match player color for all player friendlies)
     const fcol = teamColor('player');
     ctx.globalAlpha = 0.92; ctx.fillStyle = fcol; ctx.beginPath(); ctx.arc(a.x,a.y,a.r+2,0,Math.PI*2); ctx.fill(); ctx.globalAlpha = 1;

@@ -1,0 +1,57 @@
+{
+  "// Performance optimizations for large project": "",
+  
+  "// Exclude large folders from file watching (reduces CPU usage)": "",
+  "files.watcherExclude": {
+    "**/assets/**": true,
+    "**/Logs/**": true,
+    "**/node_modules": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/build/**": true
+  },
+  
+  "// Exclude from search (faster search)": "",
+  "search.exclude": {
+    "**/assets": true,
+    "**/Logs": true,
+    "**/node_modules": true,
+    "**/build": true
+  },
+  
+  "// Hide asset files from file explorer (faster navigation)": "",
+  "files.exclude": {
+    "**/*.png": true,
+    "**/*.jpg": true,
+    "**/*.jpeg": true,
+    "**/*.mp3": true,
+    "**/*.wav": true,
+    "**/*.ogg": true,
+    "**/Logs": true
+  },
+  
+  "// Reduce IntelliSense load": "",
+  "javascript.suggest.names": false,
+  "javascript.updateImportsOnFileMove.enabled": "never",
+  "javascript.validate.enable": true,
+  
+  "// Editor performance": "",
+  "editor.minimap.enabled": false,
+  "editor.foldingStrategy": "indentation",
+  "editor.renderWhitespace": "none",
+  "editor.occurrencesHighlight": false,
+  "editor.selectionHighlight": false,
+  "editor.formatOnSave": false,
+  
+  "// Disable heavy features for large files": "",
+  "editor.largeFileOptimizations": true,
+  "diffEditor.ignoreTrimWhitespace": true,
+  
+  "// Git performance": "",
+  "git.enabled": true,
+  "git.autofetch": false,
+  "git.decorations.enabled": false,
+  
+  "// Terminal": "",
+  "terminal.integrated.rendererType": "dom"
+}

@@ -279,8 +279,11 @@ export function initSites(state){
       px = offsetX + Math.random() * (playWidth - 280) + 140;
       py = offsetY + Math.random() * (playHeight - 280) + 140;
       ok = true;
+      // Check distance from sites (flags and bases)
       for(const b of state.sites){ if(Math.hypot(b.x - px, b.y - py) < 220) { ok = false; break; } }
+      // Check distance from rock circles
       for(const rc of state.rockCircles){ if(Math.hypot(rc.x - px, rc.y - py) < 140) { ok = false; break; } }
+      // Check distance from other decorative circles
       for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - px, dc.y - py) < 140) { ok = false; break; } }
       tries++;
     }
@@ -295,8 +298,11 @@ export function initSites(state){
       rockx = offsetX + Math.random() * (playWidth - 240) + 120;
       rocky = offsetY + Math.random() * (playHeight - 240) + 120;
       ok = true;
+      // Check distance from sites
       for(const b of state.sites){ if(Math.hypot(b.x - rockx, b.y - rocky) < 200) { ok = false; break; } }
+      // Check distance from rock circles
       for(const rc of state.rockCircles){ if(Math.hypot(rc.x - rockx, rc.y - rocky) < 140) { ok = false; break; } }
+      // Check distance from other decorative circles (ponds, crystals)
       for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - rockx, dc.y - rocky) < 140) { ok = false; break; } }
       tries++;
     }
@@ -311,8 +317,11 @@ export function initSites(state){
       cx = offsetX + Math.random() * (playWidth - 240) + 120;
       cy = offsetY + Math.random() * (playHeight - 240) + 120;
       ok = true;
+      // Check distance from sites
       for(const b of state.sites){ if(Math.hypot(b.x - cx, b.y - cy) < 200) { ok = false; break; } }
+      // Check distance from rock circles
       for(const rc of state.rockCircles){ if(Math.hypot(rc.x - cx, rc.y - cy) < 120) { ok = false; break; } }
+      // Check distance from other decorative circles (ponds, rocks)
       for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - cx, dc.y - cy) < 120) { ok = false; break; } }
       tries++;
     }
@@ -328,7 +337,14 @@ export function initSites(state){
       dx = offsetX + Math.random()*(playWidth-240) + 120;
       dy = offsetY + Math.random()*(playHeight-240) + 120;
       ok = true;
+      // Check distance from sites (flags and bases)
       for(const b of state.sites){ if(Math.hypot(b.x-dx,b.y-dy) < 220) { ok=false; break; } }
+      // Check distance from other dungeons
+      for(const d of state.dungeons){ if(Math.hypot(d.x-dx,d.y-dy) < 200) { ok=false; break; } }
+      // Check distance from decorative circles (ponds, crystals, rocks)
+      for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x-dx,dc.y-dy) < 150) { ok=false; break; } }
+      // Check distance from rock circles
+      for(const rc of state.rockCircles){ if(Math.hypot(rc.x-dx,rc.y-dy) < 150) { ok=false; break; } }
       tries++;
     }
     if(ok) state.dungeons.push({ id: `dungeon_${di}`, name: `Dungeon ${di+1}`, x: dx, y: dy, r: 40, cleared: false });
@@ -721,6 +737,11 @@ export function updateCapture(state, dt){
       s.damageState = 'undamaged';
       s._underAttackNotified = false;
       
+      // Award XP for capturing flag
+      if(capturingTeam === 'player' && typeof awardXP === 'function'){
+        awardXP(state, 50); // 50 XP per flag capture
+      }
+      
       const msg = capturingTeam === 'player'
         ? `<b>${s.name}</b> captured! Friendlies will spawn to defend.`
         : `<span class="neg"><b>${s.name}</b> was captured by ${capturingTeam}.</span>`;
@@ -766,6 +787,11 @@ export function updateCapture(state, dt){
       s.health = s.maxHealth || 500;
       s.damageState = 'undamaged';
       s._underAttackNotified = false;
+      
+      // Award XP for recapturing flag
+      if(capturingTeam === 'player' && typeof awardXP === 'function'){
+        awardXP(state, 75); // 75 XP for recapturing (harder than neutral)
+      }
       
       const msg = capturingTeam === 'player'
         ? `<b>${s.name}</b> captured! Friendlies will spawn to defend.`

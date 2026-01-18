@@ -194,16 +194,26 @@ function startGameLoop(){
   // Initialize logging system
   initGameLogging(state);
   
+  // UI update throttling (4x per second instead of 60x)
+  let uiUpdateTimer = 0;
+  const UI_UPDATE_INTERVAL = 0.25; // 250ms = 4 updates/second
+  
   startLoop((dt)=>{
     try{ handleHotkeys(state, dt); }catch(e){ console.error('hotkeys',e); showFatalError('Error in handleHotkeys', e); }
     try{ updateGame(state, dt); }catch(e){ console.error('update',e); showFatalError('Error in updateGame', e); }
     try{ render(state); }catch(e){ console.error('render',e); showFatalError('Error in render', e); }
-    try{ ui.renderHud(currentStats(state)); }catch(e){ console.error('renderHud',e); }
-    try{ ui.renderCooldowns(); }catch(e){ console.error('renderCooldowns',e); }
-    try{ ui.updateUnitInspection(); }catch(e){ console.error('updateUnitInspection',e); }
-    try{ ui.updateBuffIconsHUD(); }catch(e){ console.error('updateBuffIconsHUD', e); }
-    try{ ui.updateAiFeed && ui.updateAiFeed(); }catch(e){ console.error('updateAiFeed', e); }
-    try{ ui.renderGroupPanel(); }catch(e){ console.error('renderGroupPanel', e); }
+    
+    // Throttle UI updates to reduce DOM manipulation lag
+    uiUpdateTimer += dt;
+    if(uiUpdateTimer >= UI_UPDATE_INTERVAL){
+      uiUpdateTimer = 0;
+      try{ ui.renderHud(currentStats(state)); }catch(e){ console.error('renderHud',e); }
+      try{ ui.renderCooldowns(); }catch(e){ console.error('renderCooldowns',e); }
+      try{ ui.updateUnitInspection(); }catch(e){ console.error('updateUnitInspection',e); }
+      try{ ui.updateBuffIconsHUD(); }catch(e){ console.error('updateBuffIconsHUD', e); }
+      try{ ui.updateAiFeed && ui.updateAiFeed(); }catch(e){ console.error('updateAiFeed', e); }
+      try{ ui.renderGroupPanel(); }catch(e){ console.error('renderGroupPanel', e); }
+    }
   });
 }
 

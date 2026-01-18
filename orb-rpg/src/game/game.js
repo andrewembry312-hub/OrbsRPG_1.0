@@ -86,7 +86,7 @@ export function hardResetGameState(state){
   state.dungeons = [];
   state.enemies = [];
   state.friendlies = [];
-  state.creatures = [];
+  state.creatures = [];  // All creatures (world + dungeon)
   state.projectiles = [];
   state.loot = [];
   state.inventory = [];
@@ -280,6 +280,29 @@ export async function initGame(state){
     state.sounds.magicalSpellCast = new Audio('assets/sounds/magical-spell-cast-190272.mp3');
     state.sounds.magicalSpellCast.volume = 0.5;
   }
+  // Dungeon/Boss music and sounds
+  if(!state.sounds.dungeonMusic){
+    state.sounds.dungeonMusic = new Audio('assets/sounds/Emporer Attack Music.mp3');
+    state.sounds.dungeonMusic.loop = true;
+    state.sounds.dungeonMusic.volume = 0.6;
+  }
+  if(!state.sounds.bossIntro){
+    state.sounds.bossIntro = new Audio('assets/sounds/goblin attack.mp3');
+    state.sounds.bossIntro.volume = 0.7;
+  }
+  if(!state.sounds.wolfAttack){
+    state.sounds.wolfAttack = new Audio('assets/sounds/Wolf attack.mp3');
+    state.sounds.wolfAttack.volume = 0.5;
+  }
+  if(!state.sounds.fire){
+    state.sounds.fire = new Audio('assets/sounds/fire-457848.mp3');
+    state.sounds.fire.volume = 0.5;
+  }
+  if(!state.sounds.healingSpell){
+    state.sounds.healingSpell = new Audio('assets/sounds/Healing spell 1.mp3');
+    state.sounds.healingSpell.volume = 0.5;
+    state.sounds.magicalSpellCast.volume = 0.5;
+  }
   if(!state.sounds.magicalWhooshAlt){
     state.sounds.magicalWhooshAlt = new Audio('assets/sounds/magical-whoosh-148459.mp3');
     state.sounds.magicalWhooshAlt.volume = 0.5;
@@ -295,6 +318,10 @@ export async function initGame(state){
   if(!state.sounds.healingSpell1){
     state.sounds.healingSpell1 = new Audio('assets/sounds/Healing spell 1.mp3');
     state.sounds.healingSpell1.volume = 0.5;
+  }
+  if(!state.sounds.potionPickup){
+    state.sounds.potionPickup = new Audio('assets/sounds/Potion Pick up.mp3');
+    state.sounds.potionPickup.volume = 0.5;
   }
   if(!state.sounds.magicSpell6005){
     state.sounds.magicSpell6005 = new Audio('assets/sounds/magic-spell-6005.mp3');
@@ -316,6 +343,10 @@ export async function initGame(state){
   if(!state.sounds.wolfAttack){
     state.sounds.wolfAttack = new Audio('assets/sounds/Wolf attack.mp3');
     state.sounds.wolfAttack.volume = 0.35;
+  }
+  if(!state.sounds.potionPickup){
+    state.sounds.potionPickup = new Audio('assets/sounds/Potion Pick up.mp3');
+    state.sounds.potionPickup.volume = 0.5;
   }
   if(!state.sounds.potionPickup){
     state.sounds.potionPickup = new Audio('assets/sounds/Potion Pick up.mp3');
@@ -1147,7 +1178,8 @@ function addToInventory(state, item, gold=0){
     state.player.gold += gold;
     state.ui.renderInventory?.();
   }
-  // Potions stack: check if same potion type already exists
+  // ONLY POTIONS STACK: check if same potion type already exists
+  // All other items (weapons, armor) are added as separate inventory slots
   if(item.kind === 'potion'){
     const existing = state.inventory.find(i => i.kind === 'potion' && i.type === item.type && i.rarity.key === item.rarity.key);
     if(existing){
@@ -3061,26 +3093,16 @@ function npcUpdateAbilities(state, u, dt, kind){
 
   // target selection with short lock stickiness
   const hostileCreatures = [];
+  const creatureArray = state.inDungeon ? state.dungeonCreatures : state.creatures;
+  
   if(kind==='friendly'){
-    for(const c of state.creatures||[]){
-      // Skip creatures that don't match current context
-      if(state.inDungeon){
-        if(c.dungeonId !== state.inDungeon) continue;
-      } else {
-        if(c.dungeonId) continue;
-      }
+    for(const c of creatureArray||[]){
       const tgt = c.target;
       const hostile = c.attacked && (tgt===state.player || state.friendlies.includes(tgt) || tgt===u);
       if(hostile) hostileCreatures.push(c);
     }
   } else if(kind==='enemy'){
-    for(const c of state.creatures||[]){
-      // Skip creatures that don't match current context
-      if(state.inDungeon){
-        if(c.dungeonId !== state.inDungeon) continue;
-      } else {
-        if(c.dungeonId) continue;
-      }
+    for(const c of creatureArray||[]){
       const tgt = c.target;
       const hostile = c.attacked && (tgt===state.player || state.friendlies.includes(tgt) || tgt===u);
       if(hostile) hostileCreatures.push(c);
@@ -4252,6 +4274,15 @@ function spawnBossCreature(state){
   const bossIconNames = ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venomQueen', 'vorrak', 'zalthor'];
   const randomIcon = bossIconNames[Math.floor(Math.random() * bossIconNames.length)];
   
+  // Randomly assign abilities to world boss
+  const abilityPools = [
+    ['meteor', 'fireblast'],
+    ['charge', 'meteor'],
+    ['fireblast', 'heal'],
+    ['meteor', 'charge', 'shield']
+  ];
+  const abilities = abilityPools[Math.floor(Math.random() * abilityPools.length)];
+  
   state.creatures.push({ 
     x, y, 
     r: 24, 
@@ -4260,16 +4291,21 @@ function spawnBossCreature(state){
     hp: bossHp, 
     speed: 72, 
     contactDmg: bossDmg, 
+    agro_range: 180, // World boss aggro range
     color: cssVar('--legend'), 
     key:'boss', 
     name: 'World Boss',
     boss:true, 
     bossIcon: randomIcon,
+    abilities: abilities, // Add abilities for special attacks
+    abilityCooldown: 0,
     attacked:false, 
     hitCd: 0, 
     wander:{ t: rand(0.5,1.6), ang: Math.random()*Math.PI*2 }, 
     target:null 
   });
+  
+  console.log('[WORLD BOSS] Spawned with abilities:', abilities.join(', '));
 }
 
 function killCreature(state, index){
@@ -4933,14 +4969,9 @@ function updateFriendlies(state, dt){
     
     const near=nearestEnemyTo(state, a.x,a.y, 240);
     // consider hostile creatures that are attacking us or allies
+    const creatureArray = state.inDungeon ? state.dungeonCreatures : state.creatures;
     let nearCreature=null, nearCreatureD=Infinity;
-    for(const c of state.creatures){
-      // Skip creatures that don't match current context
-      if(state.inDungeon){
-        if(c.dungeonId !== state.inDungeon) continue;
-      } else {
-        if(c.dungeonId) continue;
-      }
+    for(const c of creatureArray){
       if(!c.attacked) continue;
       const isHostile = c.target===state.player || state.friendlies.includes(c.target) || c.target===a;
       if(!isHostile) continue;
@@ -6152,14 +6183,9 @@ function updateFriendlies(state, dt){
       }
     }
     // incidental collisions with creatures: friendlies can aggro creatures if they hit them
-    for(let ci=state.creatures.length-1; ci>=0; ci--){
-      const c = state.creatures[ci];
-      // Skip creatures that don't match current context
-      if(state.inDungeon){
-        if(c.dungeonId !== state.inDungeon) continue;
-      } else {
-        if(c.dungeonId) continue;
-      }
+    // Note: creatureArray already declared at start of function (line ~4927)
+    for(let ci=creatureArray.length-1; ci>=0; ci--){
+      const c = creatureArray[ci];
       const d = Math.hypot(c.x - a.x, c.y - a.y);
       const hitDist = a.r + (c.r||12) + 4;
       if(d <= hitDist && a.hitCd<=0){
@@ -6170,7 +6196,9 @@ function updateFriendlies(state, dt){
         a._damageDealt = (a._damageDealt || 0) + a.dmg;
         
         c.target = a;
-        if(dead) killCreature(state, ci);
+        if(dead){
+          creatureArray.splice(ci, 1);
+        }
       }
     }
     // Note: Removed siteId-based deletion check - non-group allies no longer use siteId
@@ -6826,14 +6854,9 @@ function updateEnemies(state, dt){
       }
       
       // Find hostile creatures (same as friendly AI)
+      const creatureArray = state.inDungeon ? state.dungeonCreatures : state.creatures;
       let nearCreature = null, nearCreatureD = Infinity;
-      for(const c of state.creatures){
-        // Skip creatures that don't match current context
-        if(state.inDungeon){
-          if(c.dungeonId !== state.inDungeon) continue;
-        } else {
-          if(c.dungeonId) continue;
-        }
+      for(const c of creatureArray){
         if(!c.attacked) continue;
         const isHostile = state.enemies.includes(c.target) || c.target === e;
         if(!isHostile) continue;
@@ -6948,13 +6971,8 @@ function updateEnemies(state, dt){
       // other-team enemies (only if emperor rules allow it)
       for(const other of state.enemies){ if(other===e) continue; if(!other.team || !e.team) continue; if(other.team === e.team) continue; if(!shouldAttackTeam(e.team, other.team, state)) continue; const d=Math.hypot(other.x - e.x, other.y - e.y); if(d < bestD){ bestD = d; bestTarget = other; bestType='enemy'; } }
       // hostile creatures (attacked and targeting an enemy/friendly/player)
-      for(const c of state.creatures){
-        // Skip creatures that don't match current context
-        if(state.inDungeon){
-          if(c.dungeonId !== state.inDungeon) continue;
-        } else {
-          if(c.dungeonId) continue;
-        }
+      const creatureArray = state.inDungeon ? state.dungeonCreatures : state.creatures;
+      for(const c of creatureArray){
         if(!c.attacked) continue;
         const tgt = c.target;
         const hostile = tgt===state.player || state.friendlies.includes(tgt) || tgt===e;
@@ -7003,24 +7021,25 @@ function updateEnemies(state, dt){
             const dead = applyDamageToCreature(bestTarget, e.contactDmg, state);
             e._damageDealt = (e._damageDealt || 0) + e.contactDmg;
             bestTarget.target = e;
-            if(dead){ const ci = state.creatures.indexOf(bestTarget); if(ci!==-1) killCreature(state, ci); }
+            if(dead){ 
+              const crArray = state.inDungeon ? state.dungeonCreatures : state.creatures;
+              const ci = crArray.indexOf(bestTarget); 
+              if(ci!==-1) crArray.splice(ci, 1); 
+            }
           }
           // incidental collision: damage creatures and aggro them to this enemy
-          for(let ci=state.creatures.length-1; ci>=0; ci--){
-            const c = state.creatures[ci];
-            // Skip creatures that don't match current context
-            if(state.inDungeon){
-              if(c.dungeonId !== state.inDungeon) continue;
-            } else {
-              if(c.dungeonId) continue;
-            }
+          const creatureArray = state.inDungeon ? state.dungeonCreatures : state.creatures;
+          for(let ci=creatureArray.length-1; ci>=0; ci--){
+            const c = creatureArray[ci];
             const dc = Math.hypot(c.x - e.x, c.y - e.y);
             const cdst = e.r + (c.r||12) + 4;
             if(dc <= cdst && !e.inWater){
               const dead = applyDamageToCreature(c, e.contactDmg, state);
               e._damageDealt = (e._damageDealt || 0) + e.contactDmg;
               c.target = e;
-              if(dead) killCreature(state, ci);
+              if(dead){
+                creatureArray.splice(ci, 1);
+              }
             }
           }
         } else {
@@ -7342,15 +7361,25 @@ function tryCastSlot(state, idx){
 
   // helpers
   const areaDamage = (cx,cy,radius,dmg,dotId=null,buffId=null)=>{
+    // Damage enemies
     for(let i=state.enemies.length-1;i>=0;i--){
       const e=state.enemies[i];
-      if(state.inDungeon && e.dungeonId !== state.inDungeon) continue;
       if(Math.hypot(e.x-cx,e.y-cy)<=radius){
         const res=applyDamageToEnemy(e,dmg,st,state,true);
         lifestealFrom(state,res.dealt,st);
         if(dotId) applyDotTo(e, dotId, effectSourceBase);
         if(buffId) applyBuffTo(e, buffId, effectSourceBase);
         if(e.hp<=0) killEnemy(state,i,true);
+      }
+    }
+    // Damage creatures (new unified system)
+    for(let i=state.creatures.length-1;i>=0;i--){
+      const c=state.creatures[i];
+      if(Math.hypot(c.x-cx,c.y-cy)<=radius){
+        c.hp -= dmg;
+        if(dotId) applyDotTo(c, dotId, effectSourceBase);
+        if(buffId) applyBuffTo(c, buffId, effectSourceBase);
+        // Note: creature death handled in updateCreatures
       }
     }
   };
@@ -7550,7 +7579,7 @@ function tryCastSlot(state, idx){
         tl: 0.25,
         r: 120,
         dmg: 4 + st.atk*0.45,
-        dotId: 'bleed',
+        dotId: 'poison', // Poison DoT instead of bleed
         team: 'player',
         sourceAbilityId: sk.id,
         sourceKind: 'player',
@@ -7558,9 +7587,9 @@ function tryCastSlot(state, idx){
         sourceCasterId: effectSourceBase.sourceCasterId,
         sourceCasterName: effectSourceBase.sourceCasterName
       });
-      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 120, life: 0.5, color: '#9b7bff' });
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 120, life: 0.5, color: '#5fd86b' }); // Green for poison
       logEffect(state, 'aoe_storm', 'blade_storm', state.player, 'player', 'aoe');
-      state.ui.toast('Blade Storm');
+      state.ui.toast('Toxic Blade Storm');
       break;
     }
     case 'cleave':{
@@ -7724,6 +7753,17 @@ function tryCastSlot(state, idx){
       break;
     }
 
+    // Guild - Assault
+    case 'assault_rapid_strikes':{
+      // Apply swift strikes buff to self and nearby allies
+      applyBuffSelf('swift_strikes');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'swift_strikes');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#ffaa00' });
+      playPositionalSound(state, 'bufferSpell', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('⚡ Rapid Strikes!');
+      break;
+    }
+
     // Warrior
     case 'warrior_life_leech':{
       const slash = pushSlashEffect(state, {t:0.16,arc:1.0,range:82,dmg:16+st.atk*1.2, leech:true, dotId:'bleed',dir:a, team:'player', sourceAbilityId: sk.id, sourceKind:'player', sourceType:'ability', sourceCasterId: effectSourceBase.sourceCasterId, sourceCasterName: effectSourceBase.sourceCasterName});
@@ -7751,28 +7791,37 @@ function tryCastSlot(state, idx){
       playPositionalSound(state, 'meleeAttack', state.player.x, state.player.y, 500, 0.4);
       break;
     }
-    case 'warrior_charge':{
-      // Calculate distance to mouse
+    case 'warrior_charge':
+    case 'shoulder_charge':{ // Both ability IDs point to same functionality
+      // Calculate distance and direction to mouse
       const dx = wm.x - state.player.x;
       const dy = wm.y - state.player.y;
       const distToMouse = Math.hypot(dx, dy);
       const maxChargeDist = 240;
       
-      // Charge toward mouse, capped at max distance
+      // Teleport toward mouse, capped at max distance
       const actualDist = Math.min(distToMouse, maxChargeDist);
       const angle = Math.atan2(dy, dx);
       const newX = state.player.x + Math.cos(angle) * actualDist;
       const newY = state.player.y + Math.sin(angle) * actualDist;
       
-      // Clamp to map bounds
+      // Teleport player
       state.player.x = clamp(newX, 0, state.mapWidth || state.engine.canvas.width);
       state.player.y = clamp(newY, 0, state.mapHeight || state.engine.canvas.height);
+      state.camera.x = state.player.x;
+      state.camera.y = state.player.y;
       
+      // Area damage at new position
       areaDamage(state.player.x,state.player.y,90,14+st.atk*1.1,'bleed','stun');
+      
+      // Visual effects
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 90, life: 0.7, color: '#9b7bff' });
       state.effects.slashes.push({ x: state.player.x, y: state.player.y, range: 90, arc: Math.PI*2, dir: angle, t: 0, color: '#9b7bff' });
+      
+      // Sound and buff
       applyBuffSelf('haste');
-      playPositionalSound(state, 'magicalWhooshAlt', state.player.x, state.player.y, 700, 0.5);
+      playPositionalSound(state, 'magicalWhooshFast', state.player.x, state.player.y, 700, 0.6);
+      playPositionalSound(state, 'wolfAttack', state.player.x, state.player.y, 700, 0.5);
       break;
     }
 
@@ -8098,6 +8147,7 @@ function updateWells(state, dt){
         }
       }
     } else {
+      // Pull enemies
       for(let i=state.enemies.length-1;i>=0;i--){
         const e=state.enemies[i];
         if(state.inDungeon && e.dungeonId !== state.inDungeon) continue;
@@ -8106,6 +8156,16 @@ function updateWells(state, dt){
         if(dist<=w.r){
           e.x += (dx/dist)*w.pull*dt;
           e.y += (dy/dist)*w.pull*dt;
+        }
+      }
+      // Pull creatures (dungeon bosses/creatures)
+      for(let i=state.creatures.length-1;i>=0;i--){
+        const c=state.creatures[i];
+        const dx=w.x-c.x, dy=w.y-c.y;
+        const dist=Math.hypot(dx,dy)||1;
+        if(dist<=w.r){
+          c.x += (dx/dist)*w.pull*dt;
+          c.y += (dy/dist)*w.pull*dt;
         }
       }
     }
@@ -8135,6 +8195,7 @@ function updateWells(state, dt){
         }
       } else {
         const stNow=currentStats(state);
+        // Damage enemies
         for(let i=state.enemies.length-1;i>=0;i--){
           const e=state.enemies[i];
           if(Math.hypot(e.x-w.x, e.y-w.y)<=w.r){
@@ -8166,6 +8227,17 @@ function updateWells(state, dt){
             applyBuffTo(e,'slow', effectOpts);
             applyBuffTo(e,'curse', effectOpts);
             if(e.hp<=0) killEnemy(state,i,true);
+          }
+        }
+        // Damage creatures (dungeon bosses/creatures)
+        for(let i=state.creatures.length-1;i>=0;i--){
+          const c=state.creatures[i];
+          if(Math.hypot(c.x-w.x, c.y-w.y)<=w.r){
+            c.hp = Math.max(0, c.hp - w.dmgPerTick);
+            // Apply slow and curse to creatures too
+            if(!c.buffs) c.buffs = {};
+            c.buffs.slow = 2.0; // 2 second slow
+            c.buffs.curse = 2.0; // 2 second curse
           }
         }
       }
@@ -8307,14 +8379,9 @@ function updateProjectiles(state, dt){
         }
       }
       // player projectiles can hit creatures (neutral)
-      for(let ci=state.creatures.length-1; ci>=0; ci--){
-        const c = state.creatures[ci];
-        // Skip creatures that don't match current context
-        if(state.inDungeon){
-          if(c.dungeonId !== state.inDungeon) continue;
-        } else {
-          if(c.dungeonId) continue;
-        }
+      const creatureArray = state.inDungeon ? state.dungeonCreatures : state.creatures;
+      for(let ci=creatureArray.length-1; ci>=0; ci--){
+        const c = creatureArray[ci];
         if(Math.hypot(p.x-c.x, p.y-c.y) <= (c.r||12) + p.r){
           const dead = applyDamageToCreature(c, p.dmg, state);
           
@@ -8324,7 +8391,9 @@ function updateProjectiles(state, dt){
           }
           
           c.target = state.player;
-          if(dead) killCreature(state, ci);
+          if(dead){
+            creatureArray.splice(ci, 1);
+          }
           if(p.pierce>0) p.pierce-=1; else { state.projectiles.splice(pi,1); break; }
         }
       }
@@ -8449,7 +8518,8 @@ function updateDots(state, dt){
 function applyBuffTo(entity, buffId, opts={}){
   const meta = BUFF_REGISTRY && BUFF_REGISTRY[buffId];
   if(!meta) return;
-  entity.buffs = entity.buffs || [];
+  // Initialize buffs array BEFORE using .find() to prevent crash
+  if(!entity.buffs || !Array.isArray(entity.buffs)) entity.buffs = [];
   const existing = entity.buffs.find(b=>b.id===buffId);
   const prevStacks = existing ? (existing.stacks||1) : 0;
   const cap = meta.maxStacks || 5;
@@ -8715,140 +8785,316 @@ function awardCampaignLegendary(state){
   state.ui.toast(`<b>Campaign Reward:</b> You received a <b class="${rarityClass(item.rarity.key)}">${item.name}</b>`);
 }
 
-// Dungeon utilities
+// Boss profiles with unique ability loadouts and descriptions
+const BOSS_PROFILES = {
+  archmage: {
+    name: 'Archmage Valthor',
+    description: 'Master of destructive magic, rains meteors and fireballs',
+    abilities: ['meteor', 'fireblast', 'shield'],
+    role: 'Caster'
+  },
+  balrogath: {
+    name: 'Balrogath the Infernal',
+    description: 'Demon lord who charges enemies and burns the battlefield',
+    abilities: ['charge', 'fireblast', 'meteor'],
+    role: 'Berserker'
+  },
+  bloodfang: {
+    name: 'Bloodfang Alpha',
+    description: 'Pack leader who charges and heals from the hunt',
+    abilities: ['charge', 'heal', 'fireblast'],
+    role: 'Hunter'
+  },
+  gorothar: {
+    name: 'Gorothar the Immortal',
+    description: 'Ancient guardian who shields and heals endlessly',
+    abilities: ['shield', 'heal', 'meteor'],
+    role: 'Defender'
+  },
+  malakir: {
+    name: 'Malakir Shadowblade',
+    description: 'Assassin who strikes with devastating charges and fire',
+    abilities: ['charge', 'fireblast', 'shield'],
+    role: 'Assassin'
+  },
+  tarrasque: {
+    name: 'The Tarrasque',
+    description: 'Unstoppable beast with crushing charges and meteor strikes',
+    abilities: ['charge', 'meteor', 'heal'],
+    role: 'Titan'
+  },
+  venomQueen: {
+    name: 'Venom Queen Xythara',
+    description: 'Poisonous matriarch who shields herself and blasts foes',
+    abilities: ['shield', 'fireblast', 'heal'],
+    role: 'Enchantress'
+  },
+  vorrak: {
+    name: 'Vorrak the Unyielding',
+    description: 'Brutal warrior who heals in battle and charges relentlessly',
+    abilities: ['heal', 'charge', 'meteor'],
+    role: 'Warlord'
+  },
+  zalthor: {
+    name: 'Zalthor the Eternal',
+    description: 'Cosmic entity wielding meteors and protective shields',
+    abilities: ['meteor', 'shield', 'fireblast'],
+    role: 'Ancient'
+  }
+};
+
+// Dungeon utilities - SIMPLE: Spawn enemies at dungeon location
 function spawnDungeonEnemies(state, dungeon){
-  // Spawn 10 dungeon creatures + 1 boss creature at dungeon location
-  const cx = dungeon.x, cy = dungeon.y;
-  
-  // Use existing CREATURE_TYPES for dungeon spawns (goblins, wolves, bears)
-  const dungeonCreatureTypes = CREATURE_TYPES.filter(ct => ct); // All creature types
-  
-  // Spawn 10 regular dungeon creatures (hostile wildlife)
-  for(let i=0;i<10;i++){
-    const ang = Math.random()*Math.PI*2; 
-    const dist = 20 + Math.random()*80;
-    const ct = dungeonCreatureTypes[randi(0, dungeonCreatureTypes.length-1)];
+  // If dungeon already has a saved group composition, use it (for player retry after death)
+  if(!dungeon.savedGroup){
+    // First time - create unique boss group composition
+    const cx = dungeon.x;
+    const cy = dungeon.y;
+    const radius = dungeon.r || 150;
     
-    // Create creature with dungeon-scaled stats (tougher than world creatures)
-    const creature = { 
-      x: cx + Math.cos(ang)*dist, 
-      y: cy + Math.sin(ang)*dist, 
-      r: ct.r || 12, 
-      key: ct.key,
-      name: ct.name,
-      color: ct.color || '#8b4513',
-      maxHp: Math.floor(ct.hp * 1.3),  // 30% tougher than world creatures
-      hp: Math.floor(ct.hp * 1.3), 
-      speed: ct.speed || 70, 
-      contactDmg: ct.dmg + 3, // +3 damage in dungeons
-      hitCd: 0, 
-      xp: 15, 
-      attacked: false,
-      agro_range: ct.agro || 110,
-      dungeonId: dungeon.id,
-      variant: ct.variant || ct.key,
-      wander: { t: 1.0, ang: Math.random()*Math.PI*2 }
+    // Generate unique group composition (5-10 creatures)
+    const numCreatures = 5 + Math.floor(Math.random() * 6);
+    const creatureComposition = [];
+    
+    // Better spacing - circular formation with proper distance
+    const baseRadius = 80;
+    const spacing = 50;
+    
+    for(let i = 0; i < numCreatures; i++){
+      const creatureType = CREATURE_TYPES[Math.floor(Math.random() * CREATURE_TYPES.length)];
+      const angle = (i / numCreatures) * Math.PI * 2;
+      const distance = baseRadius + (Math.floor(i / 4) * spacing);
+      
+      creatureComposition.push({
+        type: creatureType.key,
+        offsetX: Math.cos(angle) * distance,
+        offsetY: Math.sin(angle) * distance,
+        role: i < 2 ? 'tank' : (i < 4 ? 'damage' : 'support')
+      });
+    }
+    
+    // Boss composition with profile
+    const bossType = CREATURE_TYPES.find(ct => ct.key === 'bear') || CREATURE_TYPES[0];
+    const bossIcons = Object.keys(BOSS_PROFILES);
+    const bossIcon = bossIcons[Math.floor(Math.random() * bossIcons.length)];
+    const bossProfile = BOSS_PROFILES[bossIcon];
+    
+    dungeon.savedGroup = {
+      creatures: creatureComposition,
+      boss: {
+        type: bossType.key,
+        icon: bossIcon,
+        profile: bossProfile
+      }
     };
-    
-    state.creatures.push(creature);
   }
   
-  // Spawn dungeon boss creature (much tougher bear-type)
-  const bearType = CREATURE_TYPES.find(ct => ct.key === 'bear') || CREATURE_TYPES[0];
+  // Spawn from saved composition (ensures same group on retry)
+  const cx = dungeon.x;
+  const cy = dungeon.y;
   
-  // Randomly select a boss icon for dungeon boss
-  const bossIconNames = ['archmage', 'balrogath', 'bloodfang', 'gorothar', 'malakir', 'tarrasque', 'venomQueen', 'vorrak', 'zalthor'];
-  const randomIcon = bossIconNames[Math.floor(Math.random() * bossIconNames.length)];
+  // Show boss intro screen FIRST
+  showBossIntro(state, dungeon.savedGroup.boss.icon, dungeon.name, dungeon.savedGroup.boss.profile, () => {
+    // Spawn creatures AFTER intro screen disappears (3 second delay)
+    const cx = dungeon.x;
+    const cy = dungeon.y;
+    
+    // Start dungeon music
+    if(state.sounds?.dungeonMusic){
+      if(state.sounds.gameNonCombatMusic && !state.sounds.gameNonCombatMusic.paused) state.sounds.gameNonCombatMusic.pause();
+      if(state.sounds.gameCombatMusic && !state.sounds.gameCombatMusic.paused) state.sounds.gameCombatMusic.pause();
+      state.sounds.dungeonMusic.currentTime = 0;
+      state.sounds.dungeonMusic.play().catch(e => console.warn('Dungeon music failed:', e));
+    }
+    
+    // Spawn creatures in proper formation
+    for(const comp of dungeon.savedGroup.creatures){
+      const x = cx + comp.offsetX;
+      const y = cy + comp.offsetY;
+      const creatureType = CREATURE_TYPES.find(ct => ct.key === comp.type) || CREATURE_TYPES[0];
+      
+      const creature = spawnCreatureAt(state, x, y, creatureType);
+      if(creature){
+        creature.dungeonId = dungeon.id;
+        creature.guardRole = comp.role;
+        creature.dungeonCenter = { x: cx, y: cy };
+        creature.r = (creature.r || 12) + 2;
+      }
+    }
+    
+    // Spawn boss with abilities from profile
+    const bossType = CREATURE_TYPES.find(ct => ct.key === dungeon.savedGroup.boss.type) || CREATURE_TYPES[0];
+    const boss = spawnCreatureAt(state, cx, cy, bossType);
+    if(boss){
+      boss.boss = true;
+      boss.dungeonId = dungeon.id;
+      boss.guardRole = 'boss';
+      boss.dungeonCenter = { x: cx, y: cy };
+      boss.maxHp *= 3;
+      boss.hp = boss.maxHp;
+      boss.contactDmg = Math.floor(boss.contactDmg * 1.5);
+      boss.r = 26;
+      boss.bossIcon = dungeon.savedGroup.boss.icon;
+      
+      // Use abilities from boss profile
+      boss.abilities = dungeon.savedGroup.boss.profile.abilities;
+      boss.abilityCooldown = 0;
+    }
+    
+    console.log('[DUNGEON] Spawned dungeon group:', dungeon.savedGroup.creatures.length + 1, 'creatures');
+  });
+}
+
+function showBossIntro(state, bossIcon, dungeonName, bossProfile, onComplete){
+  // Play boss intro sound
+  if(state.sounds?.bossIntro){
+    state.sounds.bossIntro.currentTime = 0;
+    state.sounds.bossIntro.play().catch(e => console.warn('Boss intro sound failed:', e));
+  }
   
-  const boss = { 
-    x: cx, 
-    y: cy, 
-    r: 26, 
-    key: 'boss_bear',
-    name: 'Dungeon Boss',
-    color: '#8b0000',
-    maxHp: 620, 
-    hp: 620, 
-    speed: 50, 
-    contactDmg: 22, 
-    hitCd: 0, 
-    xp: 120, 
-    attacked: false,
-    agro_range: 150,
-    boss: true, 
-    bossIcon: randomIcon,
-    dungeonId: dungeon.id,
-    variant: 'bear',
-    wander: { t: 1.0, ang: Math.random()*Math.PI*2 }
+  // Create boss intro overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'bossIntro';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.5s;
+  `;
+  
+  // Boss image
+  const img = document.createElement('img');
+  img.src = `assets/boss icons/${bossIcon}.png`;
+  img.style.cssText = `
+    width: 300px;
+    height: 300px;
+    object-fit: contain;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 20px rgba(255,0,0,0.8));
+    animation: pulse 2s infinite;
+  `;
+  
+  // Boss name
+  const nameText = document.createElement('div');
+  nameText.textContent = bossProfile.name;
+  nameText.style.cssText = `
+    font-size: 48px;
+    font-weight: bold;
+    color: #ff0000;
+    text-shadow: 0 0 20px rgba(255,0,0,0.8);
+    margin-bottom: 10px;
+  `;
+  
+  // Boss role
+  const roleText = document.createElement('div');
+  roleText.textContent = bossProfile.role.toUpperCase();
+  roleText.style.cssText = `
+    font-size: 24px;
+    color: #ff6600;
+    letter-spacing: 8px;
+    margin-bottom: 20px;
+  `;
+  
+  // Boss text
+  const text = document.createElement('div');
+  text.textContent = 'BOSS';
+  text.style.cssText = `
+    font-size: 60px;
+    font-weight: bold;
+    color: #ff0000;
+    text-shadow: 0 0 20px rgba(255,0,0,0.8), 0 0 40px rgba(255,0,0,0.6);
+    letter-spacing: 20px;
+    animation: glow 1s infinite alternate;
+    margin-bottom: 20px;
+  `;
+  
+  // Boss description
+  const descText = document.createElement('div');
+  descText.textContent = bossProfile.description;
+  descText.style.cssText = `
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 15px;
+    text-align: center;
+    max-width: 600px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+  `;
+  
+  // Abilities list
+  const abilitiesText = document.createElement('div');
+  const abilityNames = {
+    meteor: 'Meteor Slam',
+    fireblast: 'Fire Blast',
+    charge: 'Shoulder Charge',
+    heal: 'Regeneration',
+    shield: 'Shield Barrier'
   };
+  const abilityList = bossProfile.abilities.map(a => abilityNames[a] || a).join(' • ');
+  abilitiesText.textContent = `Abilities: ${abilityList}`;
+  abilitiesText.style.cssText = `
+    font-size: 18px;
+    color: #ffaa00;
+    text-shadow: 0 0 10px rgba(255,170,0,0.5);
+  `;
   
-  state.creatures.push(boss);
-  console.log('[DUNGEON] Spawned 10 creatures + 1 boss creature at', dungeon.name);
+  overlay.appendChild(img);
+  overlay.appendChild(nameText);
+  overlay.appendChild(roleText);
+  overlay.appendChild(text);
+  overlay.appendChild(descText);
+  overlay.appendChild(abilitiesText);
+  document.body.appendChild(overlay);
+  
+  // Remove after 3 seconds and spawn creatures
+  setTimeout(() => {
+    overlay.style.animation = 'fadeOut 0.5s';
+    setTimeout(() => {
+      overlay.remove();
+      if(onComplete) onComplete(); // Spawn creatures now
+    }, 500);
+  }, 3000);
+  
+  // Add CSS animations if not already added
+  if(!document.getElementById('bossIntroStyles')){
+    const style = document.createElement('style');
+    style.id = 'bossIntroStyles';
+    style.textContent = `
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+      @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+      @keyframes glow { from { text-shadow: 0 0 20px rgba(255,0,0,0.8); } to { text-shadow: 0 0 40px rgba(255,0,0,1), 0 0 60px rgba(255,0,0,0.8); } }
+    `;
+    document.head.appendChild(style);
+  }
 }
 
 function enterDungeon(state, dungeon){
   if(!dungeon || dungeon.cleared) return;
-  // save world player/camera position
-  state._savedWorld = { px: state.player.x, py: state.player.y, cam: { x: state.camera.x, y: state.camera.y, zoom: state.camera.zoom } };
   
-  // Save group member positions and bring them into dungeon
-  state._savedGroupPositions = [];
-  if(state.group && state.group.members){
-    for(const memberId of state.group.members){
-      const ally = state.friendlies.find(f => f.id === memberId && f.respawnT <= 0);
-      if(ally){
-        state._savedGroupPositions.push({ id: memberId, x: ally.x, y: ally.y });
-        // Teleport group member to dungeon with player (spread in small circle)
-        const ang = Math.random() * Math.PI * 2;
-        const dist = 40 + Math.random() * 30;
-        ally.x = dungeon.x + Math.cos(ang) * dist;
-        ally.y = dungeon.y + Math.sin(ang) * dist;
-      }
-    }
+  // Play dungeon entrance sound
+  if(state.sounds?.castingMagic5){
+    const audio = state.sounds.castingMagic5.cloneNode();
+    audio.volume = 0.6;
+    audio.play().catch(e => {});
   }
   
-  // move player to dungeon center and mark dungeon active
-  state.player.x = dungeon.x; state.player.y = dungeon.y;
-  state.camera.x = dungeon.x; state.camera.y = dungeon.y;
-  // ensure overlays are closed and game is unpaused so dungeon logic runs
-  state.mapOpen = false; state.showInventory = false; state.showSkills = false; state.showLevel = false; state.inMenu = false; state.paused = false;
-  state.inDungeon = dungeon.id;
-  if(state.ui){ state.ui.invOverlay && state.ui.invOverlay.classList && state.ui.invOverlay.classList.remove('show'); state.ui.skillsOverlay && state.ui.skillsOverlay.classList && state.ui.skillsOverlay.classList.remove('show'); state.ui.mapOverlay && state.ui.mapOverlay.classList && state.ui.mapOverlay.classList.remove('show'); }
-  const memberCount = state._savedGroupPositions.length;
-  state.ui.toast(`<b>Entered</b> ${dungeon.name}${memberCount > 0 ? ` with ${memberCount} ${memberCount === 1 ? 'ally' : 'allies'}` : ''}`);
+  // Just spawn enemies - nothing else changes
   spawnDungeonEnemies(state, dungeon);
+  
+  state.ui.toast(`<b>Entered</b> ${dungeon.name}`);
 }
 
 function exitDungeon(state){
-  const id = state.inDungeon;
-  if(!id) return;
-  const dungeon = state.dungeons.find(d=>d.id===id);
-  if(dungeon) dungeon.cleared = true;
-  // Remove any remaining dungeon creatures
-  for(let i=state.creatures.length-1;i>=0;i--){ 
-    if(state.creatures[i].dungeonId === id) state.creatures.splice(i,1); 
-  }
-  // Also remove any dungeon enemies (in case there are any legacy ones)
-  for(let i=state.enemies.length-1;i>=0;i--){ 
-    if(state.enemies[i].dungeonId === id) state.enemies.splice(i,1); 
-  }
-  // restore player position and camera
-  if(state._savedWorld){ state.player.x = state._savedWorld.px; state.player.y = state._savedWorld.py; state.camera.x = state._savedWorld.cam.x; state.camera.y = state._savedWorld.cam.y; state.camera.zoom = state._savedWorld.cam.zoom; }
-  
-  // Restore group member positions
-  if(state._savedGroupPositions){
-    for(const saved of state._savedGroupPositions){
-      const ally = state.friendlies.find(f => f.id === saved.id);
-      if(ally){
-        ally.x = saved.x;
-        ally.y = saved.y;
-      }
-    }
-    state._savedGroupPositions = [];
-  }
-  
-  state.inDungeon = false;
-  state.ui.toast('Dungeon cleared.');
+  // Not needed - creatures die naturally, dungeon auto-clears
+  return;
 }
 
 function fireLightOrHeavy(state, heldMs){
@@ -9653,13 +9899,8 @@ export function handleHotkeys(state, dt){
     // check friendlies
     if(!clicked) for(const f of state.friendlies){ if(f.respawnT>0) continue; if(Math.hypot(f.x - wx, f.y - wy) <= (f.r||12) + 6){ clicked = { unit: f, type: 'friendly' }; break; } }
     // check creatures
-    if(!clicked) for(const c of state.creatures){ 
-      // Skip creatures that don't match current context
-      if(state.inDungeon){
-        if(c.dungeonId !== state.inDungeon) continue;
-      } else {
-        if(c.dungeonId) continue;
-      }
+    const creatureArray = state.inDungeon ? state.dungeonCreatures : state.creatures;
+    if(!clicked) for(const c of creatureArray){ 
       if(Math.hypot(c.x - wx, c.y - wy) <= (c.r||12) + 6){ clicked = { unit: c, type: 'creature' }; break; } 
     }
     if(clicked){
@@ -10099,7 +10340,8 @@ export function updateGame(state, dt){
         if(!siteAllowsPassage(s, state.player, state)){ allowPass=false; break; }
           } } }
       if(allowPass){
-        const bounds = state.playableBounds || {minX:0, minY:0, maxX:state.mapWidth, maxY:state.mapHeight};
+        // Clamp to map bounds
+        const bounds = state.playableBounds || {minX:0, minY:0, maxX:state.mapWidth || 4000, maxY:state.mapHeight || 4000};
         state.player.x = clamp(proposedX, bounds.minX, bounds.maxX);
         state.player.y = clamp(proposedY, bounds.minY, bounds.maxY);
         // apply water slow if moving into water
@@ -10567,25 +10809,73 @@ export function updateGame(state, dt){
 }
 
 function updateCreatures(state, dt){
-  // boss respawn countdown
-  if(state.bossRespawnT && state.bossRespawnT > 0){
+  // boss respawn countdown (only in world, not dungeons)
+  if(!state.inDungeon && state.bossRespawnT && state.bossRespawnT > 0){
     state.bossRespawnT = Math.max(0, state.bossRespawnT - dt);
     if(state.bossRespawnT <= 0){ spawnBossCreature(state); }
   }
-  for(let i=state.creatures.length-1;i>=0;i--){
+  
+  for(let i = state.creatures.length - 1; i >= 0; i--){
     const c = state.creatures[i];
     
-    // Skip creatures that don't match current context (dungeon vs world)
-    // If in dungeon: only update creatures with matching dungeonId
-    // If in world: only update creatures without dungeonId
-    if(state.inDungeon){
-      if(c.dungeonId !== state.inDungeon) continue;
-    } else {
-      if(c.dungeonId) continue;
-    }
-    
-    // CRITICAL: Check if creature died (hp <= 0) and kill it
+    // Kill dead creatures
     if(c.hp <= 0){
+      // Award XP for killing creature
+      const xpAmount = c.boss ? 200 : 25; // Bosses give 200 XP, regular creatures 25
+      awardXP(state, xpAmount);
+      
+      // Show BONUS XP toast for boss kills with sound
+      if(c.boss){
+        state.ui.toast(`💎 <b>BONUS XP!</b> +${xpAmount} XP`);
+        playPositionalSound(state, 'levelUp', c.x, c.y, 800, 0.6);
+      }
+      
+      // BOSS LOOT - Drop immediately when boss dies (both dungeon and world bosses)
+      if(c.boss){
+        // Drop legendary item at boss location using makeLegendaryItem
+        const legendary = makeLegendaryItem(state);
+        
+        state.loot.push({
+          x: c.x,
+          y: c.y,
+          item: legendary,
+          ttl: 120
+        });
+        
+        // Scatter 5 additional loot items around boss location
+        const WEAPON_TYPES = ['Destruction Staff', 'Healing Staff', 'Axe', 'Sword', 'Dagger', 'Greatsword'];
+        const itemLevel = state.progression?.level || 1;
+        
+        for(let j = 0; j < 5; j++){
+          const angle = Math.random() * Math.PI * 2;
+          const dist = 40 + Math.random() * 80;
+          const lootX = c.x + Math.cos(angle) * dist;
+          const lootY = c.y + Math.sin(angle) * dist;
+          
+          const rarityRoll = Math.random();
+          const rarity = rarityRoll < 0.3 ? { key:'rare', name:'Rare', color:'#4169e1' } : { key:'uncommon', name:'Uncommon', color:'#228b22' };
+          
+          const lootItem = Math.random() < 0.5 
+            ? makeWeapon(WEAPON_TYPES[Math.floor(Math.random() * WEAPON_TYPES.length)], rarity, itemLevel)
+            : makeArmor(ARMOR_SLOTS[Math.floor(Math.random() * ARMOR_SLOTS.length)], rarity, itemLevel);
+          
+          state.loot.push({
+            x: lootX,
+            y: lootY,
+            item: lootItem,
+            ttl: 120
+          });
+        }
+        
+        // Schedule world boss respawn (only for non-dungeon bosses)
+        if(!c.dungeonId){
+          state.bossRespawnT = 5 * 60; // 5 minutes
+          console.log('[WORLD BOSS] Defeated! Dropped legendary + 5 items. Respawns in 5 minutes.');
+        } else {
+          console.log('[DUNGEON BOSS] Dropped legendary + 5 items at:', c.x.toFixed(0), c.y.toFixed(0));
+        }
+      }
+      
       if(state.debugLog){
         state.debugLog.push({
           time: (state.campaign?.time || 0).toFixed(2),
@@ -10596,13 +10886,239 @@ function updateCreatures(state, dt){
           damageReceived: (c._damageReceived || 0).toFixed(1)
         });
       }
-      killCreature(state, i);
+      state.creatures.splice(i, 1);
+      
+      // Check if this was a dungeon creature - auto-clear dungeon when all dead
+      if(c.dungeonId){
+        const dungeon = state.dungeons.find(d => d.id === c.dungeonId);
+        if(dungeon && !dungeon.cleared){
+          const remaining = state.creatures.filter(cr => cr.dungeonId === c.dungeonId);
+          if(remaining.length === 0){
+            dungeon.cleared = true;
+            
+            // Stop dungeon music, resume normal music
+            if(state.sounds?.dungeonMusic && !state.sounds.dungeonMusic.paused){
+              state.sounds.dungeonMusic.pause();
+              state.sounds.dungeonMusic.currentTime = 0;
+            }
+            if(state.sounds?.gameNonCombatMusic){
+              state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Resume music failed:', e));
+            }
+            
+            // DUNGEON COMPLETION REWARDS
+            const bonusXP = 500;
+            awardXP(state, bonusXP);
+            
+            state.ui.toast(`🏆 <b>Cleared</b> ${dungeon.name}`);
+            state.ui.toast(`💎 <b>BONUS XP!</b> +${bonusXP} XP`);
+            playPositionalSound(state, 'levelUp', state.player.x, state.player.y, 800, 0.7);
+            console.log('[DUNGEON] Completed:', dungeon.name, 'Bonus XP:', bonusXP);
+          }
+        }
+      }
+      
       continue;
     }
     
     // update hit cooldown
     c.hitCd = Math.max(0, (c.hitCd || 0) - dt);
     
+    // DUNGEON GUARD AI: Dungeon creatures act as guards
+    if(c.dungeonId && c.dungeonCenter){
+      // Check if player too far from dungeon - destroy creature if player left area
+      const playerDist = Math.hypot(state.player.x - c.dungeonCenter.x, state.player.y - c.dungeonCenter.y);
+      const maxDist = 800; // 800 units from dungeon center
+      
+      if(playerDist > maxDist || state.player.dead){
+        // Player left or died - destroy dungeon creature
+        state.creatures.splice(i, 1);
+        
+        // Check if all dungeon creatures gone - stop music
+        const remainingDungeon = state.creatures.filter(cr => cr.dungeonId === c.dungeonId);
+        if(remainingDungeon.length === 0){
+          if(state.sounds?.dungeonMusic && !state.sounds.dungeonMusic.paused){
+            state.sounds.dungeonMusic.pause();
+            state.sounds.dungeonMusic.currentTime = 0;
+          }
+          if(state.sounds?.gameNonCombatMusic){
+            state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Resume music failed:', e));
+          }
+        }
+        
+        console.log('[DUNGEON] Destroyed guard creature - player too far or dead');
+        continue;
+      }
+      
+      // Guard AI: ALWAYS focus on player/friendlies, NEVER wander
+      const agro_dist = 500; // Large aggro range for guards
+      let nearest = null, nearestD = Infinity;
+      
+      // Prioritize based on role
+      if(c.guardRole === 'boss' || c.guardRole === 'tank'){
+        // Tanks and boss prioritize player
+        if(!state.player.dead){
+          const d = Math.hypot(state.player.x - c.x, state.player.y - c.y);
+          if(d <= agro_dist){ nearestD = d; nearest = state.player; }
+        }
+        // Then friendlies
+        if(!nearest){
+          for(const f of state.friendlies){
+            if(f.respawnT > 0) continue;
+            const d = Math.hypot(f.x - c.x, f.y - c.y);
+            if(d < nearestD && d <= agro_dist){ nearestD = d; nearest = f; }
+          }
+        }
+      } else if(c.guardRole === 'damage'){
+        // Damage dealers prioritize closest target (player or friendlies)
+        if(!state.player.dead){
+          const d = Math.hypot(state.player.x - c.x, state.player.y - c.y);
+          if(d < nearestD && d <= agro_dist){ nearestD = d; nearest = state.player; }
+        }
+        for(const f of state.friendlies){
+          if(f.respawnT > 0) continue;
+          const d = Math.hypot(f.x - c.x, f.y - c.y);
+          if(d < nearestD && d <= agro_dist){ nearestD = d; nearest = f; }
+        }
+      } else {
+        // Support role - prioritize weakest friendly or player
+        const targets = [state.player, ...state.friendlies.filter(f => f.respawnT <= 0)];
+        let weakest = null;
+        let lowestHpPercent = 1;
+        
+        for(const t of targets){
+          const d = Math.hypot(t.x - c.x, t.y - c.y);
+          if(d <= agro_dist){
+            const hpPercent = t.hp / (t.maxHp || 100);
+            if(hpPercent < lowestHpPercent){
+              lowestHpPercent = hpPercent;
+              weakest = t;
+              nearestD = d;
+            }
+          }
+        }
+        nearest = weakest;
+      }
+      
+      let tx = c.x;
+      let ty = c.y;
+      
+      // BOSS ABILITIES - Use abilities during combat
+      if(c.boss && c.abilities && c.abilities.length > 0){
+        c.abilityCooldown = (c.abilityCooldown || 0) - dt;
+        
+        if(c.abilityCooldown <= 0 && nearest && nearestD < 300){
+          const ability = c.abilities[Math.floor(Math.random() * c.abilities.length)];
+          c.abilityCooldown = 5 + Math.random() * 3;
+          
+          if(ability === 'meteor'){
+            const targetX = nearest.x;
+            const targetY = nearest.y;
+            setTimeout(() => {
+              if(state.sounds?.meteorSlam){
+                state.sounds.meteorSlam.currentTime = 0;
+                state.sounds.meteorSlam.play().catch(e => {});
+              }
+              state.effects.flashes.push({ x: targetX, y: targetY, r: 100, t: 0.5, color: '#ff0000' });
+              const dmg = 30 + Math.floor(c.contactDmg * 1.5);
+              if(Math.hypot(state.player.x - targetX, state.player.y - targetY) <= 100){
+                applyDamageToPlayer(state, dmg, currentStats(state), { name: 'Boss Meteor' });
+              }
+              for(const f of state.friendlies){
+                if(Math.hypot(f.x - targetX, f.y - targetY) <= 100){
+                  f.hp = Math.max(0, f.hp - dmg);
+                }
+              }
+            }, 1000);
+          } else if(ability === 'fireblast'){
+            if(state.sounds?.fire){
+              state.sounds.fire.currentTime = 0;
+              state.sounds.fire.play().catch(e => {});
+            }
+            const angle = Math.atan2(nearest.y - c.y, nearest.x - c.x);
+            for(let i = -3; i <= 3; i++){
+              const spreadAngle = angle + (i * 0.2);
+              state.projectiles.push({
+                x: c.x, y: c.y,
+                vx: Math.cos(spreadAngle) * 300,
+                vy: Math.sin(spreadAngle) * 300,
+                speed: 300, r: 8,
+                dmg: 15 + c.contactDmg,
+                t: 2, team: 'enemy',
+                color: '#ff4400'
+              });
+            }
+          } else if(ability === 'charge'){
+            if(state.sounds?.wolfAttack){
+              state.sounds.wolfAttack.currentTime = 0;
+              state.sounds.wolfAttack.play().catch(e => {});
+            }
+            const chargeAngle = Math.atan2(nearest.y - c.y, nearest.x - c.x);
+            c.x += Math.cos(chargeAngle) * 150;
+            c.y += Math.sin(chargeAngle) * 150;
+            state.effects.flashes.push({ x: c.x, y: c.y, r: 60, t: 0.3, color: '#ff0000' });
+            const impactDmg = 25 + c.contactDmg;
+            if(Math.hypot(state.player.x - c.x, state.player.y - c.y) <= 60){
+              applyDamageToPlayer(state, impactDmg, currentStats(state), { name: 'Boss Charge' });
+            }
+            for(const f of state.friendlies){
+              if(Math.hypot(f.x - c.x, f.y - c.y) <= 60){
+                f.hp = Math.max(0, f.hp - impactDmg);
+              }
+            }
+          } else if(ability === 'heal'){
+            if(state.sounds?.healingSpell){
+              state.sounds.healingSpell.currentTime = 0;
+              state.sounds.healingSpell.play().catch(e => {});
+            }
+            const healAmount = Math.floor(c.maxHp * 0.15);
+            c.hp = Math.min(c.maxHp, c.hp + healAmount);
+            for(const ally of state.creatures){
+              if(ally.dungeonId === c.dungeonId && Math.hypot(ally.x - c.x, ally.y - c.y) <= 150){
+                ally.hp = Math.min(ally.maxHp || 100, ally.hp + Math.floor(healAmount * 0.5));
+              }
+            }
+          } else if(ability === 'shield'){
+            if(state.sounds?.bufferSpell){
+              state.sounds.bufferSpell.currentTime = 0;
+              state.sounds.bufferSpell.play().catch(e => {});
+            }
+            c.shield = (c.shield || 0) + 50;
+          }
+        }
+      }
+      
+      if(nearest){
+        c.target = nearest;
+        c.attacked = true;
+        
+        const stopDist = (c.r||12) + (nearest.r||14) + 8;
+        const distToTarget = Math.hypot(nearest.x - c.x, nearest.y - c.y);
+        
+        if(distToTarget > stopDist){
+          tx = nearest.x;
+          ty = nearest.y;
+        } else {
+          tx = c.x;
+          ty = c.y;
+        }
+      } else {
+        // No target - return to dungeon center
+        const distToCenter = Math.hypot(c.x - c.dungeonCenter.x, c.y - c.dungeonCenter.y);
+        if(distToCenter > 100){
+          tx = c.dungeonCenter.x;
+          ty = c.dungeonCenter.y;
+        } else {
+          tx = c.x;
+          ty = c.y;
+        }
+      }
+      
+      // Move creature
+      moveWithAvoidance(c, tx, ty, state, dt, {});
+      continue; // Skip normal AI
+    }
+    
+    // NORMAL CREATURE AI (non-dungeon)
     // simple wander
     c.wander = c.wander || { t: 1.0, ang: Math.random()*Math.PI*2 };
     c.wander.t -= dt;
@@ -10656,6 +11172,7 @@ function updateCreatures(state, dt){
     }
     
     const slowFactor = c.inWater ? 0.45 : 1.0;
+    
     moveWithAvoidance(c, tx, ty, state, dt, { slowFactor });
     
     // contact retaliate if aggroed (with cooldown check)

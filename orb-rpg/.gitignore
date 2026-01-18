@@ -1,0 +1,28 @@
+# Logs (these can get huge and slow down Git)
+Logs/
+*.log
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node modules (if any)
+node_modules/
+
+# Build outputs
+build/
+dist/
+*.pyc
+__pycache__/
+
+# Temp files
+*.tmp
+*.temp
+*~

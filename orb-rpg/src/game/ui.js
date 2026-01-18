@@ -2847,7 +2847,7 @@ function bindUI(state){
         const color = it.rarity?.color || '#fff';
         const buffsText = formatBuffs(it.buffs);
         const elems = formatElementals(it);
-        const affordableMsg = affordable ? '<br><span style="color:#4a9eff; font-size:11px; margin-top:4px; display:inline-block">Press E or Double-Click to Purchase</span>' : '<div style="color:#f66; margin-top:4px; font-size:11px">⚠️ Not enough gold</div>';
+        const affordableMsg = affordable ? '<br><span style="color:#4a9eff; font-size:11px; margin-top:4px; display:inline-block">Press E or Double-Click to Purchase | Right-Click for Multiple</span>' : '<div style="color:#f66; margin-top:4px; font-size:11px">⚠️ Not enough gold</div>';
         ui.marketInspect.innerHTML = `<span style="color:${color}; font-weight:900">${it.name}</span><br>${it.desc || ''}<br>${buffsText}${elems? '<br>'+elems : ''}${affordableMsg}`;
       };
       
@@ -2856,6 +2856,113 @@ function bindUI(state){
         // Track this as the selected shop item for E key purchase
         state._marketSelectedShopItem = shopItem;
         state._marketSelectedShopIndex = idx;
+      };
+      
+      // Right-click to buy multiples - show quantity selector bubble
+      div.oncontextmenu = (e) => {
+        e.preventDefault();
+        if(!affordable){
+          ui.toast('Not enough gold!');
+          return;
+        }
+        
+        const maxAffordable = Math.floor(state.player.gold / shopItem.price);
+        
+        // Create or get existing quantity selector bubble
+        let bubble = document.getElementById('qtyBubble');
+        if(!bubble){
+          bubble = document.createElement('div');
+          bubble.id = 'qtyBubble';
+          bubble.style.cssText = 'position:fixed; background:rgba(10,10,20,0.98); border:2px solid rgba(212,175,55,0.8); border-radius:10px; padding:14px 16px; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,0.7); min-width:220px;';
+          document.body.appendChild(bubble);
+        }
+        
+        // Position at mouse
+        bubble.style.left = `${e.clientX + 10}px`;
+        bubble.style.top = `${e.clientY + 10}px`;
+        bubble.style.display = 'block';
+        
+        // Build bubble content
+        const color = it.rarity?.color || '#fff';
+        const quantities = [1, 5, 10, 25, 50, maxAffordable].filter((q, i, arr) => q > 0 && q <= maxAffordable && arr.indexOf(q) === i).sort((a,b) => a-b);
+        
+        bubble.innerHTML = `
+          <div style="color:#e9d27b; font-weight:700; font-size:13px; margin-bottom:10px; text-align:center;">
+            Buy <span style="color:${color}">${it.name}</span>
+          </div>
+          <div style="color:#d4b896; font-size:11px; margin-bottom:12px; line-height:1.5;">
+            Price: ${formatGold(shopItem.price)} each<br>
+            Max affordable: <b>${maxAffordable}</b><br>
+            Your gold: ${formatGold(state.player.gold)}
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(${quantities.length <= 4 ? quantities.length : 3}, 1fr); gap:8px;">
+            ${quantities.map(qty => {
+              const totalCost = shopItem.price * qty;
+              return `<button class="qtyBtn" data-qty="${qty}" style="padding:10px 12px; background:#050505; color:#e7c76c; border:2px solid rgba(212,175,55,0.7); border-radius:6px; font-weight:700; cursor:pointer; font-size:12px; transition:all 0.2s;">
+                ${qty === maxAffordable ? 'Max' : qty}<br>
+                <span style="font-size:10px; color:#d4b896;">${formatGold(totalCost)}</span>
+              </button>`;
+            }).join('')}
+          </div>
+          <button id="qtyCancel" style="width:100%; margin-top:12px; padding:8px; background:#1a1a1a; color:#ccc; border:1px solid #555; border-radius:6px; cursor:pointer; font-size:11px;">Cancel</button>
+        `;
+        
+        // Handle quantity button clicks
+        const qtyButtons = bubble.querySelectorAll('.qtyBtn');
+        qtyButtons.forEach(btn => {
+          btn.onmouseover = () => { btn.style.background = '#1a1a00'; btn.style.borderColor = 'rgba(212,175,55,0.95)'; };
+          btn.onmouseout = () => { btn.style.background = '#050505'; btn.style.borderColor = 'rgba(212,175,55,0.7)'; };
+          btn.onclick = () => {
+            const quantity = parseInt(btn.dataset.qty);
+            const totalCost = shopItem.price * quantity;
+            state.player.gold -= totalCost;
+            
+            // Add items to inventory
+            for(let i = 0; i < quantity; i++){
+              const itemCopy = JSON.parse(JSON.stringify(it));
+              itemCopy.count = itemCopy.count || 1;
+              
+              if(itemCopy.kind === 'potion'){
+                const existing = state.inventory.find(inv => inv.kind === 'potion' && inv.type === itemCopy.type && inv.rarity.key === itemCopy.rarity.key);
+                if(existing){
+                  existing.count = (existing.count || 1) + 1;
+                } else {
+                  state.inventory.push(itemCopy);
+                }
+              } else {
+                // Non-potions don't stack - add each separately
+                state.inventory.push(itemCopy);
+              }
+            }
+            
+            ui.toast(`<span style="color:${color}"><b>${it.name}</b></span> x${quantity} purchased for ${formatGold(totalCost)}`);
+            if(ui.marketConfirm){
+              ui.marketConfirm.innerHTML = `<span style="color:${color}"><b>${it.name}</b></span> x${quantity} purchased`;
+              clearTimeout(ui.marketConfirm._t);
+              ui.marketConfirm._t = setTimeout(()=>{ if(ui.marketConfirm) ui.marketConfirm.innerHTML=''; }, 2600);
+            }
+            updateInspect();
+            ui.updateGoldDisplay();
+            ui.renderShop();
+            ui.renderSellItems();
+            ui.renderInventory?.();
+            bubble.style.display = 'none';
+          };
+        });
+        
+        // Handle cancel
+        document.getElementById('qtyCancel').onclick = () => {
+          bubble.style.display = 'none';
+        };
+        
+        // Close bubble on click outside
+        const closeOnClickOutside = (evt) => {
+          if(!bubble.contains(evt.target)){
+            bubble.style.display = 'none';
+            document.removeEventListener('click', closeOnClickOutside);
+          }
+        };
+        setTimeout(() => document.addEventListener('click', closeOnClickOutside), 100);
       };
       
       div.onclick = ()=>{
@@ -2950,14 +3057,16 @@ function bindUI(state){
         const isEquipped = item.slot && state.equipped && state.equipped[item.slot] === item;
         
         const imgPath = getItemImage(item);
+        const stackCountHtml = (item.kind === 'potion' && item.count > 1) ? `<div style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.85); padding:2px 4px; border-radius:3px; font-size:11px; color:#fff; font-weight:900; pointer-events:none;">${item.count}</div>` : '';
         if(imgPath){
-          slot.innerHTML = `<img src="${imgPath}" alt="${item.name}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;"/>`;
+          slot.innerHTML = `<img src="${imgPath}" alt="${item.name}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;"/>${stackCountHtml}`;
         } else {
-          slot.textContent = invSlotLabel(item);
+          slot.innerHTML = invSlotLabel(item) + stackCountHtml;
         }
         slot.style.borderColor = item.rarity.color;
         slot.style.color = item.rarity.color;
         slot.style.cursor = 'pointer';
+        slot.style.position = 'relative';
         
         if(isEquipped){
           slot.style.opacity = '0.5';
@@ -4244,8 +4353,9 @@ function bindUI(state){
       el.style.position='relative';
       el.style.padding='0';
       
-      // Get icon if available
-      const iconSrc = sk ? ICON_IMAGES[sk.id] : null;
+      // Get icon from ABILITIES object (same as skills tab)
+      const ability = sk ? ABILITIES[sk.id] : null;
+      const iconSrc = ability?.icon ? `assets/skill icons/${ability.icon}` : null;
       
       el.innerHTML = iconSrc
         ? `<img src="${iconSrc}" style="width:100%; height:100%; object-fit:contain; pointer-events:none; position:absolute; top:0; left:0;" />
@@ -4669,13 +4779,15 @@ function bindUI(state){
         const originalIndex = state.inventory.indexOf(it);
         const equippedOnOther = isEquippedOnOtherHero(it);
         const imgPath = getItemImage(it);
+        const stackCountHtml = (it.kind === 'potion' && it.count > 1) ? `<div style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.85); padding:2px 4px; border-radius:3px; font-size:11px; color:#fff; font-weight:900; pointer-events:none;">${it.count}</div>` : '';
         if(imgPath){
-          slot.innerHTML = `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;"/>`;
+          slot.innerHTML = `<img src="${imgPath}" alt="${it.name}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;"/>${stackCountHtml}`;
         } else {
-          slot.textContent=invSlotLabel(it);
+          slot.innerHTML = invSlotLabel(it) + stackCountHtml;
         }
         slot.style.borderColor=it.rarity.color;
         slot.style.color=it.rarity.color;
+        slot.style.position='relative';
         
         // Add comparison arrow for equipment items
         if((it.kind === 'armor' || it.kind === 'weapon') && it.slot && !equippedOnOther){
