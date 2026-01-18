@@ -8857,20 +8857,50 @@ function spawnDungeonEnemies(state, dungeon){
     const numCreatures = 5 + Math.floor(Math.random() * 6);
     const creatureComposition = [];
     
-    // Better spacing - circular formation with proper distance
-    const baseRadius = 80;
-    const spacing = 50;
+    // Formation-based positioning: Tanks in front, damage in middle, support in back
+    // Anchor-based formation prevents overlapping and ensures coordinated movement
+    const tanks = [];
+    const damage = [];
+    const support = [];
     
     for(let i = 0; i < numCreatures; i++){
       const creatureType = CREATURE_TYPES[Math.floor(Math.random() * CREATURE_TYPES.length)];
-      const angle = (i / numCreatures) * Math.PI * 2;
-      const distance = baseRadius + (Math.floor(i / 4) * spacing);
+      const role = i < 2 ? 'tank' : (i < 4 ? 'damage' : 'support');
+      
+      let slot = { offsetX: 0, offsetY: 0 };
+      if(role === 'tank'){
+        // Front formation: tanks positioned in front line
+        const tankIndex = tanks.length;
+        slot = {
+          offsetX: (tankIndex - 0.5) * 60,
+          offsetY: 100
+        };
+        tanks.push(slot);
+      } else if(role === 'damage'){
+        // Middle formation: damage dealers in middle arc
+        const dmgIndex = damage.length;
+        const angle = (dmgIndex / Math.max(1, Math.ceil((numCreatures - 2) / 2))) * Math.PI - Math.PI / 2;
+        slot = {
+          offsetX: Math.cos(angle) * 80 - 40,
+          offsetY: Math.sin(angle) * 80 + 30
+        };
+        damage.push(slot);
+      } else {
+        // Back formation: support positioned in rear
+        const suppIndex = support.length;
+        slot = {
+          offsetX: (suppIndex - 0.5) * 70,
+          offsetY: -100
+        };
+        support.push(slot);
+      }
       
       creatureComposition.push({
         type: creatureType.key,
-        offsetX: Math.cos(angle) * distance,
-        offsetY: Math.sin(angle) * distance,
-        role: i < 2 ? 'tank' : (i < 4 ? 'damage' : 'support')
+        offsetX: slot.offsetX,
+        offsetY: slot.offsetY,
+        role: role,
+        formationIndex: i
       });
     }
     
@@ -8919,7 +8949,16 @@ function spawnDungeonEnemies(state, dungeon){
         creature.dungeonId = dungeon.id;
         creature.guardRole = comp.role;
         creature.dungeonCenter = { x: cx, y: cy };
+        creature.dungeonAnchor = { x: x, y: y };
+        creature.formationIndex = comp.formationIndex;
+        creature.formationRole = comp.role;
+        creature.leashDistance = 300;
+        creature.leashReturnDistance = 350;
+        creature.formationCommitTime = 1.5;
         creature.r = (creature.r || 12) + 2;
+        creature.groupState = 'IDLE_FORMATION';
+        creature.groupPriority = comp.role === 'tank' ? 100 : (comp.role === 'damage' ? 80 : 60);
+        console.log(`[DUNGEON] Creature ${creature.id} spawned at formation anchor (${x.toFixed(0)}, ${y.toFixed(0)}), role: ${comp.role}`);
       }
     }
     
@@ -8931,15 +8970,22 @@ function spawnDungeonEnemies(state, dungeon){
       boss.dungeonId = dungeon.id;
       boss.guardRole = 'boss';
       boss.dungeonCenter = { x: cx, y: cy };
+      boss.dungeonAnchor = { x: cx, y: cy };
+      boss.formationIndex = -1;
+      boss.formationRole = 'boss';
+      boss.leashDistance = 400;
+      boss.leashReturnDistance = 450;
+      boss.formationCommitTime = 0;
       boss.maxHp *= 3;
       boss.hp = boss.maxHp;
       boss.contactDmg = Math.floor(boss.contactDmg * 1.5);
       boss.r = 26;
       boss.bossIcon = dungeon.savedGroup.boss.icon;
-      
-      // Use abilities from boss profile
       boss.abilities = dungeon.savedGroup.boss.profile.abilities;
       boss.abilityCooldown = 0;
+      boss.groupState = 'COMBAT_THREAT';
+      boss.groupPriority = 200;
+      console.log(`[DUNGEON] Boss spawned: ${dungeon.savedGroup.boss.profile.name} with ${boss.abilities.length} abilities`);
     }
     
     console.log('[DUNGEON] Spawned dungeon group:', dungeon.savedGroup.creatures.length + 1, 'creatures');
@@ -8973,7 +9019,7 @@ function showBossIntro(state, bossIcon, dungeonName, bossProfile, onComplete){
   
   // Boss image
   const img = document.createElement('img');
-  img.src = `assets/boss icons/${bossIcon}.png`;
+  img.src = getAssetPath(`assets/boss icons/${bossIcon}.PNG`);
   img.style.cssText = `
     width: 300px;
     height: 300px;
@@ -8982,6 +9028,10 @@ function showBossIntro(state, bossIcon, dungeonName, bossProfile, onComplete){
     filter: drop-shadow(0 0 20px rgba(255,0,0,0.8));
     animation: pulse 2s infinite;
   `;
+  img.onerror = () => {
+    console.warn(`Failed to load boss icon: ${bossIcon}.PNG`);
+    img.style.display = 'none';
+  };
   
   // Boss name
   const nameText = document.createElement('div');
