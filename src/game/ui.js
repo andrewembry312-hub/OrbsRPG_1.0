@@ -64,6 +64,10 @@ export function buildUI(state){
       </div>
     </div>
     <div class="hud" id="hud" style="margin-top:100px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font-size:12px; color:rgba(255,255,255,0.6);">Press <strong>B</strong> to toggle HUD</div>
+        <button id="btnCloseHUD" style="background:none; border:none; color:rgba(255,255,255,0.6); cursor:pointer; font-size:18px; padding:0; width:24px; height:24px; display:flex; align-items:center; justify-content:center;" title="Toggle HUD (Press B)">✕</button>
+      </div>
       <div class="row">
         <div class="pill">Campaign</div>
         <div class="pill">Enemies <span id="enemyCount">0</span></div>
@@ -1460,6 +1464,15 @@ export function buildUI(state){
               </div>
               
               <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.2);">
+                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Guard Performance Options</div>
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px; cursor:pointer;">
+                  <input type="checkbox" id="enableGuardBallLogging" checked style="cursor:pointer;">
+                  <span class="small" style="color:#9cf;">Guard Ball Logging</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:12px; color:#888; font-size:10px;">⚠️ <b>Performance Impact</b>: Calculates guard focus targeting coordination. <b>Disable to improve FPS</b> in large guard battles. Enable for performance debugging.</div>
+              </div>
+              
+              <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.2);">
                 <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Ability Tracking Options</div>
                 <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px; cursor:pointer;">
                   <input type="checkbox" id="trackFriendlyAbilities" checked style="cursor:pointer;">
@@ -1473,7 +1486,7 @@ export function buildUI(state){
                   <input type="checkbox" id="showAbilityDisplay" checked style="cursor:pointer;">
                   <span class="small" style="color:#fc6;">Show Ability Cast Display</span>
                 </label>
-                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Control which abilities are tracked in the Ability Usage Log and show real-time ability casts in corner.</div>
+                <div class="small" style="margin-top:6px; color:#888; font-size:10px;"><b>Visual only</b> - Control tracking toggles for Ability Usage Log, toggle display to show/hide corner overlay. No performance impact.</div>
               </div>
             </div>
           </div>
@@ -1742,6 +1755,7 @@ function bindUI(state){
     enableEffectLog:$('enableEffectLog'),
     enableAIBehaviorLog:$('enableAIBehaviorLog'),
     enableConsoleLog:$('enableConsoleLog'),
+    enableGuardBallLogging:$('enableGuardBallLogging'),
     btnDownloadAllLogs:$('btnDownloadAllLogs'),
     optShowAim:$('optShowAim'),
     optShowDebugAI:$('optShowDebugAI'),
@@ -1834,6 +1848,21 @@ function bindUI(state){
       if(e.target === weaponPreview || e.target.id === 'weaponPreviewTitle'){
         weaponPreview.style.display = 'none';
       }
+    });
+  }
+
+  // HUD close button handler
+  const btnCloseHUD = document.getElementById('btnCloseHUD');
+  if(btnCloseHUD){
+    btnCloseHUD.addEventListener('click', ()=>{
+      ui.toggleHud(false);
+    });
+    // Add hover effect
+    btnCloseHUD.addEventListener('mouseover', ()=>{
+      btnCloseHUD.style.color = 'rgba(255,255,255,1)';
+    });
+    btnCloseHUD.addEventListener('mouseout', ()=>{
+      btnCloseHUD.style.color = 'rgba(255,255,255,0.6)';
     });
   }
 

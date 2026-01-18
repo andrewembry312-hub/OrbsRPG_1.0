@@ -10,6 +10,7 @@ import { getAssetPath } from "./config.js";
 import { isMobile } from "./engine/mobile.js";
 import { createMobileUI, updateMobileAbilityIcons } from "./game/mobile-ui.js";
 import "./loadMapInit.js"; // Initialize map loader helper
+import initializeTutorialSystem from "./tutorial/tutorialSystem.js"; // Tutorial system
 
 const engine = initCanvas("c");
 const input = initInput(engine.canvas);
@@ -139,6 +140,9 @@ window.giveAllEffects = function() {
 async function initializeApp() {
   ui = buildUI(state);
   state.ui = ui;
+  
+  // NOTE: Tutorial system initialized later after character selection in onNewGame/onLoadGame
+  
   setupEventHandlers();
   
   // Start main menu music when app loads
@@ -197,6 +201,22 @@ function startGameLoop(){
   // Initialize logging system
   initGameLogging(state);
   
+  // Delay tutorial initialization until game loop is fully running (100ms)
+  // This prevents tutorial from interfering with initial load functions
+  if (!state.tutorial && !state._tutorialInitPending) {
+    state._tutorialInitPending = true;
+    setTimeout(() => {
+      if (!state.tutorial) {
+        console.log('[TUTORIAL] Initializing tutorial system after game loop start');
+        const tutorialSystem = initializeTutorialSystem(state, { itemDrops: [] });
+        state.tutorial = tutorialSystem.tutorial;
+        state.tutorialUI = tutorialSystem.ui;
+        state.tutorialTriggers = tutorialSystem.triggers;
+        state._tutorialInitPending = false;
+      }
+    }, 100);
+  }
+  
   // UI update throttling (4x per second instead of 60x)
   let uiUpdateTimer = 0;
   const UI_UPDATE_INTERVAL = 0.25; // 250ms = 4 updates/second
@@ -206,6 +226,11 @@ function startGameLoop(){
     try{ updateGame(state, dt); }catch(e){ console.error('update',e); showFatalError('Error in updateGame', e); }
     try{ render(state); }catch(e){ console.error('render',e); showFatalError('Error in render', e); }
     try{ updateAbilityCastDisplay(state, ui); }catch(e){ console.error('updateAbilityCastDisplay',e); }
+    
+    // Check tutorial triggers
+    if (state.tutorialUpdate) {
+      try{ state.tutorialUpdate(dt); }catch(e){ console.error('tutorial',e); }
+    }
     
     // Throttle UI updates to reduce DOM manipulation lag
     uiUpdateTimer += dt;
@@ -272,6 +297,11 @@ function setupEventHandlers(){
         // Now import the loaded save data to overwrite initialized state
         importSave(state, saveData);
         ui.toggleSaves(false);
+        
+        // Restore tutorial progress from save
+        if (state.tutorial) {
+          state.tutorial.loadProgress();
+        }
         
         // Stop main menu music and start game non-combat music AFTER initGame
         if(state.sounds?.mainMenuMusic && !state.sounds.mainMenuMusic.paused){

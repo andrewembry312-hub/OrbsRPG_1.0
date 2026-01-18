@@ -93,15 +93,15 @@ function loadBossIcons(){
   };
   
   Promise.all([
-    loadImage(getAssetPath('assets/boss icons/Archmage.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Balrogath.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Bloodfang.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Gorothar.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Malakir.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Tarrasque.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Venom Queen.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Vorrak.PNG')),
-    loadImage(getAssetPath('assets/boss icons/Zalthor.PNG'))
+    loadImage(getAssetPath('assets/boss icons/archmage.png')),
+    loadImage(getAssetPath('assets/boss icons/balrogath.png')),
+    loadImage(getAssetPath('assets/boss icons/bloodfang.png')),
+    loadImage(getAssetPath('assets/boss icons/gorothar.png')),
+    loadImage(getAssetPath('assets/boss icons/malakir.png')),
+    loadImage(getAssetPath('assets/boss icons/tarrasque.png')),
+    loadImage(getAssetPath('assets/boss icons/venom_queen.png')),
+    loadImage(getAssetPath('assets/boss icons/vorrak.png')),
+    loadImage(getAssetPath('assets/boss icons/zalthor.png'))
   ]).then(([archmage, balrogath, bloodfang, gorothar, malakir, tarrasque, venomQueen, vorrak, zalthor]) => {
     if(archmage) bossIcons.archmage = archmage;
     if(balrogath) bossIcons.balrogath = balrogath;
@@ -1621,17 +1621,18 @@ function drawFullMap(ctx, canvas, state){
 
 // Update on-screen ability cast display
 export function updateAbilityCastDisplay(state, ui){
-  // Allow display to show unless explicitly disabled
-  if(ui && ui.showAbilityDisplay && ui.showAbilityDisplay.checked === false) return;
-  
   const display = document.getElementById('abilityCastDisplay');
   const list = document.getElementById('abilityCastList');
   
   if(!display || !list) return;
   
+  // Check if display is enabled (default: enabled if checkbox is checked or missing)
+  const isDisplayEnabled = !ui?.showAbilityDisplay || ui.showAbilityDisplay.checked !== false;
+  
   const recentCasts = state.recentAbilityCasts || [];
   
-  if(recentCasts.length === 0){
+  // Hide if no casts or display disabled
+  if(recentCasts.length === 0 || !isDisplayEnabled){
     display.style.display = 'none';
     return;
   }
