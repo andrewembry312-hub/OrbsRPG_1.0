@@ -289,10 +289,10 @@ function setupEventHandlers(){
         state.paused = false;
         ui.setGameUIVisible(true);
         
-        // Create mobile ability buttons if on mobile device
-        if (isMobile()) {
-          createMobileAbiUI
-        createMobileUI(state);tartGameLoop();
+        // Create mobile UI
+        createMobileUI(state);
+        
+        startGameLoop();
       })();
     }catch(err){ console.error('LoadGame failed', err); showFatalError('Load Game failed', err); }
   };
