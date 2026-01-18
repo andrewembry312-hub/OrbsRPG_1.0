@@ -345,6 +345,17 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
    MOBILE UI STYLES - Complete Touch Control System
    ============================================ */
 
+/* Mobile UI Container - FIXED position unaffected by body scale */
+#mobileUIContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 200;
+}
+
 /* Mobile Action Buttons (A/B/X/Y style - bottom right) */
 .mobile-action-container {
   position: fixed;

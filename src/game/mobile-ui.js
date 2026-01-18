@@ -9,10 +9,10 @@ export function createMobileUI(state) {
   const existing = document.getElementById('mobileUIContainer');
   if (existing) existing.remove();
 
-  // Create main container
+  // Create main container - add to HTML (not body) so it's not affected by body scale transform
   const container = document.createElement('div');
   container.id = 'mobileUIContainer';
-  document.body.appendChild(container);
+  document.documentElement.appendChild(container);
 
   // Create action buttons (A/B/X/Y style)
   createActionButtons(container, state);
