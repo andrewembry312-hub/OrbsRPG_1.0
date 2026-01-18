@@ -8,11 +8,11 @@ export function createMobileAbilityButtons(state) {
   container.id = 'mobileAbilityButtons';
   container.style.cssText = `
     position: fixed;
-    bottom: 80px;
-    right: 12px;
+    bottom: 52px;
+    right: 8px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     z-index: 200;
   `;
 
@@ -23,17 +23,19 @@ export function createMobileAbilityButtons(state) {
     btn.textContent = i;
     btn.dataset.slot = i;
     btn.style.cssText = `
-      width: 56px;
-      height: 56px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      border: 3px solid rgba(212, 175, 55, 0.6);
+      border: 2px solid rgba(212, 175, 55, 0.6);
       background: rgba(0, 0, 0, 0.85);
       color: #d4af37;
-      font-size: 20px;
+      font-size: 16px;
       font-weight: bold;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       cursor: pointer;
       transition: all 0.15s;
+      padding: 0;
+      margin: 0;
     `;
 
     btn.addEventListener('touchstart', (e) => {
@@ -63,16 +65,18 @@ export function createMobileAbilityButtons(state) {
   potionBtn.className = 'mobileAbilityBtn';
   potionBtn.textContent = '🧪';
   potionBtn.style.cssText = `
-    width: 56px;
-    height: 56px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    border: 3px solid rgba(255, 107, 107, 0.6);
+    border: 2px solid rgba(255, 107, 107, 0.6);
     background: rgba(0, 0, 0, 0.85);
     color: #ff6b6b;
-    font-size: 24px;
+    font-size: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     cursor: pointer;
     transition: all 0.15s;
+    padding: 0;
+    margin: 0;
   `;
 
   potionBtn.addEventListener('touchstart', (e) => {

@@ -332,13 +332,15 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
 
 /* Mobile-specific styles */
 @media (max-width: 768px), (hover: none) {
-  /* Scale HUD for mobile */
+  /* Scale HUD for mobile - more compact */
   .hud {
-    width: 90vw;
-    left: 5vw;
-    top: 8px;
-    padding: 8px;
-    font-size: 12px;
+    width: 85vw !important;
+    max-width: 350px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: 4px !important;
+    padding: 6px !important;
+    font-size: 11px !important;
   }
 
   /* Larger touch-friendly buttons */
@@ -348,19 +350,34 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
     padding: 12px 16px !important;
   }
 
-  /* Compact ability bar for mobile */
+  /* Compact ability bar for mobile - smaller and centered */
   .abilBar {
-    bottom: 8px !important;
+    bottom: 4px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    gap: 8px !important;
-    padding: 8px !important;
+    gap: 4px !important;
+    padding: 4px 6px !important;
+    max-width: 90vw !important;
   }
 
   .abilBtn {
-    width: 48px !important;
-    height: 48px !important;
-    font-size: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 11px !important;
+    padding: 2px !important;
+  }
+
+  /* Minimap - much smaller on mobile */
+  #miniMap {
+    width: 120px !important;
+    height: 120px !important;
+    right: 4px !important;
+    top: 4px !important;
+  }
+
+  /* Hide cooldown numbers on mobile ability buttons - show icon only */
+  .abilBar .small {
+    display: none !important;
   }
 
   /* Mobile-friendly panels */
@@ -384,8 +401,27 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
 
   /* Bottom stats bar - compact for mobile */
   .bottomStats {
-    font-size: 11px !important;
-    padding: 6px !important;
+    font-size: 10px !important;
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+
+  .bottomStats .pill {
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+  }
+
+  /* Buff icons - smaller on mobile */
+  .buffIconsHud {
+    top: auto !important;
+    bottom: 52px !important;
+    right: 4px !important;
+    max-width: 200px !important;
+  }
+
+  .buffIcon {
+    width: 28px !important;
+    height: 28px !important;
   }
 
   /* Inventory grid - larger touch targets */
@@ -403,6 +439,8 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
     font-size: 14px;
     padding: 12px 16px;
     max-width: 90vw;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
   }
 
   /* Character select - stack vertically on mobile */
@@ -410,14 +448,34 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
     flex-direction: column !important;
     gap: 20px !important;
   }
+
+  /* Hide mobile ability buttons when UI is hidden */
+  body.ui-hidden #mobileAbilityButtons {
+    display: none !important;
+  }
 }
 
 /* Landscape mobile devices */
 @media (max-width: 900px) and (orientation: landscape) {
   .hud {
-    width: 280px;
-    font-size: 11px;
-    padding: 6px;
+    width: 280px !important;
+    font-size: 10px !important;
+    padding: 4px !important;
+  }
+
+  .abilBar {
+    bottom: 2px !important;
+    padding: 3px 5px !important;
+  }
+
+  .abilBtn {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  #miniMap {
+    width: 100px !important;
+    height: 100px !important;
   }
 
   .panel {

@@ -2,6 +2,7 @@ import { loadJson } from "../engine/util.js";
 import { DEFAULT_BINDS, ARMOR_SLOTS, KEYBIND_VERSION } from "./constants.js";
 import { defaultAbilitySlots, defaultPassives, getSkillById } from "./skills.js";
 import { META_LOADOUTS } from "./loadouts.js";
+import { isMobile } from "../engine/mobile.js";
 
 export function createState(engine, input, ui){
   // options + binds + saves
@@ -186,7 +187,7 @@ export function createState(engine, input, ui){
     // world / camera
     mapWidth: 0,
     mapHeight: 0,
-    camera: { x:0, y:0, zoom:1 },
+    camera: { x:0, y:0, zoom: isMobile() ? 0.67 : 1 }, // Zoomed out on mobile for better view
     mapOpen: false,
     mapView: { x:0, y:0, zoom:0.18 },
     trees: [],

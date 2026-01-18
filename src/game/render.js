@@ -240,6 +240,9 @@ function loadCachedImage(state, path){
   if(existing) return (existing.complete && existing.naturalWidth>0) ? existing : null;
   const img = new Image();
   img.src = path;
+  img.onerror = () => {
+    console.error(`[Asset Load Error] Failed to load: ${path}`);
+  };
   state._imgCache[path] = img;
   return (img.complete && img.naturalWidth>0) ? img : null;
 }
