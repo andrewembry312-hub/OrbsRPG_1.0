@@ -5287,7 +5287,7 @@ function updateFriendlies(state, dt){
       // - Elects a leader
       // - Leader computes/logs focus target + focusPos (does NOT affect current AI yet)
       // ─────────────────────────────────────────────────────────────────────────────
-      {
+      if(state.ui?.enableGuardBallLogging?.checked !== false) { // Disabled by default if checkbox missing, enabled by default if checked
         const kind = 'friendly';
         const siteKey = a.guardFlagId || a.homeSiteId || a.siteId || (guardSite?.id || null) || 'unknown';
         const ballId = `${kind}:${siteKey}`;
@@ -5408,7 +5408,7 @@ function updateFriendlies(state, dt){
             });
           }
         }
-      }
+      } // end guard ball logging guard (friendly)
       
       // ─────────────────────────────────────────────────────────────────────────────
       // TARGET SELECTION WITH COMMIT TIMER
@@ -6472,7 +6472,7 @@ function updateEnemies(state, dt){
       // ─────────────────────────────────────────────────────────────────────────────
       // SHARED GUARD BALL STATE (LOG-ONLY STEP)
       // ─────────────────────────────────────────────────────────────────────────────
-      {
+      if(state.ui?.enableGuardBallLogging?.checked !== false) { // Disabled by default if checkbox missing, enabled by default if checked
         const kind = 'enemy';
         const siteKey = e.guardFlagId || e.homeSiteId || e.siteId || (guardSite?.id || null) || 'unknown';
         const ballId = `${kind}:${siteKey}`;
@@ -6595,7 +6595,7 @@ function updateEnemies(state, dt){
             });
           }
         }
-      }
+      } // end guard ball logging guard (enemy)
       
       // ─────────────────────────────────────────────────────────────────────────────
       // TARGET SELECTION WITH COMMIT TIMER
