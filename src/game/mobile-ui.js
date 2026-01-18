@@ -3,16 +3,26 @@ import { isMobile } from "../engine/mobile.js";
 
 // Create all mobile UI elements
 export function createMobileUI(state) {
-  if (!isMobile()) return;
+  const mobile = isMobile();
+  console.log(`[MOBILE UI] createMobileUI called, isMobile=${mobile}, window.innerWidth=${window.innerWidth}, userAgent=${navigator.userAgent.substring(0, 50)}`);
+  
+  if (!mobile) {
+    console.log('[MOBILE UI] Not mobile, skipping mobile UI creation');
+    return;
+  }
 
   // Remove any existing mobile UI
   const existing = document.getElementById('mobileUIContainer');
-  if (existing) existing.remove();
+  if (existing) {
+    console.log('[MOBILE UI] Removing existing mobile UI container');
+    existing.remove();
+  }
 
   // Create main container - add to HTML (not body) so it's not affected by body scale transform
   const container = document.createElement('div');
   container.id = 'mobileUIContainer';
   document.documentElement.appendChild(container);
+  console.log('[MOBILE UI] Mobile UI container created and added to documentElement');
 
   // Create action buttons (A/B/X/Y style)
   createActionButtons(container, state);
@@ -28,6 +38,7 @@ export function createMobileUI(state) {
 
 // Action buttons (bottom-right) - A/B/X/Y style for attack, dodge, block, interact
 function createActionButtons(container, state) {
+  console.log('[MOBILE UI] Creating action buttons');
   const actionContainer = document.createElement('div');
   actionContainer.id = 'mobileActionButtons';
   actionContainer.className = 'mobile-action-container';
@@ -86,6 +97,7 @@ function createActionButtons(container, state) {
   });
 
   container.appendChild(actionContainer);
+  console.log('[MOBILE UI] Action buttons created and appended (4 buttons: A/B/X/Y)');
 }
 
 // Ability buttons (horizontal bar at top)
@@ -129,6 +141,7 @@ function createAbilityButtons(container, state) {
   });
 
   container.appendChild(abilityContainer);
+  console.log('[MOBILE UI] Ability buttons created and appended (6 buttons: abilities + potion)');
 }
 
 // Menu buttons (top-left corner) - Inventory, Skills, Map, etc.
@@ -165,6 +178,7 @@ function createMenuButtons(container, state) {
   });
 
   container.appendChild(menuContainer);
+  console.log('[MOBILE UI] Menu buttons created and appended (4 buttons: I/M/K/L)');
 }
 
 // Update ability cooldowns

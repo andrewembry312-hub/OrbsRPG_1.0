@@ -1,7 +1,25 @@
 // Mobile detection and touch control system
 export function isMobile() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-    || (window.innerWidth <= 768);
+  const userAgentCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const widthCheck = window.innerWidth <= 768;
+  const touchCheck = () => {
+    try {
+      document.createEvent('TouchEvent');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+  
+  const result = userAgentCheck || widthCheck || (touchCheck && window.matchMedia('(hover: none)').matches);
+  
+  // Log detection result for debugging
+  if (!window._mobileDetectionLogged) {
+    console.log(`[MOBILE DETECTION] UserAgent: ${userAgentCheck}, Width: ${widthCheck} (${window.innerWidth}px), Touch: ${touchCheck()}, Result: ${result}`);
+    window._mobileDetectionLogged = true;
+  }
+  
+  return result;
 }
 
 export function initMobileControls(canvas, input) {
