@@ -8398,6 +8398,42 @@ function updateSlashes(state, dt){
           if(healthPct <= 0.70) playOutpostFireSound(state, site);
         }
       }
+      // player melee can also damage creatures (dungeons/bosses)
+      const creatureArray = state.inDungeon ? state.dungeonCreatures : state.creatures;
+      for(let ci=creatureArray.length-1; ci>=0; ci--){
+        const c = creatureArray[ci];
+        const dx=c.x-originX, dy=c.y-originY;
+        const d=Math.hypot(dx,dy);
+        if(d>s.range) continue;
+        const ca=Math.atan2(dy,dx);
+        let diff=Math.abs(ca-ang);
+        diff=Math.min(diff, Math.PI*2-diff);
+        if(diff<=s.arc/2){
+          const oldHp = c.hp;
+          c.hp = Math.max(0, c.hp - s.dmg);
+          // Log slash damage to creatures
+          if(!state.creatureInteractions) state.creatureInteractions = [];
+          state.creatureInteractions.push({
+            t: state.campaign?.time || 0,
+            type: 'damage_from_slash',
+            creatureId: c.id || c.name || 'creature_' + ci,
+            damage: s.dmg,
+            oldHp: oldHp,
+            newHp: c.hp,
+            slashOriginX: originX,
+            slashOriginY: originY,
+            creatureX: c.x,
+            creatureY: c.y,
+            distance: d,
+            sourceAbilityId: s.sourceAbilityId || 'melee_slash'
+          });
+          // Apply DoT if present
+          if(s.dotId && s.dotId.length > 0){
+            if(!c.buffs) c.buffs = {};
+            c.buffs[s.dotId] = 3.0; // DoT duration
+          }
+        }
+      }
     }
   }
 }
@@ -11545,8 +11581,8 @@ function updateCreatures(state, dt){
       const d = Math.hypot((c.target.x||0) - c.x, (c.target.y||0) - c.y);
       const hitDist = (c.r||12) + (c.target.r||14) + 4;
       if(d <= hitDist){
-        c.hitCd = 0.65; // Same cooldown as enemies
-        const damage = c.contactDmg||6;
+        c.hitCd = 0.40; // Faster attack cooldown (reduced from 0.65)
+        const damage = Math.round((c.contactDmg||6) * 1.5); // 50% damage increase
         
         // Log creature attack to creatureInteractions
         if(!state.creatureInteractions) state.creatureInteractions = [];
