@@ -1,28 +1,24 @@
 import { loadJson } from "../engine/util.js";
-import { storageGet, storageSet, STORAGE_KEYS } from "../engine/storage.js";
 import { DEFAULT_BINDS, ARMOR_SLOTS, KEYBIND_VERSION } from "./constants.js";
 import { defaultAbilitySlots, defaultPassives, getSkillById } from "./skills.js";
 import { META_LOADOUTS } from "./loadouts.js";
-import { isMobile } from "../engine/mobile.js";
 
 export function createState(engine, input, ui){
   // options + binds + saves
-  let options = storageGet(STORAGE_KEYS.OPTIONS) ?? { showAim:true, showDebug:false, showDebugAI:false, showDebugAIEnemies:false, showAbilityDisplay:false, autoPickup:true };
+  let options = loadJson('orb_rpg_mod_opts') ?? { showAim:true, showDebug:false, showDebugAI:true, autoPickup:true };
   if(!options.hasOwnProperty('cameraMode')) options.cameraMode = 'follow';
   if(!options.hasOwnProperty('autoPickup')) options.autoPickup = true;
-  if(!options.hasOwnProperty('showDebugAI')) options.showDebugAI = false;
-  if(!options.hasOwnProperty('showDebugAIEnemies')) options.showDebugAIEnemies = false;
-  if(!options.hasOwnProperty('showAbilityDisplay')) options.showAbilityDisplay = false;
+  if(!options.hasOwnProperty('showDebugAI')) options.showDebugAI = true;
   
   // Load binds with version check - reset if version changed
-  let savedBinds = storageGet(STORAGE_KEYS.BINDS);
+  let savedBinds = loadJson('orb_rpg_mod_binds');
   let binds;
   if(savedBinds && savedBinds._version === KEYBIND_VERSION){
     binds = savedBinds;
   } else {
     binds = structuredClone(DEFAULT_BINDS);
     binds._version = KEYBIND_VERSION;
-    storageSet(STORAGE_KEYS.BINDS, binds);
+    localStorage.setItem('orb_rpg_mod_binds', JSON.stringify(binds));
   }
 
   // Always start fresh progression at level 1 (ignore saved progression for now)
@@ -34,7 +30,7 @@ export function createState(engine, input, ui){
     skillPoints: 0, // Skill points for slot unlocking/upgrading (1 per level)
     totalSkillPoints: 0 // Total SP earned (never decreases)
   };
-  const campaign = storageGet(STORAGE_KEYS.CAMPAIGN) ?? { playerPoints:0, enemyPoints:0, targetPoints:250, time:0 };
+  const campaign = loadJson('orb_rpg_mod_campaign') ?? { playerPoints:0, enemyPoints:0, targetPoints:250, time:0 };
   
   // Slot-based progression system
   const slotSystem = {
@@ -121,9 +117,9 @@ export function createState(engine, input, ui){
     currentHero: 'warrior', // track current hero class
     abilitySlots: defaultAbilitySlots(), // ALWAYS START EMPTY - new game always has empty ability slots
     heroAbilitySlots: { mage:defaultAbilitySlots(), warrior:defaultAbilitySlots(), knight:defaultAbilitySlots(), warden:defaultAbilitySlots() }, // Per-hero empty slots
-    // ABILITY LOADOUTS: Persists across new games (loaded from storage, not reset)
+    // ABILITY LOADOUTS: Persists across new games (loaded from localStorage, not reset)
     abilityLoadouts: (() => {
-      const saved = storageGet(STORAGE_KEYS.LOADOUTS);
+      const saved = loadJson('orb_rpg_mod_loadouts');
       if(saved) return saved; // Keep saved loadouts from previous games
       // Initialize with empty loadouts only if none exist
       return {
@@ -190,7 +186,7 @@ export function createState(engine, input, ui){
     // world / camera
     mapWidth: 0,
     mapHeight: 0,
-    camera: { x:0, y:0, zoom: isMobile() ? 0.67 : 1 }, // Zoomed out on mobile for better view
+    camera: { x:0, y:0, zoom:1 },
     mapOpen: false,
     mapView: { x:0, y:0, zoom:0.18 },
     trees: [],

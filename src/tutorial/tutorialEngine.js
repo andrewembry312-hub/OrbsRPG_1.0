@@ -3,6 +3,8 @@
  * Manages tutorial state, progression, triggers, and pause integration
  */
 
+import { storageGet, storageSet, STORAGE_KEYS } from "../engine/storage.js";
+
 export class TutorialEngine {
   constructor(state, ui) {
     this.state = state;
@@ -245,7 +247,7 @@ export class TutorialEngine {
   }
 
   /**
-   * Save progress to localStorage
+   * Save progress to storage
    */
   saveProgress() {
     const progress = {
@@ -255,18 +257,17 @@ export class TutorialEngine {
       triggers: Object.fromEntries(this.triggers),
       timestamp: Date.now()
     };
-    localStorage.setItem('tutorialProgress', JSON.stringify(progress));
+    storageSet(STORAGE_KEYS.TUTORIAL_PROGRESS, progress);
   }
 
   /**
-   * Load progress from localStorage
+   * Load progress from storage
    */
   loadProgress() {
     try {
-      const saved = localStorage.getItem('tutorialProgress');
-      if (!saved) return;
+      const progress = storageGet(STORAGE_KEYS.TUTORIAL_PROGRESS);
+      if (!progress) return;
       
-      const progress = JSON.parse(saved);
       this.enabled = progress.enabled !== false;
       this.completedTutorials = new Set(progress.completed || []);
       this.seenTutorials = new Set(progress.seen || []);

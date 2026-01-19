@@ -1,4 +1,5 @@
 import { clamp } from "../engine/util.js";
+import { storageGet, storageSet, STORAGE_KEYS } from "../engine/storage.js";
 
 // Extended ability details for UI display with targeting types
 export const ABILITIES = {
@@ -247,7 +248,7 @@ export function saveLoadout(state, heroClass, slotIndex, name) {
     slots: [...state.abilitySlots]
   };
   try {
-    localStorage.setItem('orb_rpg_mod_loadouts', JSON.stringify(state.abilityLoadouts));
+    storageSet(STORAGE_KEYS.LOADOUTS, state.abilityLoadouts);
     return true;
   } catch(e) {
     console.warn('[LOADOUT] Save failed:', e.message);

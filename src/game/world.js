@@ -1,4 +1,5 @@
 import { clamp, rand } from "../engine/util.js";
+import { awardXP } from "./game.js";
 // Note: applyClassToUnit and npcInitAbilities are passed as parameters to avoid circular dependencies
 
 // Expose map loading to global scope for easy access from console

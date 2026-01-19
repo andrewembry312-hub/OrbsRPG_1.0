@@ -1,5 +1,6 @@
 import { loadMapFromImage } from "./game/world.js";
 import { getAssetPath } from "./config.js";
+import { storageSet, STORAGE_KEYS } from "./engine/storage.js";
 
 window.loadMainWorldTest = async function() {
   try {
@@ -8,8 +9,8 @@ window.loadMainWorldTest = async function() {
     console.log('Loading MainWorldTest...');
     await loadMapFromImage(state, getAssetPath('assets/maps/MainWorldTest.png'));
     console.log('✓ MainWorldTest loaded');
-    // Store in localStorage so it persists through reload
-    localStorage.setItem('customMapPath', getAssetPath('assets/maps/MainWorldTest.png'));
+    // Store in storage so it persists through reload
+    storageSet(STORAGE_KEYS.CUSTOM_MAP_PATH, getAssetPath('assets/maps/MainWorldTest.png'));
     console.log('Restarting...');
     setTimeout(() => location.reload(), 500);
   } catch(err) {

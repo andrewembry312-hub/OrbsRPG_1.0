@@ -1,5 +1,4 @@
 import { saveJson, loadJson, clamp } from "../engine/util.js";
-import { storageGet, storageSet, STORAGE_KEYS, exportSavesAsFile, importSavesFromFile } from "../engine/storage.js";
 import { DEFAULT_BINDS, ACTION_LABELS, INV_SIZE, ARMOR_SLOTS, SLOT_LABEL } from "./constants.js";
 import { rarityClass } from "./rarity.js";
 import { currentStats, exportSave, importSave, applyClassToUnit, downloadErrorLog, downloadCombatLog, downloadPlayerLog, downloadDebugLog, downloadAIBehaviorLog, initConsoleErrorLogger } from "./game.js";
@@ -65,10 +64,6 @@ export function buildUI(state){
       </div>
     </div>
     <div class="hud" id="hud" style="margin-top:100px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div style="font-size:12px; color:rgba(255,255,255,0.6);">Press <strong>B</strong> to toggle HUD</div>
-        <button id="btnCloseHUD" style="background:none; border:none; color:rgba(255,255,255,0.6); cursor:pointer; font-size:18px; padding:0; width:24px; height:24px; display:flex; align-items:center; justify-content:center;" title="Toggle HUD (Press B)">✕</button>
-      </div>
       <div class="row">
         <div class="pill">Campaign</div>
         <div class="pill">Enemies <span id="enemyCount">0</span></div>
@@ -1451,6 +1446,12 @@ export function buildUI(state){
                 <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">Track all buffs, shields, heals, and HOTs cast by friendlies and enemies</div>
                 
                 <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="enableGuardBallLogging" checked style="cursor:pointer;">
+                  <span class="small" style="color:#ff6;">⚠️ PERFORMANCE: Guard AI Ball Logging</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">HIGH PERFORMANCE IMPACT: Logs guard defensive positioning every frame. Disable for better FPS with large enemy groups</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer;">
                   <input type="checkbox" id="enableAIBehaviorLog" checked style="cursor:pointer;">
                   <span class="small" style="color:#fc6;">AI Behavior Tracking</span>
                 </label>
@@ -1467,29 +1468,20 @@ export function buildUI(state){
               </div>
               
               <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.2);">
-                <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Guard Performance Options</div>
-                <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px; cursor:pointer;">
-                  <input type="checkbox" id="enableGuardBallLogging" checked style="cursor:pointer;">
-                  <span class="small" style="color:#9cf;">Guard Ball Logging</span>
-                </label>
-                <div class="small" style="margin-left:22px; margin-bottom:12px; color:#888; font-size:10px;">⚠️ <b>Performance Impact</b>: Calculates guard focus targeting coordination. <b>Disable to improve FPS</b> in large guard battles. Enable for performance debugging.</div>
-              </div>
-              
-              <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.2);">
                 <div class="small" style="font-weight:900; color:#d4af37; margin-bottom:6px;">Ability Tracking Options</div>
                 <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px; cursor:pointer;">
                   <input type="checkbox" id="trackFriendlyAbilities" checked style="cursor:pointer;">
                   <span class="small" style="color:#6cf;">Track Friendly Abilities</span>
                 </label>
-                <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px; cursor:pointer;">
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px; cursor:pointer;">
                   <input type="checkbox" id="trackEnemyAbilities" checked style="cursor:pointer;">
                   <span class="small" style="color:#f66;">Track Enemy Abilities</span>
                 </label>
-                <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px; cursor:pointer;">
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px; cursor:pointer;">
                   <input type="checkbox" id="showAbilityDisplay" checked style="cursor:pointer;">
                   <span class="small" style="color:#fc6;">Show Ability Cast Display</span>
                 </label>
-                <div class="small" style="margin-top:6px; color:#888; font-size:10px;"><b>Visual only</b> - Control tracking toggles for Ability Usage Log, toggle display to show/hide corner overlay. No performance impact.</div>
+                <div class="small" style="margin-top:6px; color:#888; font-size:10px;">Control which abilities are tracked in the Ability Usage Log and show real-time ability casts in corner.</div>
               </div>
               
               <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.2);">
@@ -1516,7 +1508,7 @@ export function buildUI(state){
 
     <!-- Ability Cast Display (Corner Overlay) -->
     <div id="abilityCastDisplay" style="position: fixed; bottom: 20px; left: 20px; width: 280px; max-height: 300px; background: rgba(0,0,0,0.85); border: 2px solid rgba(252,198,102,0.5); border-radius: 6px; padding: 8px; font-family: monospace; font-size: 11px; color: #aaf; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 0 10px rgba(0,0,0,0.8);">
-      <div style="color: #d4af37; font-weight: bold; margin-bottom: 6px;">Recent Ability Casts</div>
+      <div style="color: #d4af37; font-weight: bold; margin-bottom: 6px; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 4px;">Recent Ability Casts</div>
       <div id="abilityCastList" style="max-height: 260px; overflow-y: auto;"></div>
     </div>
 
@@ -1773,9 +1765,9 @@ function bindUI(state){
     enableDamageLog:$('enableDamageLog'),
     enableAbilityLog:$('enableAbilityLog'),
     enableEffectLog:$('enableEffectLog'),
+    enableGuardBallLogging:$('enableGuardBallLogging'),
     enableAIBehaviorLog:$('enableAIBehaviorLog'),
     enableConsoleLog:$('enableConsoleLog'),
-    enableGuardBallLogging:$('enableGuardBallLogging'),
     btnDownloadAllLogs:$('btnDownloadAllLogs'),
     optShowAim:$('optShowAim'),
     optShowDebugAI:$('optShowDebugAI'),
@@ -1872,21 +1864,6 @@ function bindUI(state){
     });
   }
 
-  // HUD close button handler
-  const btnCloseHUD = document.getElementById('btnCloseHUD');
-  if(btnCloseHUD){
-    btnCloseHUD.addEventListener('click', ()=>{
-      ui.toggleHud(false);
-    });
-    // Add hover effect
-    btnCloseHUD.addEventListener('mouseover', ()=>{
-      btnCloseHUD.style.color = 'rgba(255,255,255,1)';
-    });
-    btnCloseHUD.addEventListener('mouseout', ()=>{
-      btnCloseHUD.style.color = 'rgba(255,255,255,0.6)';
-    });
-  }
-
   // Debug: Check if market tab elements exist
   console.log('Market tab elements check:', {
     marketTabShop: !!ui.marketTabShop,
@@ -1937,8 +1914,8 @@ function bindUI(state){
   };
 
   // --- Save manager helpers ---
-  function listSaves(){ try{ return storageGet(STORAGE_KEYS.SAVES) || []; }catch{ return []; } }
-  function writeSaves(arr){ try{ storageSet(STORAGE_KEYS.SAVES, arr); return true; }catch(e){ console.warn('[SAVE] Storage full or unavailable:', e.message); return false; } }
+  function listSaves(){ try{ return JSON.parse(localStorage.getItem('orb_rpg_saves_mod')||'[]'); }catch{ return []; } }
+  function writeSaves(arr){ try{ localStorage.setItem('orb_rpg_saves_mod', JSON.stringify(arr)); return true; }catch(e){ console.warn('[SAVE] Storage full or unavailable:', e.message); return false; } }
   function saveNew(name){ 
     try{
       const data=exportSave(state); 
@@ -2056,9 +2033,9 @@ function bindUI(state){
 
   // Main menu helpers and handlers
   ui.hideMainMenu = ()=> ui.mainMenu.classList.remove('show');
-  // Main menu background: use default path; you can override via storage if needed
+  // Main menu background: use default path; you can override via localStorage if needed
   try{
-    const initBg = storageGet(STORAGE_KEYS.MENU_BG) || getAssetPath('assets/ui/MainMenu.png');
+    const initBg = localStorage.getItem('orb_rpg_menu_bg') || getAssetPath('assets/ui/MainMenu.png');
     ui.mainMenu.style.background = `url('${initBg}') center center/105% auto no-repeat #000`;
   }catch(e){}
 
@@ -5635,7 +5612,7 @@ function bindUI(state){
             if(confirm(`Delete "${loadout.name}"?`)){
               state.abilityLoadouts[heroClass][i] = { name: `Loadout ${i+1}`, slots: null };
               try {
-                storageSet(STORAGE_KEYS.LOADOUTS, state.abilityLoadouts);
+                localStorage.setItem('orb_rpg_mod_loadouts', JSON.stringify(state.abilityLoadouts));
                 ui.toast(`<b>${loadout.name}</b> deleted!`);
                 ui.renderSkills();
               } catch(err) {
