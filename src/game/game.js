@@ -114,6 +114,9 @@ export function hardResetGameState(state){
   state.effects.leapIndicators = [];
   state.effects.bolts = [];
   
+  // Track creature interactions for debugging ability/damage issues
+  state.creatureInteractions = [];  // Log of all creature-related events (damage, attacks, ability casts)
+  
   // Reset group system
   state.group = {
     members: [],
@@ -5194,6 +5197,9 @@ function updateFriendlies(state, dt){
       const roleLeash = role==='HEALER' ? Math.min(leash, 180) : (role==='TANK' ? leash+30 : leash);
       const chaseAllowed = (role==='HEALER' ? false : bb.chaseAllowed) && distAnchor <= roleLeash * 1.35;
       const macroStack = macro === 'stack' || !chaseAllowed;
+      
+      // SCOUT MODE: If in stack macro and no enemies in sight, search for them instead of idling
+      const shouldScout = macroStack && !roleTarget && near.d > 240;
 
       // HARDCODED PRIORITY #1: ALWAYS follow the player in formation unless far outside leash
       if(distAnchor > roleLeash * 1.1){
@@ -5201,6 +5207,15 @@ function updateFriendlies(state, dt){
         tx = anchorX; ty = anchorY;
         a.speed = distAnchor > roleLeash * 1.5 ? 165 : 140;
         recordPriority(a, state, 'return_to_leader', 'friendly');
+      } else if(shouldScout && role !== 'HEALER'){
+        // Scout out to find enemies instead of sitting idle in formation
+        // Use spiral search pattern radiating from leader
+        const scoutDist = (a.id || 0) % 200 + 150; // 150-350 unit scout radius per unit
+        const scoutAngle = (state.campaign.time * 0.5 + (a.id || 0)) % (Math.PI * 2);
+        tx = anchorX + Math.cos(scoutAngle) * scoutDist;
+        ty = anchorY + Math.sin(scoutAngle) * scoutDist;
+        a.speed = 130;
+        recordPriority(a, state, 'scout_for_enemies', 'friendly');
       } else if(macroStack || !roleTarget){
         // If very far from leader, ignore formation and go straight to leader to catch up
         if(distAnchor > roleLeash * 0.9){
@@ -8326,7 +8341,26 @@ function updateWells(state, dt){
         for(let i=state.creatures.length-1;i>=0;i--){
           const c=state.creatures[i];
           if(Math.hypot(c.x-w.x, c.y-w.y)<=w.r){
+            const oldHp = c.hp;
             c.hp = Math.max(0, c.hp - w.dmgPerTick);
+            // Log creature damage event
+            if(!state.creatureInteractions) state.creatureInteractions = [];
+            state.creatureInteractions.push({
+              t: state.campaign?.time || 0,
+              type: 'damage_from_well',
+              creatureId: c.id || c.name || 'creature_' + i,
+              wellId: w.id,
+              ability: w.sourceAbilityId || 'unknown',
+              damage: w.dmgPerTick,
+              oldHp: oldHp,
+              newHp: c.hp,
+              wellX: w.x,
+              wellY: w.y,
+              wellRadius: w.r,
+              creatureX: c.x,
+              creatureY: c.y,
+              distance: Math.hypot(c.x-w.x, c.y-w.y)
+            });
             // Apply slow and curse to creatures too
             if(!c.buffs) c.buffs = {};
             c.buffs.slow = 2.0; // 2 second slow
@@ -11347,6 +11381,23 @@ function updateCreatures(state, dt){
       c.target = nearest;
       c.attacked = true;
       
+      // Log creature aggro/targeting
+      if(!state.creatureInteractions) state.creatureInteractions = [];
+      state.creatureInteractions.push({
+        t: state.campaign?.time || 0,
+        type: 'creature_aggro',
+        creatureId: c.id || c.name || 'creature',
+        creatureKey: c.key,
+        creatureType: c.boss ? 'boss' : 'creature',
+        targetType: nearest === state.player ? 'player' : (state.friendlies.includes(nearest) ? 'friendly' : 'enemy'),
+        targetName: nearest.name || nearest.variant || (nearest === state.player ? 'Player' : 'unknown'),
+        distance: Math.hypot(nearest.x - c.x, nearest.y - c.y),
+        creatureX: c.x,
+        creatureY: c.y,
+        targetX: nearest.x,
+        targetY: nearest.y
+      });
+      
       // Calculate stopping distance (attack range + small buffer)
       const stopDist = (c.r||12) + (nearest.r||14) + 8;
       const distToTarget = Math.hypot(nearest.x - c.x, nearest.y - c.y);
@@ -11387,6 +11438,25 @@ function updateCreatures(state, dt){
       const hitDist = (c.r||12) + (c.target.r||14) + 4;
       if(d <= hitDist){
         c.hitCd = 0.65; // Same cooldown as enemies
+        const damage = c.contactDmg||6;
+        
+        // Log creature attack to creatureInteractions
+        if(!state.creatureInteractions) state.creatureInteractions = [];
+        state.creatureInteractions.push({
+          t: state.campaign?.time || 0,
+          type: 'creature_attack',
+          creatureId: c.id || c.name || 'creature',
+          creatureKey: c.key,
+          creatureType: c.boss ? 'boss' : 'creature',
+          targetType: c.target === state.player ? 'player' : (state.friendlies.includes(c.target) ? 'friendly' : 'enemy'),
+          targetName: c.target.name || c.target.variant || (c.target === state.player ? 'Player' : 'unknown'),
+          damage: damage,
+          distance: d,
+          creatureX: c.x,
+          creatureY: c.y,
+          targetX: c.target.x||0,
+          targetY: c.target.y||0
+        });
         
         // Log creature attack (2% sample rate)
         if(state.debugLog && Math.random() < 0.02){
