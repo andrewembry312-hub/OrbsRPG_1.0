@@ -4211,7 +4211,14 @@ function bindUI(state){
     if(!itemType) return null;
     
     const key = `${rarity}_${itemType}`;
-    return ITEM_ICON_MAP[key] || null;
+    const result = ITEM_ICON_MAP[key] || null;
+    
+    // Debug logging for uncommon helm (Hunter Hood)
+    if(item.name?.includes('Hunter Hood')){
+      console.log('[DEBUG] Hunter Hood item:', {itemName: item.name, rarity, itemType, key, mapHasKey: !!ITEM_ICON_MAP[key], result});
+    }
+    
+    return result;
   }
 
   const ICON_FALLBACKS = {
