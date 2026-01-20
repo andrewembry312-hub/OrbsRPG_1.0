@@ -1101,7 +1101,7 @@ function makeArmor(slot, rarity, itemLevel = 1){
       : Math.round(scaled);
   }
   
-  return {
+  const result = {
     id:Math.random().toString(16).slice(2),
     kind:'armor',
     slot,
@@ -1111,6 +1111,13 @@ function makeArmor(slot, rarity, itemLevel = 1){
     desc:`Level ${itemLevel} ${SLOT_LABEL[slot]} armor. Buffs: ${describeBuffs(scaledBuffs)}`,
     buffs:scaledBuffs
   };
+  
+  // Debug logging for Hunter Hood
+  if(pick.name === 'Hunter Hood'){
+    console.log('[DEBUG makeArmor] Creating Hunter Hood:', {slot, rarity: rarity.key, kind: result.kind, resultSlot: result.slot});
+  }
+  
+  return result;
 }
 
 function describeElementals(effects){
