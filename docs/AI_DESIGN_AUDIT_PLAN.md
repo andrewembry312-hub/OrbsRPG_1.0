@@ -152,6 +152,13 @@ This is organized into **6 batches** for manageable review:
 - [ ] Guards return to post when leash exceeded (320 units)
 - [ ] Speed progression: 0→30→110→140 working
 
+**TEAM COORDINATION (CRITICAL):**
+- [ ] **Shared Aggro:** If one guard is aggroed, do ALL guards go ACTIVE_DEFENSE?
+- [ ] **Group Cohesion:** Do all 5 guards activate as a unit or independently?
+- [ ] **Role Support:** Do healers stay 110-190u away to support DPS? (healing range)
+- [ ] **Threat Sharing:** Do guards distribute threat or all focus on one target?
+- [ ] **Formation Anchor:** When one guard is aggroed, does formation move as group?
+
 **Idle Investigation:**
 - [ ] **Speed Bug:** Are guards stuck at speed 0 when should be 110+?
 - [ ] **Pathfinding:** Do guards reach objective or stop halfway?
@@ -162,17 +169,19 @@ This is organized into **6 batches** for manageable review:
 - Consider faster state transitions (0.5s instead of 0.75s return delay)
 - Add logging: "Guard speed changing to X" for each transition
 - Validate formation slot positions not overlapping
+- Add group broadcast: when one guard is aggroed, broadcast to squad (efficiency)
 
 **Evidence Needed:** 
 - Guard position logs from debug log
 - Guard state transitions (IDLE/ACTIVE/RETURN)
 - Guard spacing verification
+- Guard squad coordination logs (all guard aggro times should match)
 
 ---
 
-## TODO 1.2: Review Guard State Machine (IDLE/ACTIVE/RETURN)
+## TODO 1.2: Review Guard State Machine (IDLE/ACTIVE/RETURN) & TEAM COORDINATION
 **Status:** NOT STARTED  
-**Expected:** 3-state machine with clean transitions  
+**Expected:** 3-state machine with clean transitions + group coordination  
 **Implementation:** src/game/game.js lines 5620-5700  
 **Verify State Flow:**
 - [ ] IDLE_DEFENSE: Guards at slots, speed=0, waiting
@@ -180,6 +189,13 @@ This is organized into **6 batches** for manageable review:
 - [ ] RETURN_TO_POST: Guards returning to slots, speed=110
 - [ ] State duration timers (0.75s no-threat to return to IDLE)
 - [ ] Commitment timers preventing thrashing
+
+**TEAM COORDINATION CHECK:**
+- [ ] **Group Aggro:** When one guard detects threat, do ALL guards go ACTIVE?
+- [ ] **Synchronized Timing:** Do all guards transition IDLE→ACTIVE at same time or separately?
+- [ ] **Threat Sharing:** Can multiple guards attack same target without competing?
+- [ ] **Role Coordination:** Healers position 110-190u away, DPS in front (supporting role)
+- [ ] **No Friendly Fire:** Are guards careful not to attack each other?
 
 **Idle Investigation (CRITICAL):**
 - [ ] **State Trap:** Guards stuck in IDLE_DEFENSE despite player nearby?
@@ -192,24 +208,37 @@ This is organized into **6 batches** for manageable review:
 - Add detailed logging: "Guard state change: IDLE_DEFENSE → ACTIVE_DEFENSE (reason: player in range)"
 - Consider reducing commitment timer from 1.0s to 0.5s for snappier response
 - Log why state transitions fail (e.g., "cannot transition: threat_detected=false")
+- Add squad coordination log: "Guard [name] aggroed → all squad members go ACTIVE"
+- Log role positions: "Healers at [dist]u, DPS at [dist]u (support range 110-190u)"
 
 **Issue from Logs:** Guards appear to never reach ACTIVE_DEFENSE
+**Team Issue:** Possibly guards are activating individually instead of as coordinated squad
 
 ---
 
-## TODO 1.3: Review Guard Aggro & Threat Detection
+## TODO 1.3: Review Guard Aggro & Threat Detection (SHARED SQUAD MECHANICS)
 **Status:** NOT STARTED  
 **Expected Design:** 
 - Aggro Range: 280 units
 - Defense Zone: 150 units
 - Pre-fight buffs trigger at aggro range
+- **GROUP BEHAVIOR:** When ONE guard detects threat, ENTIRE squad goes ACTIVE
   
 **Current Issue:** Enemies logged 100+ out-of-range attacks  
+
+**SHARED SQUAD AGGRO:**
+- [ ] **Squad Threat Detection:** Does one guard's aggro trigger entire squad aggro?
+- [ ] **Threat Broadcast:** Is threat detection shared between squad members?
+- [ ] **Synchronized Response:** All guards activate within 1 frame or separate?
+- [ ] **Threat Priority:** Do guards focus fire on same target or distribute?
+- [ ] **Healer Support:** Do healers stay in support range (110-190u) when squad is active?
+
 **Check:** 
 - [ ] Guard aggro range calculation
 - [ ] Guard priority targeting system
 - [ ] Threat assessment (targetPriority values)
 - [ ] Pre-fight buff triggers
+- [ ] Squad coordination (all guards see same threat)
 
 ---
 
