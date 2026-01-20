@@ -421,8 +421,8 @@ export function buildUI(state){
                 <div id="levelTabXpText" style="font-size:11px; color:#888; text-align:center; margin-top:4px;">0 / 100 XP</div>
               </div>
               
-              <!-- Level Info Grid -->
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 20px; margin-bottom:16px;">
+              <!-- Level Info Grid (3-column: Level, Stat Points, Skill Points) -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; padding:0 20px; margin-bottom:16px;">
                 <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; border:1px solid #3a3a3a;">
                   <div style="font-size:11px; color:#888; margin-bottom:4px;">CURRENT LEVEL</div>
                   <div id="levelTabCurrentLevel" style="font-size:20px; font-weight:bold; color:#d4af37;">1</div>
@@ -430,6 +430,10 @@ export function buildUI(state){
                 <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; border:1px solid #3a3a3a;">
                   <div style="font-size:11px; color:#888; margin-bottom:4px;">STAT POINTS</div>
                   <div id="levelTabStatPoints" style="font-size:20px; font-weight:bold; color:#4a9eff;">0</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; border:1px solid #3a3a3a;">
+                  <div style="font-size:11px; color:#888; margin-bottom:4px;">SKILL POINTS</div>
+                  <div id="levelTabSkillPoints" style="font-size:20px; font-weight:bold; color:#b56cff;">0</div>
                 </div>
               </div>
               
@@ -1724,7 +1728,7 @@ function bindUI(state){
     b_hpText:$('b_hpText'), b_manaText:$('b_manaText'), b_stamText:$('b_stamText'),
     levelNumber:$('levelNumber'),
     levelTabLevelNum:$('levelTabLevelNum'), levelTabXpFill:$('levelTabXpFill'), levelTabXpText:$('levelTabXpText'),
-    levelTabCurrentLevel:$('levelTabCurrentLevel'), levelTabStatPoints:$('levelTabStatPoints'),
+    levelTabCurrentLevel:$('levelTabCurrentLevel'), levelTabStatPoints:$('levelTabStatPoints'), levelTabSkillPoints:$('levelTabSkillPoints'),
     levelUpNotification:$('levelUpNotification'), levelUpText:$('levelUpText'), levelUpNumber:$('levelUpNumber'),
     bombNotification:$('bombNotification'), bombText:$('bombText'), bombNumber:$('bombNumber'),
     killCounterValue:$('killCounterValue'), biggestBombValue:$('biggestBombValue'),
@@ -5787,6 +5791,7 @@ function bindUI(state){
       if(ui.levelTabXpText) ui.levelTabXpText.textContent = `${Math.floor(currentXP)} / ${xpMax} XP`;
       if(ui.levelTabCurrentLevel) ui.levelTabCurrentLevel.textContent = level;
       if(ui.levelTabStatPoints) ui.levelTabStatPoints.textContent = state.progression?.statPoints || 0;
+      if(ui.levelTabSkillPoints) ui.levelTabSkillPoints.textContent = state.progression?.skillPoints || 0;
     }
     
     // Calculate armor star rating (0-5 stars based on def value)

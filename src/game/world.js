@@ -440,11 +440,10 @@ export function spawnGuardsForSite(state, site, count=5){
     maxGuardsAllowed = slotData.filter(s => s.unlocked).length;
     console.log('[spawnGuardsForSite] Player team - unlocked guard slots:', maxGuardsAllowed);
   } else if (site.owner === 'teamA' || site.owner === 'teamB' || site.owner === 'teamC') {
-    // AI team (non-base flags): mirror player's unlocked slots
-    const teamKey = site.owner; // 'teamA', 'teamB', or 'teamC'
-    slotData = state.slotSystem?.aiTeams?.[teamKey]?.guards || [];
-    maxGuardsAllowed = slotData.filter(s => s.unlocked).length;
-    console.log(`[spawnGuardsForSite] ${site.owner} flag - mirrored unlocked guard slots:`, maxGuardsAllowed);
+    // AI team (non-base flags): INDEPENDENT - always allow 5 guards (NOT limited by player slots)
+    // NOTE: Enemy teams should NOT be limited by player progression
+    maxGuardsAllowed = 5;
+    console.log(`[spawnGuardsForSite] ${site.owner} flag - INDEPENDENT guards (5 allowed, not limited by player slots)`);
   } else {
     // Fallback for other teams (shouldn't happen in normal gameplay)
     maxGuardsAllowed = 5;
