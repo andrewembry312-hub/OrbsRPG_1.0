@@ -19,7 +19,7 @@ export function buildUI(state){
     <!-- Main Menu Overlay -->
     <div id="mainMenu" class="overlay show" style="background: url('" + getAssetPath('assets/ui/MainMenu.png') + "') center center/105% auto no-repeat #000;">
       <div class="panel" style="width:min(560px,92vw); background: rgba(0,0,0,0.65); border:2px solid rgba(212,175,55,0.5); box-shadow:0 0 24px rgba(212,175,55,0.25);">
-        <h2 style="margin:0; color:#e9d27b; letter-spacing:1px; text-shadow:0 0 12px rgba(212,175,55,0.55);">Orb RPG</h2>
+        <h2 style="margin:0; color:#e9d27b; letter-spacing:3px; font-size:52px; font-weight:900; text-shadow:0 4px 12px rgba(212,175,55,0.8), -2px -2px 8px rgba(0,0,0,0.9), 2px 2px 8px rgba(212,175,55,0.4), 0 0 20px rgba(212,175,55,0.6); transform:perspective(800px) rotateX(-5deg) rotateZ(1deg); -webkit-text-fill-color:#f4e4a6; -webkit-text-stroke:1px rgba(212,175,55,0.5); filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.7)) drop-shadow(0 0 8px rgba(212,175,55,0.5));">ELDENS ORBS</h2>
         
         <div class="box" style="background:rgba(5,5,5,0.75); border:2px solid rgba(212,175,55,0.35); box-shadow:0 0 12px rgba(212,175,55,0.18);">
           <div class="row" style="align-items:center; gap:10px">
