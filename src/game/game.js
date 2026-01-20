@@ -5641,6 +5641,22 @@ function updateFriendlies(state, dt){
       }
       
       // ─────────────────────────────────────────────────────────────────────────────
+      // COLLISION PREVENTION: Prevent guards from stacking on player
+      // ─────────────────────────────────────────────────────────────────────────────
+      if(!state.player.dead){
+        const MIN_GUARD_PLAYER_DIST = 40;  // Minimum separation (2x guard radius)
+        const guardPlayerDist = Math.hypot(a.x - state.player.x, a.y - state.player.y);
+        
+        if(guardPlayerDist < MIN_GUARD_PLAYER_DIST && guardPlayerDist > 0.1){
+          // Push guard away from player
+          const angle = Math.atan2(a.y - state.player.y, a.x - state.player.x);
+          const pushForce = (MIN_GUARD_PLAYER_DIST - guardPlayerDist) * 0.5;
+          a.x += Math.cos(angle) * pushForce;
+          a.y += Math.sin(angle) * pushForce;
+        }
+      }
+      
+      // ─────────────────────────────────────────────────────────────────────────────
       // STATE EXECUTION
       // ─────────────────────────────────────────────────────────────────────────────
       
@@ -5742,6 +5758,13 @@ function updateFriendlies(state, dt){
       // ─────────────────────────────────────────────────────────────────────────────
       // MOVEMENT EXECUTION (match enemy guard behavior)
       // ─────────────────────────────────────────────────────────────────────────────
+      // CRITICAL FIX: Enforce speed cap (140 max) before movement
+      const GUARD_SPEED_CAP = 140;
+      if(a.speed > GUARD_SPEED_CAP){
+        console.warn(`[GUARD] Speed violation: ${a.speed} > ${GUARD_SPEED_CAP} - capped`);
+        a.speed = GUARD_SPEED_CAP;
+      }
+      
       const cc = getCcState(a);
       if(a.speed > 0){
         const slowFactor = (a.inWater ? 0.45 : 1.0) * ((cc.rooted||cc.stunned) ? 0 : Math.max(0, 1 + cc.speedMod));
@@ -9113,12 +9136,30 @@ function spawnDungeonEnemies(state, dungeon){
     const cx = dungeon.x;
     const cy = dungeon.y;
     
-    // Start dungeon music
-    if(state.sounds?.dungeonMusic){
-      if(state.sounds.gameNonCombatMusic && !state.sounds.gameNonCombatMusic.paused) state.sounds.gameNonCombatMusic.pause();
-      if(state.sounds.gameCombatMusic && !state.sounds.gameCombatMusic.paused) state.sounds.gameCombatMusic.pause();
+    // CRITICAL FIX: Stop ALL active music tracks before starting dungeon music
+    if(state.sounds){
+      // Stop all existing tracks completely
+      if(state.sounds.gameNonCombatMusic && !state.sounds.gameNonCombatMusic.paused){
+        state.sounds.gameNonCombatMusic.pause();
+        state.sounds.gameNonCombatMusic.currentTime = 0;
+      }
+      if(state.sounds.gameCombatMusic && !state.sounds.gameCombatMusic.paused){
+        state.sounds.gameCombatMusic.pause();
+        state.sounds.gameCombatMusic.currentTime = 0;
+      }
+      if(state.sounds.emperorAttackMusic && !state.sounds.emperorAttackMusic.paused){
+        state.sounds.emperorAttackMusic.pause();
+        state.sounds.emperorAttackMusic.currentTime = 0;
+      }
+      if(state.sounds.bossIntro && !state.sounds.bossIntro.paused){
+        state.sounds.bossIntro.pause();
+        state.sounds.bossIntro.currentTime = 0;
+      }
+      
+      // Now start dungeon music cleanly
       state.sounds.dungeonMusic.currentTime = 0;
       state.sounds.dungeonMusic.play().catch(e => console.warn('Dungeon music failed:', e));
+      console.log('[DUNGEON MUSIC] All tracks stopped, dungeon music started');
     }
     
     // Spawn creatures in proper formation
@@ -9141,7 +9182,9 @@ function spawnDungeonEnemies(state, dungeon){
         creature.r = (creature.r || 12) + 2;
         creature.groupState = 'IDLE_FORMATION';
         creature.groupPriority = comp.role === 'tank' ? 100 : (comp.role === 'damage' ? 80 : 60);
-        console.log(`[DUNGEON] Creature ${creature.id} spawned at formation anchor (${x.toFixed(0)}, ${y.toFixed(0)}), role: ${comp.role}`);
+        // CRITICAL FIX: Force attack state so creatures engage immediately on spawn
+        creature.attacked = true;
+        console.log(`[DUNGEON] Creature ${creature.id} spawned at formation anchor (${x.toFixed(0)}, ${y.toFixed(0)}), role: ${comp.role} - ATTACK STATE ENABLED`);
       }
     }
     
@@ -9168,7 +9211,9 @@ function spawnDungeonEnemies(state, dungeon){
       boss.abilityCooldown = 0;
       boss.groupState = 'COMBAT_THREAT';
       boss.groupPriority = 200;
-      console.log(`[DUNGEON] Boss spawned: ${dungeon.savedGroup.boss.profile.name} with ${boss.abilities.length} abilities`);
+      // CRITICAL FIX: Force boss to attack immediately on spawn
+      boss.attacked = true;
+      console.log(`[DUNGEON] Boss spawned: ${dungeon.savedGroup.boss.profile.name} with ${boss.abilities.length} abilities - ATTACK STATE ENABLED`);
     }
     
     console.log('[DUNGEON] Spawned dungeon group:', dungeon.savedGroup.creatures.length + 1, 'creatures');
