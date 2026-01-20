@@ -1934,6 +1934,10 @@ export function awardXP(state, amount){
     if (state.ui && state.ui.renderHud) {
       state.ui.renderHud(currentStats(state));
     }
+    // Update Level tab to refresh point displays
+    if (state.ui && state.ui.renderLevel) {
+      state.ui.renderLevel();
+    }
     saveJson('orb_rpg_mod_prog', state.progression);
   }
 }
