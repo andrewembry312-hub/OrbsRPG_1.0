@@ -481,16 +481,21 @@ export async function initGame(state){
       // Spend SP and unlock slot
       state.progression.skillPoints -= cost;
       slot.unlocked = true;
-      console.log(`✅ Unlocked ${slotId}! (${state.progression.skillPoints} SP remaining)`);
+      if(state.debugLog) console.log(`✅ Unlocked ${slotId}! (${state.progression.skillPoints} SP remaining)`);
       
       // Mirror to AI teams instantly
       mirrorSlotToAI(state, slotId, 'unlock');
+      
+      // Update Level Tab immediately
+      if(state.ui && state.ui.levelTabSkillPoints) {
+        state.ui.levelTabSkillPoints.textContent = state.progression.skillPoints || 0;
+      }
       
       // If guard slot and player owns any flags, spawn guards
       if (slotId.startsWith('guard_')) {
         const playerFlags = state.sites.filter(s => s.owner === 'player' && s.id?.startsWith('site_'));
         if (playerFlags.length > 0) {
-          console.log(`🛡️ Guard slot unlocked! Spawning guards at ${playerFlags.length} player-owned flags...`);
+          if(state.debugLog) console.log(`🛡️ Guard slot unlocked! Spawning guards at ${playerFlags.length} player-owned flags...`);
           playerFlags.forEach(flag => {
             // Spawn one guard at each owned flag (respects slot limits)
             if (typeof spawnGuardsForSite === 'function') {
@@ -530,7 +535,12 @@ export async function initGame(state){
       // Spend SP and upgrade slot
       state.progression.skillPoints -= cost;
       slot.level += 1;
-      console.log(`✅ Upgraded ${slotId} to level ${slot.level}! (${state.progression.skillPoints} SP remaining)`);
+      if(state.debugLog) console.log(`✅ Upgraded ${slotId} to level ${slot.level}! (${state.progression.skillPoints} SP remaining)`);
+      
+      // Update Level Tab immediately
+      if(state.ui && state.ui.levelTabSkillPoints) {
+        state.ui.levelTabSkillPoints.textContent = state.progression.skillPoints || 0;
+      }
       
       // Mirror to AI teams instantly
       mirrorSlotToAI(state, slotId, 'upgrade');
@@ -579,7 +589,7 @@ export async function initGame(state){
       }
       
       slot.loadoutId = loadoutId;
-      console.log(`✅ Assigned ${loadout.name} to ${slotId}`);
+      if(state.debugLog) console.log(`✅ Assigned ${loadout.name} to ${slotId}`);
       
       // Mirror to AI teams
       mirrorSlotToAI(state, slotId, 'loadout', loadoutId);
@@ -663,7 +673,7 @@ export async function initGame(state){
       if (state.progression.skillPoints < lockedCount) {
         const needed = lockedCount - state.progression.skillPoints;
         state.progression.skillPoints += needed;
-        console.log(`💎 Added ${needed} SP for unlocking (total: ${state.progression.skillPoints})`);
+        if(state.debugLog) console.log(`💎 Added ${needed} SP for unlocking (total: ${state.progression.skillPoints})`);
       }
       
       // Unlock all slots
@@ -674,7 +684,7 @@ export async function initGame(state){
         }
       });
       
-      console.log(`✅ Unlocked ${unlocked} slots! All 15 slots now available.`);
+      if(state.debugLog) console.log(`✅ Unlocked ${unlocked} slots! All 15 slots now available.`);
       return true;
     }
   };
@@ -6358,7 +6368,7 @@ function killFriendly(state, idx, scheduleRespawn=true){
       const site = state.sites.find(s=>s.id===f.siteId);
       if(site){
         site.guardRespawns.push(30.0);
-        console.log(`[GUARD] ${f.name} at ${site.name} died. Respawning in 30s.`);
+        if(state.debugLog) console.log(`[GUARD] ${f.name} at ${site.name} died. Respawning in 30s.`);
         state.ui?.toast(`⚠️ Guard <b>${f.name}</b> at <b>${site.name}</b> died. Respawning in 30s.`);
       }
       state.friendlies.splice(idx,1);
