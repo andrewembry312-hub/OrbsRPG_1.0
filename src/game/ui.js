@@ -4215,7 +4215,7 @@ function bindUI(state){
     
     // Debug logging for uncommon helm (Hunter Hood)
     if(item.name?.includes('Hunter Hood')){
-      console.log('[DEBUG] Hunter Hood item:', {itemName: item.name, rarity, itemType, key, mapHasKey: !!ITEM_ICON_MAP[key], result});
+      console.log('[DEBUG Hunter Hood]', 'name:', item.name, 'kind:', item.kind, 'slot:', item.slot, 'rarity.key:', item.rarity?.key, 'itemType:', itemType, 'key:', key, 'mapResult:', result);
     }
     
     return result;
