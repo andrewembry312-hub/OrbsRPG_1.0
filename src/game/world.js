@@ -422,7 +422,7 @@ export function spawnGuardsForSite(state, site, count=5){
   const applyClassToUnit = state._npcUtils?.applyClassToUnit;
   const npcInitAbilities = state._npcUtils?.npcInitAbilities;
   
-  // SLOT SYSTEM: Determine how many guards can spawn based on unlocked slots
+  // SLOT SYSTEM: Determine how many guards can spawn based on filled slots
   let maxGuardsAllowed = 0;
   let slotData = null;
   
@@ -435,10 +435,12 @@ export function spawnGuardsForSite(state, site, count=5){
     maxGuardsAllowed = 5;
     console.log(`[spawnGuardsForSite] AI base ${site.id} - allowing 5 guards (no slot check)`);
   } else if (site.owner === 'player') {
-    // Player team: check unlocked guard slots
+    // Player team: ONLY spawn guards from FILLED slots (cards assigned to slots)
+    // Player must actively assign cards to slots - empty slots do NOT spawn guards
     slotData = state.slotSystem?.guards || [];
-    maxGuardsAllowed = slotData.filter(s => s.unlocked).length;
-    console.log('[spawnGuardsForSite] Player team - unlocked guard slots:', maxGuardsAllowed);
+    const filledSlots = slotData.filter(s => s.unlocked && s.loadoutId);
+    maxGuardsAllowed = filledSlots.length;
+    console.log('[spawnGuardsForSite] Player team - filled guard slots:', maxGuardsAllowed, '/', slotData.length);
   } else if (site.owner === 'teamA' || site.owner === 'teamB' || site.owner === 'teamC') {
     // AI team (non-base flags): INDEPENDENT - always allow 5 guards (NOT limited by player slots)
     // NOTE: Enemy teams should NOT be limited by player progression

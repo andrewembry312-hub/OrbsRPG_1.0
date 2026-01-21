@@ -8,6 +8,7 @@ import { META_LOADOUTS } from "./loadouts.js";
 import { LEVEL_CONFIG, getZoneForPosition, scaleAllyToPlayerLevel } from "./leveling.js";
 import * as LoadoutRegistry from "./loadout-registry.js";
 import { getAssetPath } from "../config.js";
+import { generateFighterCard, addFighterCard } from "./fighter-cards.js";
 
 // Enemy / spawn tuning
 const MAX_DEFENDERS_PER_TEAM = 10; // non-guard fighters per team (excludes guards)
@@ -1931,11 +1932,22 @@ export function awardXP(state, amount){
   }
   
   if(leveled){
+    // Generate and award fighter card
+    const newCard = generateFighterCard(newLevel, state.fighterCardInventory.nextCardId++);
+    if (newCard) {
+      addFighterCard(state, newCard);
+      console.log('[FighterCards] Awarded:', newCard.name, newCard.rarity, '★'.repeat(newCard.rating));
+    }
+    
     const msg = `<b>Level up!</b> Level <b>${newLevel}</b> (+2 stat points)${bonusMsg ? '<br>' + bonusMsg : ''}`;
     state.ui.toast(msg);
     // Show large level-up animation
     if (state.ui && state.ui.showLevelUp) {
       state.ui.showLevelUp(newLevel);
+    }
+    // Show card reveal animation
+    if (newCard && state.ui && state.ui.showFighterCardReveal) {
+      state.ui.showFighterCardReveal(newCard);
     }
     // Update HUD to refresh XP bar
     if (state.ui && state.ui.renderHud) {

@@ -36,26 +36,26 @@ export function createState(engine, input, ui){
   };
   const campaign = storageGet(STORAGE_KEYS.CAMPAIGN) ?? { playerPoints:0, enemyPoints:0, targetPoints:250, time:0 };
   
-  // Slot-based progression system
+  // Slot-based progression system - ALL SLOTS START UNLOCKED
   const slotSystem = {
     guards: [
-      { id: 'guard_dps_1', role: 'dps', unlocked: false, level: 0, loadoutId: null },
-      { id: 'guard_dps_2', role: 'dps', unlocked: false, level: 0, loadoutId: null },
-      { id: 'guard_dps_3', role: 'dps', unlocked: false, level: 0, loadoutId: null },
-      { id: 'guard_healer_1', role: 'healer', unlocked: false, level: 0, loadoutId: null },
-      { id: 'guard_healer_2', role: 'healer', unlocked: false, level: 0, loadoutId: null }
+      { id: 'guard_dps_1', role: 'dps', unlocked: true, level: 1, loadoutId: null },
+      { id: 'guard_dps_2', role: 'dps', unlocked: true, level: 1, loadoutId: null },
+      { id: 'guard_dps_3', role: 'dps', unlocked: true, level: 1, loadoutId: null },
+      { id: 'guard_healer_1', role: 'healer', unlocked: true, level: 1, loadoutId: null },
+      { id: 'guard_healer_2', role: 'healer', unlocked: true, level: 1, loadoutId: null }
     ],
     allies: [
-      { id: 'ally_dps_1', role: 'dps', unlocked: false, level: 0, loadoutId: null },
-      { id: 'ally_dps_2', role: 'dps', unlocked: false, level: 0, loadoutId: null },
-      { id: 'ally_dps_3', role: 'dps', unlocked: false, level: 0, loadoutId: null },
-      { id: 'ally_dps_4', role: 'dps', unlocked: false, level: 0, loadoutId: null },
-      { id: 'ally_dps_5', role: 'dps', unlocked: false, level: 0, loadoutId: null },
-      { id: 'ally_healer_1', role: 'healer', unlocked: false, level: 0, loadoutId: null },
-      { id: 'ally_healer_2', role: 'healer', unlocked: false, level: 0, loadoutId: null },
-      { id: 'ally_healer_3', role: 'healer', unlocked: false, level: 0, loadoutId: null },
-      { id: 'ally_tank_1', role: 'tank', unlocked: false, level: 0, loadoutId: null },
-      { id: 'ally_tank_2', role: 'tank', unlocked: false, level: 0, loadoutId: null }
+      { id: 'ally_dps_1', role: 'dps', unlocked: true, level: 1, loadoutId: null },
+      { id: 'ally_dps_2', role: 'dps', unlocked: true, level: 1, loadoutId: null },
+      { id: 'ally_dps_3', role: 'dps', unlocked: true, level: 1, loadoutId: null },
+      { id: 'ally_dps_4', role: 'dps', unlocked: true, level: 1, loadoutId: null },
+      { id: 'ally_dps_5', role: 'dps', unlocked: true, level: 1, loadoutId: null },
+      { id: 'ally_healer_1', role: 'healer', unlocked: true, level: 1, loadoutId: null },
+      { id: 'ally_healer_2', role: 'healer', unlocked: true, level: 1, loadoutId: null },
+      { id: 'ally_healer_3', role: 'healer', unlocked: true, level: 1, loadoutId: null },
+      { id: 'ally_tank_1', role: 'tank', unlocked: true, level: 1, loadoutId: null },
+      { id: 'ally_tank_2', role: 'tank', unlocked: true, level: 1, loadoutId: null }
     ],
     // Cost calculation: base cost + (slot.level * scalingFactor)
     unlockCost: 1, // SP to unlock a slot
@@ -85,6 +85,13 @@ export function createState(engine, input, ui){
     bossActive: false,
     bossEntity: null,
     zoneComplete: false
+  };
+
+  // Fighter Card Collection System
+  const fighterCardInventory = {
+    cards: [],           // Array of collected fighter cards
+    maxCards: 999,       // Inventory limit (999 = effectively unlimited)
+    nextCardId: 1        // Auto-increment card ID
   };
 
   const basePlayer={
@@ -207,6 +214,8 @@ export function createState(engine, input, ui){
     enemySpawnTimer:0,
     selectedUnit: null, // clicked unit (enemy/friendly/creature) for inspection
     autoSaveTimer: 0, // track time for auto-save every 60 seconds
+    // Fighter card inventory
+    fighterCardInventory,
     // Logging system
     gameLog: {
       enabled: false,

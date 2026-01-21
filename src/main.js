@@ -102,6 +102,65 @@ window.giveAllBuffs = function() {
   return appliedCount;
 };
 
+// Console command to grant all common rarity fighter cards for testing
+window.giveAllCommonCards = async function() {
+  if (!state.fighterCardInventory) {
+    console.error('Fighter card inventory not initialized');
+    return 0;
+  }
+  
+  try {
+    // Import the functions directly if not already available
+    if (!window._fighterCardsLoaded) {
+      const module = await import('./game/fighter-cards.js');
+      window._generateFighterCard = module.generateFighterCard;
+      window._addFighterCard = module.addFighterCard;
+      window._fighterCardsLoaded = true;
+    }
+    
+    const generateFighterCard = window._generateFighterCard;
+    const addFighterCard = window._addFighterCard;
+    const LOADOUTS = window.LOADOUTS || {};
+    
+    if (!generateFighterCard || !addFighterCard) {
+      console.error('Fighter card functions not available');
+      return 0;
+    }
+    
+    let cardCount = 0;
+    const playerLevel = (state.player?.level || state.progression?.level || 1);
+    
+    // Get all unique loadouts
+    const loadoutIds = Object.keys(LOADOUTS);
+    console.log(`[DEBUG] Found ${loadoutIds.length} loadouts, generating common cards...`);
+    
+    // Generate one common card for each loadout at player level
+    loadoutIds.forEach(loadoutId => {
+      const card = generateFighterCard(playerLevel, state.fighterCardInventory.nextCardId++);
+      if (card) {
+        // Force it to be common rarity
+        card.rarity = 'common';
+        card.rating = 1; // 1 star for common
+        card.value = 100;
+        addFighterCard(state, card);
+        cardCount++;
+      }
+    });
+    
+    // Refresh UI if available
+    if (state.ui && state.ui.renderFighterCards) {
+      state.ui.renderFighterCards();
+    }
+    
+    console.log(`✓ Generated ${cardCount} common rarity fighter cards (one for each loadout)`);
+    console.log('Visit the Cards tab (Tab 9) to view your collection!');
+    return cardCount;
+  } catch (err) {
+    console.error('Error generating fighter cards:', err);
+    return 0;
+  }
+};
+
 // Console command to apply all effects (buffs + debuffs) to player
 window.giveAllEffects = function() {
   const allEffectIds = [
