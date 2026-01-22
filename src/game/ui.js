@@ -1380,7 +1380,7 @@ export function buildUI(state){
           </div>
 
           <!-- Fighter Cards Grid -->
-          <div id="fighterCardsGrid" style="margin-top:12px; display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px; padding:10px; background:rgba(0,0,0,0.3); border-radius:6px; min-height:600px; max-height:700px; overflow-y:auto;">
+          <div id="fighterCardsGrid" style="margin-top:12px; display:grid; grid-template-columns:repeat(5, calc((100% - 80px) / 5)); gap:20px; padding:20px; background:rgba(0,0,0,0.3); border-radius:6px; min-height:600px; max-height:800px; overflow-y:auto; width:100%; box-sizing:border-box;">
             <!-- Cards rendered here -->
           </div>
         </div>
@@ -2316,9 +2316,15 @@ function bindUI(state){
     }
     
     const cycleInterval = setInterval(() => {
-      const randomCard = cardNames[Math.floor(Math.random() * cardNames.length)];
-      const randomRarity = rarities[Math.floor(Math.random() * rarities.length)];
-      const randomRarityColor = rarityColors[randomRarity];
+      // Pick random card from inventory to cycle through
+      const allCards = state.fighterCardInventory?.cards || [];
+      let randomCard = allCards[Math.floor(Math.random() * allCards.length)];
+      if (!randomCard) {
+        randomCard = {name: 'Unknown', rarity: 'common', fighterImage: '', level: 1, role: 'dps', rating: 3};
+      }
+      const randomRarityColor = rarityColors[randomCard.rarity] || '#888';
+      const imageUrl = randomCard.fighterImage ? getAssetPath(`assets/fighter player cards/${randomCard.fighterImage}`) : '';
+      
       cyclingImg.innerHTML = `
         <div style="
           background: rgba(212,175,55,0.2);
@@ -2329,12 +2335,13 @@ function bindUI(state){
           aspect-ratio: 120/160;
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
+          justify-content: center;
+          align-items: center;
           color: white;
+          position: relative;
+          overflow: hidden;
         ">
-          <div style="font-size: 10px; color: ${randomRarityColor}; font-weight: bold; margin-bottom: 4px;">${randomRarity.toUpperCase()}</div>
-          <div style="font-size: 14px; font-weight: bold; color: #d4af37; word-break: break-word; margin-bottom: 6px;">${randomCard}</div>
-          <div style="font-size: 9px; color: #ffd700;">✦ Rolling...</div>
+          ${imageUrl ? `<img src="${imageUrl}" alt="fighter" style="width: 100%; height: 100%; object-fit: contain;">` : ''}
         </div>
       `;
       cycleCount++;
@@ -2349,6 +2356,7 @@ function bindUI(state){
       const rarityColor = rarityColors[card.rarity];
       const rarityBgOpacity = {common: 0.1, uncommon: 0.15, rare: 0.2, epic: 0.25, legendary: 0.3};
       const ratingStars = '★'.repeat(card.rating) + '☆'.repeat(5 - card.rating);
+      const imageUrl = card.fighterImage ? getAssetPath(`assets/fighter player cards/${card.fighterImage}`) : '';
       
       finalStats.innerHTML = `
         <div style="
@@ -2360,15 +2368,13 @@ function bindUI(state){
           aspect-ratio: 120/160;
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
+          justify-content: center;
+          align-items: center;
           color: white;
           margin: 0 auto;
+          overflow: hidden;
         ">
-          <div style="font-size: 10px; color: ${rarityColor}; font-weight: bold; margin-bottom: 4px;">${card.rarity.toUpperCase()}</div>
-          <div style="font-size: 9px; color: #6cf; margin-bottom: 4px;">L${card.level}</div>
-          <div style="font-size: 11px; font-weight: bold; color: #d4af37; margin-bottom: 6px; word-break: break-word;">${card.name}</div>
-          <div style="font-size: 8px; color: #ccc;">Role: ${card.role}</div>
-          <div style="font-size: 9px; color: #ffd700; margin-top: 4px;">${ratingStars}</div>
+          ${imageUrl ? `<img src="${imageUrl}" alt="fighter" style="width: 100%; height: 100%; object-fit: contain;">` : ''}
         </div>
       `;
       
@@ -2390,6 +2396,46 @@ function bindUI(state){
         state.paused = wasPaused;
       }, 2000);
     }, 2000);
+  };
+
+  // Card tooltip functions
+  ui._showCardTooltip = (event, rarity, level, name, role, stars) => {
+    const rarityColors = {common: '#888', uncommon: '#0a0', rare: '#0aa', epic: '#a0a', legendary: '#fa0'};
+    const rarityColor = rarityColors[rarity] || '#888';
+    
+    let tooltip = document.getElementById('cardTooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.id = 'cardTooltip';
+      document.body.appendChild(tooltip);
+    }
+    
+    tooltip.innerHTML = `
+      <div style="
+        position: fixed; z-index: 10000; pointer-events: none;
+        background: rgba(20,20,30,0.98); border: 2px solid ${rarityColor};
+        border-radius: 6px; padding: 12px; backdrop-filter: blur(5px);
+        box-shadow: 0 0 20px ${rarityColor};
+      ">
+        <div style="color: ${rarityColor}; font-weight: bold; font-size: 12px; margin-bottom: 4px;">${rarity.toUpperCase()}</div>
+        <div style="color: #d4af37; font-weight: bold; font-size: 14px; margin-bottom: 4px;">${name}</div>
+        <div style="color: #6cf; font-size: 11px; margin-bottom: 2px;">Level: ${level}</div>
+        <div style="color: #ccc; font-size: 11px; margin-bottom: 2px;">Role: ${role.toUpperCase()}</div>
+        <div style="color: #ffd700; font-size: 12px;">${stars}</div>
+      </div>
+    `;
+    
+    const x = event.pageX + 10;
+    const y = event.pageY + 10;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  };
+  
+  ui._hideCardTooltip = () => {
+    const tooltip = document.getElementById('cardTooltip');
+    if (tooltip) {
+      tooltip.style.display = 'none';
+    }
   };
 
   // Render fighter cards inventory
@@ -2423,17 +2469,19 @@ function bindUI(state){
     // Build slots - filled cards first, then empty slots
     let html = '';
     
-    // Render filled cards - using exact format from Change button picker
+    // Render filled cards - full image with tooltip
     cards.forEach((card, idx) => {
       const rarityColors = {common: '#888', uncommon: '#0a0', rare: '#0aa', epic: '#a0a', legendary: '#fa0'};
       const rarityColor = rarityColors[card.rarity] || '#888';
       const rarityBgOpacity = {common: 0.1, uncommon: 0.15, rare: 0.2, epic: 0.25, legendary: 0.3};
+      const imageUrl = card.fighterImage ? getAssetPath(`assets/fighter player cards/${card.fighterImage}`) : '';
+      const ratingStars = '★'.repeat(card.rating) + '☆'.repeat(5 - card.rating);
       
       html += `
         <div class="fighter-card-slot" style="
           background: rgba(212,175,55,${rarityBgOpacity[card.rarity]});
           border: 2px solid ${rarityColor};
-          border-radius: 6px;
+          border-radius: 8px;
           padding: 8px;
           text-align: center;
           cursor: pointer;
@@ -2441,25 +2489,26 @@ function bindUI(state){
           aspect-ratio: 120/160;
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
-        " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 0 15px ${rarityColor}';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';" onclick="ui._showFighterPreview('${card.loadoutId}')">
-          <div style="font-size: 10px; color: ${rarityColor}; font-weight: bold; margin-bottom: 4px;">${card.rarity.toUpperCase()}</div>
-          <div style="font-size: 9px; color: #6cf; margin-bottom: 4px;">L${card.level}</div>
-          <div style="font-size: 11px; font-weight: bold; color: #d4af37; margin-bottom: 6px; word-break: break-word;">${card.name}</div>
-          <div style="font-size: 8px; color: #ccc;">Role: ${card.role}</div>
-          <div style="font-size: 9px; color: #ffd700; margin-top: 4px;">${'★'.repeat(card.rating)}${'☆'.repeat(5 - card.rating)}</div>
+          justify-content: center;
+          align-items: center;
+          overflow: hidden;
+          position: relative;
+          width: 100%;
+          box-sizing: border-box;
+        " onmouseover="ui._showCardTooltip(event, '${card.rarity}', ${card.level}, '${card.name}', '${card.role}', '${ratingStars}')" onmouseout="ui._hideCardTooltip()" onclick="ui._showFighterPreview('${card.loadoutId}')">
+          ${imageUrl ? `<img src="${imageUrl}" alt="fighter" style="width: 100%; height: 100%; object-fit: contain;">` : ''}
         </div>
       `;
     });
     
-    // Render empty slots - same size/format as filled cards
+    // Render empty slots - full image area
     for (let i = cards.length; i < maxSlots; i++) {
       html += `
         <div class="fighter-card-slot-empty" style="
           background: rgba(50,50,60,0.3);
           border: 2px dashed #666;
-          border-radius: 6px;
-          padding: 8px;
+          border-radius: 8px;
+          padding: 0;
           text-align: center;
           cursor: not-allowed;
           opacity: 0.5;
@@ -2468,7 +2517,10 @@ function bindUI(state){
           align-items: center;
           justify-content: center;
           color: #555;
-          font-size: 24px;
+          font-size: 48px;
+          overflow: hidden;
+          width: 100%;
+          box-sizing: border-box;
         ">
           ∅
         </div>
@@ -7744,7 +7796,7 @@ function bindUI(state){
     const containerDiv = document.createElement('div');
     containerDiv.style.cssText = `
       background: rgba(20,20,30,0.95); border: 3px solid #d4af37;
-      border-radius: 12px; padding: 24px; max-width: 1200px;
+      border-radius: 12px; padding: 24px; width: 90vw; max-width: 1400px;
       max-height: 85vh; overflow-y: auto; cursor: default;
       box-shadow: 0 0 30px rgba(212,175,55,0.4);
     `;
@@ -7773,14 +7825,14 @@ function bindUI(state){
     closeBtn.onclick = () => ui._closeFighterCardPicker();
     headerDiv.appendChild(closeBtn);
     
-    // Cards grid
+    // Cards grid - matching inventory display (doubled size)
     const gridDiv = document.createElement('div');
     gridDiv.style.cssText = `
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
+      display: grid; grid-template-columns: repeat(5, calc((100% - 80px) / 5));
+      gap: 20px; padding: 20px; width: 100%; box-sizing: border-box;
     `;
     
-    // Add cards to grid
+    // Add filled cards to grid
     cards.forEach(card => {
       const cardEl = document.createElement('div');
       const rarityColors = {common: '#888', uncommon: '#0a0', rare: '#0aa', epic: '#a0a', legendary: '#fa0'};
@@ -7790,16 +7842,24 @@ function bindUI(state){
       cardEl.style.cssText = `
         background: rgba(212,175,55,${rarityBg[card.rarity]});
         border: 2px solid ${rarityColor};
-        border-radius: 6px;
-        padding: 8px;
+        border-radius: 8px;
+        padding: 0;
         text-align: center;
         cursor: pointer;
         transition: all 0.2s;
+        aspect-ratio: 120/160;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
       `;
       
       cardEl.onmouseover = () => {
         cardEl.style.transform = 'scale(1.05)';
-        cardEl.style.boxShadow = `0 0 15px ${rarityColor}`;
+        cardEl.style.boxShadow = `0 0 20px ${rarityColor}`;
       };
       cardEl.onmouseout = () => {
         cardEl.style.transform = 'scale(1)';
@@ -7819,15 +7879,41 @@ function bindUI(state){
       };
       
       cardEl.innerHTML = `
-        <div style="font-size: 10px; color: ${rarityColor}; font-weight: bold; margin-bottom: 4px;">${card.rarity.toUpperCase()}</div>
-        <div style="font-size: 9px; color: #6cf; margin-bottom: 4px;">L${card.level}</div>
-        <div style="font-size: 11px; font-weight: bold; color: #d4af37; margin-bottom: 6px; word-break: break-word;">${card.name}</div>
-        <div style="font-size: 8px; color: #ccc;">Role: ${card.role}</div>
-        <div style="font-size: 9px; color: #ffd700; margin-top: 4px;">${'★'.repeat(card.rating)}${'☆'.repeat(5 - card.rating)}</div>
+        ${card.fighterImage ? `<img src="${getAssetPath(`assets/fighter player cards/${card.fighterImage}`)}" alt="fighter" style="width: 100%; height: 100%; object-fit: contain;">` : ''}
       `;
+      
+      const ratingStars = '★'.repeat(card.rating) + '☆'.repeat(5 - card.rating);
+      cardEl.addEventListener('mousemove', (e) => ui._showCardTooltip(e, card.rarity, card.level, card.name, card.role, ratingStars));
+      cardEl.addEventListener('mouseout', () => ui._hideCardTooltip());
       
       gridDiv.appendChild(cardEl);
     });
+    
+    // Add empty slots to match inventory display (show 20+ empty slots or more to fill screen)
+    const displaySlots = Math.max(20, cards.length);
+    for (let i = cards.length; i < displaySlots; i++) {
+      const emptyEl = document.createElement('div');
+      emptyEl.style.cssText = `
+        background: rgba(50,50,60,0.3);
+        border: 2px dashed #666;
+        border-radius: 8px;
+        padding: 0;
+        text-align: center;
+        cursor: not-allowed;
+        opacity: 0.5;
+        aspect-ratio: 120/160;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #555;
+        font-size: 48px;
+        overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
+      `;
+      emptyEl.innerHTML = '∅';
+      gridDiv.appendChild(emptyEl);
+    }
     
     containerDiv.appendChild(headerDiv);
     containerDiv.appendChild(gridDiv);
