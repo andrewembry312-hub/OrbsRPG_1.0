@@ -240,4 +240,47 @@ window.LOADOUT_TEST = {
   }
 };
 
+// Function to trigger a free card roll (used by tutorial)
+window.triggerFreeCardRoll = async () => {
+  try {
+    if (!window.state) {
+      console.error('❌ Game state not initialized');
+      return null;
+    }
+    
+    // Load fighter card functions if needed
+    if (!window._generateFighterCard) {
+      const module = await import('./fighter-cards.js');
+      window._generateFighterCard = module.generateFighterCard;
+      window._addFighterCard = module.addFighterCard || (() => {});
+    }
+    
+    const generateFighterCard = window._generateFighterCard;
+    const state = window.state;
+    const playerLevel = state.player?.level || state.progression?.level || 1;
+    
+    console.log('🎴 FREE CARD ROLL TRIGGERED');
+    
+    // Generate a new fighter card
+    const newCard = generateFighterCard(playerLevel, state.fighterCardInventory.nextCardId++);
+    
+    if (newCard && state.fighterCardInventory) {
+      state.fighterCardInventory.cards.push(newCard);
+      console.log('✅ Card added:', newCard.name, newCard.rarity);
+      
+      // Show the card reveal animation
+      if (state.ui?.showLevelUp) {
+        state.ui.showLevelUp(playerLevel, newCard);
+      }
+      
+      return newCard;
+    }
+  } catch (err) {
+    console.error('❌ Error rolling card:', err);
+  }
+  return null;
+};
+
 console.log('✅ LOADOUT_TEST ready! Type: LOADOUT_TEST.spawnRandomAllRarities()');
+console.log('✅ triggerFreeCardRoll() available for tutorials');
+

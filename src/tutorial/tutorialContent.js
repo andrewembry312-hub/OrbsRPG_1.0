@@ -611,6 +611,205 @@ export const TUTORIAL_CONTENT = {
         tips: ['Practice makes faster', 'Optimize route', 'Kill enemies quickly']
       }
     ]
+  },
+
+  // ==================== FIGHTER CARDS SYSTEM ====================
+  // Triggered: Early in game progression
+  
+  fighterCards: {
+    tier: 2,
+    title: 'Fighter Cards System',
+    priority: false,
+    autoTrigger: 'ON_FIRST_LEVEL_UP',
+    steps: [
+      {
+        title: '🎴 Fighter Cards Explained',
+        content: 'Fighter Cards are your most powerful allies! Each time you level up, you receive a new random fighter card.\n\nThese cards represent recruit-able NPCs that join your team to fight alongside you.\n\n• Different classes (DPS, Tank, Healer)\n• Various rarity tiers\n• Unique equipment & abilities',
+        image: null,
+        tips: ['Cards are powerful - build a strong team!', 'Rarity affects power', 'Collect them all!'],
+        showButton: true,
+        buttonText: 'Roll My First Card',
+        buttonAction: 'triggerFreeCardRoll'
+      },
+      {
+        title: 'Your First Card Roll',
+        content: 'You just received your first fighter card! The animation shows:\n\n1. Random card images flash for 2 seconds\n2. Your new card reveals at full size\n3. Card name, level, and rarity display\n\nYou can now see your card in the Cards tab!',
+        image: null,
+        tips: ['Each level up gives a new card', 'Higher level = better cards', 'Collect all rarities!']
+      }
+    ]
+  },
+
+  cardsTab: {
+    tier: 2,
+    title: 'Cards Tab Tutorial',
+    autoTrigger: 'NONE',
+    steps: [
+      {
+        title: '🎴 The Cards Tab',
+        content: 'The Cards Tab shows all your collected fighter cards in one place.\n\nEach card displays:\n• Card name at the bottom\n• Power rating (top right) - 0-100 scale\n• Level indicator (top left) - Shows L1, L2, etc\n• Rarity-colored border\n• Card image in center',
+        image: null,
+        tips: ['Click a card to see full preview', 'Cards are sorted by rarity', 'Power rating is your reference'],
+        autoShowTab: 'cards',
+        autoScroll: true
+      },
+      {
+        title: 'Previewing Cards',
+        content: 'Click any card to open the full preview modal.\n\nThe preview shows:\n• Large card image\n• All stats clearly displayed\n• Assigned abilities\n• Equipment loadout\n• Role and specialization',
+        image: null,
+        tips: ['Press P to open/close preview', 'ESC also closes', 'Study cards before deploying']
+      }
+    ]
+  },
+
+  slots: {
+    tier: 2,
+    title: 'Slots Tab - Deploying Cards',
+    autoTrigger: 'NONE',
+    steps: [
+      {
+        title: '🔷 The Slots Tab',
+        content: 'The Slots Tab is where you deploy your fighter cards into battle!\n\nYou have multiple slot types:\n• Main Slots - Your primary team members\n• Guard Slots - Defensive positions\n• Support Slots - Healing & buffs\n\nAssign cards to slots by clicking "Change" button.',
+        image: null,
+        tips: ['Different slot types need different roles', 'Match roles to slot types', 'You can swap cards anytime'],
+        autoShowTab: 'slots',
+        autoScroll: true
+      },
+      {
+        title: 'Role Assignments',
+        content: 'Each fighter card has a role that determines where they fight best:\n\n• DPS - Attack slots (primary damage)\n• Tank - Guard slots (take damage)\n• Healer - Support slots (heal team)\n• Flex - Can adapt to any role\n\nMatching roles to slots = stronger team!',
+        image: null,
+        tips: ['Read card roles carefully', 'Don\'t put tanks in DPS slots', 'Healers keep your team alive']
+      },
+      {
+        title: 'Changing Cards',
+        content: 'To assign a card to a slot:\n\n1. Click the "Change" button on any slot\n2. A selection dialog appears\n3. Choose your fighter card\n4. The card is now active!\n\nYou can change cards anytime, even during exploration.',
+        image: null,
+        tips: ['Switch cards for different battles', 'Some cards are better vs bosses', 'Experiment to find best teams']
+      }
+    ]
+  },
+
+  inventory: {
+    tier: 2,
+    title: 'Inventory & Items',
+    autoTrigger: 'NONE',
+    steps: [
+      {
+        title: '🎒 The Inventory Tab',
+        content: 'The Inventory Tab shows all your equipment and items.\n\nLeft side: Your hero with equipped gear\nMiddle: Stats and details\nRight side: All items you\'ve collected\n\nPress P on any item for a full preview!',
+        image: null,
+        tips: ['Double-click to equip quickly', 'Better gear = stronger stats', 'Keep your best items equipped'],
+        autoShowTab: 'inventory',
+        autoScroll: true
+      },
+      {
+        title: 'Finding Loot',
+        content: 'Loot appears from:\n\n• Defeated enemies (auto-collected)\n• Treasure chests (in dungeons)\n• Merchants (buy with gold)\n• Boss drops (very powerful!)\n• Ground pickups (items in world)\n\nKeep exploring to find better gear!',
+        image: null,
+        tips: ['Color = rarity (gold = rare)', 'Higher level = better stats', 'Equip as you go']
+      }
+    ]
+  },
+
+  groupTab: {
+    tier: 2,
+    title: 'Group Tab - Team Management',
+    autoTrigger: 'NONE',
+    steps: [
+      {
+        title: '👥 The Group Tab',
+        content: 'The Group Tab shows you your entire team:\n\n• Your hero (main character)\n• Active allies/fighters\n• Their stats and status\n• Team composition overview\n\nThis is your squad - keep them alive!',
+        image: null,
+        tips: ['Balanced teams are strongest', 'Match roles to challenges', 'Level your team evenly'],
+        autoShowTab: 'group',
+        autoScroll: true
+      },
+      {
+        title: 'Team Composition',
+        content: 'Build teams with balance:\n\n• At least 1 DPS (damage)\n• At least 1 Tank (defense)\n• 1+ Healer (survival)\n• Flex slots (adaptability)\n\nGood composition = victory!',
+        image: null,
+        tips: ['Don\'t run all DPS', 'Healers save lives', 'Tanks protect your hero']
+      }
+    ]
+  },
+
+  alliesTab: {
+    tier: 2,
+    title: 'Allies Tab - NPC Roster',
+    autoTrigger: 'NONE',
+    steps: [
+      {
+        title: '🤝 The Allies Tab',
+        content: 'The Allies Tab shows all NPCs and recruited allies.\n\n• View all your recruits\n• See their experience & level\n• Check individual stats\n• Manage your roster\n\nHire more allies to expand options!',
+        image: null,
+        tips: ['More allies = more flexibility', 'Different personalities available', 'Build your dream team'],
+        autoShowTab: 'allies',
+        autoScroll: true
+      }
+    ]
+  },
+
+  campaignTab: {
+    tier: 2,
+    title: 'Campaign Tab - World Overview',
+    autoTrigger: 'NONE',
+    steps: [
+      {
+        title: '🗺️ The Campaign Tab',
+        content: 'The Campaign Tab shows:\n\n• Current campaign progress\n• Territory control (yours vs enemies)\n• Point standings\n• Victory conditions\n• Key objectives\n\nWin by controlling the most territory!',
+        image: null,
+        tips: ['Points accumulate over time', 'Capture and hold bases', 'Read the objective carefully'],
+        autoShowTab: 'campaign',
+        autoScroll: true
+      },
+      {
+        title: 'Campaign Strategy',
+        content: 'To win the campaign:\n\n1. Capture neutral bases\n2. Defend your territory\n3. Expand strategically\n4. Watch enemy movements\n5. Reach the point target\n\nTiming and tactics matter!',
+        image: null,
+        tips: ['Don\'t overextend', 'Support your teammates', 'Plan ahead']
+      }
+    ]
+  },
+
+  outpostMarket: {
+    tier: 3,
+    title: 'Outpost Market',
+    autoTrigger: 'ON_REACH_OUTPOST_AREA',
+    steps: [
+      {
+        title: '🏪 The Outpost Market',
+        content: 'When you reach an outpost, you can open the Market!\n\nThe Market offers:\n• Unique items for sale\n• Prices vary by rarity\n• Limited stock\n• Restocks periodically\n\nBuy gear here to gear up faster!',
+        image: null,
+        tips: ['Markets are in safe zones', 'Gold = power', 'Compare prices', 'Save for rare items']
+      },
+      {
+        title: 'Shopping at Markets',
+        content: 'Click an item to:\n\n1. See full details & stats\n2. Check current price\n3. Buy with your gold\n4. Item added to inventory\n\nGood for gearing up quickly before tough battles!',
+        image: null,
+        tips: ['Check all markets', 'Different items at each', 'Negotiate isn\'t possible - fixed prices']
+      }
+    ]
+  },
+
+  garrison: {
+    tier: 3,
+    title: 'Garrison Management',
+    autoTrigger: 'ON_REACH_OUTPOST_AREA',
+    steps: [
+      {
+        title: '🏰 The Garrison',
+        content: 'At outposts with Garrison buttons, you can:\n\n• Station guards to defend\n• Upgrade defenses\n• Manage stationed forces\n• View garrison status\n• Call reinforcements\n\nGarrison = home base defense!',
+        image: null,
+        tips: ['Garrison troops auto-defend', 'Upgrade regularly', 'Don\'t leave undefended']
+      },
+      {
+        title: 'Garrison Strategy',
+        content: 'Strategic garrison tips:\n\n1. Station strong units\n2. Upgrade defenses\n3. Keep supplies stocked\n4. Rotate troops\n5. Respond to threats\n\nGood garrison = territory stays yours!',
+        image: null,
+        tips: ['Defense is important', 'Don\'t ignore garrison', 'Balance offense & defense']
+      }
+    ]
   }
 };
 
@@ -621,11 +820,12 @@ export const TRIGGER_MAPPING = {
   'ON_FIRST_LOOT': 'lootSystem',
   'ON_FIRST_EQUIPMENT': 'equipmentSystem',
   'ON_FIRST_XP': 'progressionSystem',
+  'ON_FIRST_LEVEL_UP': 'fighterCards',
   'ON_INVENTORY_OPEN': 'abilitySlots',
   'ON_INVENTORY_FULL': 'inventory',
   'ON_RECRUIT_NPC': ['groupSystem', 'abilityAssignment'],
   'ON_FIRST_BUFF': 'buffsDebuffs',
-  'ON_REACH_OUTPOST_AREA': 'outpostSystem',
+  'ON_REACH_OUTPOST_AREA': ['outpostMarket', 'garrison'],
   'ON_REACH_DUNGEON': 'dungeonIntro',
   'ON_REACH_MARKET': 'market',
   'ON_GUARD_SLOT_UNLOCK': 'guardSystem'

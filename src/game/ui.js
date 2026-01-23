@@ -2136,8 +2136,8 @@ function bindUI(state){
     ui.toast._t = setTimeout(()=>ui.toastEl.classList.remove('show'), ms);
   };
   
-  // Level up notification with fade animation
-  ui.showLevelUp = (level)=>{
+  // Level up notification with card cycling animation
+  ui.showLevelUp = (level, newCard)=>{
     const notification = ui.levelUpNotification;
     const textEl = ui.levelUpText;
     const numberEl = ui.levelUpNumber;
@@ -2158,27 +2158,115 @@ function bindUI(state){
     textEl.textContent = 'LEVEL UP!';
     numberEl.textContent = level;
     
-    // Use requestAnimationFrame for smooth fade in
+    // Show level up text first
     requestAnimationFrame(() => {
-      // Fade in: 0-0.3s
       textEl.style.transition = 'opacity 0.3s ease-in';
       numberEl.style.transition = 'opacity 0.3s ease-in';
       textEl.style.opacity = '1';
       numberEl.style.opacity = '1';
       
-      // Fade out: starts at 2.7s, ends at 3s
-      setTimeout(() => {
-        textEl.style.transition = 'opacity 0.3s ease-out';
-        numberEl.style.transition = 'opacity 0.3s ease-out';
-        textEl.style.opacity = '0';
-        numberEl.style.opacity = '0';
-      }, 2700);
+      // If we have a card, start cycling through random card images at 0.5s
+      if(newCard && state.fighterCardInventory){
+        setTimeout(() => {
+          ui.cycleCardImages(notification, newCard, level);
+        }, 500);
+      } else {
+        // No card - just show level text and fade out at 2.7s
+        setTimeout(() => {
+          textEl.style.transition = 'opacity 0.3s ease-out';
+          numberEl.style.transition = 'opacity 0.3s ease-out';
+          textEl.style.opacity = '0';
+          numberEl.style.opacity = '0';
+        }, 2700);
+        
+        setTimeout(() => {
+          notification.style.display = 'none';
+        }, 3000);
+      }
+    });
+  };
+  
+  // Helper function to cycle through random card images during level up
+  ui.cycleCardImages = (notification, card, level) => {
+    const textEl = notification.querySelector('#levelUpText');
+    const numberEl = notification.querySelector('#levelUpNumber');
+    
+    // Create container for card cycling if it doesn't exist
+    let cardContainer = notification.querySelector('#cardCycleContainer');
+    if(!cardContainer){
+      cardContainer = document.createElement('div');
+      cardContainer.id = 'cardCycleContainer';
+      cardContainer.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, 50%); margin-top:40px;';
+      notification.appendChild(cardContainer);
+    }
+    
+    // Get all cards for cycling (use ones from inventory for variety)
+    const allCards = state.fighterCardInventory?.cards || [];
+    const cardsToShow = allCards.length > 0 ? allCards : [card];
+    
+    let cycleIndex = 0;
+    const CYCLE_DURATION = 2000; // 2 seconds of cycling
+    const CYCLE_SPEED = 200; // Show each card for 200ms
+    const CYCLES = Math.floor(CYCLE_DURATION / CYCLE_SPEED);
+    
+    // Show cycling cards
+    const cycleInterval = setInterval(() => {
+      if(cycleIndex >= CYCLES){
+        clearInterval(cycleInterval);
+        
+        // Transition to final card reveal (2x larger)
+        cardContainer.innerHTML = '';
+        ui.showFinalCardReveal(cardContainer, card, notification, textEl, numberEl);
+        return;
+      }
       
-      // Hide after animation
+      const displayCard = cardsToShow[cycleIndex % cardsToShow.length];
+      const cardImage = displayCard.cardImage || card.cardImage || getAssetPath('assets/fighter player cards/card_template.svg');
+      
+      cardContainer.innerHTML = `
+        <div style="text-align:center;">
+          <img src="${cardImage}" style="width:120px; height:160px; border:3px solid #d4af37; border-radius:8px; box-shadow:0 0 20px rgba(212,175,55,0.6);" />
+          <div style="color:#d4af37; font-size:12px; margin-top:10px; text-shadow:0 0 10px rgba(212,175,55,0.4);">NEW FIGHTER CARD</div>
+        </div>
+      `;
+      
+      cycleIndex++;
+    }, CYCLE_SPEED);
+  };
+  
+  // Show final card reveal at 2x size
+  ui.showFinalCardReveal = (cardContainer, card, notification, textEl, numberEl) => {
+    const cardImage = card.cardImage || getAssetPath('assets/fighter player cards/card_template.svg');
+    
+    cardContainer.innerHTML = `
+      <div style="text-align:center; animation:cardRevealPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
+        <img src="${cardImage}" style="width:240px; height:320px; border:4px solid #d4af37; border-radius:12px; box-shadow:0 0 40px rgba(212,175,55,0.8);" />
+        <div style="color:#d4af37; font-size:16px; font-weight:bold; margin-top:16px; text-shadow:0 0 15px rgba(212,175,55,0.6);">${card.name}</div>
+        <div style="color:#4a9eff; font-size:13px; margin-top:4px; text-shadow:0 0 10px rgba(74,158,255,0.4);">Level ${card.level} • ${card.rarity}</div>
+      </div>
+    `;
+    
+    // Play level up sound again when card is revealed
+    if(state.sounds?.levelUp){
+      const audio = state.sounds.levelUp.cloneNode();
+      audio.volume = 0.5;
+      audio.play().catch(e => {});
+    }
+    
+    // Fade out all elements after 2.5s
+    setTimeout(() => {
+      textEl.style.transition = 'opacity 0.4s ease-out';
+      numberEl.style.transition = 'opacity 0.4s ease-out';
+      cardContainer.style.transition = 'opacity 0.4s ease-out';
+      textEl.style.opacity = '0';
+      numberEl.style.opacity = '0';
+      cardContainer.style.opacity = '0';
+      
       setTimeout(() => {
         notification.style.display = 'none';
-      }, 3000);
-    });
+        cardContainer.innerHTML = '';
+      }, 400);
+    }, 2500);
   };
 
   // Bomb notification with fade animation (similar to level up)

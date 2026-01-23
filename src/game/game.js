@@ -1941,13 +1941,9 @@ export function awardXP(state, amount){
     
     const msg = `<b>Level up!</b> Level <b>${newLevel}</b> (+2 stat points)${bonusMsg ? '<br>' + bonusMsg : ''}`;
     state.ui.toast(msg);
-    // Show large level-up animation
+    // Show large level-up animation with card cycling
     if (state.ui && state.ui.showLevelUp) {
-      state.ui.showLevelUp(newLevel);
-    }
-    // Show card reveal animation
-    if (newCard && state.ui && state.ui.showFighterCardReveal) {
-      state.ui.showFighterCardReveal(newCard);
+      state.ui.showLevelUp(newLevel, newCard);
     }
     // Update HUD to refresh XP bar
     if (state.ui && state.ui.renderHud) {
@@ -10755,6 +10751,31 @@ export function updateGame(state, dt){
     const halfH = state.engine.canvas.height/2 / (cam.zoom||1);
     cam.x = clamp(cam.x, halfW, (state.mapWidth || state.engine.canvas.width) - halfW);
     cam.y = clamp(cam.y, halfH, (state.mapHeight || state.engine.canvas.height) - halfH);
+
+    // ═════════════════════════════════════════════════════════════════════════════════
+    // PLAYER-ENEMY COLLISION PREVENTION
+    // ═════════════════════════════════════════════════════════════════════════════════
+    // Prevent player from walking through enemy units (MINIMAL push - just separation)
+    const MIN_PLAYER_ENEMY_DIST = 45; // Separation distance
+    
+    for(const enemy of state.enemies){
+      if(!enemy || enemy.dead || enemy.hp <= 0) continue;
+      
+      const playerEnemyDist = Math.hypot(state.player.x - enemy.x, state.player.y - enemy.y);
+      
+      if(playerEnemyDist < MIN_PLAYER_ENEMY_DIST && playerEnemyDist > 0.1){
+        // Gentle push player away from enemy (VERY light - only if overlapping)
+        const angle = Math.atan2(state.player.y - enemy.y, state.player.x - enemy.x);
+        const pushForce = (MIN_PLAYER_ENEMY_DIST - playerEnemyDist) * 0.15; // Reduced from 0.6 to 0.15
+        state.player.x += Math.cos(angle) * pushForce;
+        state.player.y += Math.sin(angle) * pushForce;
+        
+        // Clamp to map bounds after push
+        const bounds = state.playableBounds || {minX:0, minY:0, maxX:state.mapWidth || 4000, maxY:state.mapHeight || 4000};
+        state.player.x = clamp(state.player.x, bounds.minX, bounds.maxX);
+        state.player.y = clamp(state.player.y, bounds.minY, bounds.maxY);
+      }
+    }
   }
 
   // Guard Progression System - Time-based upgrades

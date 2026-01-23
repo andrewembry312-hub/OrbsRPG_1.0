@@ -268,7 +268,75 @@ export class TutorialUI {
       html += `</div>`;
     }
 
+    // Add custom button if specified
+    if (step.showButton && step.buttonAction) {
+      const btnText = step.buttonText || 'Perform Action';
+      html += `<button id="tut-custom-action" style="
+        margin-top: 20px;
+        padding: 12px 20px;
+        background: #FFD700;
+        color: #000;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 14px;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.2s;
+      " onmouseover="this.style.background='#FFF9E6'" onmouseout="this.style.background='#FFD700'">
+        ${btnText}
+      </button>`;
+    }
+
     contentDiv.innerHTML = html;
+
+    // Attach custom button action if needed
+    if (step.showButton && step.buttonAction) {
+      const btn = document.getElementById('tut-custom-action');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          // Execute the action (window function)
+          if (window[step.buttonAction]) {
+            console.log('[TUTORIAL] Executing action:', step.buttonAction);
+            window[step.buttonAction]().then(() => {
+              // Auto-advance after action completes
+              setTimeout(() => {
+                this.nextStep();
+              }, 500);
+            }).catch(err => {
+              console.error('Action failed:', err);
+            });
+          }
+        });
+      }
+    }
+
+    // Auto-show tab if specified
+    if (step.autoShowTab && this.state && this.state.ui) {
+      console.log('[TUTORIAL] Auto-showing tab:', step.autoShowTab);
+      // Find the tab button and click it
+      setTimeout(() => {
+        const tabBtn = document.querySelector(`button.tab-btn[data-tab]`);
+        if (tabBtn) {
+          // Determine which tab number
+          const tabs = {
+            'inventory': 0,
+            'skills': 1,
+            'levelup': 2,
+            'buffs': 3,
+            'group': 4,
+            'allies': 5,
+            'help': 6,
+            'campaign': 7,
+            'slots': 8,
+            'cards': 9
+          };
+          const tabNum = tabs[step.autoShowTab];
+          const btn = document.querySelector(`button.tab-btn[data-tab="${tabNum}"]`);
+          if (btn) btn.click();
+        }
+      }, 300);
+    }
 
     // Set progress
     document.getElementById('tut-counter').textContent = 
