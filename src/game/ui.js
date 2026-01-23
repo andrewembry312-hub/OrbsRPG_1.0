@@ -10,7 +10,7 @@ import { showCharSelect } from "./charselect.js";
 import { spawnGuardsForSite } from "./world.js";
 import { getAssetPath } from "../config.js";
 
-// Expose ABILITIES to window for console commands
+// Expose ABILITIES to window for console commands TESTING
 window.ABILITIES = ABILITIES;
 
 export function buildUI(state){
@@ -194,7 +194,7 @@ export function buildUI(state){
     <div id="statsHintText" style="position:fixed; top:100px; left:10px; z-index:199; max-width:320px; font-size:11px; color:#ccc; background:rgba(0,0,0,0.7); padding:6px 10px; border-radius:4px; border:1px solid rgba(212,175,55,0.3); display:none;"></div>
     
     <!-- Level Up Notification -->
-    <div id="levelUpNotification" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
+    <div id="levelUpNotification" style="position:fixed; top:15%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
       <div id="levelUpText" style="font-size:120px; font-weight:900; color:#d4af37; text-shadow:0 0 40px rgba(212,175,55,0.8); opacity:0;">LEVEL UP!</div>
       <div id="levelUpNumber" style="font-size:96px; font-weight:bold; color:#4a9eff; text-shadow:0 0 30px rgba(74,158,255,0.8); margin-top:-30px; opacity:0;">50</div>
     </div>
@@ -2221,7 +2221,11 @@ function bindUI(state){
       }
       
       const displayCard = cardsToShow[cycleIndex % cardsToShow.length];
-      const cardImage = displayCard.cardImage || card.cardImage || getAssetPath('assets/fighter player cards/card_template.svg');
+      let cardImage = getAssetPath('assets/fighter player cards/card_template.svg');
+      if(displayCard.fighterImage){
+        const filename = displayCard.fighterImage.includes('/') ? displayCard.fighterImage.split('/').pop() : displayCard.fighterImage;
+        cardImage = getAssetPath(`assets/fighter player cards/${filename}`);
+      }
       
       cardContainer.innerHTML = `
         <div style="text-align:center;">
@@ -2236,7 +2240,13 @@ function bindUI(state){
   
   // Show final card reveal at 2x size
   ui.showFinalCardReveal = (cardContainer, card, notification, textEl, numberEl) => {
-    const cardImage = card.cardImage || getAssetPath('assets/fighter player cards/card_template.svg');
+    // Build proper asset path for fighter card image
+    let cardImage = getAssetPath('assets/fighter player cards/card_template.svg');
+    if(card.fighterImage){
+      // Handle both direct filenames and full paths
+      const filename = card.fighterImage.includes('/') ? card.fighterImage.split('/').pop() : card.fighterImage;
+      cardImage = getAssetPath(`assets/fighter player cards/${filename}`);
+    }
     
     cardContainer.innerHTML = `
       <div style="text-align:center; animation:cardRevealPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">

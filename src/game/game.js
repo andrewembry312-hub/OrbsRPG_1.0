@@ -5769,7 +5769,9 @@ function updateFriendlies(state, dt){
       // CRITICAL FIX: Enforce speed cap (140 max) before movement
       const GUARD_SPEED_CAP = 140;
       if(a.speed > GUARD_SPEED_CAP){
-        console.warn(`[GUARD] Speed violation: ${a.speed} > ${GUARD_SPEED_CAP} - capped`);
+        if(state.debugGuards){
+          console.warn(`[GUARD] Speed violation: ${a.speed} > ${GUARD_SPEED_CAP} - capped`);
+        }
         a.speed = GUARD_SPEED_CAP;
       }
       
