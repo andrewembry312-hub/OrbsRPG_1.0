@@ -213,15 +213,15 @@ export function buildUI(state){
 
     <!-- Fighter Card Reveal Overlay -->
     <div id="cardRevealOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:4999; display:none !important; background:rgba(0,0,0,0.9); pointer-events:none; align-items:center; justify-content:center;">
-      <div style="text-align:center;">
+      <div style="text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <!-- Level text -->
+        <div id="cardRevealLevel" style="font-size:48px; font-weight:bold; color:#d4af37; margin-bottom:30px; text-shadow:0 0 20px rgba(212,175,55,0.6);"></div>
         <!-- Cycling cards animation -->
-        <div id="cardRevealCycle" style="margin-bottom:30px; min-height:320px; display:flex; align-items:center; justify-content:center;">
-          <div id="cyclingCardImage" style="width:180px; height:240px; background:rgba(212,175,55,0.2); border:3px solid #d4af37; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; color:#d4af37;">Loading...</div>
+        <div id="cardRevealCycle" style="display:flex; align-items:center; justify-content:center;">
+          <div id="cyclingCardImage" style="width:90px; height:120px; background:rgba(212,175,55,0.2); border:3px solid #d4af37; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; color:#d4af37;">Loading...</div>
         </div>
         <!-- Final card reveal -->
-        <div id="finalCardDisplay" style="margin-top:20px; display:none;">
-          <div style="font-size:24px; font-weight:bold; color:#ffd700; margin-bottom:10px;">🎴 NEW FIGHTER CARD 🎴</div>
-          <div id="finalCardName" style="font-size:20px; color:#d4af37; margin-bottom:5px;"></div>
+        <div id="finalCardDisplay" style="margin-top:30px; display:none;">
           <div id="finalCardStats" style="font-size:14px; color:#6cf; line-height:1.8;"></div>
         </div>
       </div>
@@ -2279,6 +2279,7 @@ function bindUI(state){
     const finalDisplay = document.getElementById('finalCardDisplay');
     const finalName = document.getElementById('finalCardName');
     const finalStats = document.getElementById('finalCardStats');
+    const levelDisplay = document.getElementById('cardRevealLevel');
     
     if (!overlay) return;
     
@@ -2294,8 +2295,15 @@ function bindUI(state){
     
     overlay.style.setProperty('display', 'flex', 'important');
     overlay.style.pointerEvents = 'auto';
-    cycleDiv.style.display = 'block';
+    cycleDiv.style.display = 'flex';
     finalDisplay.style.display = 'none';
+    
+    // Show level only during cycling
+    const playerLevel = state.progression?.level || 1;
+    if (levelDisplay) {
+      levelDisplay.textContent = `LEVEL ${playerLevel}`;
+      levelDisplay.style.display = 'block';
+    }
     
     // Use same card format everywhere
     const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -2330,7 +2338,7 @@ function bindUI(state){
           background: rgba(212,175,55,0.2);
           border: 2px solid ${randomRarityColor};
           border-radius: 6px;
-          padding: 8px;
+          padding: 4px;
           text-align: center;
           aspect-ratio: 120/160;
           display: flex;
@@ -2351,6 +2359,12 @@ function bindUI(state){
     setTimeout(() => {
       clearInterval(cycleInterval);
       cycleDiv.style.display = 'none';
+      
+      // Hide level during final reveal
+      if (levelDisplay) {
+        levelDisplay.style.display = 'none';
+      }
+      
       finalDisplay.style.display = 'block';
       
       const rarityColor = rarityColors[card.rarity];
@@ -2363,9 +2377,10 @@ function bindUI(state){
           background: rgba(212,175,55,${rarityBgOpacity[card.rarity]});
           border: 2px solid ${rarityColor};
           border-radius: 6px;
-          padding: 8px;
+          padding: 4px;
           text-align: center;
-          aspect-ratio: 120/160;
+          width: 90px;
+          height: 120px;
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -2377,8 +2392,6 @@ function bindUI(state){
           ${imageUrl ? `<img src="${imageUrl}" alt="fighter" style="width: 100%; height: 100%; object-fit: contain;">` : ''}
         </div>
       `;
-      
-      finalName.textContent = '';
       
       // Play level up sound
       if (state.sounds?.levelUp) {
@@ -2438,6 +2451,161 @@ function bindUI(state){
     }
   };
 
+  // Helper: Map slot names to display names for item images
+  ui._getSlotDisplayName = (slotName) => {
+    const mapping = {
+      'neck': 'necklace',
+      'accessory1': 'ring',
+      'accessory2': 'bracelet',
+      'helm': 'helm',
+      'chest': 'chest',
+      'shoulders': 'shoulders',
+      'hands': 'hands',
+      'belt': 'belt',
+      'legs': 'legs',
+      'feet': 'feet'
+    };
+    return mapping[slotName] || slotName;
+  };
+
+  // Show item tooltip on hover
+  ui._showItemTooltip = (event, slotName, buffs, rarity) => {
+    event.stopPropagation();
+    let tooltip = document.getElementById('itemTooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.id = 'itemTooltip';
+      tooltip.style.cssText = `
+        position: fixed;
+        background: #000;
+        border: 3px solid #d4af37;
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 12px;
+        color: #d4af37;
+        z-index: 10001;
+        pointer-events: none;
+        max-width: 220px;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
+      `;
+      document.body.appendChild(tooltip);
+    }
+
+    const displayName = ui._getSlotDisplayName(slotName);
+    
+    let buffText = '<div style="margin-top: 6px; border-top: 1px solid #d4af37; padding-top: 6px;">';
+    if (buffs && Object.keys(buffs).length > 0) {
+      Object.entries(buffs).forEach(([stat, value]) => {
+        if (value > 0) {
+          const displayValue = typeof value === 'number' && value < 1 ? (value * 100).toFixed(1) + '%' : value;
+          buffText += `<div style="color: #4f4; text-align: left; margin: 2px 0;">+${displayValue} ${stat}</div>`;
+        }
+      });
+    } else {
+      buffText += '<div style="color: #999;">No stat boost</div>';
+    }
+    buffText += '</div>';
+
+    tooltip.innerHTML = `
+      <div style="color: #d4af37; text-transform: uppercase; letter-spacing: 1px;">${displayName}</div>
+      ${buffText}
+    `;
+
+    const x = event.clientX + 12;
+    const y = event.clientY + 12;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+    tooltip.style.display = 'block';
+  };
+
+  ui._hideItemTooltip = () => {
+    const tooltip = document.getElementById('itemTooltip');
+    if (tooltip) {
+      tooltip.style.display = 'none';
+    }
+  };
+
+  // Show card stat tooltip on hover (name, role, level, rarity, rating)
+  ui._showCardTooltip = (event, cardData) => {
+    event.stopPropagation();
+    let tooltip = document.getElementById('cardStatTooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.id = 'cardStatTooltip';
+      tooltip.style.cssText = `
+        position: fixed;
+        background: #000;
+        border: 3px solid #d4af37;
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 12px;
+        color: #d4af37;
+        z-index: 10001;
+        pointer-events: none;
+        max-width: 250px;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
+      `;
+      document.body.appendChild(tooltip);
+    }
+
+    const rarityBorders = {common: '#fff', uncommon: '#00ff00', rare: '#0099ff', epic: '#cc66ff', legendary: '#ff8800'};
+    const rarityColor = rarityBorders[cardData.rarity] || '#fff';
+
+    tooltip.innerHTML = `
+      <div style="color: #d4af37; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">${cardData.name}</div>
+      <div style="border-top: 1px solid #d4af37; padding-top: 6px; font-size: 11px;">
+        <div style="margin: 3px 0; color: #aef;"><strong>Role:</strong> ${cardData.role.toUpperCase()}</div>
+        <div style="margin: 3px 0; color: #aef;"><strong>Level:</strong> ${cardData.level}</div>
+        <div style="margin: 3px 0; color: ${rarityColor};"><strong>Rarity:</strong> ${cardData.rarity.charAt(0).toUpperCase() + cardData.rarity.slice(1)}</div>
+        <div style="margin: 3px 0; color: #fa0;"><strong>Power Rating:</strong> ${cardData.powerRating}/100</div>
+      </div>
+    `;
+
+    const x = event.clientX + 12;
+    const y = event.clientY + 12;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+    tooltip.style.display = 'block';
+  };
+
+  ui._hideCardTooltip = () => {
+    const tooltip = document.getElementById('cardStatTooltip');
+    if (tooltip) {
+      tooltip.style.display = 'none';
+    }
+  };
+
+  // Calculate card power rating (0-100) based on rarity + level + equipment
+  ui._calculateCardRating = (card) => {
+    if (!card) return 0;
+    
+    // Rarity base value: common=20, uncommon=40, rare=60, epic=80, legendary=100
+    const rarityValues = { common: 20, uncommon: 40, rare: 60, epic: 80, legendary: 100 };
+    let rating = rarityValues[card.rarity] || 20;
+    
+    // Level scaling: +1 per level
+    rating += Math.min((card.level || 1) - 1, 20);
+    
+    // Equipment bonuses: calculate total buffs
+    if (card.items) {
+      let equipmentBonus = 0;
+      Object.values(card.items).forEach(item => {
+        if (item?.buffs) {
+          Object.values(item.buffs).forEach(val => {
+            if (typeof val === 'number' && val > 0) {
+              equipmentBonus += (val > 1 ? Math.min(val, 10) : val * 10);
+            }
+          });
+        }
+      });
+      rating += Math.min(equipmentBonus / 5, 30);
+    }
+    
+    return Math.min(Math.round(rating), 100);
+  };
+
   // Render fighter cards inventory
   ui.renderFighterCards = () => {
     if (!state.fighterCardInventory) return;
@@ -2471,32 +2639,88 @@ function bindUI(state){
     
     // Render filled cards - full image with tooltip
     cards.forEach((card, idx) => {
-      const rarityColors = {common: '#888', uncommon: '#0a0', rare: '#0aa', epic: '#a0a', legendary: '#fa0'};
-      const rarityColor = rarityColors[card.rarity] || '#888';
+      const rarityBorders = {common: '#fff', uncommon: '#00ff00', rare: '#0099ff', epic: '#cc66ff', legendary: '#ff8800'};
+      const rarityColor = rarityBorders[card.rarity] || '#fff';
       const rarityBgOpacity = {common: 0.1, uncommon: 0.15, rare: 0.2, epic: 0.25, legendary: 0.3};
       const imageUrl = card.fighterImage ? getAssetPath(`assets/fighter player cards/${card.fighterImage}`) : '';
-      const ratingStars = '★'.repeat(card.rating) + '☆'.repeat(5 - card.rating);
+      const cardPowerRating = ui._calculateCardRating(card);
+      
+      // Create card stat tooltip data
+      const cardStatData = {
+        name: card.name,
+        role: card.role,
+        level: card.level,
+        rarity: card.rarity,
+        powerRating: cardPowerRating
+      };
       
       html += `
         <div class="fighter-card-slot" style="
           background: rgba(212,175,55,${rarityBgOpacity[card.rarity]});
-          border: 2px solid ${rarityColor};
+          border: 4px solid ${rarityColor};
           border-radius: 8px;
-          padding: 8px;
+          padding: 6px;
           text-align: center;
           cursor: pointer;
           transition: all 0.2s;
-          aspect-ratio: 120/160;
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          align-items: center;
           overflow: hidden;
           position: relative;
           width: 100%;
           box-sizing: border-box;
-        " onmouseover="ui._showCardTooltip(event, '${card.rarity}', ${card.level}, '${card.name}', '${card.role}', '${ratingStars}')" onmouseout="ui._hideCardTooltip()" onclick="ui._showFighterPreview('${card.loadoutId}')">
-          ${imageUrl ? `<img src="${imageUrl}" alt="fighter" style="width: 100%; height: 100%; object-fit: contain;">` : ''}
+          aspect-ratio: 120/160;
+        " onmousemove="ui._showCardTooltip(event, ${JSON.stringify(cardStatData)})" onmouseout="ui._hideCardTooltip()" onclick="ui._showFighterPreview('${card.loadoutId}', ${card.level})">
+          <!-- Top right: Rating box -->
+          <div style="
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: linear-gradient(135deg, #d4af37, #c9a227);
+            border: 2px solid #f4d03f;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #000;
+            z-index: 2;
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+          ">${cardPowerRating}</div>
+          
+          <!-- Top left: Level box -->
+          <div style="
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            background: linear-gradient(135deg, #d4af37, #c9a227);
+            border: 2px solid #f4d03f;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #000;
+            z-index: 2;
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+          ">L${card.level}</div>
+          
+          <!-- Fighter image -->
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 100px;">
+            ${imageUrl ? `<img src="${imageUrl}" alt="fighter" style="max-width: 100%; max-height: 100%; object-fit: contain; width: auto; height: auto;">` : ''}
+          </div>
+          
+          <!-- Bottom: Card name -->
+          <div style="
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 4px;
+            margin-top: auto;
+            width: 100%;
+            font-size: 10px;
+            font-weight: bold;
+            color: #fff;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+          ">${card.name}</div>
         </div>
       `;
     });
@@ -7461,8 +7685,7 @@ function bindUI(state){
     const allyCards = allies.map(slot => ui._renderSlotCard(slot, 'ally'));
     ui.allySlotList.innerHTML = allyCards.join('');
     
-    // Attach hover events for loadout tooltips
-    ui._attachSlotTooltips();
+    // Tooltips disabled for slot tab
   };
 
   // Render individual slot card
@@ -7542,6 +7765,7 @@ function bindUI(state){
       if (loadoutData.weapon) {
         const weaponType = loadoutData.weapon.weaponType;
         const weaponImagePath = getAssetPath(`assets/items/${capitalize(loadoutRarity)} ${weaponType}.png`);
+        const weaponBuffs = JSON.stringify(loadoutData.weapon.buffs || {}).replace(/"/g, '&quot;');
         html += `
           <div style="
             width: 32px;
@@ -7554,7 +7778,9 @@ function bindUI(state){
             justify-content: center;
             cursor: help;
             overflow: hidden;
-          " title="Weapon: ${weaponType}">
+          " 
+          onmousemove="ui._showItemTooltip(event, 'weapon', JSON.parse('${weaponBuffs}'), '${loadoutRarity}')"
+          onmouseout="ui._hideItemTooltip()">
             <img src="${weaponImagePath}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='⚔';" alt="${weaponType}" />
           </div>
         `;
@@ -7568,8 +7794,12 @@ function bindUI(state){
           if (!armorPiece) return;
           const armorType = armorPiece.armorType || 'Unknown';
           
-          const slotDisplayName = slotName === 'accessory1' || slotName === 'accessory2' ? 'bracelet' : slotName;
+          let slotDisplayName = slotName;
+          if (slotName === 'neck') slotDisplayName = 'necklace';
+          if (slotName === 'accessory1') slotDisplayName = 'ring';
+          if (slotName === 'accessory2') slotDisplayName = 'bracelet';
           const imagePath = getAssetPath(`assets/items/${loadoutRarity} ${slotDisplayName}.png`);
+          const armorBuffs = JSON.stringify(armorPiece.buffs || {}).replace(/"/g, '&quot;');
           
           html += `
             <div style="
@@ -7583,7 +7813,9 @@ function bindUI(state){
               justify-content: center;
               cursor: help;
               overflow: hidden;
-            " title="${slotName}: ${armorType}">
+            " 
+            onmousemove="ui._showItemTooltip(event, '${slotName}', JSON.parse('${armorBuffs}'), '${loadoutRarity}')"
+            onmouseout="ui._hideItemTooltip()">
               <img src="${imagePath}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${slotName.charAt(0).toUpperCase()}';" alt="${slotName}" />
             </div>
           `;
@@ -7600,8 +7832,8 @@ function bindUI(state){
           
           <!-- Fighter Portrait -->
           <div style="
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             flex-shrink: 0;
             background: linear-gradient(135deg, #333 0%, #222 100%);
             border-radius: 4px;
@@ -7616,10 +7848,10 @@ function bindUI(state){
             transition: all 0.2s;
           " ${loadoutData ? `onclick="event.stopPropagation(); ui._showFighterPreview('${loadoutId}')" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='#d4af37';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='${roleStyle.border}';" title="Click to view full fighter details"` : ''}>
             ${loadoutData && loadoutData.fighterImage && !loadoutData.fighterImage.includes('placeholder') ? 
-              `<img src="${getAssetPath('assets/fighter player cards/' + loadoutData.fighterImage)}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerHTML='${loadoutData.name || 'Fighter'}';" alt="${loadoutData.name}"/>` :
+              `<img src="${getAssetPath('assets/fighter player cards/' + loadoutData.fighterImage)}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${loadoutData.name || 'Fighter'}';" alt="${loadoutData.name}"/>` :
               loadoutData ? loadoutData.name || 'Fighter' : '?'
             }
-            ${loadoutData && level > 0 ? `<div style="position:absolute; top:4px; left:4px; width:28px; height:28px; border-radius:50%; background:#1a1a1a; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:bold; color:#d4af37; box-shadow:0 2px 4px rgba(0,0,0,0.8);">${level}</div>` : ''}
+            ${loadoutData && level > 0 ? `<div style="position:absolute; top:4px; left:4px; width:24px; height:24px; border-radius:50%; background:#1a1a1a; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; color:#d4af37; box-shadow:0 2px 4px rgba(0,0,0,0.8);">${level}</div>` : ''}
           </div>
           
           <!-- Slot Info -->
@@ -7855,6 +8087,7 @@ function bindUI(state){
         width: 100%;
         box-sizing: border-box;
         overflow: hidden;
+        position: relative;
       `;
       
       cardEl.onmouseover = () => {
@@ -7878,12 +8111,40 @@ function bindUI(state){
         }
       };
       
+      // Check if this card is better/worse than equipped - using card ratings
+      const currentSlot = (state.slotSystem?.guards || []).find(s => s.id === slotId) ||
+                          (state.slotSystem?.allies || []).find(s => s.id === slotId);
+      const equippedLoadoutId = currentSlot?.loadoutId;
+      let comparisonBadge = '';
+      
+      if (equippedLoadoutId && equippedLoadoutId !== card.loadoutId) {
+        // Find the currently equipped card's rating
+        const allCards = state.fighterCardInventory?.cards || [];
+        const equippedCard = allCards.find(c => c.loadoutId === equippedLoadoutId);
+        
+        if (equippedCard) {
+          // Compare card ratings directly
+          if (card.rating > equippedCard.rating) {
+            comparisonBadge = `<div style="position:absolute; top:4px; right:4px; background:#2a6e2a; border:2px solid #4f4; color:#4f4; font-size:12px; font-weight:bold; padding:2px 6px; border-radius:3px; box-shadow:0 0 8px #4f4;">↑ Better</div>`;
+          } else if (card.rating < equippedCard.rating) {
+            comparisonBadge = `<div style="position:absolute; top:4px; right:4px; background:#6e2a2a; border:2px solid #f44; color:#f44; font-size:12px; font-weight:bold; padding:2px 6px; border-radius:3px; box-shadow:0 0 8px #f44;">↓ Weaker</div>`;
+          }
+        }
+      }
+      
       cardEl.innerHTML = `
         ${card.fighterImage ? `<img src="${getAssetPath(`assets/fighter player cards/${card.fighterImage}`)}" alt="fighter" style="width: 100%; height: 100%; object-fit: contain;">` : ''}
+        ${comparisonBadge}
       `;
       
-      const ratingStars = '★'.repeat(card.rating) + '☆'.repeat(5 - card.rating);
-      cardEl.addEventListener('mousemove', (e) => ui._showCardTooltip(e, card.rarity, card.level, card.name, card.role, ratingStars));
+      const cardStatData = {
+        name: card.name,
+        role: card.role,
+        level: card.level,
+        rarity: card.rarity,
+        rating: card.rating
+      };
+      cardEl.addEventListener('mousemove', (e) => ui._showCardTooltip(e, cardStatData));
       cardEl.addEventListener('mouseout', () => ui._hideCardTooltip());
       
       gridDiv.appendChild(cardEl);
@@ -7956,9 +8217,10 @@ function bindUI(state){
   };
 
   // Show comprehensive fighter preview (full screen - redesigned layout)
-  ui._showFighterPreview = (loadoutId) => {
+  ui._showFighterPreview = (loadoutId, fighterLevel = 1) => {
     const LOADOUTS = window.LOADOUTS;
     const ABILITIES = window.ABILITIES || {};
+    const LEVELING = window.LEVELING;
     
     if (!LOADOUTS) {
       console.error('[PREVIEW] LOADOUTS not available');
@@ -7971,17 +8233,22 @@ function bindUI(state){
       return;
     }
 
-    // Get rarity info
-    const rarity = loadout.rarity || 'common';
-    const rarityColors = {
-      common: '#aaa',
-      uncommon: '#1eff00',
-      rare: '#0070dd',
-      epic: '#a335ee',
-      legendary: '#ff8000'
+    // Get rarity info from inventory card or use loadout default
+    let card = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
+    const rarity = card?.rarity || loadout.rarity || 'common';
+    const cardPowerRating = card ? ui._calculateCardRating(card) : 50;
+    
+    const rarityNames = {
+      common: 'Common',
+      uncommon: 'Uncommon',
+      rare: 'Rare',
+      epic: 'Epic',
+      legendary: 'Legendary'
     };
-    const rarityColor = rarityColors[rarity] || rarityColors.common;
-    const rarityName = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+    const rarityName = rarityNames[rarity] || 'Common';
+    
+    const rarityBorders = {common: '#fff', uncommon: '#00ff00', rare: '#0099ff', epic: '#cc66ff', legendary: '#ff8800'};
+    const rarityColor = rarityBorders[rarity] || '#fff';
 
     // Rarity multiplier for stats
     const rarityMultipliers = {
@@ -7993,11 +8260,43 @@ function bindUI(state){
     };
     const mult = rarityMultipliers[rarity] || 1;
 
-    // Calculate ALL combat stats from equipment
-    let totalAtk = 0, totalDef = 0, totalMaxHp = 0, totalMaxMana = 0;
-    let totalCritChance = 0, totalSpeed = 0, totalLifeSteal = 0, totalCDR = 0;
-    let totalHpRegen = 0, totalManaRegen = 0, totalStamRegen = 0, totalMaxStam = 0;
-    let totalBlock = 0, totalCritMult = 0;
+    // Get base stats for this fighter's level
+    let baseStats = {
+      maxHp: 160,
+      maxMana: 70,
+      maxStam: 100,
+      hpRegen: 1.4,
+      manaRegen: 3.0,
+      stamRegen: 18.0,
+      atk: 10.0,
+      def: 3.0,
+      speed: 140,
+      critChance: 0.08,
+      critMult: 1.70,
+      cdr: 0,
+      block: 0.50,
+      lifesteal: 0
+    };
+    
+    if (LEVELING && LEVELING.getPlayerBaseStatsForLevel) {
+      baseStats = LEVELING.getPlayerBaseStatsForLevel(fighterLevel);
+    }
+
+    // Calculate totals: base stats + equipment buffs with rarity multiplier
+    let totalMaxHp = Math.round(baseStats.maxHp);
+    let totalMaxMana = Math.round(baseStats.maxMana);
+    let totalMaxStam = Math.round(baseStats.maxStam);
+    let totalHpRegen = baseStats.hpRegen;
+    let totalManaRegen = baseStats.manaRegen;
+    let totalStamRegen = baseStats.stamRegen;
+    let totalAtk = Math.round(baseStats.atk);
+    let totalDef = Math.round(baseStats.def);
+    let totalSpeed = baseStats.speed;
+    let totalCritChance = baseStats.critChance;
+    let totalCritMult = baseStats.critMult;
+    let totalCDR = baseStats.cdr;
+    let totalBlock = baseStats.block;
+    let totalLifeSteal = 0;
     
     // Weapon stats
     if (loadout.weapon?.buffs) {
@@ -8015,18 +8314,17 @@ function bindUI(state){
         if (piece?.buffs) {
           const buffs = piece.buffs;
           totalDef += Math.floor((buffs.def || 0) * mult);
-          totalMaxHp += Math.floor((buffs.maxHp || 0) * mult);
-          totalMaxMana += Math.floor((buffs.maxMana || 0) * mult);
+          totalMaxHp += Math.floor((buffs.hp || buffs.maxHp || 0) * mult);
+          totalMaxMana += Math.floor((buffs.maxMana || buffs.mana || 0) * mult);
           totalMaxStam += Math.floor((buffs.maxStam || buffs.maxStamina || 0) * mult);
           totalCritChance += (buffs.critChance || 0);
           totalSpeed += (buffs.spd || buffs.speed || 0);
-          totalHpRegen += (buffs.hpRegen || 0);
-          totalManaRegen += (buffs.manaRegen || 0);
-          totalStamRegen += (buffs.stamRegen || buffs.staminaRegen || 0);
+          totalHpRegen += (buffs.hpRegen || buffs.hpRegeneration || 0);
+          totalManaRegen += (buffs.manaRegen || buffs.manaRegeneration || 0);
+          totalStamRegen += (buffs.stamRegen || buffs.staminaRegen || buffs.staminaRegeneration || 0);
           totalLifeSteal += (buffs.lifeSteal || buffs.lifesteal || 0);
           totalCDR += (buffs.cdr || buffs.cooldownReduction || 0);
           totalBlock += (buffs.block || 0);
-          totalCritMult += (buffs.critMult || buffs.critMultiplier || 0);
         }
       });
     }
@@ -8040,6 +8338,7 @@ function bindUI(state){
         const weaponType = loadout.weapon.weaponType || 'Unknown';
         const weaponImagePath = `assets/items/${rarity} ${weaponType}.png`;
         const attackBonus = Math.floor((loadout.weapon.buffs?.atk || 0) * mult);
+        const weaponBuffs = JSON.stringify(loadout.weapon.buffs || {}).replace(/"/g, '&quot;');
         
         html += `
           <div style="
@@ -8054,7 +8353,10 @@ function bindUI(state){
             overflow: hidden;
             position: relative;
             box-shadow: 0 4px 12px rgba(0,0,0,0.8);
-          " title="${weaponType}: +${attackBonus} ATK">
+          " 
+          onmousemove="ui._showItemTooltip(event, 'weapon', JSON.parse('${weaponBuffs}'), '${rarity}')"
+          onmouseout="ui._hideItemTooltip()"
+          title="${weaponType}: +${attackBonus} ATK">
             <img src="${weaponImagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:40px;>⚔</span>';" />
             <div style="position: absolute; bottom: 2px; right: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; font-weight: bold; padding: 2px 4px; border-radius: 3px;">+${attackBonus}</div>
           </div>
@@ -8070,6 +8372,7 @@ function bindUI(state){
           
           const slotDisplayName = slotName === 'neck' ? 'necklace' : slotName;
           const imagePath = `assets/items/${rarity} ${slotDisplayName}.png`;
+          const armorBuffs = JSON.stringify(piece.buffs || {}).replace(/"/g, '&quot;');
           
           html += `
             <div style="
@@ -8083,7 +8386,10 @@ function bindUI(state){
               justify-content: center;
               overflow: hidden;
               box-shadow: 0 4px 12px rgba(0,0,0,0.8);
-            " title="${slotName}">
+            " 
+            onmousemove="ui._showItemTooltip(event, '${slotName}', JSON.parse('${armorBuffs}'), '${rarity}')"
+            onmouseout="ui._hideItemTooltip()"
+            title="${slotName}">
               <img src="${imagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:24px;>${slotName.charAt(0).toUpperCase()}</span>';" />
             </div>
           `;
@@ -8104,9 +8410,11 @@ function bindUI(state){
           if (!piece) return;
           
           let slotDisplayName = slotName;
-          if (slotName === 'accessory1' || slotName === 'accessory2') slotDisplayName = 'bracelet';
+          if (slotName === 'accessory1') slotDisplayName = 'ring';
+          if (slotName === 'accessory2') slotDisplayName = 'bracelet';
           if (slotName === 'neck') slotDisplayName = 'necklace';
           const imagePath = `assets/items/${rarity} ${slotDisplayName}.png`;
+          const armorBuffs = JSON.stringify(piece.buffs || {}).replace(/"/g, '&quot;');
           
           html += `
             <div style="
@@ -8120,7 +8428,10 @@ function bindUI(state){
               justify-content: center;
               overflow: hidden;
               box-shadow: 0 4px 12px rgba(0,0,0,0.8);
-            " title="${slotName}">
+            " 
+            onmousemove="ui._showItemTooltip(event, '${slotName}', JSON.parse('${armorBuffs}'), '${rarity}')"
+            onmouseout="ui._hideItemTooltip()"
+            title="${slotDisplayName}">
               <img src="${imagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:24px;>${slotName.charAt(0).toUpperCase()}</span>';" />
             </div>
           `;
@@ -8294,6 +8605,7 @@ function bindUI(state){
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: auto;
       ">
         
         <!-- Close Button (Top Right) -->
@@ -8341,10 +8653,34 @@ function bindUI(state){
             background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(20,20,20,0.95));
             border-radius: 16px;
             box-shadow: 0 0 40px ${rarityColor}80, inset 0 0 20px ${rarityColor}20;
-            margin-bottom: 0;
+            margin-bottom: 16px;
             white-space: nowrap;
           ">
             ${loadout.name}
+          </div>
+          
+          <!-- Rarity and Power Rating -->
+          <div style="
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 12px 24px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid ${rarityColor};
+            border-radius: 8px;
+            box-shadow: 0 0 20px ${rarityColor}40;
+          ">
+            <div style="text-align: center;">
+              <div style="color: #aaa; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Rarity</div>
+              <div style="color: ${rarityColor}; font-size: 16px; font-weight: bold;">${rarityName}</div>
+            </div>
+            <div style="width: 2px; height: 30px; background: ${rarityColor}40;"></div>
+            <div style="text-align: center;">
+              <div style="color: #aaa; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Power Rating</div>
+              <div style="color: #fa0; font-size: 16px; font-weight: bold;">${cardPowerRating}/100</div>
+            </div>
           </div>
           
           <!-- Main Fighter Display Area with Side Panels -->
@@ -8409,7 +8745,7 @@ function bindUI(state){
             <!-- Bottom Abilities Row (overlapping bottom border) -->
             <div style="
               position: absolute;
-              bottom: -40px;
+              bottom: 12px;
               left: 50%;
               transform: translateX(-50%);
               display: flex;
@@ -8450,33 +8786,25 @@ function bindUI(state){
             
             <div style="color: #fff; font-size: 14px;">
               <div style="margin-bottom: 18px;">
-                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">⚔️ OFFENSE</div>
-                <div style="margin-bottom: 8px;"><b>⚔ Attack:</b> +${totalAtk}</div>
-                <div style="margin-bottom: 8px;"><b>🎯 Crit Chance:</b> ${totalCritChance}%</div>
-                <div style="margin-bottom: 8px;"><b>💥 Crit Mult:</b> ${critMultDisplay}</div>
-                <div style="margin-bottom: 8px;"><b>🩸 Lifesteal:</b> ${totalLifeSteal}%</div>
+                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">📊 CORE STATS</div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Max HP</b></span><span>${totalMaxHp}</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>HP Regen</b></span><span>${totalHpRegen.toFixed(1)}</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Max Mana</b></span><span>${totalMaxMana}</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Mana Regen</b></span><span>${totalManaRegen.toFixed(1)}</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Max Stam</b></span><span>${totalMaxStam}</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Stam Regen</b></span><span>${totalStamRegen.toFixed(1)}</span></div>
               </div>
               
               <div style="margin-bottom: 18px;">
-                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">🛡️ DEFENSE</div>
-                <div style="margin-bottom: 8px;"><b>🛡 Defense:</b> +${totalDef}</div>
-                <div style="margin-bottom: 8px;"><b>❤ Max HP:</b> +${totalMaxHp}</div>
-                <div style="margin-bottom: 8px;"><b>💓 HP Regen:</b> ${totalHpRegen.toFixed(1)}/s</div>
-                <div style="margin-bottom: 8px;"><b>🛡 Block:</b> ${blockDisplay}%</div>
-              </div>
-              
-              <div style="margin-bottom: 18px;">
-                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">💧 RESOURCES</div>
-                <div style="margin-bottom: 8px;"><b>💧 Max Mana:</b> +${totalMaxMana}</div>
-                <div style="margin-bottom: 8px;"><b>💦 Mana Regen:</b> ${totalManaRegen.toFixed(1)}/s</div>
-                <div style="margin-bottom: 8px;"><b>🏃 Max Stamina:</b> +${totalMaxStam}</div>
-                <div style="margin-bottom: 8px;"><b>⚡ Stam Regen:</b> ${totalStamRegen.toFixed(1)}/s</div>
-              </div>
-              
-              <div style="margin-bottom: 18px;">
-                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">⚡ UTILITY</div>
-                <div style="margin-bottom: 8px;"><b>⚡ Speed:</b> +${totalSpeed}</div>
-                <div style="margin-bottom: 8px;"><b>⏱ CDR:</b> ${totalCDR}%</div>
+                <div style="color: ${rarityColor}; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid ${rarityColor}60; padding-bottom: 6px;">⚔️ COMBAT</div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>ATK</b></span><span>${totalAtk.toFixed(1)}</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>DEF</b></span><span>${totalDef.toFixed(1)}</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Speed</b></span><span>${totalSpeed}</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Crit %</b></span><span>${(totalCritChance * 100).toFixed(0)}%</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Crit Mult</b></span><span>${totalCritMult.toFixed(2)}</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>CDR</b></span><span>${(totalCDR * 100).toFixed(0)}%</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Block</b></span><span>${(totalBlock * 100).toFixed(0)}%</span></div>
+                <div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span><b>Lifesteal</b></span><span>${(totalLifeSteal * 100).toFixed(0)}%</span></div>
               </div>
               
               <div style="

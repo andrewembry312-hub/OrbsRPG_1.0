@@ -88,10 +88,28 @@ export function generateFighterCard(playerLevel, cardId) {
   const rarityValue = { common: 50, uncommon: 150, rare: 500, epic: 2000, legendary: 10000 };
   const value = Math.round((rarityValue[rarity] || 100) * (1 + (playerLevel - 1) * 0.2));
   
-  // Calculate power rating (1-5 stars)
+  // Calculate power rating (1-5 stars) - based on rarity + level scaling
   const baseRating = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
   const rating = Math.min(5, baseRating[rarity] + Math.floor((playerLevel - 1) / 10));
   
+  // Generate rarity-matched items (copy loadout items and apply rarity)
+  const rarityItems = {};
+  if (loadout.armor) {
+    Object.entries(loadout.armor).forEach(([slot, item]) => {
+      rarityItems[slot] = {
+        ...item,
+        rarity: rarity
+      };
+    });
+  }
+  
+  if (loadout.weapon) {
+    rarityItems.weapon = {
+      ...loadout.weapon,
+      rarity: rarity
+    };
+  }
+
   return {
     id: cardId,
     loadoutId: loadout.id,
@@ -103,6 +121,7 @@ export function generateFighterCard(playerLevel, cardId) {
     rating: rating,
     value: value,
     stats: stats,
+    items: rarityItems,
     abilities: loadout.abilities || [],
     combo: loadout.combo || {},
     acquiredTime: Date.now()

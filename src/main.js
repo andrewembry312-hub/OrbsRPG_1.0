@@ -161,6 +161,62 @@ window.giveAllCommonCards = async function() {
   }
 };
 
+// Console command to grant one fighter card for each rarity (for testing all rarities)
+window.giveAllRarityCards = async function() {
+  if (!state.fighterCardInventory) {
+    console.error('Fighter card inventory not initialized');
+    return 0;
+  }
+  
+  try {
+    // Import the functions directly if not already available
+    if (!window._fighterCardsLoaded) {
+      const module = await import('./game/fighter-cards.js');
+      window._generateFighterCard = module.generateFighterCard;
+      window._fighterCardsLoaded = true;
+    }
+    
+    const generateFighterCard = window._generateFighterCard;
+    
+    if (!generateFighterCard) {
+      console.error('Fighter card functions not available');
+      return 0;
+    }
+    
+    let cardCount = 0;
+    const playerLevel = (state.player?.level || state.progression?.level || 1);
+    const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+    
+    // Generate one card for each rarity
+    rarities.forEach(rarity => {
+      const card = generateFighterCard(playerLevel, state.fighterCardInventory.nextCardId++);
+      if (card) {
+        // Override rarity to the specific one we want
+        card.rarity = rarity;
+        // Adjust rating to match rarity
+        const baseRating = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
+        card.rating = baseRating[rarity];
+        
+        state.fighterCardInventory.cards.push(card);
+        cardCount++;
+        console.log(`✓ ${rarity.charAt(0).toUpperCase() + rarity.slice(1)} card created`);
+      }
+    });
+    
+    // Refresh UI if available
+    if (state.ui && state.ui.renderFighterCards) {
+      state.ui.renderFighterCards();
+    }
+    
+    console.log(`✓ Generated ${cardCount} fighter cards (one for each rarity)`);
+    console.log('Visit the Cards tab (Tab 9) to view your collection!');
+    return cardCount;
+  } catch (err) {
+    console.error('Error generating fighter cards:', err);
+    return 0;
+  }
+};
+
 // Console command to apply all effects (buffs + debuffs) to player
 window.giveAllEffects = function() {
   const allEffectIds = [
