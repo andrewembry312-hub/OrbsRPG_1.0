@@ -214,7 +214,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Vex Shadowblade',
     fighterImage: 'Vex Shadowblade.png',
     description: 'Dagger assassin with rapid critical strikes',
-    class: 'rogue',
+    class: 'warrior',
     role: 'dps',
     unlockLevel: 1,
     
@@ -371,7 +371,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Lyra Swiftarrow',
     fighterImage: 'Lyra Swiftarrow.png',
     description: 'Precision ranger with rapid-fire volleys',
-    class: 'ranger',
+    class: 'warrior',
     role: 'dps',
     unlockLevel: 1,
     
@@ -584,7 +584,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Seraphina Lightbringer',
     fighterImage: 'Seraphina Lightbringer.png',
     description: 'Holy paladin with self-healing and protective shields',
-    class: 'paladin',
+    class: 'knight',
     role: 'tank',
     unlockLevel: 1,
     
@@ -636,7 +636,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Boulder the Unbreakable',
     fighterImage: 'Boulder the Unbreakable.png',
     description: 'Stone guardian with massive health and immovable defense',
-    class: 'guardian',
+    class: 'knight',
     role: 'tank',
     unlockLevel: 1,
     
@@ -688,7 +688,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Marcus the Sentinel',
     fighterImage: 'Marcus the Sentinel.png',
     description: 'Defensive sentinel specializing in damage reduction',
-    class: 'sentinel',
+    class: 'knight',
     role: 'tank',
     unlockLevel: 1,
     
@@ -740,7 +740,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Drogan Bloodrage',
     fighterImage: 'Drogan Bloodrage.png',
     description: 'Rage-fueled berserker tank with aggressive cleaves',
-    class: 'berserker',
+    class: 'warrior',
     role: 'tank',
     unlockLevel: 1,
     
@@ -793,7 +793,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Thaddeus the Just',
     fighterImage: 'Thaddeus the Just.png',
     description: 'Holy crusader with layered defensive cooldowns',
-    class: 'crusader',
+    class: 'knight',
     role: 'tank',
     unlockLevel: 1,
     
@@ -845,7 +845,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Titan the Fortress',
     fighterImage: 'Titan the Fortress.png',
     description: 'Ultimate fortress with maximum defense stacking',
-    class: 'fortress',
+    class: 'warden',
     role: 'tank',
     unlockLevel: 1,
     
@@ -950,7 +950,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Father Benedict',
     fighterImage: 'Father Benedict.png',
     description: 'Holy priest with emergency triple heal burst',
-    class: 'priest',
+    class: 'mage',
     role: 'healer',
     unlockLevel: 1,
     
@@ -999,7 +999,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Willow Earthsong',
     fighterImage: 'Willow Earthsong.png',
     description: 'Nature shaman with radiant aura shields',
-    class: 'shaman',
+    class: 'mage',
     role: 'healer',
     unlockLevel: 1,
     
@@ -1050,7 +1050,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Celeste the Oracle',
     fighterImage: 'Celeste the Oracle.png',
     description: 'Divine oracle with preventive ward barriers',
-    class: 'oracle',
+    class: 'mage',
     role: 'healer',
     unlockLevel: 1,
     
@@ -1102,7 +1102,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Rowan Greenleaf',
     fighterImage: 'Rowan Greenleaf.png',
     description: 'Restoration druid with nature healing magic',
-    class: 'druid',
+    class: 'warden',
     role: 'healer',
     unlockLevel: 1,
     
@@ -1153,7 +1153,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Morgana Battlepriest',
     fighterImage: 'Morgana Battlepriest.png',
     description: 'War cleric blending healing with offensive lightning',
-    class: 'cleric',
+    class: 'mage',
     role: 'healer',
     unlockLevel: 1,
     
@@ -1204,7 +1204,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Seran Dawnbringer',
     fighterImage: 'Seran Dawnbringer.png',
     description: 'Holy templar with group-wide protective shields',
-    class: 'templar',
+    class: 'knight',
     role: 'healer',
     unlockLevel: 1,
     
@@ -1256,7 +1256,7 @@ export const LOADOUT_REGISTRY = {
     name: 'Luna Starwhisper',
     fighterImage: 'luna starwhisper.png',
     description: 'Ethereal mystic with mana-efficient quad healing',
-    class: 'mystic',
+    class: 'mage',
     role: 'healer',
     unlockLevel: 1,
     

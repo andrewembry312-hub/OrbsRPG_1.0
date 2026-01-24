@@ -696,18 +696,26 @@ export async function initGame(state){
       slot.loadoutId = loadoutId;
       if(state.debugLog) console.log(`✅ Assigned ${loadout.name} to ${slotId}`);
       
-      // SPAWN the fighter immediately at appropriate location
+      // SPAWN the fighter immediately at appropriate location (player's home base)
+      // But first, check if an ally from this loadout already exists (avoid duplicates)
+      const existingAlly = state.friendlies.find(f => f.cardLoadoutId === loadoutId && f.fighterCard);
+      
       const isGuardSlot = state.slotSystem?.guards?.some(g => g.id === slotId);
-      const spawnX = state.player?.x || 0;
-      const spawnY = state.player?.y || 0;
-      if (isGuardSlot) {
-        // Spawn guard at player's position
+      const playerHome = state.sites.find(s => s.owner === 'player' && s.type === 'home');
+      const spawnX = playerHome ? playerHome.x : (state.player?.x || 0);
+      const spawnY = playerHome ? playerHome.y : (state.player?.y || 0);
+      
+      if (existingAlly) {
+        // Ally already exists - just update reference if needed
+        if(state.debugLog) console.log(`✅ Ally ${existingAlly.name} already spawned, reusing existing unit`);
+      } else if (isGuardSlot) {
+        // Spawn guard at player's home base
         const guard = spawnAllyAt(state, spawnX, spawnY, loadoutId, slot.level || 1);
-        if(state.debugLog) console.log(`👮 Guard spawned for slot ${slotId}:`, guard?.name, `at (${spawnX}, ${spawnY})`);
+        if(state.debugLog) console.log(`👮 Guard spawned for slot ${slotId}:`, guard?.name, `at home base (${spawnX}, ${spawnY})`);
       } else {
-        // Spawn ally at player's position
+        // Spawn ally at player's home base
         const ally = spawnAllyAt(state, spawnX, spawnY, loadoutId, slot.level || 1);
-        if(state.debugLog) console.log(`🤝 Ally spawned for slot ${slotId}:`, ally?.name, `at (${spawnX}, ${spawnY})`);
+        if(state.debugLog) console.log(`🤝 Ally spawned for slot ${slotId}:`, ally?.name, `at home base (${spawnX}, ${spawnY})`);
       }
       
       // Mirror to AI teams
@@ -2054,10 +2062,12 @@ export function awardXP(state, amount){
     const newCard = generateFighterCard(newLevel, state.fighterCardInventory.nextCardId++);
     if (newCard) {
       addFighterCard(state, newCard);
-      console.log('[FighterCards] Awarded:', newCard.name, newCard.rarity, '★'.repeat(newCard.rating));
+      console.log('[FighterCards] ✅ Card Awarded:', newCard.name, `(${newCard.rarity})`, '★'.repeat(newCard.rating), '- Total cards:', state.fighterCardInventory.cards.length);
+    } else {
+      console.warn('[FighterCards] ⚠️ Failed to generate card at level', newLevel);
     }
     
-    const msg = `<b>Level up!</b> Level <b>${newLevel}</b> (+2 stat points)${bonusMsg ? '<br>' + bonusMsg : ''}`;
+    const msg = `<b>Level up!</b> Level <b>${newLevel}</b> (+2 stat points)${bonusMsg ? '<br>' + bonusMsg : ''}${newCard ? `<br><span style="color:#d4af37;">📮 Fighter Card Received!</span>` : ''}`;
     state.ui.toast(msg);
     // Show large level-up animation with card cycling
     if (state.ui && state.ui.showLevelUp) {
@@ -2070,6 +2080,10 @@ export function awardXP(state, amount){
     // Update Level tab to refresh point displays
     if (state.ui && state.ui.renderLevel) {
       state.ui.renderLevel();
+    }
+    // Update fighter cards tab if visible
+    if (state.ui && state.ui.renderFighterCards) {
+      state.ui.renderFighterCards();
     }
     saveJson('orb_rpg_mod_prog', state.progression);
   }
@@ -2382,14 +2396,13 @@ function npcHealPulse(state, cx, cy, radius, amount, caster=null, sourceAbilityI
   state.effects.flashes.push({ x: cx, y: cy, r: radius, life: 0.5, color: '#ffd760' });
 }
 
-function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1){
+function npcShieldPulse(state, caster, cx, cy, radius, amount, selfBoost=1, sourceAbilityId=null){
   // Visual flash for shield cast
   const isEnemyCaster = caster && state.enemies.includes(caster);
   const flashColor = isEnemyCaster ? '#6ec0ff' : '#ffb347';
   state.effects.flashes.push({ x: cx, y: cy, r: radius, life: 0.5, color: flashColor });
   
   const casterName = caster.name || caster.variant || 'Unknown';
-  const sourceAbilityId = arguments[7] || null;
   const applyShield = (ent, mult=1)=>{
     if(!ent) return;
     // Shield cap is player's max HP (or 320 for NPCs)
@@ -3003,6 +3016,15 @@ function npcInitGuardAbilities(u, opts={}){
     u.npcLoadoutId = u.npcLoadoutId || 'guard_warrior_dps';
     u.npcLoadoutLocked = true;
   }
+  
+  // ═══ ENSURE MANA IS ALWAYS INITIALIZED FOR GUARDS ═══
+  // Healers and DPS both need mana for ability casting
+  const baseManaRegen = { mage: 7.5, warrior: 5.0, knight: 5.5, tank: 5.0 };
+  const guardVariant = u.variant || (u.guardRole === 'HEALER' ? 'mage' : 'warrior');
+  u.maxMana = u.maxMana || 80;  // Guards get extra mana pool (80 vs 60 for regular NPCs)
+  u.mana = u.mana || u.maxMana;
+  u.manaRegen = u.manaRegen || baseManaRegen[guardVariant] || 5.5;
+  u._cdUntil = u._cdUntil || {};  // Ensure cooldown map exists
 
   if(state?.debugLog) state.debugLog.push({
     category: 'LOADOUT',
@@ -5202,6 +5224,14 @@ function updateFriendlies(state, dt){
     a.hitCd=Math.max(0,a.hitCd-dt);
     const manaRegen = a.manaRegen ?? Math.max(4, (a.maxMana||60)*0.10);
     a.mana = clamp((a.mana||0) + manaRegen*dt, 0, a.maxMana||60);
+    
+    // ═══ CHECK IF ALLY/GUARD DIED THIS FRAME ═══
+    // If HP reached 0, trigger death handling immediately (don't let units stay at 0 HP)
+    if(a.hp !== undefined && a.hp <= 0 && !a.dead && a.respawnT <= 0){
+      killFriendly(state, i, true); // scheduleRespawn=true
+      continue; // Skip the rest of the update for this ally (already processed death)
+    }
+    
     const flag=state.sites.find(s=>s.id===a.siteId);
     
     // Check if this is a group member (should follow player)
@@ -7114,8 +7144,17 @@ function updateEnemies(state, dt){
       }
       
       // ─────────────────────────────────────────────────────────────────────────────
-      // MOVEMENT EXECUTION
+      // MOVEMENT EXECUTION (with SPEED CAP ENFORCEMENT)
       // ─────────────────────────────────────────────────────────────────────────────
+      // CRITICAL FIX: Enforce speed cap (140 max) before movement - SAME AS FRIENDLY GUARDS
+      const GUARD_SPEED_CAP = 140;
+      if(e.speed > GUARD_SPEED_CAP){
+        if(state.debugGuards){
+          console.warn(`[GUARD] Enemy speed violation: ${e.speed} > ${GUARD_SPEED_CAP} - capped`);
+        }
+        e.speed = GUARD_SPEED_CAP;
+      }
+      
       const cc = getCcState(e);
       if(e.speed > 0){
         const slowFactor = (e.inWater ? 0.45 : 1.0) * ((cc.rooted||cc.stunned) ? 0 : Math.max(0, 1 + cc.speedMod));
@@ -10881,27 +10920,29 @@ export function updateGame(state, dt){
     cam.y = clamp(cam.y, halfH, (state.mapHeight || state.engine.canvas.height) - halfH);
 
     // ═════════════════════════════════════════════════════════════════════════════════
-    // PLAYER-ENEMY COLLISION PREVENTION
+    // PLAYER-ENEMY COLLISION PREVENTION (NO PUSHING)
     // ═════════════════════════════════════════════════════════════════════════════════
-    // Prevent player from walking through enemy units (MINIMAL push - just separation)
-    const MIN_PLAYER_ENEMY_DIST = 45; // Separation distance
+    // CRITICAL: NO ENEMIES CAN PUSH THE PLAYER - ONLY PREVENT OVERLAP
+    // Enemies must avoid player, not push them
+    const MIN_PLAYER_ENEMY_DIST = 40; // Separation distance
     
     for(const enemy of state.enemies){
       if(!enemy || enemy.dead || enemy.hp <= 0) continue;
       
       const playerEnemyDist = Math.hypot(state.player.x - enemy.x, state.player.y - enemy.y);
       
+      // BLOCK: If enemy is overlapping player, PUSH ENEMY AWAY (not player)
       if(playerEnemyDist < MIN_PLAYER_ENEMY_DIST && playerEnemyDist > 0.1){
-        // Gentle push player away from enemy (VERY light - only if overlapping)
-        const angle = Math.atan2(state.player.y - enemy.y, state.player.x - enemy.x);
-        const pushForce = (MIN_PLAYER_ENEMY_DIST - playerEnemyDist) * 0.15; // Reduced from 0.6 to 0.15
-        state.player.x += Math.cos(angle) * pushForce;
-        state.player.y += Math.sin(angle) * pushForce;
+        // Push enemy away from player (reverse angle)
+        const angle = Math.atan2(enemy.y - state.player.y, enemy.x - state.player.x);
+        const pushForce = (MIN_PLAYER_ENEMY_DIST - playerEnemyDist) * 0.3;
+        enemy.x += Math.cos(angle) * pushForce;
+        enemy.y += Math.sin(angle) * pushForce;
         
-        // Clamp to map bounds after push
+        // Clamp enemy to map bounds
         const bounds = state.playableBounds || {minX:0, minY:0, maxX:state.mapWidth || 4000, maxY:state.mapHeight || 4000};
-        state.player.x = clamp(state.player.x, bounds.minX, bounds.maxX);
-        state.player.y = clamp(state.player.y, bounds.minY, bounds.maxY);
+        enemy.x = clamp(enemy.x, bounds.minX, bounds.maxX);
+        enemy.y = clamp(enemy.y, bounds.minY, bounds.maxY);
       }
     }
   }

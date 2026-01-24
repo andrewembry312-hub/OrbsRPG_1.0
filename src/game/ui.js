@@ -2661,7 +2661,7 @@ function bindUI(state){
         <div style="margin: 3px 0; color: #aef;"><strong>Role:</strong> ${cardData.role.toUpperCase()}</div>
         <div style="margin: 3px 0; color: #aef;"><strong>Level:</strong> ${cardData.level}</div>
         <div style="margin: 3px 0; color: ${rarityColor};"><strong>Rarity:</strong> ${cardData.rarity.charAt(0).toUpperCase() + cardData.rarity.slice(1)}</div>
-        <div style="margin: 3px 0; color: #fa0;"><strong>Power Rating:</strong> ${cardData.powerRating}/100</div>
+        <div style="margin: 3px 0; color: #fa0;"><strong>Power Rating:</strong> ${cardData.rating}/100</div>
       </div>
     `;
 
@@ -2670,6 +2670,13 @@ function bindUI(state){
     tooltip.style.left = x + 'px';
     tooltip.style.top = y + 'px';
     tooltip.style.display = 'block';
+    
+    // Clear any existing hide timeout
+    if(ui._cardTooltipTimeout) clearTimeout(ui._cardTooltipTimeout);
+    // Auto-hide after 8 seconds if mouse hasn't moved
+    ui._cardTooltipTimeout = setTimeout(() => {
+      if(tooltip) tooltip.style.display = 'none';
+    }, 8000);
   };
 
   ui._hideCardTooltip = () => {
@@ -2677,6 +2684,8 @@ function bindUI(state){
     if (tooltip) {
       tooltip.style.display = 'none';
     }
+    // Clear timeout
+    if(ui._cardTooltipTimeout) clearTimeout(ui._cardTooltipTimeout);
   };
 
   // Calculate card power rating (0-100) based on rarity + level + equipment
@@ -7971,6 +7980,9 @@ function bindUI(state){
                 <button class="secondary" style="padding:6px 10px; font-size:11px;" onclick="ui._openLoadoutPicker('${slot.id}')" title="">
                   🎴 Change
                 </button>
+                ${loadoutData ? `<button class="secondary" style="padding:6px 10px; font-size:11px; background:#5a3a3a; border-color:#a55;" onclick="ui._clearSlot('${slot.id}')" title="Remove fighter from slot">
+                  ✕ Clear
+                </button>` : ''}
               </div>
             </div>
             
@@ -8032,6 +8044,38 @@ function bindUI(state){
         ui.renderSlotTab();
         ui.toast('✅ Slot upgraded!');
       }
+    }
+  };
+
+  // Clear slot action - remove fighter assignment
+  ui._clearSlot = (slotId) => {
+    const slot = (state.slotSystem?.guards || []).find(s => s.id === slotId) ||
+                 (state.slotSystem?.allies || []).find(s => s.id === slotId);
+    if (slot && slot.loadoutId) {
+      const oldLoadoutId = slot.loadoutId;
+      
+      // ═══ DESTROY the spawned ally/guard from the world ═══
+      // Find all friendlies that were spawned from this slot's loadout
+      const alliesFromSlot = state.friendlies.filter(f => f.cardLoadoutId === oldLoadoutId && f.fighterCard);
+      for (const ally of alliesFromSlot) {
+        // Remove from group if present
+        if (state.group?.members?.includes(ally.id)) {
+          state.group.members = state.group.members.filter(id => id !== ally.id);
+          delete state.group.settings[ally.id];
+        }
+        // Kill the unit (remove from friendlies array)
+        const idx = state.friendlies.indexOf(ally);
+        if (idx >= 0) {
+          state.friendlies.splice(idx, 1);
+          console.log(`🗑️ Destroyed ${ally.name} (was spawned from slot ${slotId})`);
+        }
+      }
+      
+      slot.loadoutId = null;
+      slot.level = 0;
+      ui.renderSlotTab();
+      ui.renderGroupPanel(); // Refresh group panel in case ally was in it
+      ui.toast('✅ Slot cleared! Ally destroyed.');
     }
   };
 
@@ -8244,10 +8288,11 @@ function bindUI(state){
         role: card.role,
         level: card.level,
         rarity: card.rarity,
-        rating: card.rating
+        rating: card.rating || 0
       };
       cardEl.addEventListener('mousemove', (e) => ui._showCardTooltip(e, cardStatData));
       cardEl.addEventListener('mouseout', () => ui._hideCardTooltip());
+      cardEl.addEventListener('mouseleave', () => ui._hideCardTooltip());
       
       gridDiv.appendChild(cardEl);
     });
