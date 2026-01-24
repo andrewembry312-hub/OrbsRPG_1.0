@@ -199,6 +199,9 @@ export function buildUI(state){
       <div id="levelUpNumber" style="font-size:96px; font-weight:bold; color:#4a9eff; text-shadow:0 0 30px rgba(74,158,255,0.8); margin-top:-30px; opacity:0;">50</div>
     </div>
 
+    <!-- Red Health Border Effect -->
+    <div id="healthBorder" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none; border:20px solid transparent; box-shadow:inset 0 0 60px rgba(255,0,0,0), inset 0 0 40px rgba(255,0,0,0); transition:box-shadow 0.1s ease-out;"></div>
+
     <!-- Bomb Notification (Killstreak) -->
     <div id="bombNotification" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
       <div id="bombText" style="font-size:120px; font-weight:900; color:#b565d8; text-shadow:-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 0 0 40px rgba(181,101,216,0.8); opacity:0;">BOMB!</div>
@@ -2291,6 +2294,34 @@ function bindUI(state){
     
     if(!notification) return;
     
+    // ═══ SCREEN SHAKE ON BOMB ═══
+    const canvas = document.querySelector('canvas');
+    if(canvas){
+      let shakeIntensity = 15; // pixels
+      let shakeDuration = 400; // ms
+      const startTime = Date.now();
+      
+      const applyShake = () => {
+        const elapsed = Date.now() - startTime;
+        if(elapsed > shakeDuration) {
+          canvas.style.transform = 'translate(0, 0)';
+          return;
+        }
+        
+        // Decreasing shake intensity over time
+        const remaining = 1 - (elapsed / shakeDuration);
+        const currentIntensity = shakeIntensity * remaining;
+        
+        const offsetX = (Math.random() - 0.5) * currentIntensity * 2;
+        const offsetY = (Math.random() - 0.5) * currentIntensity * 2;
+        
+        canvas.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        
+        requestAnimationFrame(applyShake);
+      };
+      applyShake();
+    }
+    
     // Play bomb sound
     if(state.sounds?.bombNotification){
       const audio = state.sounds.bombNotification.cloneNode();
@@ -2371,6 +2402,33 @@ function bindUI(state){
         notification.style.display = 'none';
       }, 3000);
     });
+  };
+
+  // ═══ UPDATE HEALTH BORDER EFFECT ═══
+  // This updates the red border glow based on player health percentage
+  ui.updateHealthBorder = (state) => {
+    const border = document.getElementById('healthBorder');
+    if (!border || !state.player) return;
+    
+    // Calculate health percentage (0 to 1)
+    const healthPercent = Math.max(0, Math.min(1, state.player.hp / state.player.maxHp));
+    const damagePercent = 1 - healthPercent; // Inverse: 0 = full health, 1 = dead
+    
+    // Calculate border expansion (0 to 80px as health drops)
+    const borderExpansion = damagePercent * 80;
+    
+    // Calculate red glow intensity (0 to 0.8 opacity)
+    const redIntensity = damagePercent * 0.8;
+    
+    // Calculate red border width based on health
+    const borderWidth = 5 + (damagePercent * 35); // 5px to 40px
+    
+    // Apply styles with smooth transition
+    border.style.borderWidth = borderWidth + 'px';
+    border.style.boxShadow = `
+      inset 0 0 ${20 + borderExpansion}px rgba(255, 0, 0, ${redIntensity}),
+      inset 0 0 ${60 + borderExpansion * 1.5}px rgba(255, 0, 0, ${redIntensity * 0.4})
+    `;
   };
 
   // Fighter Card Reveal Animation (2 second cycling + final reveal)
