@@ -427,6 +427,88 @@ export async function initGame(state){
   state._loadouts = LoadoutRegistry;
   window.LOADOUTS = LoadoutRegistry;
   
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // SPAWN ALLY FROM FIGHTER CARD - Defined early to avoid forward reference issues (called from window.SLOTS.assignLoadout)
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  function spawnAllyAt(state, x, y, loadoutId, allyLevel = 1) {
+    if (!loadoutId) {
+      console.warn('[SPAWN ALLY] No loadout ID provided');
+      return null;
+    }
+    
+    const loadout = LOADOUTS.getLoadout(loadoutId);
+    if (!loadout) {
+      console.warn('[SPAWN ALLY] Loadout not found:', loadoutId);
+      return null;
+    }
+    
+    // Get player level for ally scaling
+    const playerLevel = state.progression?.level || 1;
+    
+    const f = {
+      id: `f_${Date.now()}_${randi(0, 99999)}`,
+      name: loadout.name || 'Fighter',
+      x: x + rand(-20, 20),
+      y: y + rand(-20, 20),
+      r: 12,
+      hp: 55,
+      maxHp: 55,
+      speed: 110,
+      dmg: 8,
+      hitCd: 0,
+      respawnT: 0,
+      variant: (loadout.class || 'warrior').toLowerCase(),
+      role: (loadout.role === 'healer' ? 'HEALER' : (loadout.role === 'tank' ? 'TANK' : 'DPS')),
+      behavior: 'neutral',
+      buffs: [],
+      dots: [],
+      level: playerLevel,
+      fighterCard: true,
+      cardLoadoutId: loadoutId,
+      npcAbilities: loadout.abilities ? loadout.abilities.slice() : [],
+      npcLoadoutLocked: true,
+      npcLoadoutId: loadoutId
+    };
+    
+    ensureEntityId(state, f, { kind:'friendly', team: 'player' });
+    
+    const classModifiers = {
+      hp: loadout.class === 'mage' ? 0.9 : loadout.class === 'warrior' ? 1.15 : loadout.class === 'knight' ? 1.45 : loadout.class === 'warden' ? 1.85 : 1.0,
+      dmg: loadout.class === 'mage' ? 0.95 : loadout.class === 'warrior' ? 1.10 : loadout.class === 'knight' ? 1.0 : loadout.class === 'warden' ? 0.85 : 1.0,
+      speed: loadout.class === 'mage' ? 1.06 : loadout.class === 'warrior' ? 1.0 : loadout.class === 'knight' ? 0.86 : loadout.class === 'warden' ? 0.72 : 1.0
+    };
+    
+    const scaledStats = scaleAllyToPlayerLevel(
+      { maxHp: 55, contactDmg: 8, speed: 110 },
+      playerLevel,
+      classModifiers
+    );
+    
+    f.maxHp = scaledStats.maxHp;
+    f.hp = f.maxHp;
+    f.speed = scaledStats.speed;
+    f.dmg = scaledStats.contactDmg;
+    f.contactDmg = scaledStats.contactDmg;
+    
+    // Transfer loadout abilities directly
+    if (loadout.abilities && Array.isArray(loadout.abilities)) {
+      f.npcAbilities = loadout.abilities;
+    }
+    
+    // Transfer loadout combo behavior
+    if (loadout.combo) {
+      f.combo = structuredClone(loadout.combo);
+    }
+    
+    // Initialize abilities with the locked loadout
+    npcInitAbilities(f, { state, source: 'spawnAllyAt', loadout, force: true });
+    state.friendlies.push(f);
+    
+    if(state.debugLog) console.log(`🎴 Fighter card spawned: ${f.name} (${loadoutId}) at (${x.toFixed(0)}, ${y.toFixed(0)})`);
+    
+    return f;
+  }
+  
   // Slot system helper functions
   window.SLOTS = {
     // Get slot unlock cost (always 1 SP)
@@ -589,8 +671,44 @@ export async function initGame(state){
         return false;
       }
       
+      // Check if another slot is using this card - prevent duplicates
+      const allSlots = [...(state.slotSystem?.guards || []), ...(state.slotSystem?.allies || [])];
+      const alreadyEquipped = allSlots.find(s => s.id !== slotId && s.loadoutId === loadoutId);
+      if (alreadyEquipped) {
+        console.log(`❌ This fighter card is already equipped to ${alreadyEquipped.id}! Cards can only be in one slot at a time.`);
+        return false;
+      }
+      
+      // If this slot had a previous loadout, return it to inventory
+      if (slot.loadoutId && slot.loadoutId !== loadoutId) {
+        const prevCard = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === slot.loadoutId && c.equippedToSlot === slotId);
+        if (prevCard) {
+          prevCard.equippedToSlot = null;
+        }
+      }
+      
+      // Find the fighter card in inventory and mark it as equipped
+      const cardToEquip = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
+      if (cardToEquip) {
+        cardToEquip.equippedToSlot = slotId;
+      }
+      
       slot.loadoutId = loadoutId;
       if(state.debugLog) console.log(`✅ Assigned ${loadout.name} to ${slotId}`);
+      
+      // SPAWN the fighter immediately at appropriate location
+      const isGuardSlot = state.slotSystem?.guards?.some(g => g.id === slotId);
+      const spawnX = state.player?.x || 0;
+      const spawnY = state.player?.y || 0;
+      if (isGuardSlot) {
+        // Spawn guard at player's position
+        const guard = spawnAllyAt(state, spawnX, spawnY, loadoutId, slot.level || 1);
+        if(state.debugLog) console.log(`👮 Guard spawned for slot ${slotId}:`, guard?.name, `at (${spawnX}, ${spawnY})`);
+      } else {
+        // Spawn ally at player's position
+        const ally = spawnAllyAt(state, spawnX, spawnY, loadoutId, slot.level || 1);
+        if(state.debugLog) console.log(`🤝 Ally spawned for slot ${slotId}:`, ally?.name, `at (${spawnX}, ${spawnY})`);
+      }
       
       // Mirror to AI teams
       mirrorSlotToAI(state, slotId, 'loadout', loadoutId);
@@ -4465,13 +4583,21 @@ function moveWithAvoidance(entity, tx, ty, state, dt, opts={}){
           sepY += (ny - f.y) / d * push;
         }
       }
-      // gently keep spacing from the player anchor as well
+      // CRITICAL: Prevent moving into player space at all
       const pd = Math.hypot(nx - state.player.x, ny - state.player.y);
-      const desiredP = (entity.r + state.player.r + 12);
+      const desiredP = (entity.r + state.player.r + 20);  // Larger buffer to prevent collision
+      if(pd < desiredP){
+        // Don't allow moving closer to player - this prevents guards from pushing player
+        if(pd < Math.hypot(entity.x - state.player.x, entity.y - state.player.y)){
+          // Moving closer - reject this angle
+          continue;
+        }
+      }
+      // Gentle spacing for player (but much weaker - don't push the player)
       if(pd < desiredP && pd > 1e-3){
         const push = (desiredP - pd) / desiredP;
-        sepX += (nx - state.player.x) / pd * push;
-        sepY += (ny - state.player.y) / pd * push;
+        sepX += (nx - state.player.x) / pd * push * 0.2;  // Very weak player separation
+        sepY += (ny - state.player.y) / pd * push * 0.2;
       }
       const sepMag = Math.hypot(sepX, sepY);
       if(sepMag>0){
@@ -5652,15 +5778,19 @@ function updateFriendlies(state, dt){
       // COLLISION PREVENTION: Prevent guards from stacking on player
       // ─────────────────────────────────────────────────────────────────────────────
       if(!state.player.dead){
-        const MIN_GUARD_PLAYER_DIST = 40;  // Minimum separation (2x guard radius)
+        const MIN_GUARD_PLAYER_DIST = 55;  // Increased minimum separation (prevent blocking player)
         const guardPlayerDist = Math.hypot(a.x - state.player.x, a.y - state.player.y);
         
         if(guardPlayerDist < MIN_GUARD_PLAYER_DIST && guardPlayerDist > 0.1){
-          // Push guard away from player
+          // Push guard away from player with more force to prevent them from pushing back
           const angle = Math.atan2(a.y - state.player.y, a.x - state.player.x);
-          const pushForce = (MIN_GUARD_PLAYER_DIST - guardPlayerDist) * 0.5;
+          const pushForce = (MIN_GUARD_PLAYER_DIST - guardPlayerDist) * 1.0;  // Increased from 0.5
           a.x += Math.cos(angle) * pushForce;
           a.y += Math.sin(angle) * pushForce;
+          // Also reduce guard speed when too close to prevent active pushing
+          if(guardPlayerDist < MIN_GUARD_PLAYER_DIST * 0.7){
+            a.speed = Math.min(a.speed, 30);
+          }
         }
       }
       
@@ -5720,7 +5850,7 @@ function updateFriendlies(state, dt){
             if(targetDist < 110){
               tx = a.x + Math.cos(retreatAngle) * 90;
               ty = a.y + Math.sin(retreatAngle) * 90;
-              a.speed = 145;
+              a.speed = 140;  // Respect speed cap even during retreat
             } else {
               tx = slotX;
               ty = slotY;
@@ -9399,17 +9529,13 @@ function exitDungeon(state){
     state.sounds.dungeonMusic.currentTime = 0;
   }
   
-  // Resume normal world music based on combat state
-  if(state.inCombatMode){
-    if(state.sounds?.gameCombatMusic && state.sounds.gameCombatMusic.paused){
-      state.sounds.gameCombatMusic.currentTime = 0;
-      state.sounds.gameCombatMusic.play().catch(e => console.warn('Combat music failed:', e));
-    }
-  } else {
-    if(state.sounds?.gameNonCombatMusic && state.sounds.gameNonCombatMusic.paused){
-      state.sounds.gameNonCombatMusic.currentTime = 0;
-      state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Non-combat music failed:', e));
-    }
+  // Resume normal world music based on combat state (prefer non-combat by default)
+  if(state.sounds?.gameCombatMusic && !state.sounds.gameCombatMusic.paused){
+    state.sounds.gameCombatMusic.pause();
+  }
+  if(state.sounds?.gameNonCombatMusic){
+    state.sounds.gameNonCombatMusic.currentTime = 0;
+    state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Non-combat music failed:', e));
   }
   
   // Clear dungeon state
@@ -11273,13 +11399,22 @@ function updateCreatures(state, dt){
           if(remaining.length === 0){
             dungeon.cleared = true;
             
-            // Stop dungeon music, resume normal music
+            // BOSS DEFEATED: Stop dungeon music and resume world music based on combat state
             if(state.sounds?.dungeonMusic && !state.sounds.dungeonMusic.paused){
               state.sounds.dungeonMusic.pause();
               state.sounds.dungeonMusic.currentTime = 0;
             }
-            if(state.sounds?.gameNonCombatMusic){
-              state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Resume music failed:', e));
+            // Resume appropriate world music
+            if(state.inCombatMode){
+              if(state.sounds?.gameCombatMusic){
+                state.sounds.gameCombatMusic.currentTime = 0;
+                state.sounds.gameCombatMusic.play().catch(e => console.warn('Combat music failed:', e));
+              }
+            } else {
+              if(state.sounds?.gameNonCombatMusic){
+                state.sounds.gameNonCombatMusic.currentTime = 0;
+                state.sounds.gameNonCombatMusic.play().catch(e => console.warn('Resume music failed:', e));
+              }
             }
             
             // DUNGEON COMPLETION REWARDS

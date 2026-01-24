@@ -2144,6 +2144,11 @@ function bindUI(state){
     
     if(!notification) return;
     
+    // ENSURE newCard is always available for cycling
+    if(!newCard && state.fighterCardInventory?.cards?.length > 0){
+      newCard = state.fighterCardInventory.cards[Math.floor(Math.random() * state.fighterCardInventory.cards.length)];
+    }
+    
     // Play level up sound
     if(state.sounds?.levelUp){
       const audio = state.sounds.levelUp.cloneNode();
@@ -2221,10 +2226,10 @@ function bindUI(state){
       }
       
       const displayCard = cardsToShow[cycleIndex % cardsToShow.length];
-      let cardImage = getAssetPath('assets/fighter player cards/card_template.svg');
+      let cardImage = 'assets/fighter player cards/card_template.svg';
       if(displayCard.fighterImage){
-        const filename = displayCard.fighterImage.includes('/') ? displayCard.fighterImage.split('/').pop() : displayCard.fighterImage;
-        cardImage = getAssetPath(`assets/fighter player cards/${filename}`);
+        // Use the filename directly - images are just name.png files
+        cardImage = `assets/fighter player cards/${displayCard.fighterImage}`;
       }
       
       cardContainer.innerHTML = `
@@ -2241,11 +2246,10 @@ function bindUI(state){
   // Show final card reveal at 2x size
   ui.showFinalCardReveal = (cardContainer, card, notification, textEl, numberEl) => {
     // Build proper asset path for fighter card image
-    let cardImage = getAssetPath('assets/fighter player cards/card_template.svg');
+    let cardImage = 'assets/fighter player cards/card_template.svg';
     if(card.fighterImage){
-      // Handle both direct filenames and full paths
-      const filename = card.fighterImage.includes('/') ? card.fighterImage.split('/').pop() : card.fighterImage;
-      cardImage = getAssetPath(`assets/fighter player cards/${filename}`);
+      // Use the filename directly - it's already just the name
+      cardImage = `assets/fighter player cards/${card.fighterImage}`;
     }
     
     cardContainer.innerHTML = `
@@ -7964,7 +7968,7 @@ function bindUI(state){
                 </div>
               </div>
               <div style="display:flex; gap:6px;">
-                <button class="secondary" style="padding:6px 10px; font-size:11px;" onclick="ui._openLoadoutPicker('${slot.id}')">
+                <button class="secondary" style="padding:6px 10px; font-size:11px;" onclick="ui._openLoadoutPicker('${slot.id}')" title="">
                   🎴 Change
                 </button>
               </div>
@@ -8287,6 +8291,12 @@ function bindUI(state){
     // ESC key to close
     ui._cardPickerEscHandler = (e) => {
       if (e.key === 'Escape') ui._closeFighterCardPicker();
+      // P key to show player preview
+      if (e.key === 'p' || e.key === 'P') {
+        if (state.player) {
+          ui._showFighterPreview(null, null);
+        }
+      }
     };
     window.addEventListener('keydown', ui._cardPickerEscHandler);
   };

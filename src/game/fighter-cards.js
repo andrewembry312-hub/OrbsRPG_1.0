@@ -98,7 +98,12 @@ export function generateFighterCard(playerLevel, cardId) {
     Object.entries(loadout.armor).forEach(([slot, item]) => {
       rarityItems[slot] = {
         ...item,
-        rarity: rarity
+        kind: 'armor',
+        slot: slot,
+        name: item.name || `${item.armorType} ${slot}`,
+        desc: item.desc || `${item.armorType} armor for ${slot}`,
+        rarity: rarity,
+        itemLevel: playerLevel
       };
     });
   }
@@ -106,7 +111,12 @@ export function generateFighterCard(playerLevel, cardId) {
   if (loadout.weapon) {
     rarityItems.weapon = {
       ...loadout.weapon,
-      rarity: rarity
+      kind: 'weapon',
+      slot: 'weapon',
+      name: loadout.weapon.name || `${loadout.weapon.weaponType}`,
+      desc: loadout.weapon.desc || `${loadout.weapon.weaponType} weapon`,
+      rarity: rarity,
+      itemLevel: playerLevel
     };
   }
 
