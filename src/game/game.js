@@ -1464,6 +1464,7 @@ function notePlayerHpGain(state, gained, cause, extra={}){
 }
 
 function applyDamageToEnemy(e,dmg,st,state,fromPlayer=false){
+  if(!dmg || !Number.isFinite(dmg)) dmg = 0; // Safety check
   const crit=rollCrit(st||{critChance:0});
   const final=crit?(dmg*(st?.critMult||1.5)):dmg;
   
@@ -10582,8 +10583,31 @@ function updatePartyCoordinator(state, dt){
   bb.chaseAllowed = party.macroState === 'engage' || party.macroState === 'burst';
 }
 
+// Keep emperor buff alive even if code wipes buffs during respawn/zone/loadout
+function ensureEmperorBuff(state) {
+  if (!state?.emperorTeam || state.emperorTeam !== 'player') return;
+  
+  const buffs = state?.player?.buffs;
+  if (!Array.isArray(buffs)) return;
+  
+  const has = buffs.some(b => b.id === 'emperor_power');
+  if (!has) {
+    buffs.push({ 
+      id: 'emperor_power',
+      name: 'Power of the Emperor',
+      duration: Infinity,
+      t: Infinity,
+      icon: '🔱'
+    });
+    try { state.ui?.updateBuffIconsHUD?.(); } catch(e) { }
+  }
+}
+
 export function updateGame(state, dt){
   if(state.paused) return;
+  
+  // Ensure emperor buff persists (Fix 1: prevent buff deletion during respawn/zone/loadout)
+  ensureEmperorBuff(state);
   
   // Auto-save every 60 seconds
   state.autoSaveTimer = (state.autoSaveTimer || 0) + dt;
@@ -11341,6 +11365,9 @@ export function updateGame(state, dt){
 
   // Emperor victory check: when a team controls ALL capture flags simultaneously
   checkEmperorVictory(state);
+  
+  // PHASE 1: Emperor deactivation check (lose at 0 flags, not any flag loss)
+  checkEmperorDeactivation(state);
 
   if(!state.player.dead && state.player.hp<=0){
     state.player.hp=0;
@@ -12178,10 +12205,16 @@ function checkEmperorStatus(state){
   else if(teamCFlags === totalFlags) newEmperorTeam = 'teamC';
   
   const previousEmperor = state.emperorTeam;
-  state.emperorTeam = newEmperorTeam;
   
-  // If emperor status changed, handle transitions
-  if(newEmperorTeam && previousEmperor !== newEmperorTeam){
+  // CRITICAL FIX: Do NOT reset emperorTeam when emperor is already active
+  // Only transition to NEW emperor (different team), never auto-dethrone
+  // Deactivation is handled exclusively by checkEmperorDeactivation()
+  if(!previousEmperor && newEmperorTeam) {
+    state.emperorTeam = newEmperorTeam;
+  }
+  
+  // If emperor status changed to new team, handle transitions
+  if(newEmperorTeam && previousEmperor && previousEmperor !== newEmperorTeam){
     // New emperor crowned
     console.log(`%c[EMPEROR] ${newEmperorTeam} CROWNED! Controls ${totalFlags}/${totalFlags} flags`, 'color: #ffd700; font-weight: bold; font-size: 14px');
     // logDebugEvent(state, `EMPEROR_CROWNED: ${newEmperorTeam} now controls ALL ${totalFlags} flags`);
@@ -12198,16 +12231,9 @@ function checkEmperorStatus(state){
       }
     }
     state.emperorSince = state.campaign.time;
-  } else if(!newEmperorTeam && previousEmperor){
-    // Emperor dethroned (lost ALL flags)
-    console.log(`%c[EMPEROR] ${previousEmperor} DETHRONED - No longer controls all flags`, 'color: #ff6b6b; font-weight: bold');
-    // logDebugEvent(state, `EMPEROR_DETHRONED: ${previousEmperor} lost control of all flags`);
-    
-    if(previousEmperor === 'player'){
-      state.ui.toast('⚔️ <b>DETHRONED!</b> Enemy captured a flag. Emperor power removed.');
-      removeEmperorEffect(state); // Remove effect from player
-    }
   }
+  // NOTE: Deactivation when emperor loses flags is handled by checkEmperorDeactivation()
+  // NOT here - that was the bug that caused instant dethroning on any flag loss
 }
 
 // Check for victory condition: time-based (10 min) or when emperor team has no flags left
@@ -12236,6 +12262,122 @@ function checkEmperorVictory(state){
   // if(state.campaign.time >= CAMPAIGN_LIMIT && !state.campaignEnded){...}
 }
 
+// ============================================================================
+// PHASE 1: EMPEROR MODE DEFENSIVE HELPERS
+// Defensive utility functions for bulletproof deactivation logic
+// ============================================================================
+
+/**
+ * Check if emperor mode is currently active
+ * Defensive: handles null/undefined state.emperorTeam
+ */
+function isEmperorActive(state) {
+  if (!state || !state.emperorTeam) return false;
+  return state.emperorTeam === 'player' || state.emperorTeam === 'teamA' || 
+         state.emperorTeam === 'teamB' || state.emperorTeam === 'teamC';
+}
+
+/**
+ * Get all flag sites from state
+ * Defensive: handles both array and object state.sites structures
+ * Returns empty array if state.sites is invalid
+ */
+function getFlagSites(state) {
+  if (!state || !state.sites) return [];
+  
+  // If state.sites is an array (preferred)
+  if (Array.isArray(state.sites)) {
+    return state.sites.filter(s => s && s.id && s.id.startsWith('site_'));
+  }
+  
+  // If state.sites is an object/map (fallback)
+  try {
+    return Object.values(state.sites).filter(s => s && s.id && s.id.startsWith('site_'));
+  } catch (e) {
+    console.error('[EMPEROR] getFlagSites failed:', e);
+    return [];
+  }
+}
+
+/**
+ * Count flags owned by a specific team
+ * Defensive: null-safe owner comparison
+ */
+function countFlagsOwnedBy(team, state) {
+  if (!state || !team) return 0;
+  
+  const flags = getFlagSites(state);
+  if (flags.length === 0) return 0;
+  
+  // Count flags where owner matches team (handles null, string comparisons)
+  const count = flags.filter(s => s && s.owner === team).length;
+  
+  // Debug logging removed - browser doesn't have process.env
+  // if (process.env.NODE_ENV === 'development') {
+  //   console.log(`[EMPEROR] countFlagsOwnedBy('${team}'): ${count}/${flags.length} flags`);
+  // }
+  
+  return count;
+}
+
+/**
+ * Count total capturable flags (excluding bases)
+ */
+function countTotalFlags(state) {
+  if (!state) return 0;
+  const flags = getFlagSites(state);
+  return flags.length;
+}
+
+/**
+ * Check if emperor should be deactivated (lost all flags)
+ * This is the PHASE 1 CORE FIX - only deactivate at 0 flags
+ */
+function checkEmperorDeactivation(state) {
+  if (!isEmperorActive(state)) return;
+  
+  const team = state.emperorTeam;
+  const totalFlags = countTotalFlags(state);
+  const flagsHeld = countFlagsOwnedBy(team, state);
+  
+  // Debug logging
+  console.log(`[EMPEROR] Deactivation check: team=${team}, held=${flagsHeld}/${totalFlags}`);
+  
+  // CRITICAL: Only deactivate if ZERO flags (not ANY flag loss)
+  if (flagsHeld === 0 && totalFlags > 0) {
+    console.log(`%c[EMPEROR] DETHRONING: ${team} lost ALL ${totalFlags} flags`, 
+                'color: #ff6b6b; font-weight: bold');
+    deactivateEmperorMode(state);
+  }
+}
+
+/**
+ * Clean deactivation of all emperor mode systems
+ * Called when emperor loses all flags (Phase 1)
+ * Will be expanded in later phases for crown guards, crowns, bases, boss
+ */
+function deactivateEmperorMode(state) {
+  if (!state) return;
+  
+  console.log('[EMPEROR] Deactivating emperor mode - cleanup hook');
+  
+  // Phase 1: Just clear the emperor team
+  state.emperorTeam = null;
+  removeEmperorEffect(state);
+  
+  // UI notification
+  if (state.ui && state.ui.toast) {
+    state.ui.toast(`<b>⚔️ DETHRONED!</b> Emperor power removed.`);
+  }
+  
+  // Later phases will expand this:
+  // - Return crowns to bases
+  // - Destroy all crown guards
+  // - Reset base destruction states
+  // - Despawn emperor boss
+  // - Reset AI targeting modes
+}
+
 // Add the Emperor effect to player's active effects
 function addEmperorEffect(state){
   // Add emperor effect if not already present
@@ -12259,13 +12401,11 @@ function addEmperorEffect(state){
     state.player.stam = st.maxStam;
     console.log(`[EMPEROR] Fully healed: HP ${oldHP.toFixed(0)} → ${st.maxHp.toFixed(0)}`);
     // Show big screen notification
-    if(state.ui?.showEmperor){
-      state.ui.showEmperor();
-    }
+    try { if(state.ui?.showEmperor) state.ui.showEmperor(); } catch(e) { console.log('showEmperor error:', e); }
     // Force UI updates to show the new buff
-    if(state.ui?.renderInventory) state.ui.renderInventory();
-    if(state.ui?.renderLevel) state.ui.renderLevel();
-    if(state.ui?.updateBuffIconsHUD) state.ui.updateBuffIconsHUD();
+    try { if(state.ui?.renderInventory) state.ui.renderInventory(); } catch(e) { console.log('renderInventory error:', e); }
+    try { if(state.ui?.renderLevel) state.ui.renderLevel(); } catch(e) { console.log('renderLevel error:', e); }
+    try { if(state.ui?.updateBuffIconsHUD) state.ui.updateBuffIconsHUD(); } catch(e) { console.log('updateBuffIconsHUD error:', e); }
   }
 }
 
@@ -12280,9 +12420,9 @@ function removeEmperorEffect(state){
   }
   
   // Force UI updates to remove the buff from display
-  if(state.ui?.renderInventory) state.ui.renderInventory();
-  if(state.ui?.renderLevel) state.ui.renderLevel();
-  if(state.ui?.updateBuffIconsHUD) state.ui.updateBuffIconsHUD();
+  try { if(state.ui?.renderInventory) state.ui.renderInventory(); } catch(e) { console.log('renderInventory error:', e); }
+  try { if(state.ui?.renderLevel) state.ui.renderLevel(); } catch(e) { console.log('renderLevel error:', e); }
+  try { if(state.ui?.updateBuffIconsHUD) state.ui.updateBuffIconsHUD(); } catch(e) { console.log('updateBuffIconsHUD error:', e); }
 }
 
 // Global function used by marketplace to upgrade allies

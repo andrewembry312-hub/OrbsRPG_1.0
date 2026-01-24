@@ -288,6 +288,7 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
 .buffIcon.buff{ background:rgba(0,20,0,.92); border-color:#4caf50; box-shadow:0 0 8px rgba(76,175,80,.5); }
 .buffIcon.debuff{ background:rgba(30,0,0,.92); border-color:#f44; box-shadow:0 0 8px rgba(255,68,68,.5); }
 .buffIcon.passive{ background:rgba(0,10,30,.92); border-color:#7aa2ff; box-shadow:0 0 8px rgba(122,162,255,.5); }
+.buffIcon.emperor{ background:linear-gradient(135deg, rgba(255,215,0,0.3) 0%, rgba(218,165,32,0.2) 100%); border-color:#ffd700 !important; box-shadow:0 0 12px rgba(255,215,0,0.8) !important; }
 .buffIcon .timer{
   position:absolute; right:-3px; bottom:-3px; font-size:10px; font-weight:800;
   color:#ffd700; background:rgba(0,0,0,.85); border:1px solid rgba(212,175,55,.6);

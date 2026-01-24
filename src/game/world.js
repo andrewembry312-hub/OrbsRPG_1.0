@@ -267,6 +267,10 @@ export function initSites(state){
       ok = true;
       for(const b of state.sites){ if(Math.hypot(b.x - tx, b.y - ty) < 200) { ok = false; break; } }
       for(const rc of state.rockCircles){ if(Math.hypot(rc.x - tx, rc.y - ty) < 120) { ok = false; break; } }
+      // Check distance from other decorative circles (trees, ponds, rocks, crystals)
+      for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - tx, dc.y - ty) < 160) { ok = false; break; } }
+      // Check distance from water circles
+      for(const wc of state.waterCircles){ if(Math.hypot(wc.x - tx, wc.y - ty) < 140) { ok = false; break; } }
       tries++;
     }
     if(ok) state.decorativeCircles.push({x: tx, y: ty, r: 24, type: 'tree'});
@@ -305,6 +309,8 @@ export function initSites(state){
       for(const rc of state.rockCircles){ if(Math.hypot(rc.x - rockx, rc.y - rocky) < 140) { ok = false; break; } }
       // Check distance from other decorative circles (ponds, crystals)
       for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - rockx, dc.y - rocky) < 140) { ok = false; break; } }
+      // Check distance from water circles
+      for(const wc of state.waterCircles){ if(Math.hypot(wc.x - rockx, wc.y - rocky) < 140) { ok = false; break; } }
       tries++;
     }
     if(ok) state.decorativeCircles.push({x: rockx, y: rocky, r: 40, type: 'rocks', textureVariant: Math.floor(Math.random() * 2)});
@@ -324,6 +330,8 @@ export function initSites(state){
       for(const rc of state.rockCircles){ if(Math.hypot(rc.x - cx, rc.y - cy) < 120) { ok = false; break; } }
       // Check distance from other decorative circles (ponds, rocks)
       for(const dc of state.decorativeCircles){ if(Math.hypot(dc.x - cx, dc.y - cy) < 120) { ok = false; break; } }
+      // Check distance from water circles
+      for(const wc of state.waterCircles){ if(Math.hypot(wc.x - cx, wc.y - cy) < 140) { ok = false; break; } }
       tries++;
     }
     if(ok) state.decorativeCircles.push({x: cx, y: cy, r: 22, type: 'crystal'});

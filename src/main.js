@@ -342,9 +342,6 @@ function startGameLoop(){
     try{ render(state); }catch(e){ console.error('render',e); showFatalError('Error in render', e); }
     try{ updateAbilityCastDisplay(state, ui); }catch(e){ console.error('updateAbilityCastDisplay',e); }
     
-    // ═══ UPDATE VISUAL EFFECTS ═══
-    try{ ui.updateHealthBorder(state); }catch(e){ console.error('updateHealthBorder',e); }
-    
     // Check tutorial triggers
     if (state.tutorialUpdate) {
       try{ state.tutorialUpdate(dt); }catch(e){ console.error('tutorial',e); }

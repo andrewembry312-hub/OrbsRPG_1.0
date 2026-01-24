@@ -164,7 +164,7 @@ function loadGrassTextures(){
     
     // Generate static patch positions once
     grassTextures.patches = [];
-    for(let i = 0; i < 150; i++){
+    for(let i = 0; i < 300; i++){
       grassTextures.patches.push({
         x: Math.random() * 2000,
         y: Math.random() * 2000,
@@ -373,41 +373,6 @@ export function render(state){
     ctx.fillStyle = '#89c97a';
     ctx.fillRect(0,0,state.mapWidth || canvas.width, state.mapHeight || canvas.height);
     
-    // Draw decorative objects using their collision circles for accurate positioning
-    if(grassTextures.loaded && state.decorativeCircles && state.decorativeCircles.length > 0){
-      ctx.globalAlpha = 0.7;
-      
-      for(let dc of state.decorativeCircles){
-        let texture = null;
-        let size = dc.r * 6; // 3x larger than before
-        
-        // Select texture based on type
-        if(dc.type === 'tree' && grassTextures.winterTree){
-          texture = grassTextures.winterTree;
-        } else if(dc.type === 'pond'){
-          const ponds = [grassTextures.waterPond, grassTextures.pond1, grassTextures.pond2, grassTextures.pond3];
-          const variant = dc.textureVariant !== undefined ? dc.textureVariant : 0;
-          texture = ponds[variant % ponds.length];
-          ctx.globalAlpha = 0.65;
-        } else if(dc.type === 'rocks'){
-          const rockTextures = [grassTextures.rocks1, grassTextures.rocks2];
-          const variant = dc.textureVariant !== undefined ? dc.textureVariant : 0;
-          texture = rockTextures[variant % rockTextures.length];
-          ctx.globalAlpha = 0.6;
-        } else if(dc.type === 'crystal' && grassTextures.purpleCrystal){
-          texture = grassTextures.purpleCrystal;
-          ctx.globalAlpha = 0.75;
-        }
-        
-        if(texture){
-          try{
-            ctx.drawImage(texture, dc.x - size/2, dc.y - size/2, size, size);
-          }catch(e){}
-        }
-      }
-      ctx.globalAlpha = 1;
-    }
-    
     // Also draw grass patches for ground texture
     if(grassTextures.loaded && grassTextures.patches.length > 0){
       ctx.globalAlpha = 0.5;
@@ -476,14 +441,49 @@ export function render(state){
       const lx = lake.x ?? (lake.circles && lake.circles[0]?.x) ?? 0;
       const ly = lake.y ?? (lake.circles && lake.circles[0]?.y) ?? 0;
       if(!inView(lx, ly, 220)) continue;
-      ctx.globalAlpha=0.9;
-      ctx.fillStyle='rgba(70,130,200,0.72)';
+      ctx.globalAlpha=1;
+      ctx.fillStyle='rgb(70,130,200)';
       for(const c of lake.circles){ ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2); ctx.fill(); }
       ctx.globalAlpha=1;
       // Border removed - single water color only
       // ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=2;
       // for(const c of lake.circles){ ctx.beginPath(); ctx.arc(c.x,c.y,Math.max(6,c.r-6),0,Math.PI*2); ctx.stroke(); }
     }
+  }
+
+  // Draw decorative objects AFTER water so they appear on top
+  if(grassTextures.loaded && state.decorativeCircles && state.decorativeCircles.length > 0){
+    ctx.globalAlpha = 0.7;
+    
+    for(let dc of state.decorativeCircles){
+      let texture = null;
+      let size = dc.r * 6; // 3x larger than before
+      
+      // Select texture based on type
+      if(dc.type === 'tree' && grassTextures.winterTree){
+        texture = grassTextures.winterTree;
+      } else if(dc.type === 'pond'){
+        const ponds = [grassTextures.waterPond, grassTextures.pond1, grassTextures.pond2, grassTextures.pond3];
+        const variant = dc.textureVariant !== undefined ? dc.textureVariant : 0;
+        texture = ponds[variant % ponds.length];
+        ctx.globalAlpha = 0.65;
+      } else if(dc.type === 'rocks'){
+        const rockTextures = [grassTextures.rocks1, grassTextures.rocks2];
+        const variant = dc.textureVariant !== undefined ? dc.textureVariant : 0;
+        texture = rockTextures[variant % rockTextures.length];
+        ctx.globalAlpha = 0.6;
+      } else if(dc.type === 'crystal' && grassTextures.purpleCrystal){
+        texture = grassTextures.purpleCrystal;
+        ctx.globalAlpha = 0.75;
+      }
+      
+      if(texture){
+        try{
+          ctx.drawImage(texture, dc.x - size/2, dc.y - size/2, size, size);
+        }catch(e){}
+      }
+    }
+    ctx.globalAlpha = 1;
   }
 
   // rivers temporarily disabled

@@ -199,9 +199,6 @@ export function buildUI(state){
       <div id="levelUpNumber" style="font-size:96px; font-weight:bold; color:#4a9eff; text-shadow:0 0 30px rgba(74,158,255,0.8); margin-top:-30px; opacity:0;">50</div>
     </div>
 
-    <!-- Red Health Border Effect -->
-    <div id="healthBorder" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none; border:20px solid transparent; box-shadow:inset 0 0 60px rgba(255,0,0,0), inset 0 0 40px rgba(255,0,0,0); transition:box-shadow 0.1s ease-out;"></div>
-
     <!-- Bomb Notification (Killstreak) -->
     <div id="bombNotification" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
       <div id="bombText" style="font-size:120px; font-weight:900; color:#b565d8; text-shadow:-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 0 0 40px rgba(181,101,216,0.8); opacity:0;">BOMB!</div>
@@ -2404,33 +2401,6 @@ function bindUI(state){
     });
   };
 
-  // ═══ UPDATE HEALTH BORDER EFFECT ═══
-  // This updates the red border glow based on player health percentage
-  ui.updateHealthBorder = (state) => {
-    const border = document.getElementById('healthBorder');
-    if (!border || !state.player) return;
-    
-    // Calculate health percentage (0 to 1)
-    const healthPercent = Math.max(0, Math.min(1, state.player.hp / state.player.maxHp));
-    const damagePercent = 1 - healthPercent; // Inverse: 0 = full health, 1 = dead
-    
-    // Calculate border expansion (0 to 80px as health drops)
-    const borderExpansion = damagePercent * 80;
-    
-    // Calculate red glow intensity (0 to 0.8 opacity)
-    const redIntensity = damagePercent * 0.8;
-    
-    // Calculate red border width based on health
-    const borderWidth = 5 + (damagePercent * 35); // 5px to 40px
-    
-    // Apply styles with smooth transition
-    border.style.borderWidth = borderWidth + 'px';
-    border.style.boxShadow = `
-      inset 0 0 ${20 + borderExpansion}px rgba(255, 0, 0, ${redIntensity}),
-      inset 0 0 ${60 + borderExpansion * 1.5}px rgba(255, 0, 0, ${redIntensity * 0.4})
-    `;
-  };
-
   // Fighter Card Reveal Animation (2 second cycling + final reveal)
   ui.showFighterCardReveal = (card) => {
     const overlay = document.getElementById('cardRevealOverlay');
@@ -2800,6 +2770,15 @@ function bindUI(state){
     
     countEl.textContent = `${cards.length} / ${maxSlots}`;
     
+    // BUILD SET OF EQUIPPED LOADOUT IDs - FIX #1: Show [EQUIPPED] badge
+    const equippedLoadoutIds = new Set();
+    (state.slotSystem?.guards || []).forEach(g => {
+      if (g.loadoutId) equippedLoadoutIds.add(g.loadoutId);
+    });
+    (state.slotSystem?.allies || []).forEach(a => {
+      if (a.loadoutId) equippedLoadoutIds.add(a.loadoutId);
+    });
+    
     const rarityColors = {common: '#888', uncommon: '#0a0', rare: '#0aa', epic: '#a0a', legendary: '#fa0'};
     const rarityBgOpacity = {common: 0.1, uncommon: 0.15, rare: 0.2, epic: 0.25, legendary: 0.3};
     
@@ -2813,6 +2792,7 @@ function bindUI(state){
       const rarityBgOpacity = {common: 0.1, uncommon: 0.15, rare: 0.2, epic: 0.25, legendary: 0.3};
       const imageUrl = card.fighterImage ? getAssetPath(`assets/fighter player cards/${card.fighterImage}`) : '';
       const cardPowerRating = ui._calculateCardRating(card);
+      const isEquipped = equippedLoadoutIds.has(card.loadoutId);
       
       // Create card stat tooltip data
       const cardStatData = {
@@ -2822,6 +2802,9 @@ function bindUI(state){
         rarity: card.rarity,
         powerRating: cardPowerRating
       };
+      
+      // EQUIPPED BADGE - FIX #1
+      const equippedBadge = isEquipped ? `<div style="position:absolute; top:4px; left:50%; transform:translateX(-50%); background:#2a4a6e; border:2px solid #4a8eff; color:#4a8eff; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:3px; z-index:3; box-shadow:0 0 6px rgba(74,142,255,0.6);">[EQUIPPED]</div>` : '';
       
       html += `
         <div class="fighter-card-slot" style="
@@ -4930,11 +4913,13 @@ function bindUI(state){
 
   function renderEffectIcon(id, meta, isDebuff){
     const src = ICON_IMAGES[id];
+    const fallback = ICON_FALLBACKS[id] || (isDebuff ? '☠' : '★');
+    
     if(src){
       const alt = meta?.name || id;
-      return `<img src="${src}" alt="${alt}" style="width:100%; height:100%; object-fit:cover; border-radius:3px;" />`;
+      const safe = String(fallback).replace(/"/g, '&quot;');
+      return `<img src="${src}" alt="${alt}" style="width:100%; height:100%; object-fit:cover; border-radius:3px;" onerror="this.outerHTML='<span style=&quot;font-size:20px;&quot;>${safe}</span>'" />`;
     }
-    const fallback = ICON_FALLBACKS[id] || (isDebuff ? '☠' : '★');
     return `<span style="font-size:20px;">${fallback}</span>`;
   }
 
@@ -5005,7 +4990,7 @@ function bindUI(state){
     }catch{}
     // Buffs
     try{
-      for(const b of state.player.buffs||[]){ const meta=BUFF_REGISTRY[b.id]; const deb=!!meta?.debuff; const icon=renderEffectIcon(b.id, meta, deb); const title=`${b.name||meta?.name||b.id}`; const desc=b.id==='emperor_power'?'Permanent: +3x HP, Mana, Stamina, 50% Cooldown Reduction':`${deb?'Debuff':'Buff'} — ${meta?.desc||''}`; const timer=b.duration===Infinity||b.id==='emperor_power'?'∞':(b.t||0).toFixed(1)+'s'; const stack=(b.stacks||1)>1?`<span class="stack">x${b.stacks||1}</span>`:''; list.push({ html:`<div class="buffIcon ${deb?'debuff':'buff'}" data-title="${title}" data-desc="${desc}">${icon}<span class="timer">${timer}</span>${stack}</div>` }); }
+      for(const b of state.player.buffs||[]){ const meta=BUFF_REGISTRY[b.id]; const deb=!!meta?.debuff; const icon=renderEffectIcon(b.id, meta, deb); const title=`${b.name||meta?.name||b.id}`; const desc=b.id==='emperor_power'?'Permanent: +3x HP, Mana, Stamina, 50% Cooldown Reduction':`${deb?'Debuff':'Buff'} — ${meta?.desc||''}`; const timer=b.duration===Infinity||b.id==='emperor_power'?'∞':(b.t||0).toFixed(1)+'s'; const stack=(b.stacks||1)>1?`<span class="stack">x${b.stacks||1}</span>`:''; const iconClass = b.id==='emperor_power' ? 'buffIcon emperor' : `buffIcon ${deb?'debuff':'buff'}`; list.push({ html:`<div class="${iconClass}" data-title="${title}" data-desc="${desc}" style="${b.id==='emperor_power'?'border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,0.8);':''}">${icon}<span class="timer">${timer}</span>${stack}</div>` }); }
     }catch{}
     // DoTs (on player)
     try{
@@ -7580,7 +7565,8 @@ function bindUI(state){
   ui.addAllAlliesToGroup = ()=>{
     const openSlots = Math.max(0, 10 - state.group.members.length);
     if(openSlots <= 0){ ui.toast('Group full! Max 10 members.'); return; }
-    const candidates = state.friendlies.filter(f => !state.group.members.includes(f.id));
+    // PHASE 1 FIX: Exclude guards - they must stay at outposts guarding flags
+    const candidates = state.friendlies.filter(f => !state.group.members.includes(f.id) && !f.guard);
     if(!candidates.length){ ui.toast('No allies available to add.'); return; }
     let added = 0;
     for(const friendly of candidates){
@@ -8112,6 +8098,16 @@ function bindUI(state){
     if (slot && slot.loadoutId) {
       const oldLoadoutId = slot.loadoutId;
       
+      // FIX #3: Unequip this card from ALL other slots first
+      const allSlots = [...(state.slotSystem?.guards || []), ...(state.slotSystem?.allies || [])];
+      for (const s of allSlots) {
+        if (s.loadoutId === oldLoadoutId && s.id !== slotId) {
+          console.log(`[CLEAR SLOT] Unequipping ${oldLoadoutId} from ${s.id}`);
+          s.loadoutId = null;
+          s.level = 0;
+        }
+      }
+      
       // ═══ DESTROY the spawned ally/guard from the world ═══
       // Find all friendlies that were spawned from this slot's loadout
       const alliesFromSlot = state.friendlies.filter(f => f.cardLoadoutId === oldLoadoutId && f.fighterCard);
@@ -8120,6 +8116,7 @@ function bindUI(state){
         if (state.group?.members?.includes(ally.id)) {
           state.group.members = state.group.members.filter(id => id !== ally.id);
           delete state.group.settings[ally.id];
+          console.log(`[CLEAR SLOT] Removed ${ally.name} from group`);
         }
         // Kill the unit (remove from friendlies array)
         const idx = state.friendlies.indexOf(ally);
@@ -8129,9 +8126,12 @@ function bindUI(state){
         }
       }
       
+      // Clear the primary slot
       slot.loadoutId = null;
       slot.level = 0;
+      
       ui.renderSlotTab();
+      ui.renderFighterCards(); // FIX #3: Refresh card inventory to remove [EQUIPPED] badge
       ui.renderGroupPanel(); // Refresh group panel in case ally was in it
       ui.toast('✅ Slot cleared! Ally destroyed.');
     }
@@ -8157,25 +8157,44 @@ function bindUI(state){
     const allCards = state.fighterCardInventory?.cards || [];
     console.log('[FIGHTER CARDS] Total in inventory:', allCards.length);
     
+    // FIX #2: Build set of equipped loadouts to exclude from picker
+    const equippedLoadoutIds = new Set();
+    const allSlots = [...(state.slotSystem?.guards || []), ...(state.slotSystem?.allies || [])];
+    allSlots.forEach(s => {
+      if (s.loadoutId && s.id !== slotId) {  // Exclude current slot
+        equippedLoadoutIds.add(s.loadoutId);
+      }
+    });
+    console.log('[LOADOUT PICKER] Equipped elsewhere:', equippedLoadoutIds.size);
+    
     const compatibleCards = allCards.filter(card => {
       const cardRole = card.role?.toLowerCase() || 'flex';
       const slotRole = slot.role.toLowerCase();
       
       // Flex slots accept any role
-      if (slotRole === 'flex') return true;
+      if (slotRole === 'flex') {
+        // Match
+      } else if (slotRole === 'support' && cardRole === 'healer') {
+        // Match
+      } else if (slotRole === 'healer' && cardRole === 'support') {
+        // Match
+      } else if (slotRole === 'elite' && (cardRole === 'tank' || cardRole === 'dps')) {
+        // Match
+      } else if (cardRole !== slotRole) {
+        // No match
+        return false;
+      }
       
-      // Support = healer
-      if (slotRole === 'support' && cardRole === 'healer') return true;
-      if (slotRole === 'healer' && cardRole === 'support') return true;
+      // FIX #2: Hide cards already equipped elsewhere
+      if (equippedLoadoutIds.has(card.loadoutId)) {
+        console.log('[LOADOUT PICKER] Hiding already-equipped:', card.loadoutId);
+        return false;
+      }
       
-      // Elite accepts tank/dps
-      if (slotRole === 'elite' && (cardRole === 'tank' || cardRole === 'dps')) return true;
-      
-      // Exact match
-      return cardRole === slotRole;
+      return true;
     });
     
-    console.log('[FIGHTER CARDS] Compatible cards:', compatibleCards.length);
+    console.log('[FIGHTER CARDS] Compatible available cards:', compatibleCards.length);
     
     if (compatibleCards.length === 0) {
       console.warn('[FIGHTER CARDS] No compatible cards in inventory for role:', slot.role);
