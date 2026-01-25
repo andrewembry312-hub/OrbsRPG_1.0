@@ -51,6 +51,9 @@ export function hardResetGameState(state){
   state.player.gold = 500;
   state.player.passives = defaultPassives(getSkillById);
   
+  // Clear any lingering emperor effects
+  removeEmperorEffect(state);
+  
   // IMPORTANT: Reset ability slots (loadouts persist in localStorage separately)
   state.abilitySlots = defaultAbilitySlots(); // Empty slots
   state.heroAbilitySlots = { 
@@ -142,6 +145,9 @@ export function hardResetGameState(state){
   
   // Reset campaign
   state.campaign = { playerPoints:0, enemyPoints:0, targetPoints:250, time:0 };
+  
+  // Initialize Emperor Mode system
+  initializeEmperorSystem(state);
 }
 
 function ensureEntityId(state, ent, opts={}){
@@ -194,6 +200,9 @@ export async function initGame(state){
   // Spawn neutral creatures and unique boss
   spawnCreatures(state);
   spawnBossCreature(state);
+  
+  // Emperor Mode Phase 3: Spawn crowns (locked until emperor activated)
+  spawnCrowns(state);
   
   // NEW PROGRESSION SYSTEM:
   // Player starts SOLO and must build team through progression (levels 2, 3, 4, 5, etc.)
@@ -436,9 +445,14 @@ export async function initGame(state){
       return null;
     }
     
-    const loadout = LOADOUTS.getLoadout(loadoutId);
+    // loadoutId is now the unique card ID - need to find the base loadout template
+    // First try to find the card in inventory to get loadoutBaseId
+    const card = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
+    const baseLoadoutId = card?.loadoutBaseId || loadoutId; // Fallback to loadoutId if no card found
+    
+    const loadout = LOADOUTS.getLoadout(baseLoadoutId);
     if (!loadout) {
-      console.warn('[SPAWN ALLY] Loadout not found:', loadoutId);
+      console.warn('[SPAWN ALLY] Loadout not found:', baseLoadoutId);
       return null;
     }
     
@@ -659,9 +673,17 @@ export async function initGame(state){
         return false;
       }
       
-      const loadout = LOADOUTS.getLoadout(loadoutId);
+      // loadoutId is now the unique card ID - look up the card to get the base loadout template
+      const card = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
+      if (!card) {
+        console.log(`❌ Card with loadoutId ${loadoutId} not found in inventory!`);
+        return false;
+      }
+      
+      const baseLoadoutId = card.loadoutBaseId;
+      const loadout = LOADOUTS.getLoadout(baseLoadoutId);
       if (!loadout) {
-        console.log(`❌ Loadout ${loadoutId} not found!`);
+        console.log(`❌ Loadout template ${baseLoadoutId} not found!`);
         return false;
       }
       
@@ -711,6 +733,9 @@ export async function initGame(state){
       } else if (isGuardSlot) {
         // Spawn guard at player's home base
         const guard = spawnAllyAt(state, spawnX, spawnY, loadoutId, slot.level || 1);
+        if (guard) {
+          guard.guard = true;  // Mark as guard so it's excluded from group invites
+        }
         if(state.debugLog) console.log(`👮 Guard spawned for slot ${slotId}:`, guard?.name, `at home base (${spawnX}, ${spawnY})`);
       } else {
         // Spawn ally at player's home base
@@ -753,7 +778,9 @@ export async function initGame(state){
       
       state.slotSystem.guards.forEach(slot => {
         const status = slot.unlocked ? `Lvl ${slot.level}` : 'LOCKED';
-        const loadout = slot.loadoutId ? LOADOUTS.getLoadout(slot.loadoutId)?.name : 'None';
+        const card = slot.loadoutId ? (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === slot.loadoutId) : null;
+        const baseLoadoutId = card?.loadoutBaseId || slot.loadoutId;
+        const loadout = baseLoadoutId ? LOADOUTS.getLoadout(baseLoadoutId)?.name : 'None';
         console.log(`║ ${slot.id.padEnd(16)} ${status.padEnd(8)} ${loadout.padEnd(24)} ║`);
       });
       
@@ -763,7 +790,9 @@ export async function initGame(state){
       
       state.slotSystem.allies.forEach(slot => {
         const status = slot.unlocked ? `Lvl ${slot.level}` : 'LOCKED';
-        const loadout = slot.loadoutId ? LOADOUTS.getLoadout(slot.loadoutId)?.name : 'None';
+        const card = slot.loadoutId ? (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === slot.loadoutId) : null;
+        const baseLoadoutId = card?.loadoutBaseId || slot.loadoutId;
+        const loadout = baseLoadoutId ? LOADOUTS.getLoadout(baseLoadoutId)?.name : 'None';
         console.log(`║ ${slot.id.padEnd(16)} ${status.padEnd(8)} ${loadout.padEnd(24)} ║`);
       });
       
@@ -1260,7 +1289,7 @@ function makeWeapon(kind, rarity, itemLevel = 1){
     'Axe': { buffs:{atk:4+t*3, critChance:0.02+t*0.01} },
     'Sword': { buffs:{atk:3+t*2.4, speed:4+t*2} },
     'Dagger': { buffs:{atk:2.4+t*1.6, speed:6+t*2.2, critChance:0.03+t*0.012} },
-    'Greatsword': { buffs:{atk:5+t*3.5, def:2+t*1.4, speed:-4} }
+    'Great Sword': { buffs:{atk:5+t*3.5, def:2+t*1.4, speed:-4} }
   };
   const tpl=templates[kind] || templates['Sword'];
   const rules = rarityAffixRules(rarity.key);
@@ -1312,7 +1341,7 @@ function spawnLootAt(state, x,y){
     return makeLootDrop(x,y,makeArmor(slot,rarity,itemLevel),gold);
   }
   if(roll<0.65){
-    const weaponKinds=['Destruction Staff','Healing Staff','Axe','Sword','Dagger','Greatsword'];
+    const weaponKinds=['Destruction Staff','Healing Staff','Axe','Sword','Dagger','Great Sword'];
     const kind=weaponKinds[randi(0,weaponKinds.length-1)];
     return makeLootDrop(x,y,makeWeapon(kind, rarity,itemLevel),gold);
   }
@@ -2641,7 +2670,7 @@ function npcCastSupportAbility(state, u, id, target){
     case 'renewal_field':{
       const amt = 4 + (u.maxHp||90)*0.01;
       const isEnemyCaster = state.enemies.includes(u);
-      const targets = isEnemyCaster ? state.enemies.filter(e=>!e.dead && e.hp>0) : [state.player, ...state.friendlies.filter(f=>f.respawnT<=0)];
+      const targets = isEnemyCaster ? state.enemies.filter(e=>!e.dead && e.hp>0 && e.type!=='crown' && !e.nonCombat) : [state.player, ...state.friendlies.filter(f=>f.respawnT<=0)];
       console.log('[HOT CREATE] renewal_field', 'amt:', amt, 'duration: 5s', 'targets:', targets.length, 'isEnemy:', isEnemyCaster);
       // Add to combat log if player is affected
       if(state.combatLog && targets.includes(state.player)){
@@ -2673,7 +2702,7 @@ function npcCastSupportAbility(state, u, id, target){
     case 'beacon_of_light':{
       const amt = 6 + (u.maxHp||90)*0.012;
       const isEnemyCaster = state.enemies.includes(u);
-      const targets = isEnemyCaster ? state.enemies.filter(e=>!e.dead && e.hp>0) : [state.player, ...state.friendlies.filter(f=>f.respawnT<=0)];
+      const targets = isEnemyCaster ? state.enemies.filter(e=>!e.dead && e.hp>0 && e.type!=='crown' && !e.nonCombat) : [state.player, ...state.friendlies.filter(f=>f.respawnT<=0)];
       console.log('[HOT CREATE] beacon_of_light', 'amt:', amt, 'duration: 6s', 'targets:', targets.length, 'isEnemy:', isEnemyCaster);
       // Add to combat log if player is affected
       if(state.combatLog && targets.includes(state.player)){
@@ -3333,7 +3362,7 @@ function npcUpdateAbilities(state, u, dt, kind){
   if(typeof role === 'string') role = role.toUpperCase();
   // Allies = same team as this NPC (enemies heal enemies, friendlies heal player/friendlies)
   const allies = kind === 'enemy' 
-    ? state.enemies.filter(e=>!e.dead && e.hp>0)
+    ? state.enemies.filter(e=>!e.dead && e.hp>0 && e.type!=='crown' && !e.nonCombat)
     : [state.player, ...state.friendlies.filter(f=>f.respawnT<=0), u];
   let lowestAlly = null, lowestAllyHp = 1, lowestDist = Infinity;
   for(const ally of allies){
@@ -7538,6 +7567,8 @@ function die(state){
   state.player.mana = 0;
   state.player.stam = 0;
   state.player.shield = 0;
+  // Emperor Mode Phase 3: Drop carried crowns on death
+  dropCarriedCrowns(state, true); // keep unlocked if still emperor
   state.ui.toast('<span class="neg"><b>You died.</b></span> Respawning at nearest captured flag...');
 }
 
@@ -7937,7 +7968,7 @@ function tryCastSlot(state, idx){
       state.player.y = clamp(state.player.y + ay*dist, 0, state.engine.canvas.height);
       state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 110, life: 0.7, color: '#9b7bff' });
       // Leap strike applies bleed, slow, and adds stun for more CC
-      const enemiesToHit = state.enemies.filter(e => Math.hypot(e.x-state.player.x, e.y-state.player.y) <= 110);
+      const enemiesToHit = state.enemies.filter(e => Math.hypot(e.x-state.player.x, e.y-state.player.y) <= 110 && e.type!=='crown' && !e.nonCombat);
       for(const e of enemiesToHit){
         applyDotTo(e, 'bleed', effectSourceBase);
         applyBuffTo(e, 'slow', effectSourceBase);
@@ -9158,7 +9189,7 @@ function makeLegendaryItem(state){
   const slot = ARMOR_SLOTS[randi(0, ARMOR_SLOTS.length-1)];
   // If weapon slot selected, create a legendary weapon instead of armor
   if(slot === 'weapon'){
-    const WEAPON_TYPES = ['Destruction Staff', 'Healing Staff', 'Axe', 'Sword', 'Dagger', 'Greatsword'];
+    const WEAPON_TYPES = ['Destruction Staff', 'Healing Staff', 'Axe', 'Sword', 'Dagger', 'Great Sword'];
     const weaponType = WEAPON_TYPES[randi(0, WEAPON_TYPES.length-1)];
     return makeWeapon(weaponType, rarity);
   }
@@ -10538,8 +10569,8 @@ function updatePartyCoordinator(state, dt){
   
   // In dungeons, filter to dungeon enemies only; otherwise use all enemies near player
   const enemiesNear = state.inDungeon 
-    ? state.enemies.filter(e=>!e.dead && e.hp>0 && e.dungeonId === state.inDungeon && Math.hypot(e.x-anchor.x, e.y-anchor.y) <= 260)
-    : state.enemies.filter(e=>!e.dead && e.hp>0 && Math.hypot(e.x-anchor.x, e.y-anchor.y) <= 260);
+    ? state.enemies.filter(e=>!e.dead && e.hp>0 && e.dungeonId === state.inDungeon && Math.hypot(e.x-anchor.x, e.y-anchor.y) <= 260 && e.type!=='crown' && !e.nonCombat)
+    : state.enemies.filter(e=>!e.dead && e.hp>0 && Math.hypot(e.x-anchor.x, e.y-anchor.y) <= 260 && e.type!=='crown' && !e.nonCombat);
   
   const wantsReset = hpPct < 0.32;
   
@@ -11285,6 +11316,13 @@ export function updateGame(state, dt){
   // update creatures (world only)
   updateCreatures(state, dt);
   
+  // Emperor Mode Phase 3: Crown system updates
+  if(state.emperor?.active){
+    tryPickupCrowns(state);
+    updateCarriedCrowns(state);
+    trySecureCrowns(state);
+  }
+  
   // Music management: detect combat based on nearby enemies, not just damage
   if(state.sounds?.gameCombatMusic && state.sounds?.gameNonCombatMusic){
     const emperorActive = state.emperorTeam === 'player';
@@ -11414,7 +11452,7 @@ function updateCreatures(state, dt){
         });
         
         // Scatter 5 additional loot items around boss location
-        const WEAPON_TYPES = ['Destruction Staff', 'Healing Staff', 'Axe', 'Sword', 'Dagger', 'Greatsword'];
+        const WEAPON_TYPES = ['Destruction Staff', 'Healing Staff', 'Axe', 'Sword', 'Dagger', 'Great Sword'];
         const itemLevel = state.progression?.level || 1;
         
         for(let j = 0; j < 5; j++){
@@ -12225,6 +12263,10 @@ function checkEmperorStatus(state){
       // logDebugEvent(state, `EMPEROR_BUFF_APPLIED: Player gains emperor power (+3x resources, +50% CDR)`);
       addEmperorEffect(state); // Add visible effect to player
       
+      // Emperor Mode Phase 3: Unlock crowns for collection
+      state.emperor.active = true;
+      unlockCrowns(state);
+      
       // BOSS SPAWN: Spawn zone boss when player achieves Emperor status
       if (!state.zoneConfig.bossActive && !state.zoneConfig.zoneComplete) {
         spawnZoneBoss(state);
@@ -12249,6 +12291,8 @@ function checkEmperorVictory(state){
       logDebugEvent(state, `EMPEROR_LOST: Player had ${playerFlags}/${totalFlags} flags - DETHRONED`);
       state.ui.toast(`<b>DETHRONED!</b> You lost ALL ${totalFlags} flags. Emperor power removed.`);
       removeEmperorEffect(state);
+      // Emperor Mode Phase 3: Drop crowns and lock them on dethrone
+      dropCarriedCrowns(state, false); // lock crowns again
       state.emperorTeam = null;
     } else if(playerFlags < totalFlags && playerFlags > 0){
       // Player still has some flags - emperor power persists
@@ -12411,18 +12455,17 @@ function addEmperorEffect(state){
 
 // Remove Emperor effect from player's active effects
 function removeEmperorEffect(state){
-  if(!state.player.buffs) return;
+  if(!state?.player) return;
+  state.player.buffs = state.player.buffs || [];
+
   const hadEmperor = state.player.buffs.some(b => b.id === 'emperor_power');
+  if(!hadEmperor) return;
+
   state.player.buffs = state.player.buffs.filter(b => b.id !== 'emperor_power');
-  
-  if(hadEmperor){
-    console.log(`%c[BUFF] Emperor power removed from player.buffs (${state.player.buffs.length} remaining effects)`, 'color: #ff6b6b');
-  }
-  
-  // Force UI updates to remove the buff from display
-  try { if(state.ui?.renderInventory) state.ui.renderInventory(); } catch(e) { console.log('renderInventory error:', e); }
-  try { if(state.ui?.renderLevel) state.ui.renderLevel(); } catch(e) { console.log('renderLevel error:', e); }
-  try { if(state.ui?.updateBuffIconsHUD) state.ui.updateBuffIconsHUD(); } catch(e) { console.log('updateBuffIconsHUD error:', e); }
+
+  try { state.ui?.renderInventory?.(); } catch(e) {}
+  try { state.ui?.renderLevel?.(); } catch(e) {}
+  try { state.ui?.updateBuffIconsHUD?.(); } catch(e) {}
 }
 
 // Global function used by marketplace to upgrade allies
@@ -13206,6 +13249,269 @@ window.downloadAIBehaviorLog = function(){
 };
 
 console.log('💾 Player logging enabled. Use window.downloadPlayerLog() to download detailed player event log.');
+
+// =====================================================
+// EMPEROR MODE SYSTEM - Phase 2
+// =====================================================
+
+/**
+ * Initialize Emperor Mode state structure
+ * Called once at game start from hardResetGameState()
+ * Sets up all emperor-related state properties to defaults
+ */
+function initializeEmperorSystem(state) {
+  state.emperor = {
+    active: false,                 // Is emperor mode active?
+    team: null,                    // Which team is emperor ('player', 'teamA', 'teamB', 'teamC')
+    phase: null,                   // Current phase (null, 'crowns', 'bases', 'boss')
+    crowns: {
+      teamA: null,                 // _id of crown entity
+      teamB: null,
+      teamC: null
+    },
+    crownGuards: [],               // Array of creature _ids or group IDs for crown guards
+    empBossId: null,               // _id of emperor boss creature
+    basesDestroyed: {
+      teamA: false,
+      teamB: false,
+      teamC: false
+    }
+  };
+}
+
+/**
+ * Ensure emperor state exists and is properly initialized
+ * Safety function to prevent crashes if init was missed
+ * Called defensively before accessing emperor state
+ */
+function ensureEmperorState(state) {
+  if (!state.emperor) {
+    initializeEmperorSystem(state);
+  }
+  // Ensure all nested objects exist
+  if (!state.emperor.crowns) {
+    state.emperor.crowns = { teamA: null, teamB: null, teamC: null };
+  }
+  if (!state.emperor.basesDestroyed) {
+    state.emperor.basesDestroyed = { teamA: false, teamB: false, teamC: false };
+  }
+  if (!state.emperor.crownGuards) {
+    state.emperor.crownGuards = [];
+  }
+}
+
+// =====================================================
+// EMPEROR MODE SYSTEM - Phase 3: Crowns
+// =====================================================
+
+/**
+ * Find player base site by ID
+ */
+function findPlayerBaseSite(state){
+  return (state.sites || []).find(s => s && s.id === 'player_base') || null;
+}
+
+/**
+ * Find team base site by team name
+ */
+function findTeamBaseSite(state, team){
+  const map = { teamA:'team_a_base', teamB:'team_b_base', teamC:'team_c_base' };
+  const id = map[team];
+  if(!id) return null;
+  return (state.sites || []).find(s => s && s.id === id) || null;
+}
+
+/**
+
+/**
+ * Get a crown creature by its _id
+ */
+function getCrownCreature(state, crownId){
+  if(!crownId) return null;
+  return (state.creatures || []).find(c => c && c._id === crownId) || null;
+}
+
+/**
+ * Spawn all three crowns at their team bases (locked)
+ * Call once during initGame() after sites are created
+ */
+function spawnCrowns(state){
+  ensureEmperorState(state);
+  if(!state.creatures) state.creatures = [];
+
+  const teams = ['teamA','teamB','teamC'];
+
+  for(const team of teams){
+    // Prevent duplicates
+    const existing = getCrownCreature(state, state.emperor.crowns[team]);
+    if(existing) continue;
+
+    const base = findTeamBaseSite(state, team);
+    if(!base){
+      console.warn('[CROWN] Missing base for', team);
+      continue;
+    }
+
+    const crown = {
+      type: 'crown',
+      aiTag: 'CROWN',
+
+      crownTeam: team,   // teamA/B/C
+      locked: true,
+      carriedBy: null,   // 'player' when carried
+      secured: false,
+
+      // Safety flags so it never becomes a combat target
+      nonCombat: true,
+      invulnerable: true,
+      isTargetable: false,
+
+      x: base.x + 26,
+      y: base.y,
+      r: 18,
+      name: `Crown (${team})`
+    };
+
+    ensureEntityId(state, crown);
+    state.creatures.push(crown);
+    state.emperor.crowns[team] = crown._id;
+    console.log(`[CROWN] Spawned crown ${team} at base with _id: ${crown._id}`);
+  }
+}
+
+/**
+ * Unlock crowns when emperor mode is activated
+ * Call during emperor activation in checkEmperorStatus()
+ */
+function unlockCrowns(state){
+  ensureEmperorState(state);
+  for(const team of ['teamA','teamB','teamC']){
+    const c = getCrownCreature(state, state.emperor.crowns[team]);
+    if(!c) continue;
+    if(c.secured) continue;
+    c.locked = false;
+  }
+  console.log('[CROWN] Crowns unlocked - emperor mode activated!');
+}
+
+/**
+ * Try to pick up crowns when player is nearby
+ * Call every update tick when emperor is active
+ */
+function tryPickupCrowns(state){
+  if(!state?.emperor?.active) return;
+  const p = state.player;
+  if(!p) return;
+
+  for(const team of ['teamA','teamB','teamC']){
+    const crown = getCrownCreature(state, state.emperor.crowns[team]);
+    if(!crown) continue;
+    if(crown.locked || crown.secured || crown.carriedBy) continue;
+
+    const dist = Math.hypot(p.x - crown.x, p.y - crown.y);
+    if(dist <= (p.r || 18) + crown.r + 10){
+      crown.carriedBy = 'player';
+      try { state.ui?.toast?.(`👑 Crown claimed (${team})`); } catch(e) {}
+      try { state.gameLog?.push?.(`[CROWN] picked up ${team}`); } catch(e) {}
+      console.log(`[CROWN] Player picked up crown: ${team}`);
+    }
+  }
+}
+
+/**
+ * Update crown positions to follow player while carried
+ * Call every update tick when emperor is active
+ */
+function updateCarriedCrowns(state){
+  if(!state?.emperor?.active) return;
+  const p = state.player;
+  if(!p) return;
+
+  let i = 0;
+  for(const team of ['teamA','teamB','teamC']){
+    const crown = getCrownCreature(state, state.emperor.crowns[team]);
+    if(!crown || crown.carriedBy !== 'player') continue;
+
+    crown.x = p.x + 26 + (i * 22);
+    crown.y = p.y - 34;
+    i++;
+  }
+}
+
+/**
+ * Count how many crowns are already secured at player base
+ */
+function countSecuredCrowns(state){
+  let n = 0;
+  for(const team of ['teamA','teamB','teamC']){
+    const c = getCrownCreature(state, state.emperor.crowns[team]);
+    if(c?.secured) n++;
+  }
+  return n;
+}
+
+/**
+ * Try to secure crowns at player base
+ * Call every update tick when emperor is active
+ */
+function trySecureCrowns(state){
+  if(!state?.emperor?.active) return;
+
+  const base = findPlayerBaseSite(state);
+  if(!base) return;
+
+  const secureR = (base.r || 92) + 50;
+
+  for(const team of ['teamA','teamB','teamC']){
+    const crown = getCrownCreature(state, state.emperor.crowns[team]);
+    if(!crown) continue;
+    if(crown.secured) continue;
+    if(crown.carriedBy !== 'player') continue;
+
+    const dist = Math.hypot(base.x - crown.x, base.y - crown.y);
+    if(dist <= secureR){
+      crown.carriedBy = null;
+      crown.secured = true;
+      crown.locked = true;
+
+      const securedCount = countSecuredCrowns(state);
+      crown.x = base.x - 34 - (securedCount * 22);
+      crown.y = base.y - 12;
+
+      try { state.ui?.toast?.(`✅ Crown secured (${team}) ${securedCount}/3`); } catch(e) {}
+      try { state.gameLog?.push?.(`[CROWN] secured ${team}`); } catch(e) {}
+      console.log(`[CROWN] Crown secured: ${team} (${securedCount}/3)`);
+    }
+  }
+}
+
+/**
+ * Drop carried crowns on player death or dethrone
+ * keepUnlockedIfStillEmperor: if true, crowns stay unlocked (player still emperor but died)
+ *                             if false, lock them again (player lost emperor status)
+ */
+function dropCarriedCrowns(state, keepUnlockedIfStillEmperor){
+  ensureEmperorState(state);
+
+  for(const team of ['teamA','teamB','teamC']){
+    const crown = getCrownCreature(state, state.emperor.crowns[team]);
+    if(!crown) continue;
+
+    if(crown.carriedBy === 'player' && !crown.secured){
+      crown.carriedBy = null;
+
+      // If still emperor after dying, keep crowns pickable
+      crown.locked = keepUnlockedIfStillEmperor ? false : true;
+
+      const base = findTeamBaseSite(state, team);
+      if(base){
+        crown.x = base.x + 26;
+        crown.y = base.y;
+      }
+      console.log(`[CROWN] Crown dropped: ${team}`);
+    }
+  }
+}
 console.log('⚔️ Combat logging available. Use window.downloadCombatLog() to download combat event log.');
 console.log('🔧 Debug logging available. Use window.downloadDebugLog() to download diagnostic log.');
 console.log('🤖 AI behavior tracking enabled. Use window.downloadAIBehaviorLog() to download AI behavior analysis.');

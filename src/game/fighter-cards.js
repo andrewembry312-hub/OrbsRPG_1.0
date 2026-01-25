@@ -122,7 +122,8 @@ export function generateFighterCard(playerLevel, cardId) {
 
   return {
     id: cardId,
-    loadoutId: loadout.id,
+    loadoutId: cardId,  // Unique ID for this card instance - allows multiple cards of same fighter
+    loadoutBaseId: loadout.id,  // Reference to the fighter template (e.g., "knight_warrior")
     name: loadout.name || 'Unknown Fighter',
     fighterImage: loadout.fighterImage || 'assets/ui/placeholder.png',
     level: playerLevel,

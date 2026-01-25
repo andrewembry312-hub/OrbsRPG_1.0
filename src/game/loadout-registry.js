@@ -62,7 +62,7 @@ export const LOADOUT_REGISTRY = {
     role: 'dps',
     unlockLevel: 1,
     
-    weapon: { weaponType: 'Greatsword', buffs: { atk: 8 } },
+    weapon: { weaponType: 'Great Sword', buffs: { atk: 8 } },
     armor: {
       helm: { armorType: 'Medium', buffs: { def: 2 } },
       chest: { armorType: 'Heavy', buffs: { def: 4, hp: 20 } },
@@ -375,7 +375,7 @@ export const LOADOUT_REGISTRY = {
     role: 'dps',
     unlockLevel: 1,
     
-    weapon: { weaponType: 'Greatsword', buffs: { atk: 7, agi: 2 } },
+    weapon: { weaponType: 'Great Sword', buffs: { atk: 7, agi: 2 } },
     armor: {
       helm: { armorType: 'Light', buffs: { agi: 2 } },
       chest: { armorType: 'Medium', buffs: { agi: 2, def: 2 } },
@@ -536,7 +536,7 @@ export const LOADOUT_REGISTRY = {
     role: 'tank',
     unlockLevel: 1,
     
-    weapon: { weaponType: 'Greatsword', buffs: { atk: 6, def: 5 } },
+    weapon: { weaponType: 'Great Sword', buffs: { atk: 6, def: 5 } },
     armor: {
       helm: { armorType: 'Heavy', buffs: { def: 5 } },
       chest: { armorType: 'Heavy', buffs: { def: 7, hp: 35 } },
@@ -640,7 +640,7 @@ export const LOADOUT_REGISTRY = {
     role: 'tank',
     unlockLevel: 1,
     
-    weapon: { weaponType: 'Greatsword', buffs: { atk: 5, def: 6 } },
+    weapon: { weaponType: 'Great Sword', buffs: { atk: 5, def: 6 } },
     armor: {
       helm: { armorType: 'Heavy', buffs: { def: 6 } },
       chest: { armorType: 'Heavy', buffs: { def: 8, hp: 40 } },
@@ -849,7 +849,7 @@ export const LOADOUT_REGISTRY = {
     role: 'tank',
     unlockLevel: 1,
     
-    weapon: { weaponType: 'Greatsword', buffs: { atk: 4, def: 7 } },
+    weapon: { weaponType: 'Great Sword', buffs: { atk: 4, def: 7 } },
     armor: {
       helm: { armorType: 'Heavy', buffs: { def: 7 } },
       chest: { armorType: 'Heavy', buffs: { def: 9, hp: 45 } },
@@ -1313,7 +1313,7 @@ export const LOADOUT_REGISTRY = {
     unlockLevel: 10, // Guards unlock at level 10
     guardOnly: true, // Only usable by guards
     
-    weapon: { weaponType: 'Greatsword', buffs: { atk: 10 } },
+    weapon: { weaponType: 'Great Sword', buffs: { atk: 10 } },
     
     abilities: ['gravity_well', 'meteor_slam', 'shoulder_charge', 'slash', 'blade_storm'],
     

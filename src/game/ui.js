@@ -1333,6 +1333,13 @@ export function buildUI(state){
                 </div>
               </div>
             </div>
+            <!-- Auto-Equip Buttons -->
+            <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+              <button style="flex:1; min-width:100px; padding:8px; background:#4a6fa5; border:1px solid #7a9fd4; color:#fff; cursor:pointer; border-radius:4px; font-weight:bold; font-size:11px;" onclick="ui._autoEquipBestCards('guards')">⚡ Auto Guards</button>
+              <button style="flex:1; min-width:100px; padding:8px; background:#a54f4f; border:1px solid #d47a7a; color:#fff; cursor:pointer; border-radius:4px; font-weight:bold; font-size:11px;" onclick="ui._clearAllSlots('guards')">✕ Clear Guards</button>
+              <button style="flex:1; min-width:100px; padding:8px; background:#4a6fa5; border:1px solid #7a9fd4; color:#fff; cursor:pointer; border-radius:4px; font-weight:bold; font-size:11px;" onclick="ui._autoEquipBestCards('allies')">⚡ Auto Allies</button>
+              <button style="flex:1; min-width:100px; padding:8px; background:#a54f4f; border:1px solid #d47a7a; color:#fff; cursor:pointer; border-radius:4px; font-weight:bold; font-size:11px;" onclick="ui._clearAllSlots('allies')">✕ Clear Allies</button>
+            </div>
           </div>
 
           <!-- Guards & Allies Side-by-Side -->
@@ -2542,7 +2549,7 @@ function bindUI(state){
   };
 
   // Card tooltip functions
-  ui._showCardTooltip = (event, rarity, level, name, role, stars) => {
+  ui._showCardTooltip = (event, rarity, level, name, role) => {
     const rarityColors = {common: '#888', uncommon: '#0a0', rare: '#0aa', epic: '#a0a', legendary: '#fa0'};
     const rarityColor = rarityColors[rarity] || '#888';
     
@@ -2550,28 +2557,24 @@ function bindUI(state){
     if (!tooltip) {
       tooltip = document.createElement('div');
       tooltip.id = 'cardTooltip';
+      tooltip.style.cssText = 'position:fixed; z-index:10000; pointer-events:none; background:rgba(20,20,30,0.98); border-radius:6px; padding:12px; backdrop-filter:blur(5px); display:none;';
       document.body.appendChild(tooltip);
     }
     
+    tooltip.style.borderColor = rarityColor;
+    tooltip.style.boxShadow = `0 0 20px ${rarityColor}`;
     tooltip.innerHTML = `
-      <div style="
-        position: fixed; z-index: 10000; pointer-events: none;
-        background: rgba(20,20,30,0.98); border: 2px solid ${rarityColor};
-        border-radius: 6px; padding: 12px; backdrop-filter: blur(5px);
-        box-shadow: 0 0 20px ${rarityColor};
-      ">
-        <div style="color: ${rarityColor}; font-weight: bold; font-size: 12px; margin-bottom: 4px;">${rarity.toUpperCase()}</div>
-        <div style="color: #d4af37; font-weight: bold; font-size: 14px; margin-bottom: 4px;">${name}</div>
-        <div style="color: #6cf; font-size: 11px; margin-bottom: 2px;">Level: ${level}</div>
-        <div style="color: #ccc; font-size: 11px; margin-bottom: 2px;">Role: ${role.toUpperCase()}</div>
-        <div style="color: #ffd700; font-size: 12px;">${stars}</div>
-      </div>
+      <div style="color:${rarityColor}; font-weight:bold; font-size:12px; margin-bottom:4px;">${(rarity || 'common').toUpperCase()}</div>
+      <div style="color:#d4af37; font-weight:bold; font-size:14px; margin-bottom:4px;">${name || 'Unknown'}</div>
+      <div style="color:#6cf; font-size:11px; margin-bottom:2px;">Lv ${level || 1}</div>
+      <div style="color:#ccc; font-size:11px;">Role: ${(role || 'dps').toUpperCase()}</div>
     `;
     
     const x = event.pageX + 10;
     const y = event.pageY + 10;
     tooltip.style.left = x + 'px';
     tooltip.style.top = y + 'px';
+    tooltip.style.display = 'block';
   };
   
   ui._hideCardTooltip = () => {
@@ -2822,7 +2825,7 @@ function bindUI(state){
           width: 100%;
           box-sizing: border-box;
           aspect-ratio: 120/160;
-        " onmousemove="ui._showCardTooltip(event, ${JSON.stringify(cardStatData)})" onmouseout="ui._hideCardTooltip()" onclick="ui._showFighterPreview('${card.loadoutId}', ${card.level})">
+        " onclick="ui._showFighterPreview(${JSON.stringify(card.loadoutId)}, ${card.level})">
           <!-- Top right: Rating box -->
           <div style="
             position: absolute;
@@ -3469,7 +3472,7 @@ function bindUI(state){
       // Common weapons (unlimited stock)
       {item: {kind:'weapon', slot:'weapon', weaponType:'Sword', rarity:commonRarity, name:'Common Sword', desc:'Basic sword', buffs:{atk:5}}, price:55, stock:'unlimited'},
       {item: {kind:'weapon', slot:'weapon', weaponType:'Axe', rarity:commonRarity, name:'Common Axe', desc:'Basic axe', buffs:{atk:6, speed:-3}}, price:55, stock:'unlimited'},
-      {item: {kind:'weapon', slot:'weapon', weaponType:'Greatsword', rarity:commonRarity, name:'Common Great Sword', desc:'Large two-handed sword', buffs:{atk:8, def:2, speed:-2}}, price:65, stock:'unlimited'},
+      {item: {kind:'weapon', slot:'weapon', weaponType:'Great Sword', rarity:commonRarity, name:'Common Great Sword', desc:'Large two-handed sword', buffs:{atk:8, def:2, speed:-2}}, price:65, stock:'unlimited'},
       {item: {kind:'weapon', slot:'weapon', weaponType:'Dagger', rarity:commonRarity, name:'Common Dagger', desc:'Basic dagger', buffs:{atk:3, speed:8}}, price:50, stock:'unlimited'},
       {item: {kind:'weapon', slot:'weapon', weaponType:'Destruction Staff', rarity:commonRarity, name:'Common Destruction Staff', desc:'Basic caster staff', buffs:{atk:3, maxMana:12, manaRegen:0.8}}, price:70, stock:'unlimited'},
       {item: {kind:'weapon', slot:'weapon', weaponType:'Healing Staff', rarity:commonRarity, name:'Common Healing Staff', desc:'Basic healing staff', buffs:{maxMana:14, manaRegen:1.0, cdr:0.03}}, price:70, stock:'unlimited'},
@@ -5463,7 +5466,7 @@ function bindUI(state){
         if(filterValue === 'sword') return item.kind === 'weapon' && item.weaponType === 'Sword';
         if(filterValue === 'axe') return item.kind === 'weapon' && item.weaponType === 'Axe';
         if(filterValue === 'dagger') return item.kind === 'weapon' && item.weaponType === 'Dagger';
-        if(filterValue === 'greatsword') return item.kind === 'weapon' && item.weaponType === 'Greatsword';
+        if(filterValue === 'greatsword') return item.kind === 'weapon' && item.weaponType === 'Great Sword';
         if(filterValue === 'healing-staff') return item.kind === 'weapon' && item.weaponType === 'Healing Staff';
         if(filterValue === 'destruction-staff') return item.kind === 'weapon' && item.weaponType === 'Destruction Staff';
         
@@ -7839,8 +7842,160 @@ function bindUI(state){
     const allies = state.slotSystem?.allies || [];
     const allyCards = allies.map(slot => ui._renderSlotCard(slot, 'ally'));
     ui.allySlotList.innerHTML = allyCards.join('');
+  };
+
+  // Auto-equip functions
+  ui._autoEquipBestCards = (mode) => {
+    if (!state.slotSystem) return;
     
-    // Tooltips disabled for slot tab
+    const cards = state.fighterCardInventory?.cards || [];
+    if (cards.length === 0) {
+      console.log('[AutoEquip] No cards in inventory');
+      alert('No fighter cards in inventory!');
+      return;
+    }
+    
+    // Sort cards by rating (best first)
+    const sortedCards = [...cards].sort((a, b) => {
+      const ratingA = ui._calculateCardRating(a);
+      const ratingB = ui._calculateCardRating(b);
+      return ratingB - ratingA;
+    });
+    
+    let assignedCount = 0;
+    const guards = state.slotSystem.guards || [];
+    const allies = state.slotSystem.allies || [];
+    
+    // Collect all currently equipped loadout IDs (across both guards and allies to prevent duplication)
+    const usedLoadoutIds = new Set();
+    [...guards, ...allies].forEach(slot => {
+      if (slot.loadoutId) usedLoadoutIds.add(slot.loadoutId);
+    });
+    
+    // Helper function to find best matching card for a slot
+    const findBestCardForSlot = (slot, availableCards) => {
+      // Flex slots can take any card
+      if (slot.role === 'flex') {
+        return availableCards[0] || null;
+      }
+      
+      // Tank slots prefer tank cards
+      if (slot.role === 'tank') {
+        return availableCards.find(c => c.role === 'tank') || availableCards.find(c => c.role === 'flex') || null;
+      }
+      
+      // DPS slots prefer dps cards
+      if (slot.role === 'dps') {
+        return availableCards.find(c => c.role === 'dps') || availableCards.find(c => c.role === 'flex') || null;
+      }
+      
+      // Healer/Support slots prefer healer/support cards
+      if (slot.role === 'healer' || slot.role === 'support') {
+        return availableCards.find(c => c.role === 'healer' || c.role === 'support') || availableCards.find(c => c.role === 'flex') || null;
+      }
+      
+      // Elite slots prefer any matching or flex
+      if (slot.role === 'elite') {
+        return availableCards.find(c => c.role === 'elite') || availableCards.find(c => c.role === 'flex') || availableCards[0] || null;
+      }
+      
+      return availableCards[0] || null;
+    };
+    
+    if (mode === 'guards') {
+      // Auto-equip only to guard slots
+      for (const slot of guards) {
+        if (slot.unlocked && !slot.loadoutId) {
+          const availableCards = sortedCards.filter(c => !usedLoadoutIds.has(c.loadoutId));
+          const bestCard = findBestCardForSlot(slot, availableCards);
+          
+          if (bestCard) {
+            // Use the same function as manual assignment to ensure spawning happens
+            const success = window.SLOTS && window.SLOTS.assignLoadout && window.SLOTS.assignLoadout(slot.id, bestCard.loadoutId);
+            if (success) {
+              usedLoadoutIds.add(bestCard.loadoutId);
+              assignedCount++;
+              console.log(`[AutoEquip] Assigned ${bestCard.name} (${bestCard.role}/${bestCard.rarity}) to guard ${slot.id}`);
+            } else {
+              console.log(`[AutoEquip] Failed to assign ${bestCard.name} to guard ${slot.id}`);
+            }
+          }
+        }
+      }
+    } else if (mode === 'allies') {
+      // Auto-equip only to ally slots
+      for (const slot of allies) {
+        if (slot.unlocked && !slot.loadoutId) {
+          const availableCards = sortedCards.filter(c => !usedLoadoutIds.has(c.loadoutId));
+          const bestCard = findBestCardForSlot(slot, availableCards);
+          
+          if (bestCard) {
+            // Use the same function as manual assignment to ensure spawning happens
+            const success = window.SLOTS && window.SLOTS.assignLoadout && window.SLOTS.assignLoadout(slot.id, bestCard.loadoutId);
+            if (success) {
+              usedLoadoutIds.add(bestCard.loadoutId);
+              assignedCount++;
+              console.log(`[AutoEquip] Assigned ${bestCard.name} (${bestCard.role}/${bestCard.rarity}) to ally ${slot.id}`);
+            } else {
+              console.log(`[AutoEquip] Failed to assign ${bestCard.name} to ally ${slot.id}`);
+            }
+          }
+        }
+      }
+    }
+    
+    if (assignedCount > 0) {
+      console.log(`[AutoEquip] Successfully assigned ${assignedCount} cards`);
+    }
+    
+    ui.renderSlotTab();
+  };
+  
+  ui._clearAllSlots = (type) => {
+    if (!state.slotSystem) return;
+    
+    const slots = type === 'guards' ? (state.slotSystem.guards || []) : (state.slotSystem.allies || []);
+    let clearedCount = 0;
+    
+    // Collect all loadoutIds that will be cleared
+    const loadoutIdsToRemove = [];
+    slots.forEach(slot => {
+      if (slot.loadoutId) {
+        loadoutIdsToRemove.push(slot.loadoutId);
+        slot.loadoutId = null;
+        slot.level = 0;
+        clearedCount++;
+        console.log(`[ClearSlots] Cleared ${slot.id}`);
+      }
+    });
+    
+    // Remove all units spawned from these loadouts
+    for (const loadoutId of loadoutIdsToRemove) {
+      const alliesFromLoadout = state.friendlies.filter(f => f.cardLoadoutId === loadoutId && f.fighterCard);
+      for (const ally of alliesFromLoadout) {
+        // Remove from group if present
+        if (state.group?.members?.includes(ally.id)) {
+          state.group.members = state.group.members.filter(id => id !== ally.id);
+          delete state.group.settings[ally.id];
+          console.log(`[ClearSlots] Removed ${ally.name} from group`);
+        }
+        // Kill the unit (remove from friendlies array)
+        const idx = state.friendlies.indexOf(ally);
+        if (idx >= 0) {
+          state.friendlies.splice(idx, 1);
+          console.log(`🗑️ Destroyed ${ally.name}`);
+        }
+      }
+    }
+    
+    if (clearedCount > 0) {
+      console.log(`[ClearSlots] Cleared ${clearedCount} ${type} slots`);
+    }
+    
+    ui.renderSlotTab();
+    ui.renderFighterCards();
+    ui.renderGroupPanel(); // Refresh group panel in case allies were in it
+    ui.toast(`✅ Cleared ${clearedCount} ${type} and removed from group`);
   };
 
   // Render individual slot card
@@ -7865,7 +8020,10 @@ function bindUI(state){
     let loadoutName = 'None';
     let loadoutInfo = '';
     if (loadoutId && window.LOADOUTS) {
-      const loadout = window.LOADOUTS.getLoadout(loadoutId);
+      // loadoutId is now the unique card ID - look up the card to get the base loadout
+      const card = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
+      const baseLoadoutId = card?.loadoutBaseId || loadoutId;
+      const loadout = window.LOADOUTS.getLoadout(baseLoadoutId);
       if (loadout) {
         loadoutName = loadout.name;
         const weapon = loadout.weapon?.name || 'No weapon';
@@ -7903,7 +8061,10 @@ function bindUI(state){
     // Get full loadout details for portrait and tooltip
     let loadoutData = null;
     if (loadoutId && window.LOADOUTS) {
-      loadoutData = window.LOADOUTS.getLoadout(loadoutId);
+      // loadoutId is now the unique card ID - look up the card to get the base loadout
+      const card = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
+      const baseLoadoutId = card?.loadoutBaseId || loadoutId;
+      loadoutData = window.LOADOUTS.getLoadout(baseLoadoutId);
     }
     
     // Build equipment display for slot cards (weapon + armor)
@@ -7933,10 +8094,8 @@ function bindUI(state){
             justify-content: center;
             cursor: help;
             overflow: hidden;
-          " 
-          onmousemove="ui._showItemTooltip(event, 'weapon', JSON.parse('${weaponBuffs}'), '${loadoutRarity}')"
-          onmouseout="ui._hideItemTooltip()">
-            <img src="${weaponImagePath}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='⚔';" alt="${weaponType}" />
+          " title="Weapon: ${weaponType}">
+            <img src="${weaponImagePath}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none';" alt="${weaponType}" />
           </div>
         `;
       }
@@ -7968,10 +8127,8 @@ function bindUI(state){
               justify-content: center;
               cursor: help;
               overflow: hidden;
-            " 
-            onmousemove="ui._showItemTooltip(event, '${slotName}', JSON.parse('${armorBuffs}'), '${loadoutRarity}')"
-            onmouseout="ui._hideItemTooltip()">
-              <img src="${imagePath}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${slotName.charAt(0).toUpperCase()}';" alt="${slotName}" />
+            ">
+              <img src="${imagePath}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none';" alt="${slotName}" />
             </div>
           `;
         });
@@ -8001,9 +8158,9 @@ function bindUI(state){
             overflow: hidden;
             ${loadoutData ? 'cursor: pointer;' : ''}
             transition: all 0.2s;
-          " ${loadoutData ? `onclick="event.stopPropagation(); ui._showFighterPreview('${loadoutId}')" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='#d4af37';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='${roleStyle.border}';" title="Click to view full fighter details"` : ''}>
+          " ${loadoutData ? `onclick="event.stopPropagation(); ui._showFighterPreview(${JSON.stringify(loadoutId)})" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='#d4af37';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='${roleStyle.border}';" title="Click to view full fighter details"` : ''}>
             ${loadoutData && loadoutData.fighterImage && !loadoutData.fighterImage.includes('placeholder') ? 
-              `<img src="${getAssetPath('assets/fighter player cards/' + loadoutData.fighterImage)}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='${loadoutData.name || 'Fighter'}';" alt="${loadoutData.name}"/>` :
+              `<img src="${getAssetPath('assets/fighter player cards/' + loadoutData.fighterImage)}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none';" alt="${loadoutData.name}"/>` :
               loadoutData ? loadoutData.name || 'Fighter' : '?'
             }
             ${loadoutData && level > 0 ? `<div style="position:absolute; top:4px; left:4px; width:24px; height:24px; border-radius:50%; background:#1a1a1a; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; color:#d4af37; box-shadow:0 2px 4px rgba(0,0,0,0.8);">${level}</div>` : ''}
@@ -8021,10 +8178,10 @@ function bindUI(state){
                 </div>
               </div>
               <div style="display:flex; gap:6px;">
-                <button class="secondary" style="padding:6px 10px; font-size:11px;" onclick="ui._openLoadoutPicker('${slot.id}')" title="">
+                <button class="secondary" style="padding:6px 10px; font-size:11px;" onclick="event.stopPropagation(); ui._openLoadoutPicker('${slot.id}')" title="">
                   🎴 Change
                 </button>
-                ${loadoutData ? `<button class="secondary" style="padding:6px 10px; font-size:11px; background:#5a3a3a; border-color:#a55;" onclick="ui._clearSlot('${slot.id}')" title="Remove fighter from slot">
+                ${loadoutData ? `<button class="secondary" style="padding:6px 10px; font-size:11px; background:#5a3a3a; border-color:#a55;" onclick="event.stopPropagation(); ui._clearSlot('${slot.id}')" title="Remove fighter from slot">
                   ✕ Clear
                 </button>` : ''}
               </div>
@@ -8055,7 +8212,7 @@ function bindUI(state){
                       align-items: center;
                       justify-content: center;
                       cursor: pointer;
-                    " title="${abilityName}" onclick="event.stopPropagation(); ui._showFighterPreview('${loadoutId}')">
+                    " title="${abilityName}" onclick="event.stopPropagation(); ui._showFighterPreview(${JSON.stringify(loadoutId)})">
                       <img src="${iconPath}" style="width: 28px; height: 28px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
                       <span style="color:#666;font-size:12px;display:none;">${fallbackNum}</span>
                     </div>
@@ -8133,6 +8290,7 @@ function bindUI(state){
       ui.renderSlotTab();
       ui.renderFighterCards(); // FIX #3: Refresh card inventory to remove [EQUIPPED] badge
       ui.renderGroupPanel(); // Refresh group panel in case ally was in it
+      ui.renderGroupTab(); // Also refresh the group tab itself
       ui.toast('✅ Slot cleared! Ally destroyed.');
     }
   };
@@ -8140,69 +8298,56 @@ function bindUI(state){
   // Open loadout picker modal (FIGHTER CARD UI)
   ui._openLoadoutPicker = (slotId) => {
     console.log('[LOADOUT PICKER] Opening for slot:', slotId);
-    
-    // Find the slot to get its role
-    const slot = (state.slotSystem?.guards || []).find(s => s.id === slotId) ||
-                 (state.slotSystem?.allies || []).find(s => s.id === slotId);
-    
+
+    const guards = state.slotSystem?.guards || [];
+    const allies = state.slotSystem?.allies || [];
+
+    const slot = guards.find(s => s.id === slotId) || allies.find(s => s.id === slotId);
     console.log('[LOADOUT PICKER] Found slot:', slot);
-    
+
     if (!slot) {
       console.error('[LOADOUT PICKER] Slot not found:', slotId);
       ui.toast('❌ Slot not found');
       return;
     }
-    
-    // Get fighter cards from inventory that match this slot's role
+
     const allCards = state.fighterCardInventory?.cards || [];
     console.log('[FIGHTER CARDS] Total in inventory:', allCards.length);
-    
-    // FIX #2: Build set of equipped loadouts to exclude from picker
+
     const equippedLoadoutIds = new Set();
-    const allSlots = [...(state.slotSystem?.guards || []), ...(state.slotSystem?.allies || [])];
-    allSlots.forEach(s => {
-      if (s.loadoutId && s.id !== slotId) {  // Exclude current slot
-        equippedLoadoutIds.add(s.loadoutId);
-      }
+    [...guards, ...allies].forEach(s => {
+      if (s.loadoutId && s.id !== slotId) equippedLoadoutIds.add(String(s.loadoutId));
     });
     console.log('[LOADOUT PICKER] Equipped elsewhere:', equippedLoadoutIds.size);
-    
+
+    const slotRole = (slot.role || 'flex').toLowerCase();
+
     const compatibleCards = allCards.filter(card => {
-      const cardRole = card.role?.toLowerCase() || 'flex';
-      const slotRole = slot.role.toLowerCase();
-      
-      // Flex slots accept any role
-      if (slotRole === 'flex') {
-        // Match
-      } else if (slotRole === 'support' && cardRole === 'healer') {
-        // Match
-      } else if (slotRole === 'healer' && cardRole === 'support') {
-        // Match
-      } else if (slotRole === 'elite' && (cardRole === 'tank' || cardRole === 'dps')) {
-        // Match
-      } else if (cardRole !== slotRole) {
-        // No match
-        return false;
+      const cardRole = (card.role || 'flex').toLowerCase();
+
+      if (slotRole !== 'flex') {
+        const isMatch =
+          (slotRole === cardRole) ||
+          (slotRole === 'support' && cardRole === 'healer') ||
+          (slotRole === 'healer' && cardRole === 'support') ||
+          (slotRole === 'elite' && (cardRole === 'tank' || cardRole === 'dps'));
+
+        if (!isMatch) return false;
       }
-      
-      // FIX #2: Hide cards already equipped elsewhere
-      if (equippedLoadoutIds.has(card.loadoutId)) {
-        console.log('[LOADOUT PICKER] Hiding already-equipped:', card.loadoutId);
-        return false;
-      }
-      
+
+      if (equippedLoadoutIds.has(String(card.loadoutId))) return false;
+
       return true;
     });
-    
+
     console.log('[FIGHTER CARDS] Compatible available cards:', compatibleCards.length);
-    
+
     if (compatibleCards.length === 0) {
       console.warn('[FIGHTER CARDS] No compatible cards in inventory for role:', slot.role);
       ui.toast('ℹ️ No fighter cards available for this slot role. Collect more cards!');
       return;
     }
-    
-    // Use the existing loadout picker but with cards from inventory
+
     ui._openFighterCardPicker(slotId, compatibleCards);
   };
 
@@ -8457,14 +8602,18 @@ function bindUI(state){
       return;
     }
 
-    const loadout = LOADOUTS.getLoadout(loadoutId);
+    // loadoutId is now the unique card ID - look up the card first to get the template
+    // Use loose equality (==) to handle string/number comparison since loadoutId comes from HTML as string
+    let card = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId == loadoutId);
+    const baseLoadoutId = card?.loadoutBaseId || loadoutId; // Fallback to loadoutId if not a card
+    
+    const loadout = LOADOUTS.getLoadout(baseLoadoutId);
     if (!loadout) {
-      console.error('[PREVIEW] Loadout not found:', loadoutId);
+      console.error('[PREVIEW] Loadout not found:', baseLoadoutId);
       return;
     }
 
     // Get rarity info from inventory card or use loadout default
-    let card = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
     const rarity = card?.rarity || loadout.rarity || 'common';
     const cardPowerRating = card ? ui._calculateCardRating(card) : 50;
     
@@ -8584,10 +8733,8 @@ function bindUI(state){
             position: relative;
             box-shadow: 0 4px 12px rgba(0,0,0,0.8);
           " 
-          onmousemove="ui._showItemTooltip(event, 'weapon', JSON.parse('${weaponBuffs}'), '${rarity}')"
-          onmouseout="ui._hideItemTooltip()"
           title="${weaponType}: +${attackBonus} ATK">
-            <img src="${weaponImagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:40px;>⚔</span>';" />
+            <img src="${weaponImagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none';" />
             <div style="position: absolute; bottom: 2px; right: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; font-weight: bold; padding: 2px 4px; border-radius: 3px;">+${attackBonus}</div>
           </div>
         `;
@@ -8617,10 +8764,8 @@ function bindUI(state){
               overflow: hidden;
               box-shadow: 0 4px 12px rgba(0,0,0,0.8);
             " 
-            onmousemove="ui._showItemTooltip(event, '${slotName}', JSON.parse('${armorBuffs}'), '${rarity}')"
-            onmouseout="ui._hideItemTooltip()"
             title="${slotName}">
-              <img src="${imagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:24px;>${slotName.charAt(0).toUpperCase()}</span>';" />
+              <img src="${imagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none';" />
             </div>
           `;
         });
@@ -8659,10 +8804,8 @@ function bindUI(state){
               overflow: hidden;
               box-shadow: 0 4px 12px rgba(0,0,0,0.8);
             " 
-            onmousemove="ui._showItemTooltip(event, '${slotName}', JSON.parse('${armorBuffs}'), '${rarity}')"
-            onmouseout="ui._hideItemTooltip()"
             title="${slotDisplayName}">
-              <img src="${imagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:24px;>${slotName.charAt(0).toUpperCase()}</span>';" />
+              <img src="${imagePath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none';" />
             </div>
           `;
         });
@@ -8698,7 +8841,7 @@ function bindUI(state){
                 position: relative;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.8);
               " title="${ability.name}&#10;Mana: ${manaCost} | CD: ${cooldown}s">
-                <img src="${iconPath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=font-size:24px;color:#666;>${index + 1}</span>';" />
+                <img src="${iconPath}" style="width: 90%; height: 90%; object-fit: contain;" onerror="this.style.display='none';" />
                 <div style="position: absolute; bottom: 2px; left: 4px; background: rgba(0,0,0,0.8); color: #4af; font-size: 9px; font-weight: bold; padding: 2px 4px; border-radius: 3px;">${manaCost}💧</div>
                 <div style="position: absolute; bottom: 2px; right: 4px; background: rgba(0,0,0,0.8); color: #fa8; font-size: 9px; font-weight: bold; padding: 2px 4px; border-radius: 3px;">${cooldown}s</div>
               </div>
@@ -8954,7 +9097,7 @@ function bindUI(state){
                   max-height: 100%;
                   object-fit: contain;
                 "
-                onerror="this.style.display='none'; this.parentElement.innerHTML+='<div style=color:#666;font-size:72px;>👤</div>';"
+                onerror="this.style.display='none';"
               />
             </div>
             
