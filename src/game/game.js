@@ -3356,6 +3356,26 @@ function npcUpdateAbilities(state, u, dt, kind){
   }
   if(!target) return;
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CROWN GUARD FORCED TARGET - ball-group focus fire (only DPS guards chase player)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (u._forcedCombatTarget && u.guardRole === 'DPS') {
+    const forced = u._forcedCombatTarget;
+    const forcedAlive =
+      forced.dead !== true &&
+      (forced.hp == null || forced.hp > 0);
+
+    if (forcedAlive) {
+      target = forced;
+      bestD = Math.hypot((target.x||0)-u.x, (target.y||0)-u.y);
+      // Short lock so ability targeting feels responsive to player movement
+      u._lockId = forced.id || forced._id || 'player';
+      u._lockUntil = now + 0.25;
+    } else {
+      u._forcedCombatTarget = null;
+    }
+  }
+
   const isStaff = (u.weaponType||'').toLowerCase().includes('staff');
   const roleKey = (u.variant==='mage') ? 'mage' : (u.variant==='warden' ? 'warden' : 'dps');
   let role = u.role || (u.variant==='mage' ? 'HEALER' : (u.variant==='warden' ? 'TANK' : 'DPS'));
@@ -6954,6 +6974,36 @@ function updateEnemies(state, dt){
         }
       }
       
+      // ═══════════════════════════════════════════════════════════════════════════════
+      // CROWN GUARD OVERRIDE - Unlock guards to chase crown carriers
+      // ═══════════════════════════════════════════════════════════════════════════════
+      // Reset flag based on current reality - DO NOT KEEP IT PERMANENTLY TRUE
+      // This prevents guards from becoming permanently unleashed after a crown is secured/dropped
+      e._isChasingCrown = false; // Default: not chasing
+      
+      // Check if this guard has a crown assigned (emperor mode) - crownTeam is source of truth
+      if(!priorityTarget && e.crownTeam){
+        const crown = state.emperor?.crowns?.[e.crownTeam];
+        if(crown && crown.carriedBy === 'player'){
+          // Crown is currently carried by player - OVERRIDE all normal constraints and chase them
+          priorityTarget = state.player;
+          targetDist = Math.hypot(state.player.x - e.x, state.player.y - e.y);
+          targetPriority = 150; // MAXIMUM priority - override everything
+          // Defensive: fallback to 'player' if no ID exists
+          e._committedTarget = state.player.id || state.player._id || 'player';
+          e._targetCommitUntil = now + 5.0; // Long commit for chase
+          e._isChasingCrown = true; // Set flag: YES, we are chasing crown right now
+          if(state.debugGuards){
+            console.log(`[CROWN_GUARD] ${e.name || 'Guard'} CHASING crown carrier at (${state.player.x|0},${state.player.y|0}), dist=${targetDist|0}`);
+          }
+        }
+      }
+      
+      // Clear forced combat target when chase TRULY ends (only if flag is still false after crown check)
+      if (!e._isChasingCrown) {
+        e._forcedCombatTarget = null;
+      }
+      
       // If no committed target or commitment expired, find new target
       if(!priorityTarget && now - e._lastMacroTick >= MACRO_TICK){
         e._lastMacroTick = now;
@@ -6964,7 +7014,7 @@ function updateEnemies(state, dt){
           const distPlayerFromFlag = guardSite ? Math.hypot(state.player.x - guardSite.x, state.player.y - guardSite.y) : Infinity;
           const distPlayerFromSpawn = Math.hypot(state.player.x - spawnX, state.player.y - spawnY);
           
-          // Skip if player beyond leash
+          // Skip if player beyond leash (UNLESS they're a crown carrier - that's handled above)
           if(distPlayerFromSpawn <= LEASH_HARD_STOP){
             let priority = 0;
             // Zone-based priority scoring
@@ -7057,9 +7107,11 @@ function updateEnemies(state, dt){
         (targetDist <= AGGRO_RANGE && targetPriority >= 60)
       );
       
-      const shouldReturnToPost = distFromSpawn > LEASH_RETREAT || (
+      // CROWN GUARD EXCEPTION: Use boolean flag instead of magic number for reliability
+      const isChasingCrown = !!e._isChasingCrown;
+      const shouldReturnToPost = !isChasingCrown && (distFromSpawn > LEASH_RETREAT || (
         e._guardState === 'RETURN_TO_POST' && distFromSlot > 25
-      );
+      ));
       
       // STATE TRANSITIONS
       if(e._guardState === 'IDLE_DEFENSE'){
@@ -7171,6 +7223,24 @@ function updateEnemies(state, dt){
           e.x = slotX;
           e.y = slotY;
         }
+      }
+      
+      // ─────────────────────────────────────────────────────────────────────────────
+      // CROWN GUARD MOVEMENT OVERRIDE (CRITICAL FIX)
+      // ─────────────────────────────────────────────────────────────────────────────
+      // If crown guard AI set targetX/Y (retrieve/return modes), use those instead of state machine decisions
+      // This bridges the gap between updateCrownGuardAI() intention and actual movement execution
+      if(e.crownGuard && (e.guardMode === 'retrieve' || e.guardMode === 'return')){
+        if(Number.isFinite(e.targetX) && Number.isFinite(e.targetY)){
+          tx = e.targetX;
+          ty = e.targetY;
+        }
+      }
+      
+      // Clear crown targets when not in crown modes (safety: prevent lingering movement)
+      if(e.guardMode !== 'retrieve' && e.guardMode !== 'return'){
+        e.targetX = null;
+        e.targetY = null;
       }
       
       // ─────────────────────────────────────────────────────────────────────────────
@@ -7567,8 +7637,20 @@ function die(state){
   state.player.mana = 0;
   state.player.stam = 0;
   state.player.shield = 0;
+  
   // Emperor Mode Phase 3: Drop carried crowns on death
+  console.log('[DIE] Player died at ('+((state.player.x|0))+','+((state.player.y|0))+')');
   dropCarriedCrowns(state, true); // keep unlocked if still emperor
+  
+  // Log crown state after drop for verification
+  if(state.emperor?.crowns){
+    const snap = Object.entries(state.emperor.crowns).map(([t,c]) =>
+      `${t}:{by:${c.carriedBy},sec:${!!c.secured},x:${(c.x|0)},y:${(c.y|0)}}`
+    ).join(' ');
+    console.log('[DEATH DROP RESULT]', snap);
+    state.ui?.toast?.(`<span class="info"><b>DEATH DROP:</b> ${snap}</span>`);
+  }
+  
   state.ui.toast('<span class="neg"><b>You died.</b></span> Respawning at nearest captured flag...');
 }
 
@@ -10771,6 +10853,53 @@ export function updateGame(state, dt){
       }
     }
   }
+  
+  // CROWN PICKUP - Emperor Mode Phase 3
+  // Player automatically picks up dropped crowns when nearby
+  if(isEmperorActive(state) && state.emperor.crowns && !state.player.dead){
+    // ENFORCE: Player can only carry one crown at a time
+    // Check both 'player' literal and playerKey forms to be bulletproof against ID mismatches
+    const playerKey = state.player?.id || state.player?._id || 'player';
+    const playerAlreadyCarrying = Object.values(state.emperor.crowns)
+      .some(c => c.carriedBy === 'player' || c.carriedBy === playerKey);
+    
+    if(!playerAlreadyCarrying){
+      const teams = ['teamA','teamB','teamC'];
+      for(const team of teams){
+        const crown = state.emperor.crowns[team];
+        if(!crown) continue;
+        
+        // Only pick up if crown is dropped and not already carried
+        if(!crown.carriedBy && !crown.secured){
+          // Use squared distance for consistency with AI optimizations
+          const dx = crown.x - state.player.x;
+          const dy = crown.y - state.player.y;
+          const distSq = dx*dx + dy*dy;
+          
+          // Pickup radius 48px (larger than loot to make crowns easier to grab)
+          if(distSq <= 48*48){
+            crown.carriedBy = 'player';  // Always use literal 'player' for consistency
+            crown.secured = false;  // Clear secured flag when picking up
+            crown.lastTouchedTime = state.gameTime || 0;
+            
+            // Alert player and guards
+            if(state.ui?.toast){
+              const colorClass = team === 'teamA' ? 'warn' : team === 'teamB' ? 'info' : 'pos';
+              state.ui.toast(`<span class="${colorClass}"><b>Crown ${team} picked up!</b></span>`);
+            }
+            console.log(`[CROWN] Player picked up Crown ${team} at (${crown.x|0},${crown.y|0})`);
+            break; // Only pick up ONE crown, then stop
+          }
+        }
+      }
+    } else {
+      // Feedback when trying to pick up while already carrying
+      const carrying = Object.entries(state.emperor.crowns)
+        .find(([t,c]) => c.carriedBy === 'player');
+      const carryingTeam = carrying?.[0] || '?';
+      state.ui?.toast?.(`<span class="warn">You already carry Crown ${carryingTeam}</span>`);
+    }
+  }
 
   // cooldowns
   for(let i=0;i<state.player.cd.length;i++) state.player.cd[i]=Math.max(0,state.player.cd[i]-dt);
@@ -11207,6 +11336,8 @@ export function updateGame(state, dt){
   }
   // Emperor check: if any team controls ALL capture flags, they become emperor
   checkEmperorStatus(state);
+  checkAllBasesDestroyed(state); // Check if boss should spawn (all bases destroyed)
+  updateEmperorGuideUI(state);  // Update on-screen helper text
   updateFriendlySpawns(state, dt);
   updatePartyCoordinator(state, dt);
   updateFriendlies(state, dt);
@@ -11253,6 +11384,42 @@ export function updateGame(state, dt){
 
   spawnEnemies(state, dt);
   updateEnemies(state, dt);
+  updateCrownGuardAI(state, dt);  // Update crown guard behavior (chase/protect crown)
+  
+  // Update crown positions - crowns carried by player or guards follow carrier
+  if(isEmperorActive(state) && state.emperor.crowns){
+    const teams = ['teamA','teamB','teamC'];
+    for(const team of teams){
+      const crown = state.emperor.crowns[team];
+      if(!crown) continue;
+      
+      if(crown.carriedBy === 'player'){
+        // Crown follows player when carried
+        crown.x = state.player.x;
+        crown.y = state.player.y;
+      } else if(crown.carriedBy && crown.carriedBy !== 'player'){
+        // CRITICAL FIX: Crown is carried by a guard - follow that guard on minimap
+        // Normalize ID comparison: both sides as strings to avoid type mismatches
+        const carrierId = String(crown.carriedBy);
+        const guardCarrier = state.enemies.find(e => String(e._id) === carrierId);
+        
+        if(guardCarrier && guardCarrier.hp > 0){
+          crown.x = guardCarrier.x;
+          crown.y = guardCarrier.y;
+        } else if(guardCarrier && guardCarrier.hp <= 0){
+          // Guard died - crown drops at death location
+          crown.carriedBy = null;
+          // Position stays at death location
+        }
+      }
+      
+      // SAFETY CHECK: carriedBy should NEVER be true - only 'player', guardId, or null
+      if(crown.carriedBy === true){
+        console.warn(`[CROWN ERROR] crown.carriedBy is true (invalid), resetting to null`);
+        crown.carriedBy = null;
+      }
+    }
+  }
 
   // process guard respawns attached to sites
   for(const s of state.sites){
@@ -11321,6 +11488,7 @@ export function updateGame(state, dt){
     tryPickupCrowns(state);
     updateCarriedCrowns(state);
     trySecureCrowns(state);
+    updateCrownGuardRespawns(state, dt);  // Handle guard respawn timers
   }
   
   // Music management: detect combat based on nearby enemies, not just damage
@@ -12137,6 +12305,605 @@ function spawnZoneBoss(state) {
   }
 }
 
+// Generate 3 legendary fighter cards at player level
+function generateLegendaryCards(state, count = 3) {
+  const cards = [];
+  const playerLevel = state.progression?.level || 1;
+  
+  for (let i = 0; i < count; i++) {
+    const card = generateFighterCard(playerLevel, state.fighterCardInventory.nextCardId++);
+    // Force legendary rarity
+    card.rarity = 'legendary';
+    card.rating = 5;
+    cards.push(card);
+  }
+  
+  return cards;
+}
+
+// Generate 3 legendary items at player level
+function generateLegendaryItems(state, count = 3) {
+  const items = [];
+  const playerLevel = state.progression?.level || 1;
+  const legendaryRarity = { key: 'legend', name: 'Legendary', color: '#ffd700' };
+  
+  const itemTypes = [
+    () => makeWeapon(['Destruction Staff', 'Healing Staff', 'Axe', 'Sword', 'Dagger', 'Great Sword'][randi(0, 5)], legendaryRarity, playerLevel),
+    () => {
+      const slot = ['helm', 'shoulders', 'chest', 'hands', 'belt', 'legs', 'feet', 'neck', 'accessory1', 'accessory2'][randi(0, 9)];
+      return makeArmor(slot, legendaryRarity, playerLevel);
+    },
+    () => makePotion(['hp', 'mana'][randi(0, 1)], legendaryRarity, playerLevel)
+  ];
+  
+  for (let i = 0; i < count; i++) {
+    const generator = itemTypes[randi(0, itemTypes.length - 1)];
+    const item = generator();
+    items.push(item);
+  }
+  
+  return items;
+}
+
+// Show victory reward modal after boss defeat
+function showVictoryRewardUI(state, onComplete) {
+  // Play level-up sound
+  if (state.sounds?.levelUp) {
+    state.sounds.levelUp.currentTime = 0;
+    state.sounds.levelUp.play().catch(e => {});
+  }
+  
+  // Generate loot rewards
+  const legendaryCards = generateLegendaryCards(state, 3);
+  const legendaryItems = generateLegendaryItems(state, 3);
+  const goldReward = 20000;
+  
+  // Create modal overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'victoryReward';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.5s;
+  `;
+  
+  // Modal container
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: linear-gradient(135deg, #2a1a3a 0%, #1a3a4a 100%);
+    border: 3px solid #ffd700;
+    border-radius: 15px;
+    padding: 40px;
+    max-width: 900px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.5), inset 0 0 20px rgba(255, 215, 0, 0.1);
+    animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  `;
+  
+  // Title
+  const title = document.createElement('div');
+  title.style.cssText = `
+    font-size: 48px;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    text-align: center;
+    margin-bottom: 10px;
+    letter-spacing: 3px;
+  `;
+  title.textContent = '🏆 VICTORY! 🏆';
+  modal.appendChild(title);
+  
+  // Subtitle
+  const subtitle = document.createElement('div');
+  subtitle.style.cssText = `
+    font-size: 24px;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 30px;
+    opacity: 0.9;
+  `;
+  subtitle.textContent = 'You have defeated the zone boss!';
+  modal.appendChild(subtitle);
+  
+  // Rewards container
+  const rewardsContainer = document.createElement('div');
+  rewardsContainer.style.cssText = `
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+  `;
+  
+  // === LEFT SIDE: LEGENDARY CARDS (with large images) ===
+  const cardsSection = document.createElement('div');
+  cardsSection.style.cssText = `
+    background: rgba(255, 215, 0, 0.1);
+    border: 2px solid #ff9900;
+    border-radius: 10px;
+    padding: 20px;
+  `;
+  
+  const cardsTitle = document.createElement('div');
+  cardsTitle.style.cssText = `
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff9900;
+    text-align: center;
+    margin-bottom: 15px;
+  `;
+  cardsTitle.textContent = '⭐ Legendary Fighters (3)';
+  cardsSection.appendChild(cardsTitle);
+  
+  for (const card of legendaryCards) {
+    const cardEl = document.createElement('div');
+    cardEl.style.cssText = `
+      background: linear-gradient(135deg, #3a2a1a 0%, #2a3a1a 100%);
+      border: 1px solid #ffd700;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    `;
+    
+    cardEl.onmouseover = () => {
+      cardEl.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.6)';
+      cardEl.style.borderColor = '#ffff00';
+    };
+    
+    cardEl.onmouseout = () => {
+      cardEl.style.boxShadow = 'none';
+      cardEl.style.borderColor = '#ffd700';
+    };
+    
+    const cardName = document.createElement('div');
+    cardName.style.cssText = `
+      color: #ffd700;
+      font-weight: bold;
+      margin-bottom: 4px;
+    `;
+    cardName.textContent = card.name;
+    cardEl.appendChild(cardName);
+    
+    const cardDetails = document.createElement('div');
+    cardDetails.style.cssText = `
+      color: #aaa;
+      font-size: 12px;
+    `;
+    cardDetails.innerHTML = `<b>${card.class}</b> • Lvl ${state.progression.level} • Rating: ${'⭐'.repeat(card.rating)}`;
+    cardEl.appendChild(cardDetails);
+    
+    // Click to show larger preview
+    cardEl.onclick = () => {
+      showLargeCardPreview(card, state);
+    };
+    
+    cardsSection.appendChild(cardEl);
+  }
+  rewardsContainer.appendChild(cardsSection);
+  
+  // === RIGHT SIDE: LEGENDARY ITEMS (with large images) ===
+  const itemsSection = document.createElement('div');
+  itemsSection.style.cssText = `
+    background: rgba(255, 215, 0, 0.1);
+    border: 2px solid #ff9900;
+    border-radius: 10px;
+    padding: 20px;
+  `;
+  
+  const itemsTitle = document.createElement('div');
+  itemsTitle.style.cssText = `
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff9900;
+    text-align: center;
+    margin-bottom: 15px;
+  `;
+  itemsTitle.textContent = '⭐ Legendary Items (3)';
+  itemsSection.appendChild(itemsTitle);
+  
+  for (const item of legendaryItems) {
+    const itemEl = document.createElement('div');
+    itemEl.style.cssText = `
+      background: linear-gradient(135deg, #3a2a1a 0%, #2a3a1a 100%);
+      border: 1px solid #ffd700;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    `;
+    
+    itemEl.onmouseover = () => {
+      itemEl.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.6)';
+      itemEl.style.borderColor = '#ffff00';
+    };
+    
+    itemEl.onmouseout = () => {
+      itemEl.style.boxShadow = 'none';
+      itemEl.style.borderColor = '#ffd700';
+    };
+    
+    const itemName = document.createElement('div');
+    itemName.style.cssText = `
+      color: #ffd700;
+      font-weight: bold;
+      margin-bottom: 4px;
+    `;
+    itemName.textContent = item.name;
+    itemEl.appendChild(itemName);
+    
+    const itemDetails = document.createElement('div');
+    itemDetails.style.cssText = `
+      color: #aaa;
+      font-size: 12px;
+    `;
+    itemDetails.innerHTML = `<b>${item.type}</b> • DMG: ${item.dmg || '—'} • DEF: ${item.def || '—'}`;
+    itemEl.appendChild(itemDetails);
+    
+    // Click to show larger preview with image
+    itemEl.onclick = () => {
+      showLargeItemPreview(item, state);
+    };
+    
+    itemsSection.appendChild(itemEl);
+  }
+  rewardsContainer.appendChild(itemsSection);
+  modal.appendChild(rewardsContainer);
+  
+  // === GOLD REWARD ===
+  const goldSection = document.createElement('div');
+  goldSection.style.cssText = `
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 170, 0, 0.1) 100%);
+    border: 2px solid #ffd700;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 30px;
+  `;
+  
+  const goldTitle = document.createElement('div');
+  goldTitle.style.cssText = `
+    font-size: 18px;
+    color: #ffd700;
+    font-weight: bold;
+    margin-bottom: 8px;
+  `;
+  goldTitle.textContent = '💰 Gold Reward';
+  goldSection.appendChild(goldTitle);
+  
+  const goldAmount = document.createElement('div');
+  goldAmount.style.cssText = `
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffff00;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.6);
+  `;
+  goldAmount.textContent = `+${goldReward.toLocaleString()} 💰`;
+  goldSection.appendChild(goldAmount);
+  modal.appendChild(goldSection);
+  
+  // === ACCEPT BUTTON ===
+  const acceptBtn = document.createElement('button');
+  acceptBtn.style.cssText = `
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  `;
+  acceptBtn.textContent = '✓ ACCEPT & CONTINUE';
+  
+  acceptBtn.onmouseover = () => {
+    acceptBtn.style.background = 'linear-gradient(135deg, #ffff00 0%, #ffbb00 100%)';
+    acceptBtn.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.6)';
+  };
+  acceptBtn.onmouseout = () => {
+    acceptBtn.style.background = 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)';
+    acceptBtn.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.4)';
+  };
+  
+  acceptBtn.onclick = () => {
+    // Add all loot to inventory
+    for (const card of legendaryCards) {
+      addFighterCard(state, card);
+    }
+    
+    for (const item of legendaryItems) {
+      addToInventory(state, item, 0);
+    }
+    
+    // Add gold
+    state.player.gold += goldReward;
+    
+    // Close modal
+    overlay.style.animation = 'fadeOut 0.3s';
+    setTimeout(() => {
+      overlay.remove();
+      if (onComplete) onComplete(); // Proceed to zone advancement
+    }, 300);
+  };
+  
+  modal.appendChild(acceptBtn);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+// Show large card preview modal
+function showLargeCardPreview(card, state) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    cursor: pointer;
+    animation: fadeIn 0.3s;
+  `;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: linear-gradient(135deg, #2a1a3a 0%, #1a3a4a 100%);
+    border: 3px solid #ffd700;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(255, 215, 0, 0.6);
+    animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  `;
+  
+  // Card image (large)
+  const cardImg = document.createElement('div');
+  cardImg.style.cssText = `
+    width: 200px;
+    height: 280px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #ffaa00 0%, #ff6600 100%);
+    border: 3px solid #ffd700;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  `;
+  cardImg.textContent = card.class === 'warrior' ? '⚔️' : '✨';
+  modal.appendChild(cardImg);
+  
+  // Card name
+  const name = document.createElement('div');
+  name.style.cssText = `
+    font-size: 32px;
+    font-weight: bold;
+    color: #ffd700;
+    margin-bottom: 10px;
+  `;
+  name.textContent = card.name;
+  modal.appendChild(name);
+  
+  // Card class
+  const classEl = document.createElement('div');
+  classEl.style.cssText = `
+    font-size: 18px;
+    color: #ffaa00;
+    margin-bottom: 20px;
+  `;
+  classEl.textContent = `${card.class.toUpperCase()} • Rating: ${'⭐'.repeat(card.rating)}`;
+  modal.appendChild(classEl);
+  
+  // Card stats
+  const stats = document.createElement('div');
+  stats.style.cssText = `
+    font-size: 14px;
+    color: #aaa;
+    line-height: 1.8;
+    margin-bottom: 30px;
+  `;
+  stats.innerHTML = `
+    <div>HP: ${card.maxHp || 100}</div>
+    <div>DMG: ${card.dmg || 15}</div>
+    <div>DEF: ${card.def || 5}</div>
+    <div>Level: ${state.progression.level}</div>
+  `;
+  modal.appendChild(stats);
+  
+  // Close button
+  const closeBtn = document.createElement('button');
+  closeBtn.style.cssText = `
+    padding: 12px 30px;
+    background: #ffd700;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+  `;
+  closeBtn.textContent = 'Close';
+  closeBtn.onmouseover = () => {
+    closeBtn.style.background = '#ffff00';
+  };
+  closeBtn.onmouseout = () => {
+    closeBtn.style.background = '#ffd700';
+  };
+  closeBtn.onclick = () => {
+    overlay.style.animation = 'fadeOut 0.2s';
+    setTimeout(() => overlay.remove(), 200);
+  };
+  modal.appendChild(closeBtn);
+  
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      overlay.style.animation = 'fadeOut 0.2s';
+      setTimeout(() => overlay.remove(), 200);
+    }
+  };
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+// Show large item preview modal
+function showLargeItemPreview(item, state) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    cursor: pointer;
+    animation: fadeIn 0.3s;
+  `;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: linear-gradient(135deg, #2a1a3a 0%, #1a3a4a 100%);
+    border: 3px solid #00ff00;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(0, 255, 0, 0.4);
+    animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  `;
+  
+  // Item image (large)
+  const itemImg = document.createElement('div');
+  itemImg.style.cssText = `
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #00ff00 0%, #00aa00 100%);
+    border: 3px solid #00ff00;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+  `;
+  
+  // Item icon based on type
+  const icons = {
+    'sword': '⚔️', 'staff': '🔱', 'shield': '🛡️', 'armor': '🧥',
+    'ring': '💍', 'amulet': '📿', 'helm': '👑', 'boots': '👢',
+    'gloves': '🧤', 'cloak': '🧛'
+  };
+  itemImg.textContent = icons[item.type.toLowerCase()] || '✨';
+  modal.appendChild(itemImg);
+  
+  // Item name
+  const name = document.createElement('div');
+  name.style.cssText = `
+    font-size: 32px;
+    font-weight: bold;
+    color: #00ff00;
+    margin-bottom: 10px;
+  `;
+  name.textContent = item.name;
+  modal.appendChild(name);
+  
+  // Item type
+  const typeEl = document.createElement('div');
+  typeEl.style.cssText = `
+    font-size: 18px;
+    color: #00cc00;
+    margin-bottom: 20px;
+  `;
+  typeEl.textContent = item.type.toUpperCase();
+  modal.appendChild(typeEl);
+  
+  // Item stats
+  const stats = document.createElement('div');
+  stats.style.cssText = `
+    font-size: 14px;
+    color: #aaa;
+    line-height: 1.8;
+    margin-bottom: 30px;
+  `;
+  stats.innerHTML = `
+    <div>Damage: ${item.dmg || '—'}</div>
+    <div>Defense: ${item.def || '—'}</div>
+    <div>Value: ${item.value || 1000} gold</div>
+    <div>Rarity: 🌟 LEGENDARY</div>
+  `;
+  modal.appendChild(stats);
+  
+  // Close button
+  const closeBtn = document.createElement('button');
+  closeBtn.style.cssText = `
+    padding: 12px 30px;
+    background: #00ff00;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+  `;
+  closeBtn.textContent = 'Close';
+  closeBtn.onmouseover = () => {
+    closeBtn.style.background = '#00ff00';
+    closeBtn.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
+  };
+  closeBtn.onmouseout = () => {
+    closeBtn.style.background = '#00ff00';
+    closeBtn.style.boxShadow = 'none';
+  };
+  closeBtn.onclick = () => {
+    overlay.style.animation = 'fadeOut 0.2s';
+    setTimeout(() => overlay.remove(), 200);
+  };
+  modal.appendChild(closeBtn);
+  
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      overlay.style.animation = 'fadeOut 0.2s';
+      setTimeout(() => overlay.remove(), 200);
+    }
+  };
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
 // Handle zone boss defeat and zone advancement
 function handleZoneBossDefeat(state) {
   const currentZone = state.zoneConfig.zones[state.zoneConfig.currentZone - 1];
@@ -12147,22 +12914,23 @@ function handleZoneBossDefeat(state) {
   state.zoneConfig.bossEntity = null;
   state.zoneConfig.zoneComplete = true;
   
-  // Big victory notification
-  state.ui.toast(`<b>🏆 ZONE COMPLETE! 🏆</b><br><b>${currentZone.name}</b> conquered!<br>Preparing next zone...`, 8000);
-  console.log(`%c[ZONE] ${currentZone.name} COMPLETE!`, 'color: #00ff00; font-weight: bold; font-size: 16px');
+  console.log(`%c[ZONE] ${currentZone.name} COMPLETE! Showing victory rewards...`, 'color: #00ff00; font-weight: bold; font-size: 16px');
   
   // Auto-level player to zone max if below
   if (state.progression.level < currentZone.maxLevel) {
     const levelsGained = currentZone.maxLevel - state.progression.level;
     state.progression.level = currentZone.maxLevel;
     state.progression.statPoints += levelsGained * 2;
-    state.ui.toast(`<b>Level boost!</b> Reached level ${currentZone.maxLevel} (+${levelsGained * 2} stat points)`, 6000);
+    console.log(`[LEVEL] Player auto-leveled to ${currentZone.maxLevel}`);
   }
   
-  // Advance to next zone after 5 seconds
-  setTimeout(() => {
-    advanceToNextZone(state);
-  }, 5000);
+  // Show victory reward UI immediately
+  showVictoryRewardUI(state, () => {
+    // After player accepts loot, advance to next zone after short delay
+    setTimeout(() => {
+      advanceToNextZone(state);
+    }, 1000);
+  });
 }
 
 // Advance to the next zone
@@ -12252,7 +13020,7 @@ function checkEmperorStatus(state){
   }
   
   // If emperor status changed to new team, handle transitions
-  if(newEmperorTeam && previousEmperor && previousEmperor !== newEmperorTeam){
+  if(newEmperorTeam && (!previousEmperor || previousEmperor !== newEmperorTeam)){
     // New emperor crowned
     console.log(`%c[EMPEROR] ${newEmperorTeam} CROWNED! Controls ${totalFlags}/${totalFlags} flags`, 'color: #ffd700; font-weight: bold; font-size: 14px');
     // logDebugEvent(state, `EMPEROR_CROWNED: ${newEmperorTeam} now controls ALL ${totalFlags} flags`);
@@ -12263,14 +13031,38 @@ function checkEmperorStatus(state){
       // logDebugEvent(state, `EMPEROR_BUFF_APPLIED: Player gains emperor power (+3x resources, +50% CDR)`);
       addEmperorEffect(state); // Add visible effect to player
       
+      // Show emperor notification on screen
+      try {
+        console.log('[EMPEROR NOTIFICATION] Attempting to show notification');
+        const notif = document.getElementById('emperorNotification');
+        const empText = document.getElementById('emperorText');
+        const empSubtext = document.getElementById('emperorSubtext');
+        console.log('[EMPEROR NOTIFICATION] Elements found:', { notif: !!notif, empText: !!empText, empSubtext: !!empSubtext });
+        if(notif && empText && empSubtext){
+          notif.style.display = 'block';
+          empText.style.opacity = '1';
+          empSubtext.style.opacity = '1';
+          console.log('[EMPEROR NOTIFICATION] Showing notification, will hide in 3s');
+          setTimeout(() => {
+            if(notif) notif.style.display = 'none';
+            if(empText) empText.style.opacity = '0';
+            if(empSubtext) empSubtext.style.opacity = '0';
+            console.log('[EMPEROR NOTIFICATION] Hidden after 3s');
+          }, 3000);
+        } else {
+          console.log('[EMPEROR NOTIFICATION] ❌ Missing HTML elements');
+        }
+      } catch(e) { console.error('Emperor notification error:', e); }
+      
       // Emperor Mode Phase 3: Unlock crowns for collection
       state.emperor.active = true;
+      console.log('[EMPEROR] Calling unlockCrowns() to spawn elite guards');
       unlockCrowns(state);
+      console.log('[EMPEROR] After unlockCrowns, guards in state.enemies:', state.enemies.filter(e => e.crownGuard).length);
       
-      // BOSS SPAWN: Spawn zone boss when player achieves Emperor status
-      if (!state.zoneConfig.bossActive && !state.zoneConfig.zoneComplete) {
-        spawnZoneBoss(state);
-      }
+      // NOTE: Boss will spawn only AFTER all enemy bases are destroyed
+      // This is checked in checkAllBasesDestroyed() function below
+      console.log('[EMPEROR] Boss spawn deferred until all bases destroyed');
     }
     state.emperorSince = state.campaign.time;
   }
@@ -12420,6 +13212,135 @@ function deactivateEmperorMode(state) {
   // - Reset base destruction states
   // - Despawn emperor boss
   // - Reset AI targeting modes
+}
+
+/**
+ * Check if all enemy bases have been destroyed
+ * If yes, spawn the emperor zone boss
+ * PHASE 2: Boss spawn trigger for emperor victory
+ * 
+ * PHASE 3: Base destruction now requires crown capture first
+ */
+/**
+ * Update emperor victory guide UI
+ * Shows on-screen steps to win for emperor mode
+ */
+function updateEmperorGuideUI(state) {
+  if (!isEmperorActive(state)) {
+    // Hide guide if not emperor
+    if (state.ui?.emperorGuidePanel) {
+      state.ui.emperorGuidePanel.style.display = 'none';
+    }
+    return;
+  }
+  
+  // Show guide panel
+  if (!state.ui?.emperorGuidePanel) return;
+  state.ui.emperorGuidePanel.style.display = 'block';
+  
+  // Check which steps are complete
+  const playerFlags = state.sites.filter(s => s.owner === 'player' && s.id.startsWith('site_')).length;
+  const totalFlags = state.sites.filter(s => s.id && s.id.startsWith('site_')).length;
+  const allFlagsOwned = playerFlags === totalFlags && totalFlags > 0;
+  
+  const carriedCrowns = state.emperor.carriedCrowns || [];
+  const allCrownsCollected = carriedCrowns.length === 3;
+  
+  const enemyBaseIds = ['team_a_base', 'team_b_base', 'team_c_base'];
+  const enemyBases = state.sites.filter(s => enemyBaseIds.includes(s.id));
+  const allBasesDestroyed = enemyBases.length > 0 && enemyBases.every(b => !b || b.hp <= 0);
+  
+  const bossActive = state.zoneConfig?.bossActive || false;
+  
+  // Step 1: Capture all flags (DONE = gold, not done = gray)
+  if (state.ui?.emperorStep1) {
+    if (allFlagsOwned) {
+      state.ui.emperorStep1.style.background = 'rgba(76, 175, 80, 0.2)';
+      state.ui.emperorStep1.style.borderLeft = '3px solid #4caf50';
+      state.ui.emperorStep1.querySelector('div:first-child').innerHTML = '✓ Step 1: Capture All Flags <span style="color:#4caf50;">(COMPLETE)</span>';
+    } else {
+      state.ui.emperorStep1.style.background = 'rgba(255,215,0,0.15)';
+      state.ui.emperorStep1.style.borderLeft = '3px solid #ffd700';
+      state.ui.emperorStep1.querySelector('div:first-child').innerHTML = `1. Capture All Flags (${playerFlags}/${totalFlags})`;
+    }
+    state.ui.emperorStep1.style.display = 'block';
+  }
+  
+  // Step 2: Capture crowns
+  if (state.ui?.emperorStep2) {
+    if (allCrownsCollected) {
+      state.ui.emperorStep2.style.background = 'rgba(76, 175, 80, 0.2)';
+      state.ui.emperorStep2.style.borderLeft = '3px solid #4caf50';
+      state.ui.emperorStep2.querySelector('div:first-child').innerHTML = '✓ Step 2: Capture Crowns <span style="color:#4caf50;">(COMPLETE)</span>';
+    } else {
+      state.ui.emperorStep2.style.background = 'rgba(255,215,0,0.15)';
+      state.ui.emperorStep2.style.borderLeft = '3px solid #ffd700';
+      state.ui.emperorStep2.querySelector('div:first-child').innerHTML = `2. Capture Crowns (${carriedCrowns.length}/3)`;
+    }
+    state.ui.emperorStep2.style.display = allFlagsOwned ? 'block' : 'none';
+  }
+  
+  // Step 3: Destroy bases
+  if (state.ui?.emperorStep3) {
+    if (allBasesDestroyed) {
+      state.ui.emperorStep3.style.background = 'rgba(76, 175, 80, 0.2)';
+      state.ui.emperorStep3.style.borderLeft = '3px solid #4caf50';
+      state.ui.emperorStep3.querySelector('div:first-child').innerHTML = '✓ Step 3: Destroy Bases <span style="color:#4caf50;">(COMPLETE)</span>';
+    } else {
+      state.ui.emperorStep3.style.background = 'rgba(255,215,0,0.15)';
+      state.ui.emperorStep3.style.borderLeft = '3px solid #ffd700';
+      const destroyedCount = enemyBases.filter(b => b && b.hp <= 0).length;
+      state.ui.emperorStep3.querySelector('div:first-child').innerHTML = `3. Destroy Bases (${destroyedCount}/${enemyBases.length})`;
+    }
+    state.ui.emperorStep3.style.display = allCrownsCollected ? 'block' : 'none';
+  }
+  
+  // Step 4: Defeat boss
+  if (state.ui?.emperorStep4) {
+    if (bossActive) {
+      state.ui.emperorStep4.style.background = 'rgba(255,215,0,0.15)';
+      state.ui.emperorStep4.style.borderLeft = '3px solid #ff6b6b';
+      state.ui.emperorStep4.querySelector('div:first-child').innerHTML = '⚠️ Step 4: Defeat Zone Boss <span style="color:#ff6b6b;">(BOSS ACTIVE!)</span>';
+    } else {
+      state.ui.emperorStep4.style.background = 'rgba(255,215,0,0.15)';
+      state.ui.emperorStep4.style.borderLeft = '3px solid #ffd700';
+      state.ui.emperorStep4.querySelector('div:first-child').innerHTML = '4. Defeat Zone Boss';
+    }
+    state.ui.emperorStep4.style.display = allBasesDestroyed ? 'block' : 'none';
+  }
+}
+
+function checkAllBasesDestroyed(state) {
+  if (!isEmperorActive(state)) return false;
+  
+  // First check: have we captured all crowns?
+  const carriedCrowns = state.emperor.carriedCrowns || [];
+  if (carriedCrowns.length < 3) {
+    // Haven't captured all crowns yet - bases cannot be destroyed
+    return false;
+  }
+  
+  console.log(`%c[EMPEROR] All crowns captured! Now checking if bases destroyed...`, 'color: #ffd700');
+  
+  // Find all home bases (correct IDs: team_a_base, team_b_base, team_c_base)
+  const enemyBaseIds = ['team_a_base', 'team_b_base', 'team_c_base'];
+  const enemyBases = state.sites.filter(s => enemyBaseIds.includes(s.id));
+  
+  if (enemyBases.length === 0) {
+    console.log('[EMPEROR] No enemy bases found in state.sites');
+    return false;
+  }
+  
+  // Check if all enemy bases are destroyed (hp <= 0 or removed)
+  const allDestroyed = enemyBases.every(base => !base || base.hp <= 0);
+  
+  if (allDestroyed && !state.zoneConfig.bossActive && !state.zoneConfig.zoneComplete) {
+    console.log(`%c[EMPEROR] ALL ENEMY BASES DESTROYED! Spawning zone boss...`, 'color: #ff6b6b; font-weight: bold');
+    spawnZoneBoss(state);
+    return true;
+  }
+  
+  return false;
 }
 
 // Add the Emperor effect to player's active effects
@@ -13296,7 +14217,7 @@ function ensureEmperorState(state) {
     state.emperor.basesDestroyed = { teamA: false, teamB: false, teamC: false };
   }
   if (!state.emperor.crownGuards) {
-    state.emperor.crownGuards = [];
+    state.emperor.crownGuards = { teamA: [], teamB: [], teamC: [] };
   }
 }
 
@@ -13326,25 +14247,21 @@ function findTeamBaseSite(state, team){
 /**
  * Get a crown creature by its _id
  */
-function getCrownCreature(state, crownId){
-  if(!crownId) return null;
-  return (state.creatures || []).find(c => c && c._id === crownId) || null;
-}
 
 /**
- * Spawn all three crowns at their team bases (locked)
+ * Spawn all three crowns as loot items at their team bases
  * Call once during initGame() after sites are created
+ * Crowns are protected by elite guards spawned during emperor activation
  */
 function spawnCrowns(state){
   ensureEmperorState(state);
-  if(!state.creatures) state.creatures = [];
+  if(!state.emperor.crowns) state.emperor.crowns = {};
 
   const teams = ['teamA','teamB','teamC'];
 
   for(const team of teams){
     // Prevent duplicates
-    const existing = getCrownCreature(state, state.emperor.crowns[team]);
-    if(existing) continue;
+    if(state.emperor.crowns[team]) continue;
 
     const base = findTeamBaseSite(state, team);
     if(!base){
@@ -13352,50 +14269,553 @@ function spawnCrowns(state){
       continue;
     }
 
+    // Crown is a LOOT ITEM, not a creature
     const crown = {
       type: 'crown',
-      aiTag: 'CROWN',
-
-      crownTeam: team,   // teamA/B/C
-      locked: true,
-      carriedBy: null,   // 'player' when carried
-      secured: false,
-
-      // Safety flags so it never becomes a combat target
-      nonCombat: true,
-      invulnerable: true,
-      isTargetable: false,
-
+      team: team,           // teamA/B/C
       x: base.x + 26,
       y: base.y,
       r: 18,
-      name: `Crown (${team})`
+      name: `Crown (${team})`,
+      secured: false,       // True when brought to player base
+      carriedBy: null,      // 'player' when carried
+      lastTouchedTime: 0,   // When last picked up or touched
+      resetTimeout: 6       // Seconds until guards reset protect mode if dropped
     };
 
     ensureEntityId(state, crown);
-    state.creatures.push(crown);
-    state.emperor.crowns[team] = crown._id;
-    console.log(`[CROWN] Spawned crown ${team} at base with _id: ${crown._id}`);
+    state.emperor.crowns[team] = crown;
+    console.log(`[CROWN] Spawned crown item at ${team} base`);
   }
 }
 
 /**
- * Unlock crowns when emperor mode is activated
- * Call during emperor activation in checkEmperorStatus()
+ * Spawn elite crown guards when emperor mode is activated
+ * 5 guards per enemy team base to protect their crown
+ * Guards have 5-second respawn timer
  */
 function unlockCrowns(state){
   ensureEmperorState(state);
-  for(const team of ['teamA','teamB','teamC']){
-    const c = getCrownCreature(state, state.emperor.crowns[team]);
-    if(!c) continue;
-    if(c.secured) continue;
-    c.locked = false;
+  
+  const teams = ['teamA','teamB','teamC'];
+  for(const team of teams){
+    const base = findTeamBaseSite(state, team);
+    if(!base) continue;
+    
+    // Spawn 5 elite guards at this base (crown guards)
+    spawnCrownGuards(state, base, team);
   }
-  console.log('[CROWN] Crowns unlocked - emperor mode activated!');
+  
+  console.log('[CROWN] Elite guards spawned at all bases - emperor mode activated!');
+}
+
+/**
+ * CROWN GUARD ELITE SYSTEM - 2 LOADOUT DESIGN
+ * Fully functional ball group: 3x DPS + 2x Healers
+ * Burst → Kite → Recharge cycle with coordinated rotations
+ */
+const CROWN_GUARD_LOADOUTS = {
+  // === DPS LOADOUT: Ember the Pyromancer ===
+  'dps': {
+    loadoutId: 'crown_guard_dps',
+    role: 'DPS',
+    class: 'mage',
+    name: 'Ember the Pyromancer',
+    legendary: true,
+    priority: 3,  // Attack priority - offensive role
+    // Abilities for rotation
+    burst: {
+      name: 'Fireball Volley',
+      manaRequired: 100,
+      castTime: 2.0,
+      hits: 3,
+      damagePerHit: 45,
+      cooldown: 10  // Burst available every 10s after recharge
+    },
+    sustained: {
+      name: 'Flame Strike',
+      manaRequired: 25,
+      castTime: 0.5,
+      damage: 30,
+      cooldown: 1.5
+    },
+    // Stats for elite guards
+    stats: { 
+      dmgMult: 1.4,        // High burst damage
+      spd: 1.1,            // Good mobility for positioning
+      manaMult: 1.3,       // Sufficient mana pool for bursts
+      hpMult: 0.95         // Lower survivability, needs healer support
+    },
+    // Behavior configuration
+    behavior: {
+      burstRange: 350,     // Move in to 350px to burst
+      kiRange: 300,        // Kite out to 300px after burst
+      burstCooldown: 10,   // Wait 10s to burst again (recharge)
+      formationDistance: 120,  // Distance from crown at rest
+      priorizeCrown: true  // Always focus on crown or carrier
+    }
+  },
+  
+  // === HEALER LOADOUT: Father Benedict ===
+  'healer': {
+    loadoutId: 'crown_guard_healer',
+    role: 'HEALER',
+    class: 'mage',
+    name: 'Father Benedict',
+    legendary: true,
+    priority: 2,  // Support priority - healing role
+    // Abilities for rotation
+    burst: {
+      name: 'Holy Light Cascade',
+      manaRequired: 90,
+      castTime: 1.5,
+      healsAllAllies: true,
+      healAmount: 60,
+      cooldown: 12  // Burst available every 12s after recharge
+    },
+    sustained: {
+      name: 'Heal',
+      manaRequired: 40,
+      castTime: 1.0,
+      healing: 35,
+      cooldown: 2.0,
+      targetType: 'singleTarget'
+    },
+    // Stats for elite guards
+    stats: {
+      dmgMult: 0.8,        // Lower damage, focuses on healing
+      spd: 1.0,            // Normal mobility
+      manaMult: 1.5,       // Large mana pool for frequent healing
+      hpMult: 1.1          // Moderate survivability
+    },
+    // Behavior configuration
+    behavior: {
+      healThreshold: 0.5,  // Burst heal when allies < 50% HP
+      kiRange: 250,        // Maintain 250px range for positioning
+      burstCooldown: 12,   // Wait 12s to burst again
+      formationDistance: 150,  // Distance from crown at rest
+      prioritizeHealing: true,  // Healing > DPS
+      assistDpsWhenFull: true   // Help DPS when all allies healthy
+    }
+  }
+};
+
+/**
+ * Spawn 5 elite guards to protect a crown at a base
+ * New Composition: 3x DPS (Ember the Pyromancer) + 2x Healer (Father Benedict)
+ * Full ball group with burst/kite mechanics and coordinated rotations
+ */
+function spawnCrownGuards(state, base, team){
+  console.log(`[CROWN GUARDS] Spawning 5 elite guards for ${team}: 3x DPS (Ember) + 2x Healer (Father Benedict)`);
+  
+  if(!state.emperor.crownGuards) state.emperor.crownGuards = {};
+  if(!state.emperor.crownGuards[team]) state.emperor.crownGuards[team] = [];
+  
+  // Clear old guards for this team
+  state.emperor.crownGuards[team] = state.emperor.crownGuards[team].filter(gid => {
+    const guard = state.enemies.find(e => e._id === gid);
+    return guard && guard.respawnT <= 0;
+  });
+  
+  const offset = base.r + 100;
+  // New composition: 3x DPS, 2x Healer
+  const guardComposition = [
+    { loadoutKey: 'dps', index: 0, imgPath: 'assets/fighter player cards/Ember the Pyromancer.png' },
+    { loadoutKey: 'dps', index: 1, imgPath: 'assets/fighter player cards/Ember the Pyromancer.png' },
+    { loadoutKey: 'dps', index: 2, imgPath: 'assets/fighter player cards/Ember the Pyromancer.png' },
+    { loadoutKey: 'healer', index: 3, imgPath: 'assets/fighter player cards/Father Benedict.png' },
+    { loadoutKey: 'healer', index: 4, imgPath: 'assets/fighter player cards/Father Benedict.png' }
+  ];
+  
+  for(let i = 0; i < 5; i++){
+    // Pentagon formation around crown
+    const angle = (i * 72 * Math.PI / 180) - (Math.PI / 2);
+    const x = base.x + Math.cos(angle) * offset;
+    const y = base.y + Math.sin(angle) * offset;
+    
+    const composition = guardComposition[i];
+    const loadoutKey = composition.loadoutKey;
+    const loadout = CROWN_GUARD_LOADOUTS[loadoutKey];
+    const crown = state.emperor.crowns?.[team];
+    
+    // Blue orb elite guard with correct fighter card images
+    const guard = {
+      x, y, 
+      r: 40,  // Boss size (2x normal creature)
+      maxHp: 220,   // Elite guards have significant HP
+      hp: 220,
+      speed: 3.2,
+      contactDmg: 28,
+      hitCd: 0,
+      xp: 75,
+      attacked: false,
+      guard: true,
+      crownGuard: true,  // Flag to identify crown guards
+      team: team,
+      variant: loadout.class,
+      guardRole: loadout.role,
+      guardName: loadout.name,
+      level: 8,  // Stronger than regular enemies
+      guardIndex: i,
+      respawnT: 0,
+      respawnTimer: 5,  // 5 second respawn timer
+      _spawnX: x,
+      _spawnY: y,
+      name: `${loadout.name} (Elite)`,
+      
+      // === BLUE ORB WITH BLACK BORDER (MUST RENDER) ===
+      color: '#3498db',        // Blue orb color
+      borderColor: '#000000',  // Black border
+      borderWidth: 3,          // Thick black border
+      
+      // === FIGHTER CARD LOADOUT SYSTEM ===
+      loadoutType: loadoutKey,           // 'dps' or 'healer'
+      loadoutId: loadout.loadoutId,      // Unique loadout ID
+      npcLoadoutId: loadout.loadoutId,   // For NPC ability system
+      npcLoadoutLocked: true,            // Can't change loadout
+      
+      // === LEGENDARY FIGHTER CARD IMAGES ===
+      img: loadout.name.replace(/\s+/g, '_'),
+      imgPath: composition.imgPath,  // Correct image for composition
+      scale: 1.3,  // Slightly larger rendering for legendary status
+      
+      // === ELITE ABILITY SYSTEM ===
+      mana: 100,                         // Current mana for burst abilities
+      maxMana: 150,                      // Max mana pool
+      manaRegenRate: 20,                 // Mana regeneration per second
+      lastBurstTime: 0,                  // When last ability was cast
+      burstCooldown: 0,                  // Current cooldown timer
+      abilityRotation: 'rest',           // State: 'burst', 'cast', 'kite', 'recharge'
+      burstStaggerIndex: composition.loadoutKey === 'dps' ? i % 3 : -1,  // Stagger: 0,1,2 for DPS
+      
+      // === CROWN PROTECTION AI & PRIORITIES ===
+      crownGuardLoadout: loadout,      // Full loadout data for abilities/stats
+      crownTeam: team,                 // Which team's crown to protect
+      crownId: crown?._id,             // The crown entity ID (will be assigned)
+      crownSiteId: base.id,            // The base site where crown spawns
+      guardPriority: loadout.priority, // 2=healer, 3=dps
+      guardMode: 'protect',            // Modes: 'protect', 'chase', 'burst', 'kite', 'recharge'
+      lastCrownX: crown?.x || base.x + 26, // Last seen crown position
+      lastCrownY: crown?.y || base.y,
+      crownChaseRange: 500,            // Chase crown if beyond this distance
+      crownFollowRange: loadout.behavior.formationDistance,  // Stay within formation
+      crownFormationIndex: i,          // Position in pentagon around crown
+      
+      // === DO NOT SET (CRITICAL) ===
+      spawnTargetSiteId: null,         // Don't target any outposts
+      homeSiteId: null                 // Not defending a base!
+    };
+    
+    ensureEntityId(state, guard);
+    
+    // Apply stats based on class AND loadout multipliers
+    if(state._npcUtils?.applyClassToUnit) {
+      state._npcUtils.applyClassToUnit(guard, loadout.class);
+    }
+    // Apply loadout-specific stat multipliers
+    if(loadout.stats) {
+      if(loadout.stats.hpMult) guard.maxHp *= loadout.stats.hpMult;
+      if(loadout.stats.dmgMult) guard.contactDmg *= loadout.stats.dmgMult;
+      if(loadout.stats.defMult) guard.def = (guard.def || 2) * loadout.stats.defMult;
+      if(loadout.stats.spd) guard.speed *= loadout.stats.spd;
+    }
+    guard.hp = guard.maxHp;
+    
+    // Initialize abilities from loadout
+    if(state._npcUtils?.npcInitAbilities) {
+      state._npcUtils.npcInitAbilities(guard, { state, source: 'spawnCrownGuards' });
+    }
+    
+    state.enemies.push(guard);
+    state.emperor.crownGuards[team].push(guard._id);
+    console.log(`[CROWN GUARDS] Spawned ${loadout.name} (Elite) for ${team} - Loadout: ${loadoutKey}, Priority: ${loadout.priority}, GuardMode: protect, CrownSite: ${base.id}`);
+  }
+}
+
+/**
+ * UPDATE CROWN GUARD AI - Elite Group with Burst/Kite Mechanics
+ * 3x DPS + 2x Healer composition
+ * Behavior: Protect crown → Chase player → Burst → Kite → Recharge cycle
+ * Called every update tick when emperor is active
+ */
+function updateCrownGuardAI(state, dt) {
+  if (!isEmperorActive(state)) return;
+  if (!state.emperor.crownGuards) return;
+  
+  const teams = ['teamA', 'teamB', 'teamC'];
+  
+  for (const team of teams) {
+    const crown = state.emperor.crowns?.[team];
+    const guardIds = state.emperor.crownGuards[team] || [];
+    const allTeamGuards = guardIds.map(gid => state.enemies.find(e => e._id === gid)).filter(g => g && g.hp > 0);
+    
+    if (!crown || allTeamGuards.length === 0) continue;
+    
+    // Crown position (static or carried by player)
+    let crownX = crown.x;
+    let crownY = crown.y;
+    const crownCarried = crown.carriedBy === 'player';
+    
+    // Update each guard
+    for (const guard of allTeamGuards) {
+      if (guard.hp <= 0) continue;
+      
+      // DEBUG: Quick log when chasing crown (max once per second per guard)
+      if (guard._forcedCombatTarget && ((state.gameTime||0) % 1 < 0.016)) {
+        console.log('[CROWN AI]', guard._id, 
+          'loadout', guard.loadoutType,
+          'mode', guard.guardMode,
+          'forced', !!guard._forcedCombatTarget,
+          'distToPlayer', Math.hypot(guard.x-state.player.x, guard.y-state.player.y)|0);
+      }
+      
+      // Get loadout for this guard
+      const loadout = CROWN_GUARD_LOADOUTS[guard.loadoutType];
+      if (!loadout) continue;
+      
+      // PERFORMANCE FIX: Use squared distance to avoid Math.sqrt
+      const distToCrownSq = (guard.x - crownX) ** 2 + (guard.y - crownY) ** 2;
+      const distToCrown = Math.sqrt(distToCrownSq); // Only when needed for range checks
+      const priority = guard.guardPriority; // 2=healer, 3=dps
+      
+      // ====== CROWN RESET CHECK ======
+      // If crown dropped for 6+ seconds, guards return to protect mode
+      if (!crownCarried && crown.carriedBy === null) {
+        const timeSinceDrop = (state.gameTime || 0) - (crown.lastTouchedTime || 0);
+        if (timeSinceDrop > crown.resetTimeout) {
+          guard.guardMode = 'protect';
+          guard.abilityRotation = 'rest';
+          guard.burstCooldown = 0;
+          guard.mana = guard.maxMana; // Reset mana too
+        }
+      }
+      
+      // ====== STATE 1: PROTECT CROWN (default) ======
+      if (!crownCarried) {
+        guard.guardMode = 'protect';
+        
+        if (priority === 2) {
+          // HEALER: Protect formation and keep CRITICAL guards alive (< 25% HP)
+          guard.crownFollowRange = loadout.behavior.formationDistance;
+          guard.targetX = crownX;
+          guard.targetY = crownY;
+          
+          // BALANCE FIX: Only heal critical allies, not just hurt ones
+          const criticalGuards = allTeamGuards.filter(g => g.hp < g.maxHp * 0.25 && g._id !== guard._id);
+          if (criticalGuards.length > 0) {
+            const toHeal = criticalGuards[0];
+            guard.targetX = toHeal.x + 50; // Get close to heal
+            guard.targetY = toHeal.y + 50;
+          }
+        } else {
+          // DPS: Aggressive protection
+          guard.crownFollowRange = loadout.behavior.formationDistance;
+          guard.targetX = crownX;
+          guard.targetY = crownY;
+          
+          // PERFORMANCE FIX: Use squared distance to avoid sqrt calls
+          const nearbyEnemies = state.enemies.filter(e => {
+            if (e._id === guard._id || e.team === team || e.hp <= 0) return false;
+            const distSq = (e.x - crownX) ** 2 + (e.y - crownY) ** 2;
+            return distSq < 250 * 250;  // 250px threat range
+          });
+          
+          if (nearbyEnemies.length > 0) {
+            // Attack nearest threat
+            const threat = nearbyEnemies[0];
+            guard.targetX = threat.x;
+            guard.targetY = threat.y;
+            guard.guardMode = 'attack';
+          }
+        }
+      }
+      
+      // ====== STATE 2: CHASE CROWN WHEN CARRIED ======
+      else if (crownCarried) {
+        guard.guardMode = 'chase';
+        guard.crownFollowRange = 500; // Chase from far away
+        guard.targetX = crownX;
+        guard.targetY = crownY;
+        // IMPORTANT: Force DPS guards to focus player when chasing crown
+        // Healers maintain their own target (allies to protect)
+        if (guard.guardRole === 'DPS' || guard.loadoutType === 'dps') {
+          guard._forcedCombatTarget = state.player;
+        } else {
+          guard._forcedCombatTarget = null; // Clear healer forced target, they pick own
+        }
+        
+        // Update mana and burst cooldown
+        if (guard.mana < guard.maxMana) {
+          guard.mana = Math.min(guard.maxMana, guard.mana + loadout.behavior.burstCooldown / (loadout.behavior.burstCooldown * dt));
+        }
+        
+        if (guard.burstCooldown > 0) {
+          guard.burstCooldown -= dt;
+        }
+        
+        // Only activate burst/kite when in combat range
+        // PERFORMANCE FIX: Use squared distance
+        const playerDistSq = (guard.x - state.player.x) ** 2 + (guard.y - state.player.y) ** 2;
+        const playerDist = Math.sqrt(playerDistSq);
+        
+        if (priority === 2) {
+          // HEALER: Heal rotation when carrying crown
+          if (playerDistSq < 400 * 400) {  // 400px combat range
+            // In combat range - check if burst heal needed
+            // BALANCE FIX: Only heal critical guards (< 25%), and apply range penalty
+            const criticalGuards = allTeamGuards.filter(g => {
+              const gHealDistSq = (g.x - guard.x) ** 2 + (g.y - guard.y) ** 2;
+              return g.hp < g.maxHp * 0.25 && gHealDistSq < 300 * 300;
+            });
+            
+            if (criticalGuards.length > 0 && guard.mana >= loadout.burst.manaRequired && guard.burstCooldown <= 0) {
+              // BURST HEAL (staggered by burstStaggerIndex)
+              if (guard.burstStaggerIndex >= 0) {
+                // Check stagger timing: burst at 0s, 0.6s, 1.2s offsets
+                const cycleTime = (state.gameTime || 0) % loadout.burst.cooldown;
+                const staggerOffset = guard.burstStaggerIndex * 0.6;
+                if (cycleTime >= staggerOffset && cycleTime < staggerOffset + 0.2) {
+                  guard.abilityRotation = 'burst';
+                  guard.mana -= loadout.burst.manaRequired;
+                  guard.burstCooldown = loadout.burst.cooldown;
+                }
+              }
+            } else if (guard.abilityRotation !== 'recharge') {
+              // Sustained healing or movement
+              guard.abilityRotation = 'cast';
+              // Move to kite range
+              guard.targetX = crownX + Math.cos(Math.random() * Math.PI * 2) * loadout.behavior.kiRange;
+              guard.targetY = crownY + Math.sin(Math.random() * Math.PI * 2) * loadout.behavior.kiRange;
+            }
+          }
+        } else {
+          // DPS: Burst rotation when chasing (STAGGERED to avoid simultaneous spike)
+          if (playerDistSq < loadout.behavior.burstRange ** 2 && guard.mana >= loadout.burst.manaRequired && guard.burstCooldown <= 0) {
+            // BURST PHASE: Staggered burst timing (0s, 0.6s, 1.2s)
+            // This spreads 405 damage over 1.2 seconds instead of spike
+            if (guard.burstStaggerIndex >= 0) {
+              const cycleTime = (state.gameTime || 0) % loadout.burst.cooldown;
+              const staggerOffset = guard.burstStaggerIndex * 0.6;
+              if (cycleTime >= staggerOffset && cycleTime < staggerOffset + 0.2) {
+                guard.abilityRotation = 'burst';
+                guard.mana -= loadout.burst.manaRequired;
+                guard.burstCooldown = loadout.burst.cooldown; // 10 second rotation
+                guard.targetX = state.player.x;
+                guard.targetY = state.player.y;
+              }
+            }
+            
+          } else if (playerDistSq > loadout.behavior.kiRange ** 2 && guard.abilityRotation !== 'burst') {
+            // KITE PHASE: Move to 300px range and cast sustained damage
+            guard.abilityRotation = 'kite';
+            const angle = Math.atan2(state.player.y - guard.y, state.player.x - guard.x);
+            guard.targetX = state.player.x + Math.cos(angle) * -loadout.behavior.kiRange;
+            guard.targetY = state.player.y + Math.sin(angle) * -loadout.behavior.kiRange;
+            
+          } else if (guard.mana < loadout.burst.manaRequired) {
+            // RECHARGE PHASE: Mana too low, fall back and regen
+            guard.abilityRotation = 'recharge';
+            const angle = Math.atan2(state.player.y - guard.y, state.player.x - guard.x);
+            guard.targetX = state.player.x + Math.cos(angle) * -(loadout.behavior.kiRange + 100);
+            guard.targetY = state.player.y + Math.sin(angle) * -(loadout.behavior.kiRange + 100);
+          }
+        }
+      }
+      
+      // ====== MOVEMENT ENFORCEMENT (NO SITE LEASHING WHEN CHASING) ======
+      // When chasing crown, ignore site boundaries completely
+      if (guard.guardMode === 'chase') {
+        guard.spawnTargetSiteId = null;
+        guard.homeSiteId = null;
+      }
+      
+      // Update crown references
+      guard.lastCrownX = crownX;
+      guard.lastCrownY = crownY;
+      guard.crownId = crown._id;
+    }
+    
+    // ====== GUARD CROWN PICKUP & RECOVERY ======
+    // When crown is dropped (not carried by player), priority-2 guards recover it
+    if(!crownCarried && crown.carriedBy === null && !crown.secured){
+      // Find nearest priority-2 (healer) guard
+      const healerGuards = allTeamGuards.filter(g => g.guardPriority === 2);
+      if(healerGuards.length > 0){
+        let nearestHealer = null;
+        let nearestDist = Infinity;
+        
+        for(const healer of healerGuards){
+          const dist = Math.hypot(healer.x - crown.x, healer.y - crown.y);
+          if(dist < nearestDist){
+            nearestDist = dist;
+            nearestHealer = healer;
+          }
+        }
+        
+        // If nearest healer is close, pick up crown
+        if(nearestHealer && nearestDist <= 60){
+          // Guard picks up crown
+          crown.carriedBy = nearestHealer._id;
+          nearestHealer.carryingCrown = true;
+          nearestHealer.guardMode = 'return';
+          
+          // Set target to home base
+          const baseForTeam = findTeamBaseSite(state, team);
+          if(baseForTeam){
+            nearestHealer.targetX = baseForTeam.x + 26;
+            nearestHealer.targetY = baseForTeam.y;
+          }
+          
+          console.log(`[CROWN] Guard ${nearestHealer.name} picked up Crown ${team} - returning to base`);
+        }
+        // If crown is on ground and nearest healer is far, target it
+        else if(nearestHealer && nearestDist > 60 && nearestDist <= 500){
+          nearestHealer.guardMode = 'retrieve';
+          nearestHealer.targetX = crown.x;
+          nearestHealer.targetY = crown.y;
+        }
+      }
+    }
+    
+    // ====== GUARD CROWN RETURN ======
+    // Guards carrying crown (after pickup) return it to base
+    for(const guard of allTeamGuards){
+      if(guard.carryingCrown && crown.carriedBy === guard._id){
+        // Guard is carrying crown - target base
+        const baseForTeam = findTeamBaseSite(state, team);
+        if(baseForTeam){
+          const distToBase = Math.hypot(guard.x - baseForTeam.x, guard.y - baseForTeam.y);
+          
+          // If reached base, secure crown
+          if(distToBase <= 60){
+            crown.carriedBy = null;
+            crown.secured = true;
+            guard.carryingCrown = false;
+            guard.guardMode = 'protect';
+            
+            // Reset crown position to base
+            crown.x = baseForTeam.x + 26;
+            crown.y = baseForTeam.y;
+            
+            console.log(`[CROWN] Crown ${team} returned home and secured!`);
+            if(state.ui?.toast){
+              const colorClass = team === 'teamA' ? 'warn' : team === 'teamB' ? 'info' : 'pos';
+              state.ui.toast(`<span class="${colorClass}"><b>Crown ${team} secured!</b></span>`);
+            }
+          } else {
+            // Still returning - maintain movement
+            guard.targetX = baseForTeam.x + 26;
+            guard.targetY = baseForTeam.y;
+          }
+        }
+      }
+    }
+  }
 }
 
 /**
  * Try to pick up crowns when player is nearby
+ * Crowns are loot items that can be carried
  * Call every update tick when emperor is active
  */
 function tryPickupCrowns(state){
@@ -13403,17 +14823,31 @@ function tryPickupCrowns(state){
   const p = state.player;
   if(!p) return;
 
-  for(const team of ['teamA','teamB','teamC']){
-    const crown = getCrownCreature(state, state.emperor.crowns[team]);
-    if(!crown) continue;
-    if(crown.locked || crown.secured || crown.carriedBy) continue;
+  const teams = ['teamA','teamB','teamC'];
+  for(const team of teams){
+    const crown = state.emperor.crowns?.[team];
+    if(!crown) {
+      console.log(`[CROWN] No crown for ${team}`);
+      continue;
+    }
+    if(crown.secured || crown.carriedBy) {
+      console.log(`[CROWN] Crown ${team} is secured=${crown.secured}, carriedBy=${crown.carriedBy}`);
+      continue;
+    }
 
     const dist = Math.hypot(p.x - crown.x, p.y - crown.y);
-    if(dist <= (p.r || 18) + crown.r + 10){
+    console.log(`[CROWN] Distance to ${team}: ${dist.toFixed(1)}px (player at ${p.x.toFixed(0)},${p.y.toFixed(0)}, crown at ${crown.x.toFixed(0)},${crown.y.toFixed(0)})`);
+    
+    // Auto-pickup when within generous range (150 pixels)
+    if(dist <= 150){
       crown.carriedBy = 'player';
+      if(!state.emperor.carriedCrowns) state.emperor.carriedCrowns = [];
+      if(!state.emperor.carriedCrowns.includes(team)) {
+        state.emperor.carriedCrowns.push(team);
+      }
       try { state.ui?.toast?.(`👑 Crown claimed (${team})`); } catch(e) {}
       try { state.gameLog?.push?.(`[CROWN] picked up ${team}`); } catch(e) {}
-      console.log(`[CROWN] Player picked up crown: ${team}`);
+      console.log(`[CROWN] ✅ Player picked up crown: ${team}`);
     }
   }
 }
@@ -13428,8 +14862,9 @@ function updateCarriedCrowns(state){
   if(!p) return;
 
   let i = 0;
-  for(const team of ['teamA','teamB','teamC']){
-    const crown = getCrownCreature(state, state.emperor.crowns[team]);
+  const teams = ['teamA','teamB','teamC'];
+  for(const team of teams){
+    const crown = state.emperor.crowns?.[team];
     if(!crown || crown.carriedBy !== 'player') continue;
 
     crown.x = p.x + 26 + (i * 22);
@@ -13443,8 +14878,9 @@ function updateCarriedCrowns(state){
  */
 function countSecuredCrowns(state){
   let n = 0;
-  for(const team of ['teamA','teamB','teamC']){
-    const c = getCrownCreature(state, state.emperor.crowns[team]);
+  const teams = ['teamA','teamB','teamC'];
+  for(const team of teams){
+    const c = state.emperor.crowns?.[team];
     if(c?.secured) n++;
   }
   return n;
@@ -13462,8 +14898,9 @@ function trySecureCrowns(state){
 
   const secureR = (base.r || 92) + 50;
 
-  for(const team of ['teamA','teamB','teamC']){
-    const crown = getCrownCreature(state, state.emperor.crowns[team]);
+  const teams = ['teamA','teamB','teamC'];
+  for(const team of teams){
+    const crown = state.emperor.crowns?.[team];
     if(!crown) continue;
     if(crown.secured) continue;
     if(crown.carriedBy !== 'player') continue;
@@ -13472,7 +14909,6 @@ function trySecureCrowns(state){
     if(dist <= secureR){
       crown.carriedBy = null;
       crown.secured = true;
-      crown.locked = true;
 
       const securedCount = countSecuredCrowns(state);
       crown.x = base.x - 34 - (securedCount * 22);
@@ -13487,31 +14923,382 @@ function trySecureCrowns(state){
 
 /**
  * Drop carried crowns on player death or dethrone
- * keepUnlockedIfStillEmperor: if true, crowns stay unlocked (player still emperor but died)
- *                             if false, lock them again (player lost emperor status)
+ * Reset to enemy bases when no longer carried
  */
 function dropCarriedCrowns(state, keepUnlockedIfStillEmperor){
   ensureEmperorState(state);
 
-  for(const team of ['teamA','teamB','teamC']){
-    const crown = getCrownCreature(state, state.emperor.crowns[team]);
+  // Normalize player ID - handle all possible player identifier shapes
+  const playerKey = state.player?.id || state.player?._id || 'player';
+  
+  const teams = ['teamA','teamB','teamC'];
+  for(const team of teams){
+    const crown = state.emperor.crowns?.[team];
     if(!crown) continue;
 
-    if(crown.carriedBy === 'player' && !crown.secured){
+    // Check if player is carrying (handle both 'player' literal and player.id forms)
+    const isPlayerCarrying = crown.carriedBy === 'player' || crown.carriedBy === playerKey;
+    
+    if(isPlayerCarrying && !crown.secured){
       crown.carriedBy = null;
-
-      // If still emperor after dying, keep crowns pickable
-      crown.locked = keepUnlockedIfStillEmperor ? false : true;
-
-      const base = findTeamBaseSite(state, team);
-      if(base){
-        crown.x = base.x + 26;
-        crown.y = base.y;
-      }
-      console.log(`[CROWN] Crown dropped: ${team}`);
+      crown.secured = false; // Force secured off on death (defensive)
+      
+      // DROP AT PLAYER DEATH LOCATION, not at base
+      // This gives guards time to recover it
+      crown.x = state.player.x;
+      crown.y = state.player.y;
+      crown.lastTouchedTime = state.gameTime || 0;
+      
+      console.log(`[CROWN] Crown dropped at player death location (${crown.x|0},${crown.y|0}): ${team}`);
     }
   }
 }
+
+/**
+ * Update crown guard respawn timers
+ * When guards die, they respawn after 5 seconds
+ * Call every update tick when emperor is active
+ */
+function updateCrownGuardRespawns(state, dt){
+  if(!state.emperor?.crownGuards) return;
+  
+  const teams = ['teamA','teamB','teamC'];
+  for(const team of teams){
+    const guardIds = state.emperor.crownGuards[team] || [];
+    
+    // Count living guards
+    const livingGuards = guardIds.filter(gid => {
+      const guard = state.enemies.find(e => e._id === gid);
+      return guard && guard.hp > 0;
+    }).length;
+    
+    // If all guards are dead, respawn them
+    if(livingGuards === 0){
+      const base = findTeamBaseSite(state, team);
+      if(base){
+        spawnCrownGuards(state, base, team);
+      }
+    }
+  }
+}
+
 console.log('⚔️ Combat logging available. Use window.downloadCombatLog() to download combat event log.');
 console.log('🔧 Debug logging available. Use window.downloadDebugLog() to download diagnostic log.');
 console.log('🤖 AI behavior tracking enabled. Use window.downloadAIBehaviorLog() to download AI behavior analysis.');
+
+// =====================================================
+// CROWN GUARD SYSTEM - DEBUG & INFO FUNCTIONS
+// =====================================================
+
+/**
+ * Get crown guard status for all teams
+ * Returns info on each guard's priority, position, and status
+ */
+window.getCrownGuardStatus = function() {
+  const state = window.state;
+  if (!state?.emperor?.crownGuards) {
+    console.log('❌ Crown guards not initialized');
+    return;
+  }
+  
+  const teams = ['teamA', 'teamB', 'teamC'];
+  console.log('═══════════════════════════════════════');
+  console.log('👑 CROWN GUARD STATUS');
+  console.log('═══════════════════════════════════════');
+  
+  for (const team of teams) {
+    const guardIds = state.emperor.crownGuards[team] || [];
+    const crown = state.emperor.crowns?.[team];
+    
+    console.log(`\n🛡️ ${team.toUpperCase()} Team Guards:`);
+    if (!crown) {
+      console.log('  ❌ Crown not found');
+      continue;
+    }
+    
+    console.log(`  👑 Crown: (${crown.x.toFixed(0)}, ${crown.y.toFixed(0)})`);
+    console.log(`  Guards: ${guardIds.length}/5`);
+    
+    for (const guardId of guardIds) {
+      const guard = state.enemies.find(e => e._id === guardId);
+      if (!guard) {
+        console.log(`  ❌ Guard ${guardId.substring(0, 8)}... MISSING`);
+        continue;
+      }
+      
+      const dist = Math.hypot(guard.x - crown.x, guard.y - crown.y);
+      const loadout = guard.crownGuardLoadout;
+      const priorityName = {1: 'TANK', 2: 'HEALER', 3: 'DPS'}[guard.guardPriority] || 'DPS';
+      const hp = `${guard.hp.toFixed(0)}/${guard.maxHp.toFixed(0)}`;
+      
+      console.log(
+        `  ✓ [${priorityName}] ${loadout?.name || guard.name} | HP: ${hp} | ` +
+        `Pos: (${guard.x.toFixed(0)}, ${guard.y.toFixed(0)}) | ` +
+        `Dist to Crown: ${dist.toFixed(0)} | Mode: ${guard.guardMode}`
+      );
+    }
+  }
+  
+  console.log('═══════════════════════════════════════');
+};
+
+/**
+ * Get crown guard loadout information
+ * Shows all available crown guard loadout types and their properties
+ */
+window.getCrownGuardLoadouts = function() {
+  console.log('═══════════════════════════════════════');
+  console.log('📋 CROWN GUARD LOADOUT TYPES');
+  console.log('═══════════════════════════════════════');
+  
+  const loadouts = CROWN_GUARD_LOADOUTS;
+  for (const [key, loadout] of Object.entries(loadouts)) {
+    const priorityName = {1: 'TANK', 2: 'HEALER', 3: 'DPS'}[loadout.priority];
+    console.log(`\n[${priorityName}] ${loadout.name}`);
+    console.log(`  ID: ${loadout.loadoutId}`);
+    console.log(`  Class: ${loadout.class} | Role: ${loadout.role}`);
+    console.log(`  Priority: ${loadout.priority}`);
+    if (loadout.stats) {
+      console.log(`  Stat Multipliers:`, loadout.stats);
+    }
+  }
+  
+  console.log('\n═══════════════════════════════════════');
+};
+
+/**
+ * Visualize crown guard formation
+ * Shows pentagon formation positions for all guards around their crown
+ */
+window.visualizeCrownGuardFormation = function() {
+  const state = window.state;
+  if (!state?.emperor?.crownGuards) {
+    console.log('❌ Crown guards not initialized');
+    return;
+  }
+  
+  const teams = ['teamA', 'teamB', 'teamC'];
+  console.log('═══════════════════════════════════════');
+  console.log('🔷 CROWN GUARD FORMATION VISUALIZATION');
+  console.log('═══════════════════════════════════════');
+  
+  for (const team of teams) {
+    const guardIds = state.emperor.crownGuards[team] || [];
+    const crown = state.emperor.crowns?.[team];
+    
+    if (!crown) continue;
+    
+    console.log(`\n${team.toUpperCase()} Formation (Crown at ${crown.x.toFixed(0)}, ${crown.y.toFixed(0)}):`);
+    
+    // Sort by formation index
+    const guardsByIndex = guardIds
+      .map(gid => state.enemies.find(e => e._id === gid))
+      .filter(g => g)
+      .sort((a, b) => (a.crownFormationIndex || 0) - (b.crownFormationIndex || 0));
+    
+    for (const guard of guardsByIndex) {
+      const idx = guard.crownFormationIndex;
+      const angle = (idx * 72 * Math.PI / 180) - (Math.PI / 2);
+      const formDist = 90;
+      const expectedX = crown.x + Math.cos(angle) * formDist;
+      const expectedY = crown.y + Math.sin(angle) * formDist;
+      const actualDist = Math.hypot(guard.x - expectedX, guard.y - expectedY);
+      
+      const priorityName = {1: 'TANK', 2: 'HEALER', 3: 'DPS'}[guard.guardPriority];
+      const status = actualDist < 50 ? '✓ ALIGNED' : `⚠ OFFSET ${actualDist.toFixed(0)}px`;
+      
+      console.log(
+        `  Position ${idx + 1}: [${priorityName}] ${guard.crownGuardLoadout?.name} - ${status}`
+      );
+    }
+  }
+  
+  console.log('\n═══════════════════════════════════════');
+};
+
+/**
+ * Test crown guard AI by simulating crown movement
+ * Moves crown to player position and watches guards chase it
+ */
+window.testCrownGuardChase = function() {
+  const state = window.state;
+  if (!state?.emperor?.crowns || !state.player) {
+    console.log('❌ Crown system not initialized or player not found');
+    return;
+  }
+  
+  const crown = state.emperor.crowns.teamA;
+  if (crown) {
+    const oldX = crown.x;
+    const oldY = crown.y;
+    crown.x = state.player.x;
+    crown.y = state.player.y;
+    console.log(`🎯 CROWN TEST: Moved teamA crown from (${oldX.toFixed(0)}, ${oldY.toFixed(0)}) to player at (${crown.x.toFixed(0)}, ${crown.y.toFixed(0)})`);
+    console.log('   Guards should chase crown. Use getCrownGuardStatus() to monitor.');
+  }
+};
+
+console.log('✨ Crown Guard System Ready!');
+console.log('  Available commands:');
+console.log('  • getCrownGuardStatus() - Show all guards and their status');
+console.log('  • getCrownGuardLoadouts() - Show loadout types and properties');
+console.log('  • visualizeCrownGuardFormation() - Show formation alignment');
+console.log('  • testCrownGuardChase() - Move crown to player for testing');
+console.log('  • activateEmperorTest() - Activate Emperor Mode and spawn crown guards');
+
+/**
+ * Quick test function to activate Emperor Mode and spawn crown guards
+ * Use this to test the crown guard system
+ */
+window.activateEmperorTest = function() {
+  const state = window.state;
+  if (!state) {
+    console.log('❌ Game state not initialized');
+    return;
+  }
+  
+  console.log('🎯 Activating Emperor Mode...');
+  
+  // Initialize emperor state
+  if (!state.emperor) {
+    state.emperor = {
+      active: false,
+      crowns: {},
+      crownGuards: {},
+      carriedCrowns: []
+    };
+  }
+  
+  // Set emperor active
+  state.emperor.active = true;
+  console.log('✅ Emperor mode activated');
+  
+  // Spawn crowns if not already spawned
+  if (!Object.keys(state.emperor.crowns).length) {
+    console.log('👑 Spawning crowns...');
+    spawnCrowns(state);
+  }
+  
+  // Unlock crowns (spawns guards)
+  console.log('🛡️ Unlocking crowns and spawning elite guards...');
+  unlockCrowns(state);
+  
+  console.log('✅ Emperor Mode TEST COMPLETE!');
+  console.log('   Guards spawned. Use getCrownGuardStatus() to monitor.');
+};
+
+/**
+ * CROWN GUARD ELITE SYSTEM - Comprehensive Debug Command
+ * Shows detailed status of all guards with ability rotation, mana, burst state
+ */
+window.getCrownGuardEliteStatus = function() {
+  const state = window.state;
+  if (!state?.emperor?.crownGuards || !state?.emperor?.crowns) {
+    console.log('❌ Crown guard system not initialized');
+    return;
+  }
+  
+  const teams = ['teamA', 'teamB', 'teamC'];
+  console.log('\n' + '═'.repeat(80));
+  console.log('👑 CROWN GUARD ELITE SYSTEM STATUS - 3x DPS + 2x Healer');
+  console.log('═'.repeat(80));
+  
+  for (const team of teams) {
+    const crown = state.emperor.crowns[team];
+    const guardIds = state.emperor.crownGuards[team] || [];
+    
+    console.log(`\n🔷 TEAM: ${team.toUpperCase()}`);
+    console.log(`   Crown State: Pos(${crown?.x?.toFixed(0)},${crown?.y?.toFixed(0)}) | Carried: ${crown?.carriedBy || 'false'}`);
+    
+    for (const guardId of guardIds) {
+      const guard = state.enemies.find(e => e._id === guardId);
+      if (!guard) continue;
+      
+      const distToCrown = Math.hypot(guard.x - crown.x, guard.y - crown.y);
+      const loadout = CROWN_GUARD_LOADOUTS[guard.loadoutType];
+      
+      console.log(`   ├─ ${guard.guardName}`);
+      console.log(`   │  HP: ${guard.hp}/${guard.maxHp} | Mana: ${guard.mana?.toFixed(0)}/${guard.maxMana?.toFixed(0)}`);
+      console.log(`   │  Mode: ${guard.guardMode} | Rotation: ${guard.abilityRotation}`);
+      console.log(`   │  BurstCD: ${(guard.burstCooldown || 0).toFixed(1)}s | DistToCrown: ${distToCrown.toFixed(0)}px`);
+      console.log(`   │  Target: (${guard.targetX?.toFixed(0)},${guard.targetY?.toFixed(0)}) | Pos: (${guard.x.toFixed(0)},${guard.y.toFixed(0)})`);
+    }
+  }
+  console.log('\n' + '═'.repeat(80));
+};
+
+/**
+ * CROWN STATE - Full crown status including carrier information
+ * Shows which crown is where, who's carrying it, is it secured
+ */
+window.getCrownState = function() {
+  const state = window.state;
+  if (!state?.emperor?.crowns) {
+    console.log('❌ Crown system not initialized');
+    return;
+  }
+  
+  const teams = ['teamA', 'teamB', 'teamC'];
+  console.log('\n' + '═'.repeat(60));
+  console.log('🔱 CROWN STATE REPORT');
+  console.log('═'.repeat(60));
+  
+  for (const team of teams) {
+    const crown = state.emperor.crowns[team];
+    if (!crown) continue;
+    
+    console.log(`\n${team.toUpperCase()} Crown:`);
+    console.log(`  Position: (${crown.x.toFixed(0)}, ${crown.y.toFixed(0)})`);
+    console.log(`  Status: ${crown.secured ? '🔒 SECURED at player base' : '📍 Free'}`);
+    console.log(`  Carrier: ${crown.carriedBy ? (crown.carriedBy === 'player' ? '👤 PLAYER' : '🛡️ Guard') : 'None (on ground)'}`);
+    console.log(`  ID: ${crown._id}`);
+  }
+  console.log('\n' + '═'.repeat(60));
+};
+
+/**
+ * TEST BURST ABILITY - Trigger burst phase for all DPS guards
+ * Watch them rotate: Burst → Kite → Recharge
+ */
+window.testCrownGuardBurst = function() {
+  const state = window.state;
+  if (!state?.emperor?.crownGuards) {
+    console.log('❌ Crown guards not initialized. Run activateEmperorTest() first');
+    return;
+  }
+  
+  const teams = ['teamA', 'teamB', 'teamC'];
+  let burstCount = 0;
+  
+  console.log('\n🔥 TRIGGERING BURST PHASE FOR ALL DPS GUARDS...\n');
+  
+  for (const team of teams) {
+    const guardIds = state.emperor.crownGuards[team] || [];
+    
+    for (const guardId of guardIds) {
+      const guard = state.enemies.find(e => e._id === guardId);
+      if (!guard) continue;
+      
+      const loadout = CROWN_GUARD_LOADOUTS[guard.loadoutType];
+      if (guard.loadoutType === 'dps') {
+        // Set up for burst
+        guard.mana = loadout.burst.manaRequired; // Ensure mana available
+        guard.burstCooldown = 0; // Ready to burst
+        guard.abilityRotation = 'burst';
+        
+        console.log(`  🔥 ${guard.guardName} is BURSTING`);
+        console.log(`     Fireball Volley: 3 hits × 45 dmg = 135 total damage`);
+        console.log(`     Will kite to ${loadout.behavior.kiRange}px range after burst`);
+        burstCount++;
+      }
+    }
+  }
+  
+  console.log(`\n✅ ${burstCount} DPS guards set to BURST state`);
+  console.log('   Watch them: Cast burst → Move to 300px → Recharge mana → Repeat');
+};
+
+console.log('  • activateEmperorTest() - TEST: Activate Emperor Mode and spawn guards');
+console.log('  • getCrownGuardEliteStatus() - Show all guards: HP, mana, rotation, burst CD');
+console.log('  • getCrownState() - Show crown positions and carriers');
+console.log('  • testCrownGuardBurst() - Trigger burst phase for testing');

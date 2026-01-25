@@ -355,6 +355,7 @@ function startGameLoop(){
       try{ ui.renderCooldowns(); }catch(e){ console.error('renderCooldowns',e); }
       try{ ui.updateUnitInspection(); }catch(e){ console.error('updateUnitInspection',e); }
       try{ ui.updateBuffIconsHUD(); }catch(e){ console.error('updateBuffIconsHUD', e); }
+      try{ ui.updateCrownIconsHUD(); }catch(e){ console.error('updateCrownIconsHUD', e); }
       try{ ui.updateAiFeed && ui.updateAiFeed(); }catch(e){ console.error('updateAiFeed', e); }
       try{ ui.renderGroupPanel(); }catch(e){ console.error('renderGroupPanel', e); }
     }

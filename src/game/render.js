@@ -736,6 +736,37 @@ export function render(state){
     ctx.globalAlpha=1;
   }
 
+  // Render crowns (emperor mode items)
+  if(state.emperor?.crowns){
+    const crownTeams = ['teamA', 'teamB', 'teamC'];
+    for(const team of crownTeams){
+      const crown = state.emperor.crowns[team];
+      if(!crown || !inView(crown.x, crown.y, crown.r + 20)) continue;
+      
+      // Draw crown as golden orb
+      ctx.globalAlpha = crown.secured ? 0.6 : 0.9;
+      ctx.fillStyle = '#ffd700'; // Gold
+      ctx.beginPath();
+      ctx.arc(crown.x, crown.y, crown.r + 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Border for emphasis
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(crown.x, crown.y, crown.r + 2, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      
+      // Crown emoji indicator
+      ctx.font = 'bold 16px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('👑', crown.x, crown.y);
+    }
+  }
+
   // enemies
   for(const e of state.enemies){
     if(activeDungeon && e.dungeonId !== activeDungeon) continue;
@@ -743,9 +774,12 @@ export function render(state){
     const orbRadius = e.boss ? ((e.r||18) * 2) : (e.r||18);
     const orbPadding = e.boss ? 4 : 2;
     
-    // draw orb (team-colored or orange for bosses)
+    // draw orb (custom color for crown guards, team-colored, or orange for bosses)
     let ec = null;
-    if(e.boss) {
+    if(e.crownGuard) {
+      // Crown guards are BLUE regardless of team
+      ec = e.color || '#3498db';
+    } else if(e.boss) {
       ec = '#ff8c00'; // Orange for bosses
     } else if(e.team) {
       ec = teamColor(e.team);
@@ -757,15 +791,29 @@ export function render(state){
     ctx.beginPath(); ctx.arc(e.x, e.y, orbRadius + orbPadding, 0, Math.PI*2); ctx.fill();
     ctx.globalAlpha = 1;
     
-    // Thick black border for boss orbs
-    if(e.boss){
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 6;
+    // Border color (black for crown guards, black for bosses)
+    if(e.crownGuard || e.boss){
+      ctx.strokeStyle = e.borderColor || '#000000';
+      ctx.lineWidth = e.borderWidth || (e.boss ? 6 : 3);
       ctx.beginPath(); ctx.arc(e.x, e.y, orbRadius + orbPadding, 0, Math.PI*2); ctx.stroke();
     }
     
-    // For bosses with boss icons, draw icon overlay instead of variant sprite
-    if(e.boss && bossIcons.loaded && e.bossIcon){
+    // For crown guards with fighter card images, draw image overlay
+    if(e.crownGuard && e.imgPath){
+      const img = loadCachedImage(state, e.imgPath);
+      if(img){
+        // Fit fighter card image inside the orb
+        const iconSize = orbRadius * 1.8;
+        ctx.save();
+        ctx.globalAlpha = 1;
+        // Draw circular clipping mask for image
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, orbRadius - 2, 0, Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(img, e.x - iconSize/2, e.y - iconSize/2, iconSize, iconSize);
+        ctx.restore();
+      }
+    } else if(e.boss && bossIcons.loaded && e.bossIcon){
       const bossImg = bossIcons[e.bossIcon];
       if(bossImg){
         // Fit boss icon inside the orb
@@ -803,6 +851,15 @@ export function render(state){
       ctx.fillStyle = 'rgba(255,215,0,0.95)';
       ctx.textAlign = 'center';
       const nameY = e.y - orbRadius - (e.boss ? 26 : 18);
+      ctx.fillText(e.name, e.x, nameY);
+    }
+    
+    // Crown guard name label
+    if(e.crownGuard && e.name){
+      ctx.font = 'bold 11px system-ui';
+      ctx.fillStyle = 'rgba(52,152,219,0.95)';
+      ctx.textAlign = 'center';
+      const nameY = e.y - orbRadius - 16;
       ctx.fillText(e.name, e.x, nameY);
     }
     
@@ -1445,6 +1502,67 @@ function drawMiniMap(ctx, canvas, state){
       ctx.fillRect(dx - labelWidth/2, dy + 7, labelWidth, 10);
       ctx.fillStyle = d.cleared ? '#A0A0A0' : '#FFD700';
       ctx.fillText(label, dx, dy + 12);
+    }
+  }
+  
+  // Crown markers (Emperor Mode)
+  if(state.emperor && state.emperor.crowns){
+    const crowns = state.emperor.crowns;
+    const teams = Object.keys(crowns);
+    
+    for(const team of teams){
+      const crown = crowns[team];
+      if(!crown) continue;
+      
+      // Determine color by team
+      let crownColor = '#FFA500';  // Default orange
+      if(team === 'teamA') crownColor = '#FF4444';  // Red
+      else if(team === 'teamB') crownColor = '#4488FF'; // Blue
+      else if(team === 'teamC') crownColor = '#44FF44'; // Green
+      
+      const cx = x + (crown.x/mapW)*mw;
+      const cy = y + (crown.y/mapH)*mh;
+      
+      // Crown background circle
+      ctx.fillStyle = crownColor;
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      
+      // Crown outline
+      ctx.strokeStyle = crownColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI*2);
+      ctx.stroke();
+      
+      // Crown icon
+      ctx.font = '10px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText('👑', cx, cy);
+      
+      // Crown status label
+      ctx.font = '7px system-ui';
+      let status = 'DROPPED';
+      if(crown.carriedBy === 'player') status = 'CARRIED';
+      else if(crown.carriedBy && crown.carriedBy !== null) status = 'RETURNING';
+      else if(crown.secured) status = 'SECURED';
+      
+      const statusWidth = ctx.measureText(status).width + 4;
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(cx - statusWidth/2, cy - 12, statusWidth, 9);
+      
+      // Status color
+      if(status === 'CARRIED') ctx.fillStyle = '#FF4444';  // Red = player has it
+      else if(status === 'RETURNING') ctx.fillStyle = '#FFFF00';  // Yellow = guards returning
+      else if(status === 'SECURED') ctx.fillStyle = '#44FF44';  // Green = safe
+      else ctx.fillStyle = '#FFA500';  // Orange = dropped
+      
+      ctx.fillText(status, cx, cy - 7);
     }
   }
 }

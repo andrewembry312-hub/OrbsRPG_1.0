@@ -131,6 +131,9 @@ export function buildUI(state){
     <!-- Active Buff/Debuff Icons HUD -->
     <div id="buffIconsHud" class="buffIconsHud"></div>
 
+    <!-- Crown Icons HUD (Emperor Mode) - Left of emperor guide, right of minimap -->
+    <div id="crownIconsHud" class="crownIconsHud" style="position:fixed; top:10px; right:450px; display:flex; gap:8px; z-index:190; flex-wrap:wrap; justify-content:flex-end; max-width:200px; background:rgba(0,0,0,0.6); border:2px solid rgba(212,175,55,0.5); border-radius:8px; padding:8px;"></div>
+
     <!-- Player Stats UI (Top-Left Corner) -->
     <div id="statsContainer" style="position:fixed; top:10px; left:10px; z-index:200; display:flex; gap:8px; align-items:stretch; background:rgba(0,0,0,0.75); border:2px solid rgba(212,175,55,0.5); border-radius:8px; padding:8px; box-shadow:0 4px 12px rgba(0,0,0,0.6);">
       <!-- Hero Portrait Circle with Level Badge Overlay -->
@@ -207,8 +210,8 @@ export function buildUI(state){
 
     <!-- Emperor Notification -->
     <div id="emperorNotification" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:5000; display:none; text-align:center; pointer-events:none;">
-      <div id="emperorText" style="font-size:120px; font-weight:900; color:#ffd700; text-shadow:0 0 50px rgba(255,215,0,1); opacity:0; font-style:italic;">EMPEROR!</div>
-      <div id="emperorSubtext" style="font-size:64px; font-weight:bold; color:#b8941f; text-shadow:0 0 30px rgba(184,148,31,0.8); margin-top:-20px; opacity:0;">🔱</div>
+      <div id="emperorText" style="font-size:120px; font-weight:900; color:#ffd700; text-shadow:0 0 50px rgba(255,215,0,1); opacity:0; font-style:italic; transition:opacity 0.3s ease;">EMPEROR!</div>
+      <div id="emperorSubtext" style="font-size:64px; font-weight:bold; color:#b8941f; text-shadow:0 0 30px rgba(184,148,31,0.8); margin-top:-20px; opacity:0; transition:opacity 0.3s ease;">🔱</div>
     </div>
 
     <!-- Fighter Card Reveal Overlay -->
@@ -1722,6 +1725,27 @@ export function buildUI(state){
       </div>
     </div>
 
+    <!-- Emperor Victory Guide Panel (between crown icons and minimap, aligned top) -->
+    <div id="emperorGuidePanel" style="position:fixed; right:220px; top:10px; background:rgba(30,20,40,0.95); border:2px solid #ffd700; border-radius:8px; padding:12px; z-index:150; display:none; pointer-events:auto; min-width:220px; max-width:220px; font-size:12px; color:#ffd700;">
+      <div style="font-weight:bold; text-align:center; margin-bottom:10px; font-size:13px;">🔱 Emperor Victory Steps 🔱</div>
+      <div id="emperorStep1" style="margin-bottom:8px; padding:6px; background:rgba(255,215,0,0.15); border-left:3px solid #ffd700; display:none;">
+        <div style="color:#ffff00; font-weight:bold;">✓ Step 1: Capture All Flags</div>
+        <div style="color:#aaa; font-size:11px; margin-top:2px;">Control all 3 capture flags</div>
+      </div>
+      <div id="emperorStep2" style="margin-bottom:8px; padding:6px; background:rgba(255,215,0,0.15); border-left:3px solid #ffd700; display:none;">
+        <div style="color:#ffff00; font-weight:bold;">2. Capture Crowns</div>
+        <div style="color:#aaa; font-size:11px; margin-top:2px;">Collect all 3 crowns from enemy bases</div>
+      </div>
+      <div id="emperorStep3" style="margin-bottom:8px; padding:6px; background:rgba(255,215,0,0.15); border-left:3px solid #ffd700; display:none;">
+        <div style="color:#ffff00; font-weight:bold;">3. Destroy Bases</div>
+        <div style="color:#aaa; font-size:11px; margin-top:2px;">Defeat crown guards & destroy all 3 bases</div>
+      </div>
+      <div id="emperorStep4" style="padding:6px; background:rgba(255,215,0,0.15); border-left:3px solid #ffd700; display:none;">
+        <div style="color:#ffff00; font-weight:bold;">4. Defeat Zone Boss</div>
+        <div style="color:#aaa; font-size:11px; margin-top:2px;">Destroy the final boss to win</div>
+      </div>
+    </div>
+
     <!-- Group Display Panel (top-right under minimap, shows group member health) -->
     <div id="groupPanel" style="position:fixed; right:10px; top:140px; background:rgba(20,20,20,0.8); border:1px solid rgba(122,162,255,0.3); border-radius:4px; padding:8px; z-index:150; display:none; pointer-events:auto; min-width:200px; max-width:220px;">
       <div class="small" style="font-weight:bold; color:rgba(255,255,255,0.8); margin-bottom:6px;">Group (<span id="groupPanelCount">0</span>)</div>
@@ -1782,9 +1806,12 @@ function bindUI(state){
     bombNotification:$('bombNotification'), bombText:$('bombText'), bombNumber:$('bombNumber'),
     killCounterValue:$('killCounterValue'), biggestBombValue:$('biggestBombValue'),
     emperorNotification:$('emperorNotification'), emperorText:$('emperorText'), emperorSubtext:$('emperorSubtext'),
+    emperorGuidePanel:$('emperorGuidePanel'), emperorStep1:$('emperorStep1'), emperorStep2:$('emperorStep2'),
+    emperorStep3:$('emperorStep3'), emperorStep4:$('emperorStep4'),
     toastEl:$('toast'),
     abilBar:$('abilBar'),
     buffIconsHud:$('buffIconsHud'),
+    crownIconsHud:$('crownIconsHud'),
     invOverlay:$('invOverlay'),
     invGrid:$('invGrid'),
     invClose:$('invClose'),
@@ -3170,6 +3197,15 @@ function bindUI(state){
       emperorStatsLines.push('<div style="margin-left:12px; color:#ffeb3b;">• Enemies only attack YOUR TEAM and your flags</div>');
       emperorStatsLines.push('<div style="margin-left:12px; color:#ffeb3b;">• Emperor status lost if you lose ALL flags</div>');
       emperorStatsLines.push('<div style="margin-top:8px;"><b style="color:#ffd700;">🎖️ Victory:</b> Defend your throne!</div>');
+      
+      // Show crown collection status
+      const securedCrowns = (state.emperor?.crowns?.teamA?.secured ? 1 : 0) + (state.emperor?.crowns?.teamB?.secured ? 1 : 0) + (state.emperor?.crowns?.teamC?.secured ? 1 : 0);
+      emperorStatsLines.push(`<div style="margin-top:8px; padding:8px; background:rgba(255,215,0,0.1); border-radius:4px;"><b style="color:#ffd700;">👑 Crowns Secured:</b> <span style="color:#ffeb3b; font-weight:bold;">${securedCrowns}/3</span>`);
+      if(securedCrowns === 3){
+        emperorStatsLines.push(`<div style="margin-top:4px; color:#6f6; font-weight:bold;">✅ ALL CROWNS SECURED - VICTORY!</div>`);
+      }
+      emperorStatsLines.push('</div>');
+      
       emperorStatsLines.push('</div></div>');
       if(teamsEl){
         teamsEl.innerHTML += emperorStatsLines.join('');
@@ -5011,6 +5047,47 @@ function bindUI(state){
     ui.buffIconsHud.style.display = icons.length ? 'flex' : 'none';
     // Reposition to sit directly above bottomStats
     ui._positionBuffIconsHUD();
+  };
+
+  // HUD updater for crown icons (Emperor mode)
+  ui.updateCrownIconsHUD = ()=>{
+    if(!ui.crownIconsHud) return;
+    if(!state.emperor?.active) {
+      ui.crownIconsHud.style.display = 'none';
+      return;
+    }
+    
+    // Build crown display
+    const carriedCrowns = state.emperor.carriedCrowns || [];
+    const securedCrowns = Object.keys(state.emperor.crowns || {}).filter(team => state.emperor.crowns[team]?.secured).length;
+    
+    let html = '';
+    
+    // Show carried crowns
+    if(carriedCrowns.length > 0) {
+      const teamColors = { teamA: '#e74c3c', teamB: '#3498db', teamC: '#2ecc71' };
+      for(const team of carriedCrowns) {
+        const color = teamColors[team] || '#ffd700';
+        html += `<div style="display:flex; align-items:center; gap:4px; background:rgba(212,175,55,0.3); border:2px solid ${color}; border-radius:6px; padding:4px 8px; min-width:40px;">
+          <span style="font-size:16px;">👑</span>
+          <span style="color:#ffd700; font-size:11px; font-weight:bold;">${team === 'teamA' ? 'A' : team === 'teamB' ? 'B' : 'C'}</span>
+        </div>`;
+      }
+    }
+    
+    // Show crown summary
+    const totalCrowns = 3;
+    const secured = securedCrowns;
+    const carrying = carriedCrowns.length;
+    const remaining = totalCrowns - secured - carrying;
+    
+    html += `<div style="display:flex; align-items:center; gap:4px; background:rgba(212,175,55,0.2); border:2px solid #ffd700; border-radius:6px; padding:4px 8px;">
+      <span style="font-size:14px;">👑</span>
+      <span style="color:#ffd700; font-size:11px; font-weight:bold;">${carrying}/${totalCrowns}</span>
+    </div>`;
+    
+    ui.crownIconsHud.innerHTML = html;
+    ui.crownIconsHud.style.display = 'flex';
   };
 
   // AI behavior feed (uses state.debugAiBehavior from AI logic)
