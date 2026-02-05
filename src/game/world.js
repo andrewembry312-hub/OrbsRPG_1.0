@@ -35,6 +35,13 @@ export function initSites(state){
   const offsetY = state.playableBounds.minY;
   const playWidth = state.playableBounds.maxX - state.playableBounds.minX;
   const playHeight = state.playableBounds.maxY - state.playableBounds.minY;
+  
+  // BASE LOCATIONS - Used for:
+  // 1. Home base for guards (spawnGuardsForSite)
+  // 2. Crown spawn location (spawnCrowns)
+  // 3. Crown guard pentagon formation spawn
+  // 4. Crown pickup zone center
+  // CRITICAL: All these must use the SAME coordinates
   state.sites.push({ id:'player_base', name:'Player Base', x:offsetX+pad, y:offsetY+playHeight-pad, r:92, owner:'player', prog:1 });
   state.sites.push({ id:'team_a_base', name:'Red Base', x:offsetX+pad, y:offsetY+pad, r:92, owner:'teamA', prog:1 });
   state.sites.push({ id:'team_b_base', name:'Yellow Base', x:offsetX+playWidth-pad, y:offsetY+pad, r:92, owner:'teamB', prog:1 });
@@ -70,6 +77,19 @@ export function initSites(state){
       s._underAttackNotified = false;
     }
   }
+  
+  // CRITICAL FIX: Remove duplicate sites (can accumulate if initSites called multiple times)
+  // Keep the first occurrence of each ID, which should be the correctly positioned one
+  const seenIds = new Set();
+  state.sites = state.sites.filter(site => {
+    if (seenIds.has(site.id)) {
+      console.warn(`[DUPLICATE SITE REMOVED] ${site.name} (id=${site.id}) at (${site.x}, ${site.y})`);
+      return false; // Remove duplicate
+    }
+    seenIds.add(site.id);
+    return true; // Keep first occurrence
+  });
+  
   // generate simple terrain features: trees and mountains
   state.trees = [];
   state.mountains = [];
@@ -1213,6 +1233,18 @@ export function loadMapFromImage(state, imageUrl){
         s._justCaptured = false; 
         s._prevOwner = s.owner;
       }
+      
+      // CRITICAL FIX: Remove duplicate sites (can accumulate if initSites called multiple times)
+      // Keep the first occurrence of each ID, which should be the correctly positioned one
+      const seenIds = new Set();
+      state.sites = state.sites.filter(site => {
+        if (seenIds.has(site.id)) {
+          console.warn(`[DUPLICATE SITE REMOVED] ${site.name} (id=${site.id}) at (${site.x}, ${site.y})`);
+          return false;
+        }
+        seenIds.add(site.id);
+        return true;
+      });
 
       resolve(state);
       } catch(err) {

@@ -1,5 +1,28 @@
 # Sneaky Bugs & Root Causes - Final Analysis
 
+**Purpose:** Root cause analysis + implementation status of 6 crown system bugs  
+**Scope:** Emperor Mode crown carrying, guard behavior, data synchronization  
+**Status:** ✅ 6 Fixes IMPLEMENTED | ⚠️ 1 Critical Architectural Issue DISCOVERED but NOT FIXED  
+**Date:** Last updated January 18, 2026  
+**Location:** `src/game/game.js` (lines 2130, 6957, 7586, 10814, 11318, 14844)  
+**Use When:** Debugging guard movement, crown pickup/drop, or emperor mode failures  
+
+---
+
+## Summary Table
+
+| Bug | Status | Location | Impact |
+|-----|--------|----------|--------|
+| _isChasingCrown flag never clears | ✅ FIXED | 6957-6978 | Guards permanently unleashed |
+| Crown sync lookup has ID type mismatch | ✅ FIXED | 11318-11350 | Crown doesn't follow guard |
+| Defensive carriedBy trap | ✅ FIXED | 11345-11348 | Data shape corruption |
+| Player ID normalization | ✅ FIXED | 14844-14850 | Death drop fails silently |
+| Player pickup doesn't clear secured | ✅ FIXED | 10814-10818 | Crown can't be re-picked up |
+| No death logging verification | ✅ FIXED | 7586-7606 | Silent failure, no visibility |
+| **Guard movement uses wrong variables** | ⚠️ NOT FIXED | 6957 + 7150-7200 | **Guards sit idle, never move** |
+
+---
+
 ## Fixed This Session ✅
 
 ### 1. _isChasingCrown Flag Never Clears

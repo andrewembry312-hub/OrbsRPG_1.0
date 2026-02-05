@@ -3,6 +3,7 @@ import { storageGet, storageSet, STORAGE_KEYS, exportSavesAsFile, importSavesFro
 import { DEFAULT_BINDS, ACTION_LABELS, INV_SIZE, ARMOR_SLOTS, SLOT_LABEL } from "./constants.js";
 import { rarityClass } from "./rarity.js";
 import { currentStats, exportSave, importSave, applyClassToUnit, downloadErrorLog, downloadCombatLog, downloadPlayerLog, downloadDebugLog, downloadAIBehaviorLog, initConsoleErrorLogger } from "./game.js";
+import { exportCrownDebugLog, enableCrownDebug } from "./crown-debug.js";
 import { LEVEL_CONFIG, getItemLevelColor } from "./leveling.js";
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, BUFF_REGISTRY, DOT_REGISTRY, defaultAbilitySlots, saveLoadout, loadLoadout } from "./skills.js";
@@ -1529,6 +1530,12 @@ export function buildUI(state){
                   <span class="small" style="color:#9cf;">Guard Ball Logging</span>
                 </label>
                 <div class="small" style="margin-left:22px; margin-bottom:12px; color:#888; font-size:10px;">⚠️ <b>Performance Impact</b>: Calculates guard focus targeting coordination. <b>Disable to improve FPS</b> in large guard battles. Enable for performance debugging.</div>
+                
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px; cursor:pointer;">
+                  <input type="checkbox" id="enableCrownDebugLog" checked style="cursor:pointer;">
+                  <span class="small" style="color:#fd9;">Crown System Debug Log</span>
+                </label>
+                <div class="small" style="margin-left:22px; margin-bottom:8px; color:#888; font-size:10px;">⚠️ <b>Performance Impact</b>: Logs all crown pickups, drops, guard chases, and ability targeting. <b>Disable to improve FPS</b>. Enable to see crown system events.</div>
               </div>
               
               <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.2);">
@@ -1856,6 +1863,7 @@ function bindUI(state){
     enableAIBehaviorLog:$('enableAIBehaviorLog'),
     enableConsoleLog:$('enableConsoleLog'),
     enableGuardBallLogging:$('enableGuardBallLogging'),
+    enableCrownDebugLog:$('enableCrownDebugLog'),
     btnDownloadAllLogs:$('btnDownloadAllLogs'),
     optShowAim:$('optShowAim'),
     optShowDebugAI:$('optShowDebugAI'),
@@ -7374,6 +7382,12 @@ function bindUI(state){
         count++;
       }
       
+      if(ui.enableCrownDebugLog.checked){
+        exportCrownDebugLog(state);
+        logs.push('Crown Debug');
+        count++;
+      }
+      
       if(count === 0){
         ui.toast('No logs enabled - check at least one log type');
       } else {
@@ -8050,13 +8064,12 @@ function bindUI(state){
     for (const loadoutId of loadoutIdsToRemove) {
       const alliesFromLoadout = state.friendlies.filter(f => f.cardLoadoutId === loadoutId && f.fighterCard);
       for (const ally of alliesFromLoadout) {
-        // Remove from group if present
+        // DON'T DESTROY if ally is in a group - they're independent now
         if (state.group?.members?.includes(ally.id)) {
-          state.group.members = state.group.members.filter(id => id !== ally.id);
-          delete state.group.settings[ally.id];
-          console.log(`[ClearSlots] Removed ${ally.name} from group`);
+          console.log(`[ClearSlots] Keeping ${ally.name} (in group) - not destroying despite slot clear`);
+          continue;  // Skip destruction
         }
-        // Kill the unit (remove from friendlies array)
+        // Kill the unit (remove from friendlies array) only if NOT in group
         const idx = state.friendlies.indexOf(ally);
         if (idx >= 0) {
           state.friendlies.splice(idx, 1);
@@ -8346,13 +8359,12 @@ function bindUI(state){
       // Find all friendlies that were spawned from this slot's loadout
       const alliesFromSlot = state.friendlies.filter(f => f.cardLoadoutId === oldLoadoutId && f.fighterCard);
       for (const ally of alliesFromSlot) {
-        // Remove from group if present
+        // DON'T DESTROY if ally is in a group - they're independent now
         if (state.group?.members?.includes(ally.id)) {
-          state.group.members = state.group.members.filter(id => id !== ally.id);
-          delete state.group.settings[ally.id];
-          console.log(`[CLEAR SLOT] Removed ${ally.name} from group`);
+          console.log(`[CLEAR SLOT] Keeping ${ally.name} (in group) - not destroying despite slot change`);
+          continue;  // Skip destruction
         }
-        // Kill the unit (remove from friendlies array)
+        // Kill the unit (remove from friendlies array) only if NOT in group
         const idx = state.friendlies.indexOf(ally);
         if (idx >= 0) {
           state.friendlies.splice(idx, 1);

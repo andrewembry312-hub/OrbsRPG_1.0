@@ -1,25 +1,129 @@
 # Critical Fixes Applied - Session 4
 
-## TLDR: Three Minimal Patches
+## Helper: Consistent PlayerKey Retrieval
 
-**Total changes**: 3 locations, ~10 lines total
+Use this everywhere to avoid drift in ID normalization:
 
-### Patch 1: Fix npcUpdateAbilities field name (line ~3359)
 ```javascript
-// CHANGE THIS:
-if (u._forcedCombatTarget && u.guardRole === 'DPS') {
-  const forced = u._forcedCombatTarget;
-
-// TO THIS:
-if (u._crownForcedTarget && u.guardRole === 'DPS') {
-  const forced = u._crownForcedTarget;
+const getPlayerKey = (state) => state.player?.id || state.player?._id || 'player';
 ```
 
-### Patch 2: Fix updateEnemies (lines ~6982-7006)
-Replace lines 6982-7006 with the corrected minimal block shown in "The Corrected Block" section below.
+This replaces the repeated line:
+```javascript
+const playerKey = state.player?.id || state.player?._id || 'player';
+```
+
+By using the helper, you guarantee the fallback is the same everywhere.
+
+---
+
+## TLDR: Three Minimal Patches
+
+**Total changes**: 3 locations, ~15 lines total
+
+### Patch 1: Fix npcUpdateAbilities (lines ~3357-3377, REORDER & FIX)
+**⚠️ CRITICAL: The override block is currently AFTER `if(!target) return;`, which means it NEVER RUNS. You MUST move it BEFORE the early return.**
+
+```javascript
+// OLD CODE (WRONG):
+if(!target) return;  // ❌ Returns before override can run
+if (u._forcedCombatTarget && u.guardRole === 'DPS') { ... }
+
+// NEW CODE (CORRECT):
+// Move forced override BEFORE early return
+const isDps = (u.guardRole === 'DPS') || (u.loadoutType === 'dps');
+if (isDps && u._crownForcedTarget) {
+  const forced = u._crownForcedTarget;
+  const forcedAlive = forced && forced.dead !== true && (forced.hp == null || forced.hp > 0);
+  if (forcedAlive) {
+    target = forced;
+    bestD = Math.hypot((forced.x||0)-u.x, (forced.y||0)-u.y);
+    const forcedId = forced.id || forced._id;
+    u._lockId = forcedId || u._lockId;  // Don't use 'player' fake lock—keep existing if no real id
+    u._lockUntil = now + 0.35;  // Smooth tracking lock
+  } else {
+    u._crownForcedTarget = null;
+  }
+}
+
+// NOW early return (AFTER override block)
+if(!target) return;
+```
+
+**Also guard the shared target relock** (around line 3506):
+```javascript
+// Add condition to prevent overwriting forced target
+if(guardSite && guardSite._sharedTargetUntil > now && guardSite._sharedTargetId && !u._crownForcedTarget){
+  const shared = candidates.find(c => (c.id||c._id) === guardSite._sharedTargetId);
+  if(shared){
+    target = shared;
+    bestD = Math.hypot((target.x||0)-u.x,(target.y||0)-u.y);
+  }
+}
+```
+
+### Patch 2: Fix updateEnemies (Structure: Flag Reset → Chase Detection → Clear at Loop End)
+
+**Don't anchor to line numbers.** Instead, find these three locations and apply this structure:
+
+1. **At the START of the per-enemy loop** (first lines of processing each enemy `e`):
+```javascript
+e._isChasingCrown = false;  // Default: not chasing
+```
+
+2. **Wherever crown chase detection runs** (usually near priorityTarget assignment):
+```javascript
+if (!priorityTarget && e.crownTeam) {
+  const crown = state.emperor?.crowns?.[e.crownTeam];
+  const playerKey = getPlayerKey(state);
+  const crownCarriedByPlayer = crown && (crown.carriedBy === 'player' || crown.carriedBy === playerKey);
+  
+  if (crownCarriedByPlayer) {
+    e._isChasingCrown = true;
+    const isDps = (e.guardRole === 'DPS') || (e.loadoutType === 'dps');
+    e._crownForcedTarget = isDps ? state.player : null;
+    // ... rest of chase setup (priorityTarget, targetDist, etc) ...
+  }
+}
+```
+
+3. **At the LITERAL END of the per-enemy loop** (right before loop continues to next enemy, after ALL chase/target logic):
+```javascript
+if (!e._isChasingCrown) {
+  e._crownForcedTarget = null;
+}
+```
+
+**Why this matters**: If the clear runs mid-loop, later logic can set `_isChasingCrown = true` but you've already cleared `_crownForcedTarget` earlier. Then either there's no re-assignment later, or another clear nukes it again. Placing the clear at the literal loop end guarantees the final chase decision controls the forced target state.
 
 ### Patch 3: Normalize carriedBy in dropCarriedCrowns (lines ~14928)
-Add defensive normalization shown in Section 3 below.
+Add defensive normalization before checking carriedBy:
+```javascript
+// Defensive: Normalize carriedBy if it's an object, non-string, or empty
+if (crown.carriedBy === '') crown.carriedBy = null;  // Empty string is a ghost state
+
+if (crown.carriedBy != null && typeof crown.carriedBy === 'object') {
+  console.warn('[CROWN ERROR] carriedBy was object reference, normalizing to null', {
+    team: team,
+    carriedBy: crown.carriedBy,
+    type: typeof crown.carriedBy
+  });
+  crown.carriedBy = null;
+}
+
+if (crown.carriedBy != null && typeof crown.carriedBy !== 'string') {
+  console.warn('[CROWN ERROR] carriedBy wrong type, nulling', {
+    team: team,
+    carriedBy: crown.carriedBy,
+    type: typeof crown.carriedBy
+  });
+  crown.carriedBy = null;  // Safe: null not stringify—no phantom "0" or "false"
+}
+
+// NOW do the normal check with both ID forms
+const playerKey = getPlayerKey(state);
+const isPlayerCarrying = crown.carriedBy === 'player' || crown.carriedBy === playerKey;
+```
 
 ---
 
@@ -53,8 +157,9 @@ if(carrying){
 **Fix**:
 ```javascript
 // AFTER - CORRECT:
+const playerKey = getPlayerKey(state);
 const carrying = Object.entries(state.emperor.crowns)
-  .find(([t,c]) => c.carriedBy === 'player');
+  .find(([t,c]) => c.carriedBy === 'player' || c.carriedBy === playerKey);
 const carryingTeam = carrying?.[0] || '?';
 state.ui?.toast?.(`<span class="warn">You already carry Crown ${carryingTeam}</span>`);
 ```
@@ -81,7 +186,7 @@ If ANY code ever sets `crown.carriedBy = playerKey` (player.id form), this check
 **Fix**:
 ```javascript
 // BULLETPROOF:
-const playerKey = state.player?.id || state.player?._id || 'player';
+const playerKey = getPlayerKey(state);
 const playerAlreadyCarrying = Object.values(state.emperor.crowns)
   .some(c => c.carriedBy === 'player' || c.carriedBy === playerKey);
 ```
@@ -117,14 +222,18 @@ Location in npcUpdateAbilities:
 const isDps = (u.guardRole === 'DPS') || (u.loadoutType === 'dps');
 if (isDps && u._crownForcedTarget) {
   const t = u._crownForcedTarget;
-  if (t && t.dead !== true && (t.hp == null || t.hp > 0)) {
+  const forcedAlive = t && t.dead !== true && (t.hp == null || t.hp > 0);
+  if (forcedAlive) {
     target = t;  // Override target - all abilities in this frame use this
     // MANDATORY: Recompute bestD so range checks below see correct distance to player
     bestD = Math.hypot((t.x||0)-u.x, (t.y||0)-u.y);
-    u._lockId = t.id || t._id || 'player';
+    const forcedId = t.id || t._id;
+    u._lockId = forcedId || u._lockId;  // Keep existing lock if no real ID
     u._lockUntil = now + 0.35;  // Slightly longer lock for smooth tracking
   } else {
     u._crownForcedTarget = null;
+    u._lockId = null;  // Optional: clear dead lock for instant recovery
+    u._lockUntil = 0;  // Optional: don't wait lock timeout
   }
 }
 
@@ -182,18 +291,21 @@ e._isChasingCrown = false;
 
 // At the END of updateEnemies for this enemy (right before exiting):
 // Check final state and clear forced target if chase didn't activate
-if (crown && crown.carriedBy === 'player') {
+const playerKey = getPlayerKey(state);
+const crownCarriedByPlayer = crown && (crown.carriedBy === 'player' || crown.carriedBy === playerKey);
+
+if (crownCarriedByPlayer) {
   e._isChasingCrown = true;
   if (e.guardRole === 'DPS' || e.loadoutType === 'dps') {
-    e._forcedCombatTarget = state.player;
+    e._crownForcedTarget = state.player;  // ✅ CROWN NAMESPACE
   } else {
-    e._forcedCombatTarget = null;
+    e._crownForcedTarget = null;  // ✅ CROWN NAMESPACE
   }
 }
 
 // NOW clear only if NOT chasing (final decision for this frame)
 if (!e._isChasingCrown) {
-  e._forcedCombatTarget = null;
+  e._crownForcedTarget = null;  // ✅ CROWN NAMESPACE
 }
 ```
 
@@ -205,11 +317,11 @@ if (!e._isChasingCrown) {
 ### Part 4: Debug logging (line 14560-14570)
 ```javascript
 // DEBUG: Quick log when chasing crown (max once per second per guard)
-if (guard._forcedCombatTarget && ((state.gameTime||0) % 1 < 0.016)) {
+if (guard._crownForcedTarget && ((state.gameTime||0) % 1 < 0.016)) {  // ✅ CROWN NAMESPACE
   console.log('[CROWN AI]', guard._id, 
     'loadout', guard.loadoutType,
     'mode', guard.guardMode,
-    'forced', !!guard._forcedCombatTarget,
+    'forced', !!guard._crownForcedTarget,  // ✅ CROWN NAMESPACE
     'distToPlayer', Math.hypot(guard.x-state.player.x, guard.y-state.player.y)|0);
 }
 ```
@@ -224,6 +336,7 @@ if (guard._forcedCombatTarget && ((state.gameTime||0) % 1 < 0.016)) {
 - Short 0.25s lock makes it responsive to your movement, not jittery
 - Healers still heal allies naturally (not forced onto you)
 - When crown secured/dropped, they stop focusing you immediately
+- Short 0.35s lock makes it responsive to your movement, not jittery
 
 **Status**: ✅ **FULLY IMPLEMENTED AND READY TO TEST**
 
@@ -377,16 +490,22 @@ if(!target){
 // ✅ INJECT FORCED OVERRIDE HERE (BEFORE early return)
 // This must run before if(!target) return so it can rescue the "no target" case
 const isDps = (u.guardRole === 'DPS') || (u.loadoutType === 'dps');
-if (isDps && u._crownForcedTarget) {
+if (isDps && u._crownForcedTarget) {  // ✅ CROWN NAMESPACE
   const t = u._crownForcedTarget;
-  if (t && t.dead !== true && (t.hp == null || t.hp > 0)) {
+  const forcedAlive = t && t.dead !== true && (t.hp == null || t.hp > 0);
+  if (forcedAlive) {
     target = t;  // Override target - all abilities in this frame use this
     // CRITICAL: Recompute bestD so range checks below see correct distance
     bestD = Math.hypot((t.x||0)-u.x, (t.y||0)-u.y);
-    u._lockId = t.id || t._id || 'player';
+    // Quick verification (once per second per guard): proves override + bestD are in play
+    if ((state.gameTime||0) % 1 < 0.016) console.log('[CROWN FORCED]', u._id, '->', (t?.id||t?._id||'player'), 'dist', bestD|0);
+    const forcedId = t.id || t._id;
+    u._lockId = forcedId || u._lockId;  // Keep existing lock if no real ID
     u._lockUntil = now + 0.35;  // Slightly longer lock for smooth tracking
   } else {
     u._crownForcedTarget = null;
+    u._lockId = null;  // Optional: clear dead lock for instant recovery
+    u._lockUntil = 0;  // Optional: don't wait lock timeout
   }
 }
 
@@ -408,7 +527,14 @@ if(!target) return;
 
 **Current problem**: Must use ONLY `_crownForcedTarget` (no mixed namespaces).
 
-**Solution**: At START of update, reset flag. In MIDDLE of update, set flag AND forced target in crown chase block. At VERY END, clear forced target only if flag is false.
+**CRITICAL POSITIONING**: The clear statement MUST run at the literal end of the per-enemy loop, after all logic that can set `_isChasingCrown` or `_crownForcedTarget`. If the clear runs mid-loop, later code can overwrite it and you'll have the same "silently broken" feel.
+
+**Safe structure**:
+1. **Top of enemy loop**: Reset flag: `e._isChasingCrown = false;`
+2. **Middle of loop**: All normal logic (including crown chase detection)
+3. **Literal last lines before exiting enemy**: Clear if not chasing: `if (!e._isChasingCrown) { e._crownForcedTarget = null; }`
+
+This prevents future refactors from accidentally putting new logic after the clear.
 
 **START of enemy update loop** (line 6982):
 ```javascript
@@ -422,7 +548,7 @@ if(!priorityTarget && e.crownTeam){
   const crown = state.emperor?.crowns?.[e.crownTeam];
   
   // CRITICAL: Check BOTH ID forms for player
-  const playerKey = state.player?.id || state.player?._id || 'player';
+  const playerKey = getPlayerKey(state);
   const crownCarriedByPlayer = crown && (crown.carriedBy === 'player' || crown.carriedBy === playerKey);
   
   if(crownCarriedByPlayer){
@@ -478,25 +604,24 @@ if(isPlayerCarrying && !crown.secured){
 // Defensive: Normalize carriedBy if it's an object or non-string type
 // This prevents silent failures if pickup accidentally assigns state.player or other refs
 if (crown.carriedBy != null && typeof crown.carriedBy === 'object') {
-  console.warn('[CROWN ERROR] carriedBy was object reference, normalizing to null', {
+  console.warn('[CROWN ERROR] carriedBy object ref, nulling', {
+    team: team,
+    carriedBy: crown.carriedBy
+  });
+  crown.carriedBy = null;
+}
+
+if (crown.carriedBy != null && typeof crown.carriedBy !== 'string') {
+  console.warn('[CROWN ERROR] carriedBy wrong type, nulling', {
     team: team,
     carriedBy: crown.carriedBy,
     type: typeof crown.carriedBy
   });
-  crown.carriedBy = null;
-}
-// Also normalize weird type mismatches (number vs string)
-if (crown.carriedBy != null && typeof crown.carriedBy !== 'string') {
-  console.warn('[CROWN ERROR] carriedBy wrong type, converting to string', {
-    team: team,
-    was: crown.carriedBy,
-    wasType: typeof crown.carriedBy
-  });
-  crown.carriedBy = String(crown.carriedBy);
+  crown.carriedBy = null;  // Don't stringify—"0" and "false" are phantom states that never match
 }
 
 // NOW do the normal check with both ID forms
-const playerKey = state.player?.id || state.player?._id || 'player';
+const playerKey = getPlayerKey(state);
 const isPlayerCarrying = crown.carriedBy === 'player' || crown.carriedBy === playerKey;
 
 if(isPlayerCarrying && !crown.secured){
@@ -510,41 +635,180 @@ if(isPlayerCarrying && !crown.secured){
 
 ---
 
-### Section 4: Console Verification Script (enhanced to prove override is actually used)
+### Section 4: Console Verification - Two Approaches
 
-Add this inside npcUpdateAbilities to verify override is actually being used:
+#### Option A: No Code Changes (Inspect _crownForcedTarget Live)
+
+If `state` is accessible globally in your console, you can inspect guards without modifying code.
+
+**Test in browser console**:
 ```javascript
-// Enhanced debug - once per second per DPS guard, shows what target was actually chosen
+// Check if state is accessible
+state
+
+// Find all guards currently with a forced crown target
+state.enemies?.filter(e => e && e._crownForcedTarget)
+
+// Pick the first guard with forced target and inspect
+const g = state.enemies.find(e => e && e._crownForcedTarget);
+g._crownForcedTarget?.id || g._crownForcedTarget?._id || 'player'
+
+// Check if they're in chase state
+g._isChasingCrown  // Should be true if crown is carried
+
+// Check their lock
+g._lockId
+```
+
+**What you're looking for**:
+- If `g._crownForcedTarget` exists and `g._isChasingCrown === true` → Override is being set ✅
+- If `_isChasingCrown === false` while you hold crown → Chase detection block isn't firing
+- If `_crownForcedTarget` is null but you're holding crown → Not being set in updateEnemies
+
+---
+
+#### Option B: Minimal Logging (With Code Change - Best Signal)
+
+Add this inside npcUpdateAbilities right after the forced override block (after `target = forced;`):
+
+```javascript
+// ✅ LOGGING: Once per second per guard, show if override actually fired
 const isDps = (u.guardRole === 'DPS') || (u.loadoutType === 'dps');
 if (isDps && u._crownForcedTarget && ((state.gameTime||0) % 1 < 0.016)) {
-  console.log('[CROWN FORCED TARGET]', u._id, {
-    // What we wanted to use (the forced target)
-    forcedId: u._crownForcedTarget?.id || u._crownForcedTarget?._id || 'player',
-    forcedAlive: u._crownForcedTarget && u._crownForcedTarget.dead !== true,
-    // What we actually ended up with (proves override worked)
+  // ⚠️ CRITICAL: forcedAlive check must match the real gate - don't use ?? 0, that rejects hp==null
+  const t = u._crownForcedTarget;
+  const forcedAlive = t && t.dead !== true && (t.hp == null || t.hp > 0);
+  
+  console.log('[CROWN OVERRIDE CHECK]', u._id, {
+    // What we wanted to target
+    forcedId: t?.id || t?._id || 'player',
+    forcedAlive: forcedAlive,  // ✅ Uses SAME gate as real override block
+    // What we actually ended up with (proves override worked or was overwritten)
     chosenId: target?.id || target?._id || 'none',
-    // Lock state (should match chosen target if override worked)
+    // Lock tracking (should match chosen target)
     lockId: u._lockId,
     lockMs: Math.max(0, u._lockUntil - now)|0,
-    // Distance to chosen (should be to player if override worked)
+    // Distance to chosen target
     distToChosen: bestD|0
   });
   
-  // CRITICAL: If forcedId !== chosenId, the override didn't work or was overwritten
-  if ((u._crownForcedTarget?.id || u._crownForcedTarget?._id) !== (target?.id || target?._id)) {
-    console.warn('[CROWN OVERRIDE FAILED] Forced target exists but wasnt chosen!', {
-      forced: u._crownForcedTarget?.id || u._crownForcedTarget?._id,
-      chosen: target?.id || target?._id,
-      reason: 'Check if early return or later relock overwrote override'
+  // WARN if override was overwritten after being set
+  if ((t?.id || t?._id) !== (target?.id || target?._id)) {
+    console.warn('[CROWN OVERRIDE OVERWRITTEN]', u._id, {
+      forced: t?.id || t?._id || 'player',
+      chosen: target?.id || target?._id || 'none',
+      reason: 'Shared target relock or other logic rewrote the target'
     });
   }
 }
 ```
 
-**What to look for**:
-- If `forcedId === player` and `chosenId === player`: ✅ Working
-- If `forcedId === player` but `chosenId !== player`: ❌ Override was overwritten later
-- If `forcedAlive === false`: Early out, check if player died and respawned in combat
+**What you'll see**:
+- `forcedId === chosenId === player` → Working perfectly ✅
+- `forcedId === player` but `chosenId !== player` → Override was overwritten later (check shared target guard)
+- `forcedAlive === false` → Target died, fell out of range, or is invalid
+
+---
+
+#### Option C: Quick "Is Override Even Running?" Test
+
+Add a one-liner inside the override block to confirm it's executing:
+
+```javascript
+if (isDps && u._crownForcedTarget) {
+  console.log('[OVERRIDE FIRED]', u._id);  // ← Add this line
+  const forced = u._crownForcedTarget;
+  // ... rest of override logic
+}
+```
+
+**What to check**:
+- If you never see `[OVERRIDE FIRED]` → Override block is still in wrong spot OR `_crownForcedTarget` never gets set OR `isDps` check fails
+- If you see it once when crown is picked up → Override is running but might be getting overwritten
+
+---
+
+#### Option D: Performance-Conscious Logging (Toggleable)
+
+If logging impacts performance, wrap with a debug flag check:
+
+```javascript
+// Only log if debugMode is enabled
+if (state.debugGuards && isDps && u._crownForcedTarget && ((state.gameTime||0) % 1 < 0.016)) {
+  console.log('[CROWN OVERRIDE CHECK]', u._id, {
+    forcedId: u._crownForcedTarget?.id || u._crownForcedTarget?._id || 'player',
+    chosenId: target?.id || target?._id || 'none',
+    lockId: u._lockId,
+    distToChosen: bestD|0
+  });
+}
+```
+
+Then toggle from console:
+```javascript
+// Turn on crown guard debug logging
+state.debugGuards = true;
+
+// Turn off when done
+state.debugGuards = false;
+```
+
+Or add to your existing debug panel/checkbox if you have one.
+
+---
+
+## Recommended Testing Flow
+
+**Cleanest Console Verification** (copy-paste these while holding crown):
+
+```javascript
+// Step 1: Confirm crown thinks player is carrying
+(() => {
+  const crowns = state.emperor?.crowns;
+  const playerKey = getPlayerKey(state);
+  return Object.fromEntries(Object.entries(crowns||{}).map(([team,c]) => [
+    team,
+    { carriedBy: c.carriedBy, isPlayer: (c.carriedBy==='player' || c.carriedBy===playerKey), secured: c.secured }
+  ]));
+})()
+
+// Step 2: Find guards with _crownForcedTarget (should NOT be empty)
+state.enemies?.filter(e => e && e._crownForcedTarget).map(e => ({
+  id: e._id || e.id,
+  role: e.guardRole,
+  loadout: e.loadoutType,
+  chasing: e._isChasingCrown,
+  forcedId: e._crownForcedTarget?.id || e._crownForcedTarget?._id || 'player',
+  lockId: e._lockId,
+}))
+```
+
+**Interpretation**:
+- Step 1: Should show `isPlayer: true` for all crowns while you're carrying one
+- Step 2: Should return array with guards, NOT empty. If empty while carrying crown = chase detection block not setting `_crownForcedTarget`
+
+**Ultra-fast one-liner verification** (add this ONE line right after override sets target):
+```javascript
+if (target === u._crownForcedTarget) console.log('[FORCED OK]', u._id, u._lockId);
+```
+If you see `[FORCED OK]` in console while carrying crown, override is firing. If not, recheck position (must be BEFORE `if(!target) return;`).
+
+---
+
+### Alternative: Full Testing Flow (if console isn't available)
+
+1. **Start with Option A** (no code changes) - just inspect live in console while holding crown
+   - Type: `state.enemies?.filter(e => e && e._crownForcedTarget)`
+   - See if any guards have the field set
+
+2. **If Option A shows no guards with _crownForcedTarget**, add the one-liner
+   - Tells you if override block is even executing
+
+3. **If guards have _crownForcedTarget but still feel weak**, add Option B (full logging)
+   - Tells you if override is being overwritten by shared target logic
+
+4. **If logging is too noisy**, wrap with Option D toggle
+   - Only logs when `state.debugGuards = true`
 
 **Why bestD recompute is critical**: 
 At line 3514, `const dist = bestD;` - this dist is then used at lines 3579, 3624, 3666, 3710, 3770, 3773, 3775 for range gating:
@@ -582,7 +846,8 @@ if(!target) return;
 if (forcedAlive) {
   target = t;
   bestD = Math.hypot((t.x||0)-u.x, (t.y||0)-u.y);  // ✅ MUST BE HERE
-  u._lockId = t.id || t._id || 'player';
+  const forcedId = t.id || t._id;
+  u._lockId = forcedId || u._lockId;  // ✅ No 'player' fake lock
   u._lockUntil = now + 0.35;
 }
 ```
@@ -591,7 +856,7 @@ If bestD isn't recomputed, line 3514 `const dist = bestD;` will have stale dista
 **3. Chase condition checks BOTH ID forms**
 ```javascript
 // Around line 6991-7005:
-const playerKey = state.player?.id || state.player?._id || 'player';
+const playerKey = getPlayerKey(state);
 const crownCarriedByPlayer = crown && (crown.carriedBy === 'player' || crown.carriedBy === playerKey);
 
 if (crownCarriedByPlayer) {
@@ -610,53 +875,152 @@ if (crown.carriedBy != null && typeof crown.carriedBy === 'object') {
 }
 if (crown.carriedBy != null && typeof crown.carriedBy !== 'string') {
   console.warn('[CROWN ERROR] wrong type...', { team, was: crown.carriedBy, wasType: typeof crown.carriedBy });
-  crown.carriedBy = String(crown.carriedBy);
+  crown.carriedBy = null;  // NULL not stringify—prevents phantom "0" or "false" states
 }
 ```
 
 ---
 
-## Verification: npcUpdateAbilities Override is Already Structurally Correct
+## ⚠️ CRITICAL: npcUpdateAbilities Has Wrong Ordering (MUST FIX)
 
-**The placement is good** (lines 3355-3377):
+**The code you found**:
 ```javascript
-// Line 3357: EARLY RETURN (before override block)
+// Line 3357: EARLY RETURN
 if(!target) return;
 
-// Lines 3359-3377: FORCED OVERRIDE (after early return, safe placement) ✅
+// Lines 3359-3377: FORCED OVERRIDE (COMES AFTER RETURN - NEVER RUNS!)
 if (u._forcedCombatTarget && u.guardRole === 'DPS') {
   const forced = u._forcedCombatTarget;
   // ...
-  target = forced;
-  bestD = Math.hypot((target.x||0)-u.x, (target.y||0)-u.y);  // ✅ Recomputes bestD
-  // ...
+}
+```
+
+**This is backwards.** If target is null, the function returns at line 3357 before the override even runs. The override can never rescue the "no target" case.
+
+**You need to move the override block BEFORE the early return**:
+
+```javascript
+// Lines 3348-3357: Normal lock selection
+let target = null, bestD = Infinity;
+if(u._lockUntil && u._lockUntil > now && u._lockId){
+  target = candidates.find(c => (c.id||c._id) === u._lockId);
+}
+if(!target){
+  for(const c of candidates){ const d=Math.hypot((c.x||0)-u.x,(c.y||0)-u.y); if(d<bestD){bestD=d; target=c;} }
+  if(target){ u._lockId = target.id||target._id||null; u._lockUntil = now + 1.5; }
+} else {
+  bestD = Math.hypot((target.x||0)-u.x,(target.y||0)-u.y);
 }
 
-// Lines 3506-3511: Shared target relock ALSO recomputes bestD ✅
+// ✅ MOVE FORCED OVERRIDE HERE (BEFORE early return)
+const isDps = (u.guardRole === 'DPS') || (u.loadoutType === 'dps');
+if (isDps && u._crownForcedTarget) {
+  const forced = u._crownForcedTarget;
+  const forcedAlive = forced && forced.dead !== true && (forced.hp == null || forced.hp > 0);
+  if (forcedAlive) {
+    target = forced;
+    bestD = Math.hypot((forced.x||0)-u.x, (forced.y||0)-u.y);
+    const forcedId = forced.id || forced._id;
+    u._lockId = forcedId || u._lockId;  // Don't use 'player' fake lock
+    u._lockUntil = now + 0.35;
+  } else {
+    u._crownForcedTarget = null;
+  }
+}
+
+// NOW early return (after override has chance to set target)
+if(!target) return;
+```
+
+**Then guard the shared target relock** (around line 3506) to prevent overwriting:
+```javascript
+// Only relock to shared if we're NOT forcing a crown target
+if(guardSite && guardSite._sharedTargetUntil > now && guardSite._sharedTargetId && !u._crownForcedTarget){
+  const shared = candidates.find(c => (c.id||c._id) === guardSite._sharedTargetId);
+  if(shared){
+    target = shared;
+    bestD = Math.hypot((target.x||0)-u.x,(target.y||0)-u.y);
+  }
+}
+```
+
+**The three changes in npcUpdateAbilities**:
+1. Move the `isDps + if (isDps && u._crownForcedTarget) { ... }` block BEFORE `if(!target) return;`
+2. Change field name to `_crownForcedTarget` (with isDps check)
+3. Guard shared target relock with `&& !u._crownForcedTarget` condition
+
+**The structure you want** (override BEFORE early return, to rescue "no target" case):
+```javascript
+// Lines 3348-3357: Normal lock selection (might leave target null)
+let target = null, bestD = Infinity;
+if(u._lockUntil && u._lockUntil > now && u._lockId){
+  target = candidates.find(c => (c.id||c._id) === u._lockId);
+}
+if(!target){
+  for(const c of candidates){ const d=Math.hypot((c.x||0)-u.x,(c.y||0)-u.y); if(d<bestD){bestD=d; target=c;} }
+  if(target){ u._lockId = target.id||target._id||null; u._lockUntil = now + 1.5; }
+} else {
+  bestD = Math.hypot((target.x||0)-u.x,(target.y||0)-u.y);
+}
+
+// ✅ FORCED OVERRIDE MUST BE HERE (before early return, so it can rescue "no target" case)
+const isDps = (u.guardRole === 'DPS') || (u.loadoutType === 'dps');
+if (isDps && u._crownForcedTarget) {
+  const forced = u._crownForcedTarget;
+  const forcedAlive = forced && forced.dead !== true && (forced.hp == null || forced.hp > 0);
+  if (forcedAlive) {
+    target = forced;
+    bestD = Math.hypot((forced.x||0)-u.x, (forced.y||0)-u.y);
+    const forcedId = forced.id || forced._id;
+    u._lockId = forcedId || u._lockId;  // Keep existing lock if no real ID
+    u._lockUntil = now + 0.35;
+  } else {
+    u._crownForcedTarget = null;
+  }
+}
+
+// ⚠️ EARLY RETURN AFTER override (so override can rescue no-target case)
+if(!target) return;
+```
+
+**What happens next** (lines 3379+: role detection, ability casting):
+```javascript
+const isStaff = (u.weaponType||'').toLowerCase().includes('staff');
+const roleKey = ...
+let role = ...
+// ... role detection ...
+```
+
+**Then later** (lines 3506-3511: shared target relock that might overwrite):
+```javascript
 if(guardSite && guardSite._sharedTargetUntil > now && guardSite._sharedTargetId){
   const shared = candidates.find(c => (c.id||c._id) === guardSite._sharedTargetId);
   if(shared){
     target = shared;
-    bestD = Math.hypot((target.x||0)-u.x,(target.y||0)-u.y);  // ✅ Consistent
+    bestD = Math.hypot((target.x||0)-u.x,(target.y||0)-u.y);  // ⚠️ This recomputes too
   }
 }
-
-// Line 3514: Distance derived from recomputed bestD ✅
-const dist = bestD;
-
-// Lines 3579, 3624, 3666, 3710, 3770, 3773, 3775: Range gates use dist ✅
 ```
 
-**Only fix needed in npcUpdateAbilities**: Change field name from `_forcedCombatTarget` to `_crownForcedTarget`:
+**Then distance is locked** (line 3514):
 ```javascript
-// Line 3359 (change):
-if (u._crownForcedTarget && u.guardRole === 'DPS') {  // Changed field name
-  const forced = u._crownForcedTarget;
-  // ... rest unchanged ...
+const dist = bestD;  // ✅ Will use either forced target distance or shared target distance
+```
+
+**POTENTIAL ISSUE**: If shared target logic runs and finds a different target, it overwrites your forced target. To prevent this, you'd need to add a guard:
+```javascript
+// Around line 3506, guard the shared target relock:
+if(guardSite && guardSite._sharedTargetUntil > now && guardSite._sharedTargetId && !u._crownForcedTarget){
+  // Only relock to shared if we're not forcing a specific target
+  const shared = candidates.find(c => (c.id||c._id) === guardSite._sharedTargetId);
+  if(shared){
+    target = shared;
+    bestD = Math.hypot((target.x||0)-u.x,(target.y||0)-u.y);
+  }
 }
 ```
 
-**No other changes needed** in npcUpdateAbilities—structure is already correct.
+Or simpler: Just verify in console that `forcedId === chosenId === player` when crown is carried. If shared target is overwriting, you'll see `chosenId` as something else.
 
 **Expected behavior**:
 - DPS guards chase crown carrier (existing, already works)
@@ -706,46 +1070,6 @@ if (u._crownForcedTarget && u.guardRole === 'DPS') {  // Changed field name
 
 ---
 
-## The Corrected Block (Minimal Diff, Copy-Paste Ready)
-
-**Replace lines 6982-7006 in updateEnemies with this**:
-
-```javascript
-// Line 6982: Reset flag at START
-e._isChasingCrown = false; // Default: not chasing
-
-// Lines 6984-7003: Crown chase detection (sets flag + forced target)
-if (!priorityTarget && e.crownTeam) {
-  const crown = state.emperor?.crowns?.[e.crownTeam];
-
-  // Check BOTH ID forms (FIXED: was only checking 'player')
-  const playerKey = state.player?.id || state.player?._id || 'player';
-  const crownCarriedByPlayer = crown && (crown.carriedBy === 'player' || crown.carriedBy === playerKey);
-
-  if (crownCarriedByPlayer) {
-    e._isChasingCrown = true;
-
-    // Set crown forced target only for DPS (FIXED: was never being set)
-    const isDps = (e.guardRole === 'DPS') || (e.loadoutType === 'dps');
-    e._crownForcedTarget = isDps ? state.player : null;
-
-    // ... rest of chase setup (priorityTarget, targetDist, etc) ...
-  }
-}
-
-// Lines 7004-7006: Clear at END (FIXED: was using wrong field _forcedCombatTarget)
-if (!e._isChasingCrown) {
-  e._crownForcedTarget = null;  // NOW uses correct crown namespace
-}
-```
-
-**What changed** (only 3 lines modified):
-1. `crown.carriedBy === 'player'` → `(crown.carriedBy === 'player' || crown.carriedBy === playerKey)`
-2. Added: `e._crownForcedTarget = isDps ? state.player : null;` (was completely missing)
-3. `e._forcedCombatTarget = null;` → `e._crownForcedTarget = null;` (was wrong field)
-
----
-
 ## CRITICAL: Namespace Consistency (Crown Namespace ONLY)
 
 **Use `_crownForcedTarget` everywhere—no mixing**:
@@ -771,5 +1095,23 @@ if (isDps && u._forcedCombatTarget) { ... }  // Read in abilities
 // Override never fires, guards attack squirrels instead
 ```
 
-**Before implementing, verify ALL FOUR locations use `_crownForcedTarget`**.  
+---
+
+## Final Ship Checklist ✅
+
+Before you apply these patches, verify:
+
+- [x] npcUpdateAbilities: override block is BEFORE `if(!target) return` (not after)
+- [x] bestD is recomputed after override (prevents range gate failures)
+- [x] shared relock is guarded with `&& !u._crownForcedTarget` (prevents override stomp)
+- [x] updateEnemies: chase condition checks BOTH `'player'` AND `playerKey` forms
+- [x] Namespace is 100% consistent: `_crownForcedTarget` everywhere in crown system
+- [x] lockId fallback is `u._lockId` not `'player'` (prevents dead locks)
+- [x] carriedBy normalization nulls out weird types (not stringifies them—no phantom "0" or "false" states)
+- [x] updateEnemies clear statement is at the TRUE END of per-enemy loop (not mid-loop)
+- [x] One-liner log `[CROWN FORCED]` is in place for fastest verification
+
+**Quick verification**: Pick up crown in game, open console, watch for `[CROWN FORCED]` logs once per second per DPS guard. If they appear, override is firing and bestD is in play. If not, check positioning and namespace.
+
+**⚠️ CRITICAL FOR updateEnemies**: The clear statement `if (!e._isChasingCrown) { e._crownForcedTarget = null; }` MUST be at the literal end of the per-enemy loop, after ALL logic that could set chase/targets. If your updateEnemies has logic after line 7006, the clear might be in the wrong spot and will get silently bypassed. **If the actual updateEnemies code sprawls past line 7010 or has more guards/targets logic after the clear statement you're adding, paste lines 6970–7050 and I'll verify the exact safe position for the clear.**  
 

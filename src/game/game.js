@@ -10,6 +10,11 @@ import * as LoadoutRegistry from "./loadout-registry.js";
 import { getAssetPath } from "../config.js";
 import { generateFighterCard, addFighterCard } from "./fighter-cards.js";
 
+// Diagnostic systems (Phase 1, 2, 3)
+import { debugCoordSanity, debugCoordRanges, coordinateDiagnosticSnapshot } from "./coordinate-sanity.js";
+import { initHpAuditSystem, auditHpChange, auditHeal, auditDamage, auditSetHp, getHpAuditReport, clearHpAuditLog, enableHpAudit, detectUntrackedHpChange } from "./hp-audit.js";
+import { initCrownDebugSystem, logCrownEvent, logCrownPickup, logCrownDrop, logCrownSecured, logGuardChaseStart, logGuardChaseEnd, logGuardForcedTarget, logGuardAbilityTarget, logCrownCarrierStatus, logGameStatus, getCrownDebugReport, clearCrownDebugLog, exportCrownDebugLog, enableCrownDebug, logCrownSpawned, logBaseAssignmentSnapshot, logCrownPickupAttempt, logCrownPickupBlocked, logCoordSanitySnapshot, validateCarriedCrownsArray, logCrownGuardsSpawned, logCrownGuardsAssigned, logGuardStateChange, logTargetResolved, logActionBlocked, logLeaderElected, detectLeaderThrash, logCrownGuardAssignmentCoverage } from "./crown-debug.js";
+
 // Enemy / spawn tuning
 const MAX_DEFENDERS_PER_TEAM = 10; // non-guard fighters per team (excludes guards)
 const MAX_KNIGHTS_PER_TEAM = 10; // cap knights per team on map
@@ -176,6 +181,9 @@ export async function initGame(state){
   // Initialize comprehensive AI behavior tracking
   if(!state.aiBehaviorLog) state.aiBehaviorLog = [];
   
+  // Initialize crown debug system for logging crown events
+  initCrownDebugSystem(state);
+  
   // ALWAYS clear ability slots on new game - simple and explicit
   state.abilitySlots = [null, null, null, null, null];
   console.log('[INIT] Ability slots cleared:', state.abilitySlots);
@@ -193,6 +201,11 @@ export async function initGame(state){
     state.creatures.length = 0;
   }catch{}
   initSites(state);
+  
+  // CRITICAL: Sanitize all site coordinates immediately after init
+  // Some sites may have corrupted Y values that break crown pickup
+  sanitizeSiteCoordinates(state);
+  
   const hb=playerHome(state);
   state.player.x=hb.x; state.player.y=hb.y;
   const st=currentStats(state);
@@ -203,6 +216,9 @@ export async function initGame(state){
   
   // Emperor Mode Phase 3: Spawn crowns (locked until emperor activated)
   spawnCrowns(state);
+  
+  // Treasure Chest System: 5 chests spawn randomly, give free fighter card spins
+  initTreasureChests(state);
   
   // NEW PROGRESSION SYSTEM:
   // Player starts SOLO and must build team through progression (levels 2, 3, 4, 5, etc.)
@@ -3139,8 +3155,19 @@ function electGuardBallLeader(state, ball, kind, guards, now){
   }
   const leaderId = bestKey ? String(bestKey) : null;
   if(leaderId && ball.leaderId !== leaderId){
+    const prevLeaderId = ball.leaderId;
+    const holdDuration = ball.electedAt ? (state.gameTime || 0) - ball.electedAt : 0;
     ball.leaderId = leaderId;
+    ball.electedAt = state.gameTime || 0;
     if(state.debugLog) logDebug(state, 'GUARD_BALL', 'Guard ball leader elected', { type:'GUARD_BALL_LEADER', ballId: ball.ballId, leaderId });
+    
+    // Crown debug logging: LEADER_ELECTED with hold duration
+    logLeaderElected(state, ball.ballId, leaderId, prevLeaderId, holdDuration, []);
+    
+    // Crown debug logging: detect leader thrashing
+    if(typeof detectLeaderThrash === 'function') {
+      detectLeaderThrash(state, ball.ballId);
+    }
   }
   return leaderId;
 }
@@ -3354,27 +3381,30 @@ function npcUpdateAbilities(state, u, dt, kind){
   } else {
     bestD = Math.hypot((target.x||0)-u.x,(target.y||0)-u.y);
   }
-  if(!target) return;
-
   // ═══════════════════════════════════════════════════════════════════════════════
   // CROWN GUARD FORCED TARGET - ball-group focus fire (only DPS guards chase player)
   // ═══════════════════════════════════════════════════════════════════════════════
-  if (u._forcedCombatTarget && u.guardRole === 'DPS') {
-    const forced = u._forcedCombatTarget;
-    const forcedAlive =
-      forced.dead !== true &&
-      (forced.hp == null || forced.hp > 0);
+  // CRITICAL: Must run BEFORE early return so it can rescue "no target" case
+  const isDps = (u.guardRole === 'DPS') || (u.loadoutType === 'dps');
+  if (isDps && u._crownForcedTarget) {
+    const t = u._crownForcedTarget;
+    const forcedAlive = t && t.dead !== true && (t.hp == null || t.hp > 0);
 
     if (forcedAlive) {
-      target = forced;
-      bestD = Math.hypot((target.x||0)-u.x, (target.y||0)-u.y);
-      // Short lock so ability targeting feels responsive to player movement
-      u._lockId = forced.id || forced._id || 'player';
-      u._lockUntil = now + 0.25;
+      target = t;
+      // MANDATORY: Recompute bestD so range checks below see correct distance to player
+      bestD = Math.hypot((t.x||0)-u.x, (t.y||0)-u.y);
+      const forcedId = t.id || t._id;
+      u._lockId = forcedId || u._lockId;  // Keep existing lock if no real ID
+      u._lockUntil = now + 0.35;  // Slightly longer lock for smooth tracking
     } else {
-      u._forcedCombatTarget = null;
+      u._crownForcedTarget = null;
+      u._lockId = null;  // Optional: clear dead lock for instant recovery
+      u._lockUntil = 0;  // Optional: don't wait lock timeout
     }
   }
+
+  if(!target) return;
 
   const isStaff = (u.weaponType||'').toLowerCase().includes('staff');
   const roleKey = (u.variant==='mage') ? 'mage' : (u.variant==='warden' ? 'warden' : 'dps');
@@ -3501,7 +3531,8 @@ function npcUpdateAbilities(state, u, dt, kind){
     const guardSite = guardSiteId ? (state.sites||[]).find(s => s.id === guardSiteId) : null;
 
     // If guard squad has a shared target, prefer it so tacticals synchronize.
-    if(guardSite && guardSite._sharedTargetUntil > now && guardSite._sharedTargetId){
+    // GUARD: Don't relock to shared if we're forcing a crown target (prevents override from being overwritten)
+    if(guardSite && guardSite._sharedTargetUntil > now && guardSite._sharedTargetId && !u._crownForcedTarget){
       const shared = candidates.find(c => (c.id||c._id) === guardSite._sharedTargetId);
       if(shared){
         target = shared;
@@ -6984,7 +7015,9 @@ function updateEnemies(state, dt){
       // Check if this guard has a crown assigned (emperor mode) - crownTeam is source of truth
       if(!priorityTarget && e.crownTeam){
         const crown = state.emperor?.crowns?.[e.crownTeam];
-        if(crown && crown.carriedBy === 'player'){
+        const playerKey = state.player?.id || state.player?._id || 'player';
+        const crownCarriedByPlayer = crown && (crown.carriedBy === 'player' || crown.carriedBy === playerKey);
+        if(crownCarriedByPlayer){
           // Crown is currently carried by player - OVERRIDE all normal constraints and chase them
           priorityTarget = state.player;
           targetDist = Math.hypot(state.player.x - e.x, state.player.y - e.y);
@@ -6994,14 +7027,14 @@ function updateEnemies(state, dt){
           e._targetCommitUntil = now + 5.0; // Long commit for chase
           e._isChasingCrown = true; // Set flag: YES, we are chasing crown right now
           if(state.debugGuards){
-            console.log(`[CROWN_GUARD] ${e.name || 'Guard'} CHASING crown carrier at (${state.player.x|0},${state.player.y|0}), dist=${targetDist|0}`);
+            if(state.crownDebug?.enabled) console.log(`[CROWN_GUARD] ${e.name || 'Guard'} CHASING crown carrier at (${state.player.x|0},${state.player.y|0}), dist=${targetDist|0}`);
           }
         }
       }
       
-      // Clear forced combat target when chase TRULY ends (only if flag is still false after crown check)
+      // Clear forced crown target when chase TRULY ends (only if flag is still false after crown check)
       if (!e._isChasingCrown) {
-        e._forcedCombatTarget = null;
+        e._crownForcedTarget = null;
       }
       
       // If no committed target or commitment expired, find new target
@@ -7511,16 +7544,23 @@ function updateEnemies(state, dt){
 
     // passive auto-level catch-up to player progression over time (no faction tech to avoid compounding)
     const targetLevel = Math.max(1, Math.floor(state.campaign.time/60) + 1);
-    if(e.level < targetLevel){
+    
+    // ZONE-BASED CAP: Each zone has a max level = zone number × 5
+    // Zone 1: cap 5, Zone 2: cap 10, Zone 3: cap 15, Zone 4: cap 20, Zone 5: cap 25
+    const currentZone = state.zoneConfig?.currentZone || 1;
+    const zoneLevelCap = currentZone * 5;
+    const cappedTargetLevel = Math.min(targetLevel, zoneLevelCap);
+    
+    if(e.level < cappedTargetLevel){
       const prev = e.level||1;
       const hpRatio = e.hp / (e.maxHp || 1); // Preserve HP ratio
       
       // Manually scale stats by level increase without re-applying class multipliers
-      const levelDiff = targetLevel - prev;
+      const levelDiff = cappedTargetLevel - prev;
       const hpMult = Math.pow(1.12, levelDiff); // 12% per level
       const dmgMult = Math.pow(1.10, levelDiff); // 10% per level
       
-      e.level = targetLevel;
+      e.level = cappedTargetLevel;
       e.maxHp = Math.round(e.maxHp * hpMult);
       e.contactDmg = Math.round(e.contactDmg * dmgMult);
       e.hp = Math.max(1, Math.round(e.maxHp * hpRatio)); // Restore HP ratio
@@ -7675,6 +7715,13 @@ function respawn(state){
     newHP: st.maxHp,
     maxHP: st.maxHp
   });
+  
+  // Log crown carrier status at respawn
+  const carryingCrown = state.emperor?.crowns ? Object.entries(state.emperor.crowns).find(([t,c]) => c.carriedBy === 'player') : null;
+  if(carryingCrown){
+    const [team, crown] = carryingCrown;
+    logCrownCarrierStatus(state, team, 'player', false);
+  }
   
   state.player.shield=0;
   state.player.dead=false;
@@ -10719,6 +10766,11 @@ function ensureEmperorBuff(state) {
 export function updateGame(state, dt){
   if(state.paused) return;
   
+  // Sync crown debug logging with UI checkbox state
+  if(state.ui && state.ui.enableCrownDebugLog){
+    enableCrownDebug(state, state.ui.enableCrownDebugLog.checked);
+  }
+  
   // Ensure emperor buff persists (Fix 1: prevent buff deletion during respawn/zone/loadout)
   ensureEmperorBuff(state);
   
@@ -10855,8 +10907,9 @@ export function updateGame(state, dt){
   }
   
   // CROWN PICKUP - Emperor Mode Phase 3
-  // Player automatically picks up dropped crowns when nearby
-  if(isEmperorActive(state) && state.emperor.crowns && !state.player.dead){
+  // NOW HANDLED BY: tryPickupCrowns() function called in emperor update loop
+  // This old code path is DISABLED to prevent duplicate pickup logic
+  if(false && isEmperorActive(state) && state.emperor.crowns && !state.player.dead){
     // ENFORCE: Player can only carry one crown at a time
     // Check both 'player' literal and playerKey forms to be bulletproof against ID mismatches
     const playerKey = state.player?.id || state.player?._id || 'player';
@@ -10882,12 +10935,8 @@ export function updateGame(state, dt){
             crown.secured = false;  // Clear secured flag when picking up
             crown.lastTouchedTime = state.gameTime || 0;
             
-            // Alert player and guards
-            if(state.ui?.toast){
-              const colorClass = team === 'teamA' ? 'warn' : team === 'teamB' ? 'info' : 'pos';
-              state.ui.toast(`<span class="${colorClass}"><b>Crown ${team} picked up!</b></span>`);
-            }
-            console.log(`[CROWN] Player picked up Crown ${team} at (${crown.x|0},${crown.y|0})`);
+            // Log crown pickup
+              logCrownPickup(state, team, 'player');
             break; // Only pick up ONE crown, then stop
           }
         }
@@ -11341,6 +11390,7 @@ export function updateGame(state, dt){
   updateFriendlySpawns(state, dt);
   updatePartyCoordinator(state, dt);
   updateFriendlies(state, dt);
+  updateTreasureChests(state, dt);  // Update treasure chest system
 
   // Gate opening: gates open for the owner of the site to allow easy passage
   for(const s of state.sites){
@@ -11489,6 +11539,25 @@ export function updateGame(state, dt){
     updateCarriedCrowns(state);
     trySecureCrowns(state);
     updateCrownGuardRespawns(state, dt);  // Handle guard respawn timers
+    
+    // ENHANCED LOGGING: Validate carriedCrowns array every 30 ticks (debug mode only)
+    if(state.crownDebug?.enabled) {
+      state._crownValidationTick = (state._crownValidationTick || 0) + 1;
+      if(state._crownValidationTick >= 30) {
+        state._crownValidationTick = 0;
+        if(typeof validateCarriedCrownsArray === 'function') {
+          validateCarriedCrownsArray(state);
+        }
+      }
+      
+      // Every 300 ticks (5 seconds), dump crown events to console
+      state._crownDumpTick = (state._crownDumpTick || 0) + 1;
+      if(state._crownDumpTick >= 300) {
+        state._crownDumpTick = 0;
+        const eventCount = state.crownDebug.events?.length || 0;
+        console.log(`[CROWN DEBUG] ${eventCount} events so far:`, state.crownDebug.events?.slice(-10));
+      }
+    }
   }
   
   // Music management: detect combat based on nearby enemies, not just damage
@@ -13056,9 +13125,21 @@ function checkEmperorStatus(state){
       
       // Emperor Mode Phase 3: Unlock crowns for collection
       state.emperor.active = true;
+      
+      // Auto-enable crown debug logging when emperor activates
+      if(state.crownDebug) {
+        state.crownDebug.enabled = true;
+        console.log('[CROWN DEBUG] Enabled automatically on emperor activation');
+      }
+      
       console.log('[EMPEROR] Calling unlockCrowns() to spawn elite guards');
       unlockCrowns(state);
       console.log('[EMPEROR] After unlockCrowns, guards in state.enemies:', state.enemies.filter(e => e.crownGuard).length);
+      
+      // ENHANCED LOGGING: Log base assignment snapshot at match start
+      if(typeof logBaseAssignmentSnapshot === 'function') {
+        logBaseAssignmentSnapshot(state);
+      }
       
       // NOTE: Boss will spawn only AFTER all enemy bases are destroyed
       // This is checked in checkAllBasesDestroyed() function below
@@ -14243,6 +14324,51 @@ function findTeamBaseSite(state, team){
 }
 
 /**
+ * CRITICAL FIX: Sanitize all site coordinates to ensure pickup matches spawn
+ * Some sites may have corrupted Y values (e.g., 2677 instead of ~670)
+ * This ensures both crown spawning AND pickup distance calculations use clean coords
+ */
+function sanitizeSiteCoordinates(state){
+  if(!state.sites) {
+    console.error('[COORDINATE SANITY] ERROR: state.sites is undefined!');
+    return;
+  }
+  
+  if(!state.playableBounds) {
+    console.error('[COORDINATE SANITY] ERROR: state.playableBounds is undefined!');
+    return;
+  }
+  
+  const { minX, maxX, minY, maxY } = state.playableBounds;
+  console.log(`[COORDINATE SANITY] Valid bounds: X:[${minX|0},${maxX|0}] Y:[${minY|0},${maxY|0}]`);
+  
+  const playWidth = maxX - minX;
+  const playHeight = maxY - minY;
+  const centerX = minX + (playWidth / 2);
+  const centerY = minY + (playHeight / 2);
+  
+  let sanitizedCount = 0;
+  for(let i = 0; i < state.sites.length; i++){
+    const site = state.sites[i];
+    // Check if coordinates are INSIDE valid playable bounds
+    // Sites MUST be within [minX, maxX] x [minY, maxY]
+    const xValid = site.x >= minX && site.x <= maxX;
+    const yValid = site.y >= minY && site.y <= maxY;
+    
+    if(!xValid || !yValid){
+      console.warn(`[COORDINATE SANITY] Site[${i}] "${site.name}" (${site.id}) OUT OF BOUNDS: (${site.x|0}, ${site.y|0})`);
+      console.warn(`  X valid: ${xValid} (${site.x|0} in [${minX|0},${maxX|0}]?)`);
+      console.warn(`  Y valid: ${yValid} (${site.y|0} in [${minY|0},${maxY|0}]?)`);
+      // Reset to center of playable area as fallback
+      site.x = centerX;
+      site.y = centerY;
+      console.log(`  → Reset to center: (${centerX|0}, ${centerY|0})`);
+      sanitizedCount++;
+    }
+  }
+  
+  console.log(`[COORDINATE SANITY] Sanitization complete. ${sanitizedCount}/${state.sites.length} sites were corrected.`);
+}
 
 /**
  * Get a crown creature by its _id
@@ -14252,6 +14378,18 @@ function findTeamBaseSite(state, team){
  * Spawn all three crowns as loot items at their team bases
  * Call once during initGame() after sites are created
  * Crowns are protected by elite guards spawned during emperor activation
+ * 
+ * CRITICAL: Crown spawn locations MUST match team base locations:
+ * - teamA base (Red): top-left corner
+ * - teamB base (Yellow): top-right corner  
+ * - teamC base (Blue): bottom-right corner
+ * - player base: bottom-left corner
+ * 
+ * These same base locations are used for:
+ * 1. Crown spawn position
+ * 2. Guard spawn position (pentagon around base)
+ * 3. Guard respawn location
+ * 4. Crown pickup zone center
  */
 function spawnCrowns(state){
   ensureEmperorState(state);
@@ -14285,6 +14423,12 @@ function spawnCrowns(state){
 
     ensureEntityId(state, crown);
     state.emperor.crowns[team] = crown;
+    
+    // ENHANCED LOGGING: spawn with base details and distance check
+    if(typeof logCrownSpawned === 'function') {
+      logCrownSpawned(state, team, crown.id, crown, base);
+    }
+    
     console.log(`[CROWN] Spawned crown item at ${team} base`);
   }
 }
@@ -14530,6 +14674,18 @@ function spawnCrownGuards(state, base, team){
     state.emperor.crownGuards[team].push(guard._id);
     console.log(`[CROWN GUARDS] Spawned ${loadout.name} (Elite) for ${team} - Loadout: ${loadoutKey}, Priority: ${loadout.priority}, GuardMode: protect, CrownSite: ${base.id}`);
   }
+  
+  // Crown debug logging: CROWN_GUARDS_SPAWNED with all guard IDs
+  if(typeof logCrownGuardsSpawned === 'function') {
+    const guardIds = state.emperor.crownGuards[team] || [];
+    logCrownGuardsSpawned(state, team, guardIds, { x: base.x, y: base.y }, base);
+  }
+  
+  // Crown debug logging: CROWN_GUARD_ASSIGNMENT_COVERAGE proof
+  if(typeof logCrownGuardAssignmentCoverage === 'function') {
+    const guardIds = state.emperor.crownGuards[team] || [];
+    logCrownGuardAssignmentCoverage(state, team, 5);  // 5 guards expected
+  }
 }
 
 /**
@@ -14638,10 +14794,11 @@ function updateCrownGuardAI(state, dt) {
         guard.targetY = crownY;
         // IMPORTANT: Force DPS guards to focus player when chasing crown
         // Healers maintain their own target (allies to protect)
+        // Use namespace _crownForcedTarget (crown-system only, isolated from other AI behaviors)
         if (guard.guardRole === 'DPS' || guard.loadoutType === 'dps') {
-          guard._forcedCombatTarget = state.player;
+          guard._crownForcedTarget = state.player;
         } else {
-          guard._forcedCombatTarget = null; // Clear healer forced target, they pick own
+          guard._crownForcedTarget = null; // Clear healer forced target, they pick own
         }
         
         // Update mana and burst cooldown
@@ -14766,7 +14923,7 @@ function updateCrownGuardAI(state, dt) {
             nearestHealer.targetY = baseForTeam.y;
           }
           
-          console.log(`[CROWN] Guard ${nearestHealer.name} picked up Crown ${team} - returning to base`);
+          if(state.crownDebug?.enabled) console.log(`[CROWN] Guard ${nearestHealer.name} picked up Crown ${team} - returning to base`);
         }
         // If crown is on ground and nearest healer is far, target it
         else if(nearestHealer && nearestDist > 60 && nearestDist <= 500){
@@ -14797,7 +14954,7 @@ function updateCrownGuardAI(state, dt) {
             crown.x = baseForTeam.x + 26;
             crown.y = baseForTeam.y;
             
-            console.log(`[CROWN] Crown ${team} returned home and secured!`);
+            if(state.crownDebug?.enabled) console.log(`[CROWN] Crown ${team} returned home and secured!`);
             if(state.ui?.toast){
               const colorClass = team === 'teamA' ? 'warn' : team === 'teamB' ? 'info' : 'pos';
               state.ui.toast(`<span class="${colorClass}"><b>Crown ${team} secured!</b></span>`);
@@ -14818,36 +14975,71 @@ function updateCrownGuardAI(state, dt) {
  * Crowns are loot items that can be carried
  * Call every update tick when emperor is active
  */
+/**
+ * CROWN PICKUP - OPTION A: DISTANCE-ONLY (No Sites/Bases)
+ * Emperor picks up nearest available crown within radius
+ * Pure distance check in world space - no area/base dependencies
+ * If coordinate mismatch detected, logs explicitly
+ */
 function tryPickupCrowns(state){
   if(!state?.emperor?.active) return;
   const p = state.player;
   if(!p) return;
 
+  const PICKUP_RADIUS = 300;  // Generous radius, no coupling
   const teams = ['teamA','teamB','teamC'];
+  
   for(const team of teams){
     const crown = state.emperor.crowns?.[team];
-    if(!crown) {
-      console.log(`[CROWN] No crown for ${team}`);
-      continue;
-    }
-    if(crown.secured || crown.carriedBy) {
-      console.log(`[CROWN] Crown ${team} is secured=${crown.secured}, carriedBy=${crown.carriedBy}`);
-      continue;
-    }
-
-    const dist = Math.hypot(p.x - crown.x, p.y - crown.y);
-    console.log(`[CROWN] Distance to ${team}: ${dist.toFixed(1)}px (player at ${p.x.toFixed(0)},${p.y.toFixed(0)}, crown at ${crown.x.toFixed(0)},${crown.y.toFixed(0)})`);
     
-    // Auto-pickup when within generous range (150 pixels)
-    if(dist <= 150){
+    // === ELIGIBILITY CHECK ===
+    if(!crown) {
+      if(typeof logCrownPickupBlocked === 'function') {
+        logCrownPickupBlocked(state, team, null, p, -1, 'CROWN_MISSING');
+      }
+      continue;
+    }
+    if(crown.secured) {
+      if(typeof logCrownPickupBlocked === 'function') {
+        logCrownPickupBlocked(state, team, crown, p, 0, 'ALREADY_SECURED');
+      }
+      continue;
+    }
+    if(crown.carriedBy && crown.carriedBy !== 'player') {
+      if(typeof logCrownPickupBlocked === 'function') {
+        logCrownPickupBlocked(state, team, crown, p, 0, 'ALREADY_CARRIED');
+      }
+      continue;
+    }
+    
+    // === DISTANCE CALCULATION (pure world space) ===
+    const dist = Math.hypot(p.x - crown.x, p.y - crown.y);
+    
+    // === ATTEMPT LOG ===
+    if(typeof logCrownPickupAttempt === 'function') {
+      logCrownPickupAttempt(state, team, crown, p, dist, PICKUP_RADIUS);
+    }
+    
+    // === PICKUP RESOLUTION ===
+    if(dist <= PICKUP_RADIUS){
+      // SUCCESS
       crown.carriedBy = 'player';
       if(!state.emperor.carriedCrowns) state.emperor.carriedCrowns = [];
       if(!state.emperor.carriedCrowns.includes(team)) {
         state.emperor.carriedCrowns.push(team);
       }
+      
+      if(typeof logCrownPickup === 'function') {
+        logCrownPickup(state, team, 'player');
+      }
+      
       try { state.ui?.toast?.(`👑 Crown claimed (${team})`); } catch(e) {}
-      try { state.gameLog?.push?.(`[CROWN] picked up ${team}`); } catch(e) {}
-      console.log(`[CROWN] ✅ Player picked up crown: ${team}`);
+      console.log(`[CROWN] ✅ Player picked up crown: ${team} at distance ${dist.toFixed(0)}px`);
+    } else {
+      // BLOCKED: out of range
+      if(typeof logCrownPickupBlocked === 'function') {
+        logCrownPickupBlocked(state, team, crown, p, dist, 'OUT_OF_RANGE');
+      }
     }
   }
 }
@@ -14913,10 +15105,13 @@ function trySecureCrowns(state){
       const securedCount = countSecuredCrowns(state);
       crown.x = base.x - 34 - (securedCount * 22);
       crown.y = base.y - 12;
+      
+      // Log crown secured
+      logCrownSecured(state, team, base.name || `Base_${base.id}`);
 
       try { state.ui?.toast?.(`✅ Crown secured (${team}) ${securedCount}/3`); } catch(e) {}
       try { state.gameLog?.push?.(`[CROWN] secured ${team}`); } catch(e) {}
-      console.log(`[CROWN] Crown secured: ${team} (${securedCount}/3)`);
+      if(state.crownDebug?.enabled) console.log(`[CROWN] Crown secured: ${team} (${securedCount}/3)`);
     }
   }
 }
@@ -14949,7 +15144,10 @@ function dropCarriedCrowns(state, keepUnlockedIfStillEmperor){
       crown.y = state.player.y;
       crown.lastTouchedTime = state.gameTime || 0;
       
-      console.log(`[CROWN] Crown dropped at player death location (${crown.x|0},${crown.y|0}): ${team}`);
+      // Log crown drop
+      logCrownDrop(state, team, 'player_death');
+      
+      if(state.crownDebug?.enabled) console.log(`[CROWN] Crown dropped at player death location (${crown.x|0},${crown.y|0}): ${team}`);
     }
   }
 }
@@ -15298,7 +15496,272 @@ window.testCrownGuardBurst = function() {
   console.log('   Watch them: Cast burst → Move to 300px → Recharge mana → Repeat');
 };
 
+// ═════════════════════════════════════════════════════════════════════════════
+// TREASURE CHEST SYSTEM - 5 chests spawn randomly, give free fighter card spins
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Initialize treasure chest system
+ * Spawns 5 chests at random locations on the map
+ * When collected: grants free fighter card spin + destroyed
+ * Auto-respawns after 3 minutes at new random location
+ */
+function initTreasureChests(state) {
+  if (!state.treasureChests) {
+    state.treasureChests = [];
+    state.chestRespawnTimer = 0;
+    state.CHEST_RESPAWN_INTERVAL = 180; // 3 minutes in seconds
+    state.CHEST_COUNT = 5;
+    state.CHEST_PICKUP_RADIUS = 60; // pixels to be near chest
+  }
+  
+  // Spawn initial 5 chests
+  for (let i = 0; i < state.CHEST_COUNT; i++) {
+    spawnRandomChest(state);
+  }
+  
+  console.log(`[CHESTS] Spawned ${state.treasureChests.length} treasure chests`);
+}
+
+/**
+ * Spawn a single chest at random map location
+ */
+function spawnRandomChest(state) {
+  if (!state.playableBounds || !state.mapWidth || !state.mapHeight) {
+    return; // Wait for bounds to be set
+  }
+  
+  const { minX, maxX, minY, maxY } = state.playableBounds;
+  const attempts = 30;
+  let x, y, valid = false;
+  
+  // Find valid spawn location (away from bases, in playable area)
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    x = minX + Math.random() * (maxX - minX);
+    y = minY + Math.random() * (maxY - minY);
+    
+    // Check distance from all bases (must be at least 200px away)
+    valid = true;
+    for (const site of state.sites || []) {
+      if (site.id.includes('_base')) {
+        const dist = Math.hypot(x - site.x, y - site.y);
+        if (dist < 200) {
+          valid = false;
+          break;
+        }
+      }
+    }
+    
+    if (valid) break;
+  }
+  
+  const chest = {
+    id: `chest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    x: x,
+    y: y,
+    r: 20, // Visible radius
+    type: 'treasure_chest',
+    collected: false,
+    spawnTime: state.campaign?.time || 0,
+    icon: '📦' // Unicode treasure chest
+  };
+  
+  state.treasureChests.push(chest);
+  console.log(`[CHEST] Spawned chest at (${x|0}, ${y|0})`);
+  
+  return chest;
+}
+
+/**
+ * Update treasure chest system each frame
+ * Check for collection, handle respawn timers
+ */
+function updateTreasureChests(state, dt) {
+  if (!state.treasureChests || state.treasureChests.length === 0) return;
+  
+  const player = state.player;
+  if (!player) return;
+  
+  // Check for chest pickup
+  for (let i = state.treasureChests.length - 1; i >= 0; i--) {
+    const chest = state.treasureChests[i];
+    if (!chest || chest.collected) continue;
+    
+    const dist = Math.hypot(player.x - chest.x, player.y - chest.y);
+    
+    if (dist < state.CHEST_PICKUP_RADIUS) {
+      // Player collected chest!
+      collectTreasureChest(state, chest);
+      chest.collected = true;
+      state.treasureChests.splice(i, 1);
+    }
+  }
+  
+  // Respawn timer
+  state.chestRespawnTimer = (state.chestRespawnTimer || 0) + dt;
+  
+  if (state.chestRespawnTimer >= state.CHEST_RESPAWN_INTERVAL) {
+    state.chestRespawnTimer = 0;
+    
+    // Spawn missing chests (respawn if any were collected)
+    const missingCount = state.CHEST_COUNT - state.treasureChests.length;
+    for (let i = 0; i < missingCount; i++) {
+      spawnRandomChest(state);
+    }
+  }
+}
+
+/**
+ * Player collected a treasure chest
+ * Grant free fighter card spin + feedback
+ */
+function collectTreasureChest(state, chest) {
+  // Grant free fighter card spin (like level-up)
+  const playerLevel = state.progression?.level || 1;
+  
+  try {
+    // Generate card at player level
+    const card = generateFighterCard(playerLevel, state.fighterCardInventory.nextCardId++);
+    
+    if (card) {
+      addFighterCard(state, card);
+      
+      // Visual feedback
+      state.ui.toast?.(`🎉 Treasure Chest! Received: <b>${card.name}</b>`);
+      
+      // Try to show fancy reveal animation
+      if (state.ui && state.ui.showFighterCardReveal && typeof state.ui.showFighterCardReveal === 'function') {
+        try {
+          state.ui.showFighterCardReveal(card);
+        } catch (e) {
+          console.log('[CHEST] Card reveal unavailable:', e.message);
+        }
+      }
+      
+      console.log(`[CHEST] Collected! Card: ${card.name} (${card.rarity})`);
+    } else {
+      console.warn('[CHEST] Failed to generate card');
+      state.ui.toast?.('⚠️ Treasure Chest: Card generation failed');
+    }
+  } catch (error) {
+    console.error('[CHEST] Error collecting chest:', error);
+    state.ui.toast?.('❌ Treasure Chest: Error collecting reward');
+  }
+}
+
+/**
+ * Render treasure chests on the game map
+ */
+function renderTreasureChests(ctx, state) {
+  if (!state.treasureChests || !ctx) return;
+  
+  for (const chest of state.treasureChests) {
+    if (!chest || chest.collected) continue;
+    
+    // Chest icon with glow effect
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)'; // Gold transparent
+    ctx.beginPath();
+    ctx.arc(chest.x, chest.y, chest.r + 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Chest body
+    ctx.fillStyle = '#FFD700'; // Gold
+    ctx.fillRect(chest.x - chest.r, chest.y - chest.r * 0.7, chest.r * 2, chest.r * 1.4);
+    
+    // Chest lid (curved)
+    ctx.fillStyle = '#FFA500'; // Orange
+    ctx.beginPath();
+    ctx.arc(chest.x, chest.y - chest.r * 0.5, chest.r, 0, Math.PI);
+    ctx.fill();
+    
+    // Lock detail
+    ctx.fillStyle = '#8B4513'; // Brown
+    ctx.fillRect(chest.x - 4, chest.y, 8, 8);
+    
+    // Label nearby
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('CHEST', chest.x, chest.y - chest.r - 15);
+  }
+}
+
 console.log('  • activateEmperorTest() - TEST: Activate Emperor Mode and spawn guards');
 console.log('  • getCrownGuardEliteStatus() - Show all guards: HP, mana, rotation, burst CD');
 console.log('  • getCrownState() - Show crown positions and carriers');
 console.log('  • testCrownGuardBurst() - Trigger burst phase for testing');
+
+// ═════════════════════════════════════════════════════════════════════════════
+// TREASURE CHEST TEST COMMANDS
+// ═════════════════════════════════════════════════════════════════════════════
+
+window.testChestSystem = function() {
+  if (!window.__gameState) {
+    console.error('Game state not found. Start a game first.');
+    return;
+  }
+  
+  const state = window.__gameState;
+  const chestCount = state.treasureChests?.length || 0;
+  
+  console.log('\n═══════════════════════════════════════');
+  console.log('  🎁 TREASURE CHEST SYSTEM STATUS');
+  console.log('═══════════════════════════════════════');
+  console.log(`  Active Chests: ${chestCount} / ${state.CHEST_COUNT || 5}`);
+  console.log(`  Respawn Timer: ${(state.chestRespawnTimer || 0).toFixed(1)}s / ${state.CHEST_RESPAWN_INTERVAL || 180}s`);
+  console.log(`  Pickup Radius: ${state.CHEST_PICKUP_RADIUS || 60}px`);
+  
+  if (state.treasureChests && state.treasureChests.length > 0) {
+    console.log('\n  📍 Chest Locations:');
+    state.treasureChests.forEach((chest, idx) => {
+      const dist = Math.hypot(chest.x - state.player.x, chest.y - state.player.y);
+      const status = dist < 60 ? '✅ IN RANGE' : `📏 ${dist.toFixed(0)}px away`;
+      console.log(`    Chest ${idx + 1}: (${chest.x|0}, ${chest.y|0}) - ${status}`);
+    });
+  }
+  
+  console.log('\n  ⏱️ Respawn Info:');
+  console.log(`    Next respawn in: ${Math.max(0, (state.CHEST_RESPAWN_INTERVAL - state.chestRespawnTimer)|0)}s`);
+  console.log(`    Respawns after: 3 minutes (180s)`);
+  console.log('\n═══════════════════════════════════════');
+};
+
+window.spawnTestChest = function() {
+  if (!window.__gameState) {
+    console.error('Game state not found. Start a game first.');
+    return;
+  }
+  
+  const state = window.__gameState;
+  
+  if (!state.treasureChests) {
+    console.log('[TEST] Initializing treasure chest system...');
+    initTreasureChests(state);
+  }
+  
+  const chest = spawnRandomChest(state);
+  console.log(`[TEST] Spawned chest at (${chest.x|0}, ${chest.y|0})`);
+  console.log(`[TEST] Total chests: ${state.treasureChests.length}`);
+};
+
+window.teleportToChest = function(chestIndex = 0) {
+  if (!window.__gameState) {
+    console.error('Game state not found. Start a game first.');
+    return;
+  }
+  
+  const state = window.__gameState;
+  if (!state.treasureChests || !state.treasureChests[chestIndex]) {
+    console.error(`Chest ${chestIndex} not found`);
+    return;
+  }
+  
+  const chest = state.treasureChests[chestIndex];
+  state.player.x = chest.x;
+  state.player.y = chest.y;
+  console.log(`[TEST] Teleported to chest ${chestIndex} at (${chest.x|0}, ${chest.y|0})`);
+};
+
+console.log('  • testChestSystem() - Show treasure chest status and locations');
+console.log('  • spawnTestChest() - Spawn a new test chest');
+console.log('  • teleportToChest(idx) - Teleport to a chest for testing');

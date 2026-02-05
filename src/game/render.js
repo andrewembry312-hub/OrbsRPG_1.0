@@ -736,6 +736,44 @@ export function render(state){
     ctx.globalAlpha=1;
   }
 
+  // Treasure chests
+  if(state.treasureChests && state.treasureChests.length > 0){
+    for(const chest of state.treasureChests){
+      if(!chest || chest.collected || !inView(chest.x, chest.y, chest.r + 5)) continue;
+      
+      ctx.globalAlpha = 0.95;
+      
+      // Chest glow effect
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+      ctx.beginPath();
+      ctx.arc(chest.x, chest.y, chest.r + 8, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Chest body (gold rectangle)
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(chest.x - chest.r, chest.y - chest.r * 0.7, chest.r * 2, chest.r * 1.4);
+      
+      // Chest lid (curved)
+      ctx.fillStyle = '#FFA500';
+      ctx.beginPath();
+      ctx.arc(chest.x, chest.y - chest.r * 0.5, chest.r, 0, Math.PI);
+      ctx.fill();
+      
+      // Lock detail
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(chest.x - 4, chest.y, 8, 8);
+      
+      // Label
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.font = 'bold 11px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('💎 CHEST', chest.x, chest.y - chest.r - 18);
+      
+      ctx.globalAlpha = 1;
+    }
+  }
+
   // Render crowns (emperor mode items)
   if(state.emperor?.crowns){
     const crownTeams = ['teamA', 'teamB', 'teamC'];
