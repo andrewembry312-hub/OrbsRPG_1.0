@@ -43,10 +43,10 @@ export function initSites(state){
   // 4. Crown pickup zone center
   // CRITICAL: All these must use the SAME coordinates
   state.sites.push({ id:'player_base', name:'Player Base', x:offsetX+pad, y:offsetY+playHeight-pad, r:92, owner:'player', prog:1 });
-  state.sites.push({ id:'team_a_base', name:'Red Base', x:offsetX+pad, y:offsetY+pad, r:92, owner:'teamA', prog:1 });
-  state.sites.push({ id:'team_b_base', name:'Yellow Base', x:offsetX+playWidth-pad, y:offsetY+pad, r:92, owner:'teamB', prog:1 });
+  state.sites.push({ id:'team_a_base', name:'Red Base', x:offsetX+pad, y:offsetY+pad, r:92, owner:'teamA', prog:1, hp:2000, maxHp:2000, baseDefeated:false });
+  state.sites.push({ id:'team_b_base', name:'Yellow Base', x:offsetX+playWidth-pad, y:offsetY+pad, r:92, owner:'teamB', prog:1, hp:2000, maxHp:2000, baseDefeated:false });
   // third AI team (teamC) bottom-right corner - use Blue team
-  state.sites.push({ id:'team_c_base', name:'Blue Base', x:offsetX+playWidth-pad, y:offsetY+playHeight-pad, r:92, owner:'teamC', prog:1 });
+  state.sites.push({ id:'team_c_base', name:'Blue Base', x:offsetX+playWidth-pad, y:offsetY+playHeight-pad, r:92, owner:'teamC', prog:1, hp:2000, maxHp:2000, baseDefeated:false });
 
   // generate random flags across the map (avoid near bases, stay in playable area)
   const FLAG_COUNT = 6;
@@ -1028,6 +1028,99 @@ export function updateWallDamage(state, dt){
   }
 }
 
+// Update enemy base health - only vulnerable after all 3 crowns secured
+// Bases take damage from player + allies in proximity contact
+export function updateBaseHealth(state, dt){
+  // Only process during emperor mode after crowns are secured
+  if(!state?.emperor?.active) return;
+  
+  // Check if all 3 crowns are secured
+  let securedCount = 0;
+  const teams = ['teamA','teamB','teamC'];
+  for(const team of teams){
+    if(state.emperor.crowns?.[team]?.secured) securedCount++;
+  }
+  if(securedCount < 3) return; // Bases invulnerable until all crowns secured
+  
+  const enemyBaseIds = ['team_a_base', 'team_b_base', 'team_c_base'];
+  
+  for(const s of state.sites){
+    if(!enemyBaseIds.includes(s.id)) continue;
+    if(s.baseDefeated) continue; // Already destroyed
+    if(s.hp <= 0) continue; // Already at 0
+    
+    // Count attackers near the base
+    let attackerCount = 0;
+    let totalDmg = 0;
+    const attackRange = s.r + 80;
+    
+    // Player attacking base
+    if(state.player && !state.player.dead && state.player.hp > 0){
+      const dist = Math.hypot(state.player.x - s.x, state.player.y - s.y);
+      if(dist <= attackRange){
+        attackerCount++;
+        const st = state.currentStats || { atk: 10 };
+        totalDmg += (st.atk || 10);
+      }
+    }
+    
+    // Friendlies attacking base
+    for(const f of state.friendlies){
+      if(!f || f.respawnT > 0 || f.dead || f.hp <= 0) continue;
+      const dist = Math.hypot(f.x - s.x, f.y - s.y);
+      if(dist <= attackRange){
+        attackerCount++;
+        totalDmg += (f.contactDmg || f.dmg || 10);
+      }
+    }
+    
+    if(attackerCount > 0){
+      // Damage scales with attacker count but uses actual damage values
+      const damagePerSecond = totalDmg * 0.5; // 50% of attack power per second
+      const oldHp = s.hp;
+      s.hp = Math.max(0, s.hp - damagePerSecond * dt);
+      s._lastBaseDamageTime = Date.now();
+      
+      // Base destroyed!
+      if(s.hp <= 0 && !s.baseDefeated){
+        s.baseDefeated = true;
+        s.hp = 0;
+        
+        // Determine which team was defeated
+        const defeatedTeam = s.owner;
+        if(!state.defeatedTeams) state.defeatedTeams = new Set();
+        state.defeatedTeams.add(defeatedTeam);
+        
+        // Kill all guards at this base
+        for(let i = state.enemies.length - 1; i >= 0; i--){
+          const e = state.enemies[i];
+          if(e.guard && e.homeSiteId === s.id){
+            state.enemies.splice(i, 1);
+          }
+        }
+        
+        // Clear pending respawns at this base
+        if(s.guardRespawns) s.guardRespawns.length = 0;
+        
+        // Check if team still has outposts
+        const teamOutposts = state.sites.filter(site => 
+          site.id.startsWith('site_') && site.owner === defeatedTeam
+        );
+        
+        const teamName = defeatedTeam === 'teamA' ? 'Red' : defeatedTeam === 'teamB' ? 'Yellow' : 'Blue';
+        
+        if(teamOutposts.length > 0){
+          state.ui?.toast?.(`<b>🏰💥 ${teamName} Base DESTROYED!</b><br>${teamName} team defeated! They can still respawn from ${teamOutposts.length} outpost(s).`, 6000);
+        } else {
+          state.ui?.toast?.(`<b>🏰💥 ${teamName} Base DESTROYED!</b><br>${teamName} team ELIMINATED! No remaining outposts.`, 6000);
+        }
+        
+        console.log(`%c[BASE] ${teamName} base destroyed! Team ${defeatedTeam} defeated. Outposts remaining: ${teamOutposts.length}`, 'color: #ff0000; font-weight: bold');
+      }
+    }
+  }
+}
+
 // Update flag health and damage states
 export function updateFlagHealth(state, dt){
   for(const s of state.sites){
@@ -1216,9 +1309,9 @@ export function loadMapFromImage(state, imageUrl){
       const pad = 140;
       const cornerPad = Math.min(pad, Math.min(state.mapWidth, state.mapHeight)/4);
       state.sites.push({ id:'player_base', name:'Player Base', x:cornerPad, y:state.mapHeight-cornerPad, r:92, owner:'player', prog:1 });
-      state.sites.push({ id:'team_a_base', name:'Red Base', x:cornerPad, y:cornerPad, r:92, owner:'teamA', prog:1 });
-      state.sites.push({ id:'team_b_base', name:'Yellow Base', x:state.mapWidth-cornerPad, y:cornerPad, r:92, owner:'teamB', prog:1 });
-      state.sites.push({ id:'team_c_base', name:'Blue Base', x:state.mapWidth-cornerPad, y:state.mapHeight-cornerPad, r:92, owner:'teamC', prog:1 });
+      state.sites.push({ id:'team_a_base', name:'Red Base', x:cornerPad, y:cornerPad, r:92, owner:'teamA', prog:1, hp:2000, maxHp:2000, baseDefeated:false });
+      state.sites.push({ id:'team_b_base', name:'Yellow Base', x:state.mapWidth-cornerPad, y:cornerPad, r:92, owner:'teamB', prog:1, hp:2000, maxHp:2000, baseDefeated:false });
+      state.sites.push({ id:'team_c_base', name:'Blue Base', x:state.mapWidth-cornerPad, y:state.mapHeight-cornerPad, r:92, owner:'teamC', prog:1, hp:2000, maxHp:2000, baseDefeated:false });
 
       // Add flags in the middle regions
       const FLAG_COUNT = 6;

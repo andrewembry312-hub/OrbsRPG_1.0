@@ -1279,6 +1279,10 @@ function drawSite(ctx, s, state){
   const isBase = s.id.endsWith('_base');
   const ownerColor = s.owner ? (teamColor(s.owner) || cssVar('--enemy')) : cssVar('--enemy');
   if(isBase){
+    // Apply destroyed visual effect for defeated bases
+    const isDestroyed = s.baseDefeated;
+    if(isDestroyed) ctx.globalAlpha = 0.4;
+    
     // Draw home base image in circular crop
     let imageDrawn = false;
     try{
@@ -1290,13 +1294,18 @@ function drawSite(ctx, s, state){
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r + 18, 0, Math.PI * 2);
         ctx.clip();
-        // Draw the home base image to fill the circle
+        // Draw the home base image to fill the circle  
         const imgSize = (s.r + 18) * 2;
+        // Desaturate destroyed bases with grayscale filter
+        if(isDestroyed) ctx.filter = 'grayscale(100%)';
         ctx.drawImage(homeBaseImg, s.x - imgSize/2, s.y - imgSize/2, imgSize, imgSize);
+        if(isDestroyed) ctx.filter = 'none';
         ctx.restore();
         imageDrawn = true;
       }
     }catch(e){}
+    
+    if(isDestroyed) ctx.globalAlpha = 1;
     
     // If image failed, draw castle emoji as fallback
     if(!imageDrawn){
@@ -1319,6 +1328,47 @@ function drawSite(ctx, s, state){
     ctx.arc(s.x, s.y, s.r+18, 0, Math.PI*2); 
     ctx.stroke();
     ctx.globalAlpha = 1;
+    
+    // Draw base health bar when vulnerable (all crowns secured) and it's an enemy base
+    if(s.hp !== undefined && s.maxHp && s.id !== 'player_base'){
+      const allCrownsSecured = state?.emperor?.active && 
+        ['teamA','teamB','teamC'].every(t => state.emperor.crowns?.[t]?.secured);
+      
+      if(allCrownsSecured || s.baseDefeated){
+        const barW = (s.r + 18) * 2;
+        const barH = 10;
+        const barX = s.x - barW/2;
+        const barY = s.y + s.r + 24;
+        const hpPct = Math.max(0, s.hp / s.maxHp);
+        
+        // Background
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+        
+        // HP fill - red to green gradient based on health
+        if(s.baseDefeated){
+          ctx.fillStyle = '#444';
+        } else if(hpPct > 0.5){
+          ctx.fillStyle = '#4caf50';
+        } else if(hpPct > 0.25){
+          ctx.fillStyle = '#ff9800';
+        } else {
+          ctx.fillStyle = '#ff4444';
+        }
+        ctx.fillRect(barX, barY, barW * hpPct, barH);
+        
+        // HP text
+        ctx.font = 'bold 10px system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#fff';
+        if(s.baseDefeated){
+          ctx.fillText('DESTROYED', s.x, barY + barH/2);
+        } else {
+          ctx.fillText(`${Math.ceil(s.hp)}/${s.maxHp}`, s.x, barY + barH/2);
+        }
+      }
+    }
   } else {
     ctx.globalAlpha = 0.20;
     ctx.fillStyle = ownerColor;

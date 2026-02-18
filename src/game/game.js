@@ -3,7 +3,7 @@ import { INV_SIZE, LOOT_TTL, ARMOR_SLOTS, SLOT_LABEL, DEFAULT_BINDS } from "./co
 import { pickRarity, rarityClass, rarityTier } from "./rarity.js";
 import { xpForNext } from "./progression.js";
 import { SKILLS, getSkillById, getAbilityById, DOT_REGISTRY, BUFF_REGISTRY, defaultAbilitySlots, defaultPassives, loadLoadout } from "./skills.js";
-import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, updateWallDamage, updateFlagHealth, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
+import { initSites, playerHome, getHomeForTeam, getFriendlyFlags, getFlagsForTeam, getNonPlayerFlags, updateCapture, updateWallDamage, updateFlagHealth, updateBaseHealth, spawnGuardsForSite, enemiesNearSite, findNearestEnemyTeamAtSite } from "./world.js";
 import { META_LOADOUTS } from "./loadouts.js";
 import { LEVEL_CONFIG, getZoneForPosition, scaleAllyToPlayerLevel } from "./leveling.js";
 import * as LoadoutRegistry from "./loadout-registry.js";
@@ -105,6 +105,7 @@ export function hardResetGameState(state){
   state.projectiles = [];
   state.loot = [];
   state.inventory = [];
+  state.defeatedTeams = new Set(); // Track which teams have had their base destroyed
 
   // Stable entity id sequence (used for _id assignment on spawn)
   state.nextEntityId = 0;
@@ -11416,6 +11417,9 @@ export function updateGame(state, dt){
   // UPDATE FLAG HEALTH - Enemies can damage flags
   updateFlagHealth(state, dt);
   
+  // UPDATE BASE HEALTH - Player can damage enemy bases after all crowns secured
+  updateBaseHealth(state, dt);
+  
   // UPDATE GUARD PROGRESSION - Time-based gear upgrades
   updateGuardProgression(state, dt);
   
@@ -11462,6 +11466,7 @@ export function updateGame(state, dt){
   // Emperor check: if any team controls ALL capture flags, they become emperor
   checkEmperorStatus(state);
   checkAllBasesDestroyed(state); // Check if boss should spawn (all bases destroyed)
+  checkTeamElimination(state);   // Check if defeated teams lost all outposts
   updateEmperorGuideUI(state);  // Update on-screen helper text
   updateFriendlySpawns(state, dt);
   updatePartyCoordinator(state, dt);
@@ -11550,6 +11555,11 @@ export function updateGame(state, dt){
   // process guard respawns attached to sites
   for(const s of state.sites){
     if(!s.guardRespawns || s.guardRespawns.length===0) continue;
+    // DEFEATED BASE CHECK: Don't respawn guards at destroyed bases
+    if(s.baseDefeated){
+      s.guardRespawns.length = 0;
+      continue;
+    }
     for(let gi=s.guardRespawns.length-1; gi>=0; gi--){
       s.guardRespawns[gi] -= dt;
       if(s.guardRespawns[gi] <= 0){
@@ -11571,14 +11581,20 @@ export function updateGame(state, dt){
         const team = r.team;
         const currentDefenders = state.enemies.filter(e=>e.team===team && !e.guard).length;
         if(currentDefenders < MAX_DEFENDERS_PER_TEAM){
-          // choose nearest owned site to death position; fallback to home base
-          const sources = state.sites.filter(s=>s.owner===team);
+          // DEFEATED TEAM CHECK: Only respawn at sites they still control
+          // If base is destroyed, exclude it from valid spawn sources
+          const sources = state.sites.filter(s=>{
+            if(s.owner !== team) return false;
+            // Skip destroyed bases - defeated teams can't respawn from home
+            if(s.id.endsWith('_base') && s.baseDefeated) return false;
+            return true;
+          });
           let src = null; let bestD = Infinity;
           for(const s of sources){
             const d = Math.hypot((r.x||0)-s.x, (r.y||0)-s.y);
             if(d < bestD){ bestD = d; src = s; }
           }
-          if(!src) src = getHomeForTeam(state, team);
+          // If no valid sources (all outposts lost + base destroyed), don't respawn
           if(src){
             const ang = Math.random()*Math.PI*2;
             const dist = rand(90,160);
@@ -13110,14 +13126,24 @@ function advanceToNextZone(state) {
     removeEmperorEffect(state);
     state.emperor = null;
     initializeEmperorSystem(state);
+    state.defeatedTeams = new Set(); // Reset defeated teams
     
-    // Reset flags to neutral
+    // Reset flags to neutral and restore enemy base HP
     for (const site of state.sites) {
       if (site.id && site.id.startsWith('site_')) {
         site.owner = null;
         site.health = site.maxHealth || 100;
       }
+      // Reset enemy base HP and defeated status
+      if (site.id && site.id.endsWith('_base') && site.id !== 'player_base') {
+        site.hp = site.maxHp || 2000;
+        site.baseDefeated = false;
+      }
     }
+    // Clear elimination flags
+    delete state._eliminated_teamA;
+    delete state._eliminated_teamB;
+    delete state._eliminated_teamC;
     
     // Clear enemies for fresh zone
     state.enemies = [];
@@ -13154,14 +13180,24 @@ function advanceToNextZone(state) {
   // CRITICAL FIX: Fully reset emperor state for new zone (crowns, guards, bases)
   state.emperor = null;
   initializeEmperorSystem(state);
+  state.defeatedTeams = new Set(); // Reset defeated teams
   
-  // Reset all flags to neutral
+  // Reset all flags to neutral and restore enemy base HP
   for (const site of state.sites) {
     if (site.id && site.id.startsWith('site_')) {
       site.owner = null;
       site.health = site.maxHealth || 100;
     }
+    // Reset enemy base HP and defeated status
+    if (site.id && site.id.endsWith('_base') && site.id !== 'player_base') {
+      site.hp = site.maxHp || 2000;
+      site.baseDefeated = false;
+    }
   }
+  // Clear elimination flags
+  delete state._eliminated_teamA;
+  delete state._eliminated_teamB;
+  delete state._eliminated_teamC;
   
   // Clear all enemies
   state.enemies = [];
@@ -13465,7 +13501,7 @@ function updateEmperorGuideUI(state) {
   
   const enemyBaseIds = ['team_a_base', 'team_b_base', 'team_c_base'];
   const enemyBases = state.sites.filter(s => enemyBaseIds.includes(s.id));
-  const allBasesDestroyed = enemyBases.length > 0 && enemyBases.every(b => !b || b.hp <= 0);
+  const allBasesDestroyed = enemyBases.length > 0 && enemyBases.every(b => !b || b.baseDefeated || b.hp <= 0);
   
   const bossActive = state.zoneConfig?.bossActive || false;
   
@@ -13507,8 +13543,15 @@ function updateEmperorGuideUI(state) {
     } else {
       state.ui.emperorStep3.style.background = 'rgba(255,215,0,0.15)';
       state.ui.emperorStep3.style.borderLeft = '3px solid #ffd700';
-      const destroyedCount = enemyBases.filter(b => b && b.hp <= 0).length;
-      state.ui.emperorStep3.querySelector('div:first-child').innerHTML = `3. Destroy Bases (${destroyedCount}/${enemyBases.length})`;
+      const destroyedCount = enemyBases.filter(b => b && b.baseDefeated).length;
+      // Show per-base HP status
+      const baseStatus = enemyBases.map(b => {
+        const name = b.id === 'team_a_base' ? '🔴' : b.id === 'team_b_base' ? '🟡' : '🔵';
+        if(b.baseDefeated) return `${name}💀`;
+        const pct = Math.round((b.hp / b.maxHp) * 100);
+        return `${name}${pct}%`;
+      }).join(' ');
+      state.ui.emperorStep3.querySelector('div:first-child').innerHTML = `3. Destroy Bases (${destroyedCount}/${enemyBases.length}) ${baseStatus}`;
     }
     state.ui.emperorStep3.style.display = allCrownsSecured ? 'block' : 'none';
   }
@@ -13531,17 +13574,13 @@ function updateEmperorGuideUI(state) {
 function checkAllBasesDestroyed(state) {
   if (!isEmperorActive(state)) return false;
   
-  // FIXED: Check if all 3 crowns have been SECURED at player base (not just carried)
-  // With 1-crown carry limit, player must ferry each crown individually
+  // Check if all 3 crowns have been SECURED at player base (not just carried)
   const securedCount = countSecuredCrowns(state);
   if (securedCount < 3) {
-    // Not all crowns secured yet - bases cannot be destroyed
     return false;
   }
   
-  console.log(`%c[EMPEROR] All 3 crowns secured! Now checking if bases destroyed...`, 'color: #ffd700');
-  
-  // Find all home bases (correct IDs: team_a_base, team_b_base, team_c_base)
+  // Find all home bases
   const enemyBaseIds = ['team_a_base', 'team_b_base', 'team_c_base'];
   const enemyBases = state.sites.filter(s => enemyBaseIds.includes(s.id));
   
@@ -13550,8 +13589,8 @@ function checkAllBasesDestroyed(state) {
     return false;
   }
   
-  // Check if all enemy bases are destroyed (hp <= 0 or removed)
-  const allDestroyed = enemyBases.every(base => !base || base.hp <= 0);
+  // Check if all enemy bases are destroyed (baseDefeated flag or hp <= 0)
+  const allDestroyed = enemyBases.every(base => !base || base.baseDefeated || base.hp <= 0);
   
   if (allDestroyed && !state.zoneConfig.bossActive && !state.zoneConfig.zoneComplete) {
     console.log(`%c[EMPEROR] ALL ENEMY BASES DESTROYED! Spawning zone boss...`, 'color: #ff6b6b; font-weight: bold');
@@ -13560,6 +13599,50 @@ function checkAllBasesDestroyed(state) {
   }
   
   return false;
+}
+
+/**
+ * Check if defeated teams (base destroyed) have lost all their outposts
+ * When a defeated team has no outposts left, they are fully eliminated:
+ * - All remaining units are removed
+ * - No more respawns possible
+ */
+function checkTeamElimination(state) {
+  if(!state.defeatedTeams || state.defeatedTeams.size === 0) return;
+  
+  for(const team of state.defeatedTeams){
+    // Check if already fully eliminated (no units left)
+    const teamKey = `_eliminated_${team}`;
+    if(state[teamKey]) continue;
+    
+    // Count outposts still owned by this team
+    const teamOutposts = state.sites.filter(s => 
+      s.id.startsWith('site_') && s.owner === team
+    );
+    
+    if(teamOutposts.length === 0){
+      // Fully eliminated - remove all remaining units of this team
+      state[teamKey] = true;
+      
+      // Remove all enemies of this team
+      let removed = 0;
+      for(let i = state.enemies.length - 1; i >= 0; i--){
+        if(state.enemies[i].team === team){
+          state.enemies.splice(i, 1);
+          removed++;
+        }
+      }
+      
+      // Clear any pending respawns for this team
+      if(state.enemyRespawns){
+        state.enemyRespawns = state.enemyRespawns.filter(r => r.team !== team);
+      }
+      
+      const teamName = team === 'teamA' ? 'Red' : team === 'teamB' ? 'Yellow' : 'Blue';
+      state.ui?.toast?.(`<b>⚔️ ${teamName} team ELIMINATED!</b><br>No base, no outposts — ${removed} units removed.`, 6000);
+      console.log(`%c[EMPEROR] ${teamName} team fully eliminated! ${removed} units removed.`, 'color: #ff0000; font-weight: bold');
+    }
+  }
 }
 
 // Add the Emperor effect to player's active effects
@@ -15328,6 +15411,10 @@ function updateCrownGuardRespawns(state, dt){
   
   const teams = ['teamA','teamB','teamC'];
   for(const team of teams){
+    // Don't respawn crown guards for defeated teams
+    const base = findTeamBaseSite(state, team);
+    if(base?.baseDefeated) continue;
+    
     const guardIds = state.emperor.crownGuards[team] || [];
     
     // Count living guards
@@ -15338,7 +15425,6 @@ function updateCrownGuardRespawns(state, dt){
     
     // If all guards are dead, respawn them
     if(livingGuards === 0){
-      const base = findTeamBaseSite(state, team);
       if(base){
         spawnCrownGuards(state, base, team);
       }
