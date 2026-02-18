@@ -14556,7 +14556,8 @@ function spawnCrowns(state){
       secured: false,       // True when brought to player base
       carriedBy: null,      // 'player' when carried
       lastTouchedTime: 0,   // When last picked up or touched
-      resetTimeout: 6       // Seconds until guards reset protect mode if dropped
+      resetTimeout: 6,      // Seconds until guards reset protect mode if dropped
+      wasPickedUp: false    // True once player picks up - guards can only recover displaced crowns
     };
 
     ensureEntityId(state, crown);
@@ -15032,7 +15033,9 @@ function updateCrownGuardAI(state, dt) {
     
     // ====== GUARD CROWN PICKUP & RECOVERY ======
     // When crown is dropped (not carried by player), priority-2 guards recover it
-    if(!crownCarried && crown.carriedBy === null && !crown.secured){
+    // CRITICAL: Only recover crowns that were previously picked up by the player
+    // Without this check, guards would self-secure their own undisturbed crowns on spawn!
+    if(!crownCarried && crown.carriedBy === null && !crown.secured && crown.wasPickedUp){
       // Find nearest priority-2 (healer) guard
       const healerGuards = allTeamGuards.filter(g => g.guardPriority === 2);
       if(healerGuards.length > 0){
@@ -15169,6 +15172,7 @@ function tryPickupCrowns(state){
     if(dist <= PICKUP_RADIUS){
       // SUCCESS
       crown.carriedBy = 'player';
+      crown.wasPickedUp = true;  // Mark crown as displaced - guards can now recover if dropped
       if(!state.emperor.carriedCrowns) state.emperor.carriedCrowns = [];
       if(!state.emperor.carriedCrowns.includes(team)) {
         state.emperor.carriedCrowns.push(team);
