@@ -542,8 +542,18 @@ export function spawnGuardsForSite(state, site, count=5){
     const v = GUARD_COMPOSITION[pi] || 'warrior';
     const isHealer = (v === 'mage');
     
-    // Get guard level from progression (defaults to 1)
-    const guardLevel = site.guardProgression?.levels?.[pi] || 1;
+    // Get guard level: use progression if set, otherwise use current zone level range
+    let guardLevel = site.guardProgression?.levels?.[pi] || 0;
+    if (guardLevel <= 0) {
+      // Use current zone level range for fresh guards
+      const currentZone = state.zoneConfig?.zones?.[state.zoneConfig.currentZone - 1];
+      if (currentZone) {
+        const zoneAvg = Math.floor((currentZone.minLevel + currentZone.maxLevel) / 2);
+        guardLevel = Math.max(currentZone.minLevel, Math.min(currentZone.maxLevel, zoneAvg + Math.floor(Math.random() * 3) - 1));
+      } else {
+        guardLevel = 1;
+      }
+    }
     
     // Base guard stats (level 1 baseline)
     const guardObj = { 

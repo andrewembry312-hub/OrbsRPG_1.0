@@ -13132,21 +13132,36 @@ function advanceToNextZone(state) {
     for (const site of state.sites) {
       if (site.id && site.id.startsWith('site_')) {
         site.owner = null;
-        site.health = site.maxHealth || 100;
+        site.health = site.maxHealth || 500;
+        site.damageState = 'undamaged';
       }
       // Reset enemy base HP and defeated status
       if (site.id && site.id.endsWith('_base') && site.id !== 'player_base') {
         site.hp = site.maxHp || 2000;
         site.baseDefeated = false;
       }
+      // Reset guard progression and positions for ALL sites (fresh zone = fresh guards)
+      if (site.guardRespawns) site.guardRespawns.length = 0;
+      delete site._guardPositions; // Force regeneration of guard positions
+      site.guardProgression = null; // Reset guard levels (will default to zone levels)
     }
     // Clear elimination flags
     delete state._eliminated_teamA;
     delete state._eliminated_teamB;
     delete state._eliminated_teamC;
     
-    // Clear enemies for fresh zone
+    // Clear ALL enemies and stale respawn queues
     state.enemies = [];
+    state.enemyRespawns = [];
+    
+    // Remove player guards at outposts (they were stationed at now-neutral flags)
+    // Keep group members and non-guard allies
+    const groupIds = new Set(state.group?.members || []);
+    state.friendlies = state.friendlies.filter(f => {
+      if (groupIds.has(f.id)) return true; // Always keep group members
+      if (f.guard) return false; // Remove all guards (outpost guards)
+      return true; // Keep non-guard allies
+    });
     
     // Respawn at home base
     const homeBase = findPlayerBaseSite(state);
@@ -13160,6 +13175,18 @@ function advanceToNextZone(state) {
     state.player.hp = st.maxHp;
     state.player.mana = st.maxMana;
     state.player.stam = st.maxStam;
+    
+    // Re-seed enemy forces and base guards for fresh zone
+    console.log('[ZONE RESET] Re-seeding enemy teams for new prestige zone...');
+    seedTeamForces(state, 'teamA', MAX_DEFENDERS_PER_TEAM);
+    seedTeamForces(state, 'teamB', MAX_DEFENDERS_PER_TEAM);
+    seedTeamForces(state, 'teamC', MAX_DEFENDERS_PER_TEAM);
+    const teamABase = state.sites.find(s => s.id === 'team_a_base');
+    const teamBBase = state.sites.find(s => s.id === 'team_b_base');
+    const teamCBase = state.sites.find(s => s.id === 'team_c_base');
+    if (teamABase) spawnGuardsForSite(state, teamABase, 5);
+    if (teamBBase) spawnGuardsForSite(state, teamBBase, 5);
+    if (teamCBase) spawnGuardsForSite(state, teamCBase, 5);
     
     // Big prestige announcement
     const zone1 = state.zoneConfig.zones[0];
@@ -13186,21 +13213,36 @@ function advanceToNextZone(state) {
   for (const site of state.sites) {
     if (site.id && site.id.startsWith('site_')) {
       site.owner = null;
-      site.health = site.maxHealth || 100;
+      site.health = site.maxHealth || 500;
+      site.damageState = 'undamaged';
     }
     // Reset enemy base HP and defeated status
     if (site.id && site.id.endsWith('_base') && site.id !== 'player_base') {
       site.hp = site.maxHp || 2000;
       site.baseDefeated = false;
     }
+    // Reset guard progression and positions for ALL sites (fresh zone = fresh guards)
+    if (site.guardRespawns) site.guardRespawns.length = 0;
+    delete site._guardPositions; // Force regeneration of guard positions
+    site.guardProgression = null; // Reset guard levels (will default to zone levels)
   }
   // Clear elimination flags
   delete state._eliminated_teamA;
   delete state._eliminated_teamB;
   delete state._eliminated_teamC;
   
-  // Clear all enemies
+  // Clear ALL enemies and stale respawn queues
   state.enemies = [];
+  state.enemyRespawns = [];
+  
+  // Remove player guards at outposts (they were stationed at now-neutral flags)
+  // Keep group members and non-guard allies
+  const groupIds = new Set(state.group?.members || []);
+  state.friendlies = state.friendlies.filter(f => {
+    if (groupIds.has(f.id)) return true; // Always keep group members
+    if (f.guard) return false; // Remove all guards (outpost guards)
+    return true; // Keep non-guard allies
+  });
   
   // Respawn player and allies at home base (fall back to center if no base found)
   const centerX = (state.mapWidth || state.engine.canvas.width) / 2;
@@ -13214,17 +13256,31 @@ function advanceToNextZone(state) {
   state.player.mana = currentStats(state).maxMana;
   state.player.stam = currentStats(state).maxStam;
   
-  // Respawn allies near player
+  // Respawn remaining allies near player
   for (const ally of state.friendlies) {
     const angle = Math.random() * Math.PI * 2;
     const dist = 50 + Math.random() * 30;
     ally.x = state.player.x + Math.cos(angle) * dist;
     ally.y = state.player.y + Math.sin(angle) * dist;
+    ally.respawnT = 0;
+    ally.dead = false;
     const allyStats = npcGetCurrentStats(ally, state);
     ally.hp = allyStats.maxHp;
     ally.mana = allyStats.maxMana;
     ally.stam = allyStats.maxStam;
   }
+  
+  // Re-seed enemy forces and base guards for fresh zone
+  console.log(`[ZONE RESET] Re-seeding enemy teams for zone ${state.zoneConfig.currentZone}...`);
+  seedTeamForces(state, 'teamA', MAX_DEFENDERS_PER_TEAM);
+  seedTeamForces(state, 'teamB', MAX_DEFENDERS_PER_TEAM);
+  seedTeamForces(state, 'teamC', MAX_DEFENDERS_PER_TEAM);
+  const teamABase = state.sites.find(s => s.id === 'team_a_base');
+  const teamBBase = state.sites.find(s => s.id === 'team_b_base');
+  const teamCBase = state.sites.find(s => s.id === 'team_c_base');
+  if (teamABase) spawnGuardsForSite(state, teamABase, 5);
+  if (teamBBase) spawnGuardsForSite(state, teamBBase, 5);
+  if (teamCBase) spawnGuardsForSite(state, teamCBase, 5);
   
   // Big zone announcement
   state.ui.toast(`<b>⚔️ ${nextZone.name.toUpperCase()} ⚔️</b><br>Levels ${nextZone.minLevel}-${nextZone.maxLevel}<br>Capture all flags to summon the boss!`, 8000);
