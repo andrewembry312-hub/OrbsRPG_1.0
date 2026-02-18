@@ -5294,10 +5294,18 @@ function updateFriendlies(state, dt){
         
         // Final fallback: respawn at home base if no player-owned flags available
         if(!respawnSite){
-          const homeBase = state.sites.find(s => s.name === 'Home Base' || s.id === 'site_0');
+          const homeBase = state.sites.find(s => s.id === 'player_base' || s.name === 'Home Base' || s.id === 'site_0');
           if(homeBase){
             respawnSite = homeBase;
           }
+        }
+        
+        // Group member last resort: respawn near player position
+        const isGroupMemberRespawn = state.group && state.group.members && state.group.members.includes(a.id);
+        if(!respawnSite && (isGroupMemberRespawn || a._respawnAtPlayer)){
+          // Create a virtual respawn point at player location
+          respawnSite = { x: state.player.x, y: state.player.y, id: 'player_pos', name: 'Player' };
+          delete a._respawnAtPlayer;
         }
         
         if(respawnSite){
@@ -5333,8 +5341,20 @@ function updateFriendlies(state, dt){
           console.log(`[${allyType.toUpperCase()}] ${a.name} respawned at ${respawnSite.name}`);
           state.ui?.toast(`✅ <b>${a.name}</b> respawned at <b>${respawnSite.name}</b>.`);
         } else {
-          console.log(`[RESPAWN-BUG] Friendly ${a.name} (group member: ${state.group?.members?.includes(a.id)}) has no respawn site, REMOVING`);
-          state.friendlies.splice(i,1);
+          // No respawn site found at all
+          const isGroupMemberNoSite = state.group && state.group.members && state.group.members.includes(a.id);
+          if(isGroupMemberNoSite){
+            // PROTECT GROUP MEMBERS: Never remove - force respawn at player position
+            a.hp = a.maxHp;
+            a.dead = false;
+            a.x = state.player.x + rand(-30, 30);
+            a.y = state.player.y + rand(-30, 30);
+            console.log(`[GROUP-PROTECT] ${a.name} force-respawned at player position (no sites available)`);
+            state.ui?.toast(`✅ <b>${a.name}</b> respawned near you.`);
+          } else {
+            console.log(`[RESPAWN-BUG] Friendly ${a.name} has no respawn site, REMOVING`);
+            state.friendlies.splice(i,1);
+          }
         }
       }
       continue;
@@ -6667,22 +6687,29 @@ function killFriendly(state, idx, scheduleRespawn=true){
   console.log(`[KILL-FRIENDLY] ${f.name} (ID: ${f.id}, group member: ${isGroupMember})`);
   
   if(isGroupMember){
-    // Group members respawn at nearest player-owned flag and rejoin player
-    const nearestFlag = findNearestPlayerFlag(state, state.player.x, state.player.y);
-    if(nearestFlag){
-      f.respawnT = 8.0; // 8 second respawn time for group members
-      f.siteId = nearestFlag.id; // Respawn at this flag
-      console.log(`[GROUP] ${f.name} will respawn at ${nearestFlag.name} in 8s`);
-      state.ui?.toast(`⚠️ <b>${f.name}</b> died. Respawning at <b>${nearestFlag.name}</b> in 8s.`);
-      // Don't remove from friendlies array - just set respawn timer
-      return;
-    } else {
-      // No player-owned flag found - remove from group
-      console.log(`[GROUP] ${f.name} died with no respawn point. Removing from group.`);
-      state.ui?.toast(`⚠️ <b>${f.name}</b> died. No respawn location available.`);
-      state.group.members = state.group.members.filter(id => id !== f.id);
-      delete state.group.settings[f.id];
+    // Group members ALWAYS respawn - never remove from group on death
+    // Priority: nearest player flag → player_base → player position
+    let respawnSite = findNearestPlayerFlag(state, state.player.x, state.player.y);
+    if(!respawnSite){
+      // Fallback: home base (player_base)
+      respawnSite = state.sites.find(s => s.id === 'player_base');
     }
+    
+    f.respawnT = 8.0; // 8 second respawn time for group members
+    f.dead = true;
+    
+    if(respawnSite){
+      f.siteId = respawnSite.id;
+      console.log(`[GROUP] ${f.name} will respawn at ${respawnSite.name || respawnSite.id} in 8s`);
+      state.ui?.toast(`⚠️ <b>${f.name}</b> died. Respawning at <b>${respawnSite.name || 'Base'}</b> in 8s.`);
+    } else {
+      // Absolute last resort: respawn near player (no site needed, handled in updateFriendlies)
+      f._respawnAtPlayer = true;
+      console.log(`[GROUP] ${f.name} will respawn near player in 8s (no sites available)`);
+      state.ui?.toast(`⚠️ <b>${f.name}</b> died. Respawning near you in 8s.`);
+    }
+    // NEVER remove group members from friendlies array - just set respawn timer
+    return;
   }
   
   // Standard friendly respawn logic for non-group members
@@ -11396,10 +11423,21 @@ export function updateGame(state, dt){
   for(const s of state.sites){
     if(s._justCaptured){
       const team = s._justCaptured;
-      // remove existing guards of the previous owner at this site
+      // remove existing guards of the previous owner at this site (protect group members)
       for(let fi=state.friendlies.length-1; fi>=0; fi--){
         const f = state.friendlies[fi];
-        if(f.guard && f.siteId===s.id && s.owner!=='player') state.friendlies.splice(fi,1);
+        if(f.guard && f.siteId===s.id && s.owner!=='player'){
+          // Protect group members - convert from guard to free ally instead of removing
+          const isGroupMember = state.group?.members?.includes(f.id);
+          if(isGroupMember){
+            f.guard = false;
+            f.homeSiteId = null;
+            f.siteId = null;
+            console.log(`[GUARD-PROTECT] ${f.name} is in group - converting from guard to free ally`);
+          } else {
+            state.friendlies.splice(fi,1);
+          }
+        }
       }
       for(let ei=state.enemies.length-1; ei>=0; ei--){
         const e = state.enemies[ei];

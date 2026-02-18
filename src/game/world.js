@@ -404,9 +404,18 @@ export function findNearestEnemyTeamAtSite(state, site, dist){
 
 // Destroy all guards at a site (called when flag is captured)
 function destroyAllGuardsAtSite(state, site, previousOwner){
-  // Remove friendly guards
+  // Remove friendly guards (but protect group members)
   const friendlyGuardsToRemove = state.friendlies.filter(f => f.guard && f.homeSiteId === site.id);
   for(const guard of friendlyGuardsToRemove){
+    // PROTECT group members - don't remove them, just clear guard assignment
+    const isGroupMember = state.group?.members?.includes(guard.id);
+    if(isGroupMember){
+      guard.guard = false;
+      guard.homeSiteId = null;
+      guard.siteId = null;
+      console.log(`[GUARD-PROTECT] ${guard.name} is in group - converting from guard to free ally`);
+      continue;
+    }
     const idx = state.friendlies.indexOf(guard);
     if(idx >= 0) state.friendlies.splice(idx, 1);
   }

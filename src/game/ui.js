@@ -7408,6 +7408,10 @@ function bindUI(state){
   ui.btnRestart.onclick=()=>{
     // super simple reset
     state.enemies.length=0; state.friendlies.length=0; state.projectiles.length=0; state.loot.length=0; state.inventory.length=0;
+    // CRITICAL: Also clear group members to prevent orphan references
+    state.group.members.length=0;
+    state.group.selectedMemberId=null;
+    state.group.settings={};
     for(const s of ARMOR_SLOTS) state.player.equip[s]=null;
     state.player.gold=0; state.player.shield=0;
     state.campaign.playerPoints=0; state.campaign.enemyPoints=0; state.campaign.time=0;
