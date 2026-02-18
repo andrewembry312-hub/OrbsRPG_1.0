@@ -7,13 +7,14 @@ export const LEVEL_CONFIG = {
   MAX_LEVEL: 50,
   ITEM_LEVEL_VARIANCE: 2, // Loot can drop ±2 levels from player
   
-  // Zone level ranges (ESO-style level scaling by area)
+  // Zone level ranges - MUST match state.js zoneConfig.zones
+  // 5 core zones (1-25), with level 26-50 reserved for prestige/scaling
   ZONES: {
-    starter: { min: 1, max: 10 },    // Tutorial/starting area
-    lowland: { min: 8, max: 20 },    // Early game zones
-    midland: { min: 18, max: 32 },   // Mid game zones
-    highland: { min: 30, max: 42 },  // Late game zones
-    endgame: { min: 40, max: 50 }    // Endgame content
+    starter:  { min: 1,  max: 5  },   // Starter Plains
+    lowland:  { min: 6,  max: 10 },   // Dark Forest
+    midland:  { min: 11, max: 15 },   // Volcanic Wastes
+    highland: { min: 16, max: 20 },   // Frozen Tundra
+    endgame:  { min: 21, max: 25 }    // Corrupted Realm
   }
 };
 

@@ -59,6 +59,11 @@ export function hardResetGameState(state){
   // Clear any lingering emperor effects
   removeEmperorEffect(state);
   
+  // CRITICAL: Fully reset emperor state to prevent stale crowns/guards/bases
+  state.emperor = null;
+  state.emperorTeam = null;
+  initializeEmperorSystem(state);
+  
   // IMPORTANT: Reset ability slots (loadouts persist in localStorage separately)
   state.abilitySlots = defaultAbilitySlots(); // Empty slots
   state.heroAbilitySlots = { 
@@ -13041,9 +13046,61 @@ function advanceToNextZone(state) {
   const nextZone = state.zoneConfig.zones[nextZoneIndex];
   
   if (!nextZone) {
-    // No more zones - game complete!
-    state.ui.toast(`<b>🎉 GAME COMPLETE! 🎉</b><br>All zones conquered!<br>You are the ultimate champion!`, 10000);
-    console.log(`%c[GAME] ALL ZONES COMPLETE!`, 'color: #ffd700; font-weight: bold; font-size: 20px');
+    // No more zones - offer prestige (New Game+) or celebration
+    const prestigeLevel = (state.zoneConfig.prestigeLevel || 0) + 1;
+    
+    state.ui.toast(`<b>🎉 CAMPAIGN COMPLETE! 🎉</b><br>All zones conquered!<br>Prestige ${prestigeLevel} unlocked — enemies scale harder!`, 10000);
+    console.log(`%c[GAME] ALL ZONES COMPLETE! Prestige ${prestigeLevel}`, 'color: #ffd700; font-weight: bold; font-size: 20px');
+    
+    // Reset zones for New Game+ with prestige scaling
+    state.zoneConfig.prestigeLevel = prestigeLevel;
+    state.zoneConfig.currentZone = 1;
+    state.zoneConfig.zoneComplete = false;
+    state.zoneConfig.bossActive = false;
+    state.zoneConfig.bossEntity = null;
+    
+    // Scale zone levels up by prestige tier (each prestige adds +5 to all zone ranges)
+    const prestigeOffset = prestigeLevel * 5;
+    for (const zone of state.zoneConfig.zones) {
+      zone.minLevel = zone.minLevel + 5; // Shift up by 5 each prestige
+      zone.maxLevel = zone.maxLevel + 5;
+      zone.bossLevel = zone.bossLevel + 5;
+    }
+    
+    // Reset emperor state for fresh run
+    state.emperorTeam = null;
+    removeEmperorEffect(state);
+    state.emperor = null;
+    initializeEmperorSystem(state);
+    
+    // Reset flags to neutral
+    for (const site of state.sites) {
+      if (site.id && site.id.startsWith('site_')) {
+        site.owner = null;
+        site.health = site.maxHealth || 100;
+      }
+    }
+    
+    // Clear enemies for fresh zone
+    state.enemies = [];
+    
+    // Respawn at home base
+    const homeBase = findPlayerBaseSite(state);
+    if (homeBase) {
+      state.player.x = homeBase.x;
+      state.player.y = homeBase.y;
+    }
+    
+    // Heal player fully
+    const st = currentStats(state);
+    state.player.hp = st.maxHp;
+    state.player.mana = st.maxMana;
+    state.player.stam = st.maxStam;
+    
+    // Big prestige announcement
+    const zone1 = state.zoneConfig.zones[0];
+    state.ui.toast(`<b>⚔️ PRESTIGE ${prestigeLevel} ⚔️</b><br>${zone1.name} (Levels ${zone1.minLevel}-${zone1.maxLevel})<br>Enemies are stronger! Good luck!`, 8000);
+    
     return;
   }
   
@@ -13056,6 +13113,10 @@ function advanceToNextZone(state) {
   state.emperorTeam = null;
   removeEmperorEffect(state);
   
+  // CRITICAL FIX: Fully reset emperor state for new zone (crowns, guards, bases)
+  state.emperor = null;
+  initializeEmperorSystem(state);
+  
   // Reset all flags to neutral
   for (const site of state.sites) {
     if (site.id && site.id.startsWith('site_')) {
@@ -13067,11 +13128,14 @@ function advanceToNextZone(state) {
   // Clear all enemies
   state.enemies = [];
   
-  // Respawn player and allies at spawn point
+  // Respawn player and allies at home base (fall back to center if no base found)
   const centerX = (state.mapWidth || state.engine.canvas.width) / 2;
   const centerY = (state.mapHeight || state.engine.canvas.height) / 2;
-  state.player.x = centerX;
-  state.player.y = centerY;
+  const homeBase = findPlayerBaseSite(state);
+  const spawnX = homeBase ? homeBase.x : centerX;
+  const spawnY = homeBase ? homeBase.y : centerY;
+  state.player.x = spawnX;
+  state.player.y = spawnY;
   state.player.hp = currentStats(state).maxHp;
   state.player.mana = currentStats(state).maxMana;
   state.player.stam = currentStats(state).maxStam;
@@ -13358,7 +13422,8 @@ function updateEmperorGuideUI(state) {
   const allFlagsOwned = playerFlags === totalFlags && totalFlags > 0;
   
   const carriedCrowns = state.emperor.carriedCrowns || [];
-  const allCrownsCollected = carriedCrowns.length === 3;
+  const securedCrowns = countSecuredCrowns(state);
+  const allCrownsSecured = securedCrowns === 3;
   
   const enemyBaseIds = ['team_a_base', 'team_b_base', 'team_c_base'];
   const enemyBases = state.sites.filter(s => enemyBaseIds.includes(s.id));
@@ -13380,21 +13445,22 @@ function updateEmperorGuideUI(state) {
     state.ui.emperorStep1.style.display = 'block';
   }
   
-  // Step 2: Capture crowns
+  // Step 2: Secure crowns (carry to home base, 1 at a time)
   if (state.ui?.emperorStep2) {
-    if (allCrownsCollected) {
+    if (allCrownsSecured) {
       state.ui.emperorStep2.style.background = 'rgba(76, 175, 80, 0.2)';
       state.ui.emperorStep2.style.borderLeft = '3px solid #4caf50';
-      state.ui.emperorStep2.querySelector('div:first-child').innerHTML = '✓ Step 2: Capture Crowns <span style="color:#4caf50;">(COMPLETE)</span>';
+      state.ui.emperorStep2.querySelector('div:first-child').innerHTML = '✓ Step 2: Secure Crowns <span style="color:#4caf50;">(COMPLETE)</span>';
     } else {
       state.ui.emperorStep2.style.background = 'rgba(255,215,0,0.15)';
       state.ui.emperorStep2.style.borderLeft = '3px solid #ffd700';
-      state.ui.emperorStep2.querySelector('div:first-child').innerHTML = `2. Capture Crowns (${carriedCrowns.length}/3)`;
+      const carryingText = carriedCrowns.length > 0 ? ' 👑 Carrying 1!' : '';
+      state.ui.emperorStep2.querySelector('div:first-child').innerHTML = `2. Secure Crowns at Base (${securedCrowns}/3)${carryingText}`;
     }
     state.ui.emperorStep2.style.display = allFlagsOwned ? 'block' : 'none';
   }
   
-  // Step 3: Destroy bases
+  // Step 3: Destroy bases (only after all crowns secured)
   if (state.ui?.emperorStep3) {
     if (allBasesDestroyed) {
       state.ui.emperorStep3.style.background = 'rgba(76, 175, 80, 0.2)';
@@ -13406,7 +13472,7 @@ function updateEmperorGuideUI(state) {
       const destroyedCount = enemyBases.filter(b => b && b.hp <= 0).length;
       state.ui.emperorStep3.querySelector('div:first-child').innerHTML = `3. Destroy Bases (${destroyedCount}/${enemyBases.length})`;
     }
-    state.ui.emperorStep3.style.display = allCrownsCollected ? 'block' : 'none';
+    state.ui.emperorStep3.style.display = allCrownsSecured ? 'block' : 'none';
   }
   
   // Step 4: Defeat boss
@@ -13427,14 +13493,15 @@ function updateEmperorGuideUI(state) {
 function checkAllBasesDestroyed(state) {
   if (!isEmperorActive(state)) return false;
   
-  // First check: have we captured all crowns?
-  const carriedCrowns = state.emperor.carriedCrowns || [];
-  if (carriedCrowns.length < 3) {
-    // Haven't captured all crowns yet - bases cannot be destroyed
+  // FIXED: Check if all 3 crowns have been SECURED at player base (not just carried)
+  // With 1-crown carry limit, player must ferry each crown individually
+  const securedCount = countSecuredCrowns(state);
+  if (securedCount < 3) {
+    // Not all crowns secured yet - bases cannot be destroyed
     return false;
   }
   
-  console.log(`%c[EMPEROR] All crowns captured! Now checking if bases destroyed...`, 'color: #ffd700');
+  console.log(`%c[EMPEROR] All 3 crowns secured! Now checking if bases destroyed...`, 'color: #ffd700');
   
   // Find all home bases (correct IDs: team_a_base, team_b_base, team_c_base)
   const enemyBaseIds = ['team_a_base', 'team_b_base', 'team_c_base'];
@@ -15020,7 +15087,14 @@ function tryPickupCrowns(state){
   if(!p) return;
 
   const PICKUP_RADIUS = 300;  // Generous radius, no coupling
+  const MAX_CARRIED_CROWNS = 1; // Can only carry 1 crown at a time - must return to base first
   const teams = ['teamA','teamB','teamC'];
+  
+  // Check carry limit before attempting any pickup
+  const currentlyCarried = (state.emperor.carriedCrowns || []).length;
+  if(currentlyCarried >= MAX_CARRIED_CROWNS){
+    return; // Already carrying max crowns
+  }
   
   for(const team of teams){
     const crown = state.emperor.crowns?.[team];
@@ -15135,6 +15209,11 @@ function trySecureCrowns(state){
       crown.carriedBy = null;
       crown.secured = true;
 
+      // Remove from carried array so player can pick up next crown (1-carry limit)
+      if(state.emperor.carriedCrowns){
+        state.emperor.carriedCrowns = state.emperor.carriedCrowns.filter(t => t !== team);
+      }
+
       const securedCount = countSecuredCrowns(state);
       crown.x = base.x - 34 - (securedCount * 22);
       crown.y = base.y - 12;
@@ -15171,16 +15250,28 @@ function dropCarriedCrowns(state, keepUnlockedIfStillEmperor){
       crown.carriedBy = null;
       crown.secured = false; // Force secured off on death (defensive)
       
-      // DROP AT PLAYER DEATH LOCATION, not at base
-      // This gives guards time to recover it
-      crown.x = state.player.x;
-      crown.y = state.player.y;
+      // FIXED: Return crown to its original team base instead of dropping at death location
+      // This prevents crowns piling up at random death spots
+      const teamBase = findTeamBaseSite(state, team);
+      if(teamBase){
+        crown.x = teamBase.x;
+        crown.y = teamBase.y;
+      } else {
+        // Fallback: drop at player location if base not found
+        crown.x = state.player.x;
+        crown.y = state.player.y;
+      }
       crown.lastTouchedTime = state.gameTime || 0;
       
       // Log crown drop
       logCrownDrop(state, team, 'player_death');
       
-      if(state.crownDebug?.enabled) console.log(`[CROWN] Crown dropped at player death location (${crown.x|0},${crown.y|0}): ${team}`);
+      if(state.crownDebug?.enabled) console.log(`[CROWN] Crown returned to ${team} base at (${crown.x|0},${crown.y|0}): ${team}`);
+      
+      // Remove from carried array
+      if(state.emperor.carriedCrowns){
+        state.emperor.carriedCrowns = state.emperor.carriedCrowns.filter(t => t !== team);
+      }
     }
   }
 }
