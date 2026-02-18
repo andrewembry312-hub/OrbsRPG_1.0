@@ -1046,6 +1046,12 @@ export function updateBaseHealth(state, dt){
   
   for(const s of state.sites){
     if(!enemyBaseIds.includes(s.id)) continue;
+    
+    // RUNTIME INIT: Ensure bases always have HP (handles saves from before this feature)
+    if(s.maxHp === undefined || s.maxHp === null){ s.maxHp = 2000; }
+    if(s.hp === undefined || s.hp === null){ s.hp = s.maxHp; }
+    if(s.baseDefeated === undefined){ s.baseDefeated = false; }
+    
     if(s.baseDefeated) continue; // Already destroyed
     if(s.hp <= 0) continue; // Already at 0
     

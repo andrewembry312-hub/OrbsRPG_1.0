@@ -13501,6 +13501,14 @@ function updateEmperorGuideUI(state) {
   
   const enemyBaseIds = ['team_a_base', 'team_b_base', 'team_c_base'];
   const enemyBases = state.sites.filter(s => enemyBaseIds.includes(s.id));
+  
+  // RUNTIME INIT: Ensure bases always have HP (handles saves from before this feature)
+  for(const b of enemyBases){
+    if(b.maxHp === undefined || b.maxHp === null){ b.maxHp = 2000; }
+    if(b.hp === undefined || b.hp === null){ b.hp = b.maxHp; }
+    if(b.baseDefeated === undefined){ b.baseDefeated = false; }
+  }
+  
   const allBasesDestroyed = enemyBases.length > 0 && enemyBases.every(b => !b || b.baseDefeated || b.hp <= 0);
   
   const bossActive = state.zoneConfig?.bossActive || false;
@@ -13587,6 +13595,13 @@ function checkAllBasesDestroyed(state) {
   if (enemyBases.length === 0) {
     console.log('[EMPEROR] No enemy bases found in state.sites');
     return false;
+  }
+  
+  // RUNTIME INIT: Ensure bases always have HP (handles saves from before this feature)
+  for(const b of enemyBases){
+    if(b.maxHp === undefined || b.maxHp === null){ b.maxHp = 2000; }
+    if(b.hp === undefined || b.hp === null){ b.hp = b.maxHp; }
+    if(b.baseDefeated === undefined){ b.baseDefeated = false; }
   }
   
   // Check if all enemy bases are destroyed (baseDefeated flag or hp <= 0)
