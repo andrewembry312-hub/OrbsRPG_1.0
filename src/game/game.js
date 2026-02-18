@@ -133,6 +133,21 @@ export function hardResetGameState(state){
     settings: {}
   };
   
+  // Add debug tracking to group.members array modifications
+  const originalMembers = state.group.members;
+  Object.defineProperty(state.group, 'members', {
+    get() {
+      return originalMembers;
+    },
+    set(val) {
+      console.error('[GROUP-BUG-TRACKER] group.members reassigned! Old length:', originalMembers.length, 'New:', val ? val.length : 'null/undefined');
+      console.trace('[GROUP-BUG-TRACKER] Stack trace for reassignment:');
+      if(val && Array.isArray(val)) {
+        originalMembers.length = 0;
+        originalMembers.push(...val);
+      }
+    }
+  });
   // Reset party system
   state.party = {
     macroState: 'stack',
@@ -5234,10 +5249,26 @@ function updateFriendlySpawns(state, dt){
 
 function updateFriendlies(state, dt){
   const DEBUG_AI = false; // Set to true to enable AI debug logging
+  
+  // DEBUG: Log all group members at start of frame
+  const groupMembers = state.group?.members || [];
+  for(const memberId of groupMembers){
+    const member = state.friendlies.find(f => f.id === memberId);
+    if(member){
+      const role = member.role || (member.variant === 'mage' ? 'HEALER' : (member.variant === 'warden' || member.variant === 'knight' ? 'TANK' : 'DPS'));
+      console.log(`[GROUP-FRAME-START] ${member.name} (${role}) - respawnT=${member.respawnT?.toFixed(2) || '0.00'}, hp=${member.hp?.toFixed(0) || '?'}/${member.maxHp?.toFixed(0) || '?'}`);
+    } else {
+      console.warn(`[GROUP-MISSING] Member ID ${memberId} NOT FOUND in friendlies!`);
+    }
+  }
+  
   for(let i=state.friendlies.length-1;i>=0;i--){
     const a=state.friendlies[i];
     if(a.respawnT>0){
       a.respawnT-=dt;
+      if(a.respawnT > 0 && (state.group?.members||[]).includes(a.id)){
+        console.log(`[RESPAWN-TRACKING] ${a.name} (group member, variant: ${a.variant}): respawnT=${a.respawnT.toFixed(2)}`);
+      }
       const flag=state.sites.find(s=>s.id===a.siteId);
       if(a.respawnT<=0){
         // Determine respawn location based on garrison assignment or normal flag
@@ -5297,6 +5328,7 @@ function updateFriendlies(state, dt){
           console.log(`[${allyType.toUpperCase()}] ${a.name} respawned at ${respawnSite.name}`);
           state.ui?.toast(`✅ <b>${a.name}</b> respawned at <b>${respawnSite.name}</b>.`);
         } else {
+          console.log(`[RESPAWN-BUG] Friendly ${a.name} (group member: ${state.group?.members?.includes(a.id)}) has no respawn site, REMOVING`);
           state.friendlies.splice(i,1);
         }
       }
@@ -6627,6 +6659,7 @@ function killFriendly(state, idx, scheduleRespawn=true){
   
   // Check if this friendly is a group member
   const isGroupMember = state.group && state.group.members && state.group.members.includes(f.id);
+  console.log(`[KILL-FRIENDLY] ${f.name} (ID: ${f.id}, group member: ${isGroupMember})`);
   
   if(isGroupMember){
     // Group members respawn at nearest player-owned flag and rejoin player

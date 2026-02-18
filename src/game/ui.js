@@ -7615,6 +7615,29 @@ function bindUI(state){
       return;
     }
     state.group.members.push(friendlyUnit.id);
+    
+    // Track array modifications
+    if(!state._groupMembersTracking){
+      state._groupMembersTracking = true;
+      const membersArray = state.group.members;
+      const originalPush = membersArray.push;
+      const originalSplice = membersArray.splice;
+      const originalFilter = membersArray.filter;
+      membersArray.push = function(...args){
+        console.log('[GROUP-TRACK] push called with:', args);
+        return originalPush.apply(this, args);
+      };
+      membersArray.splice = function(...args){
+        console.log('[GROUP-TRACK] splice called with:', args);
+        return originalSplice.apply(this, args);
+      };
+      membersArray.filter = function(...args){
+        const result = originalFilter.apply(this, args);
+        console.log('[GROUP-TRACK] filter called, result length:', result.length, 'before:', this.length);
+        return result;
+      };
+    }
+    
     console.log('[GROUP] Member added to group. New count:', state.group.members.length);
     const baseEquip = friendlyUnit.equipment ? structuredClone(friendlyUnit.equipment) : Object.fromEntries(ARMOR_SLOTS.map(s=>[s,null]));
     const baseAbilities = friendlyUnit.npcAbilities ? friendlyUnit.npcAbilities.slice() : defaultAbilitySlots();
@@ -7657,20 +7680,33 @@ function bindUI(state){
   }
 
   ui.addAllAlliesToGroup = ()=>{
+    console.log('[GROUP] addAllAlliesToGroup() called');
     const openSlots = Math.max(0, 10 - state.group.members.length);
     if(openSlots <= 0){ ui.toast('Group full! Max 10 members.'); return; }
     // PHASE 1 FIX: Exclude guards - they must stay at outposts guarding flags
+    console.log('[GROUP] Total friendlies before filter:', state.friendlies.length);
     const candidates = state.friendlies.filter(f => !state.group.members.includes(f.id) && !f.guard);
+    console.log('[GROUP] Candidates to invite:', candidates.length, candidates.map(f => f.name));
+    // Log cardLoadoutIds for each candidate
+    candidates.forEach(c => {
+      console.log(`[GROUP-DEBUG] Candidate ${c.name}: cardLoadoutId=${c.cardLoadoutId}, fighterCard=${c.fighterCard}`);
+    });
     if(!candidates.length){ ui.toast('No allies available to add.'); return; }
     let added = 0;
     for(const friendly of candidates){
       if(state.group.members.length >= 10) break;
+      console.log(`[GROUP] Before inviteToGroup - friendlies count: ${state.friendlies.length}`);
       ensureFriendlyIdentity(friendly);
       ui.inviteToGroup(friendly, { silent:true, deferRender:true });
+      console.log(`[GROUP] After inviteToGroup - friendlies count: ${state.friendlies.length}`);
       added++;
     }
+    console.log('[GROUP] All invites complete. About to render.');
+    console.log('[GROUP] Final friendlies count before render:', state.friendlies.length);
     ui.renderGroupPanel();
+    console.log('[GROUP] After renderGroupPanel - friendlies count:', state.friendlies.length);
     ui.renderGroupTab();
+    console.log('[GROUP] After renderGroupTab - friendlies count:', state.friendlies.length);
     ui.toast(`Added ${added} alli${added===1?'y':'es'} to group.`);
   };
 
@@ -7865,6 +7901,14 @@ function bindUI(state){
   ui.renderGroupTab = ()=>{
     if(!ui.groupMembersList) return;
     console.log('[GROUP] Rendering group tab. Members:', state.group.members.length, state.group.members);
+    console.log('[GROUP-DEBUG] Total friendlies in state:', state.friendlies.length);
+    // DEBUG: Check if friendlies exist for these members
+    if(state.group.members.length > 0){
+      for(const memberId of state.group.members){
+        const f = state.friendlies.find(f => f.id === memberId);
+        console.log(`[GROUP-DEBUG] Member ${memberId}: ${f ? 'FOUND in friendlies' : 'MISSING from friendlies'}`);
+      }
+    }
     const actionsHtml = `
       <div class="group-actions">
         <button onclick="ui.addAllAlliesToGroup()">Add all allies to group</button>
@@ -8063,6 +8107,7 @@ function bindUI(state){
     // Remove all units spawned from these loadouts
     for (const loadoutId of loadoutIdsToRemove) {
       const alliesFromLoadout = state.friendlies.filter(f => f.cardLoadoutId === loadoutId && f.fighterCard);
+      console.log(`[ClearSlots] Checking loadout ${loadoutId}: found ${alliesFromLoadout.length} allies`);
       for (const ally of alliesFromLoadout) {
         // DON'T DESTROY if ally is in a group - they're independent now
         if (state.group?.members?.includes(ally.id)) {
