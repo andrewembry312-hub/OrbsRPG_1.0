@@ -2570,6 +2570,19 @@ function npcAreaDamage(state, caster, cx, cy, radius, dmg, opts={}){
     ? [state.player, ...(state.friendlies||[]).filter(f=>f && f.respawnT<=0)]
     : (state.enemies||[]);
   const sourceAbilityId = opts.sourceAbilityId || null;
+  const dotId = opts.dotId || null;
+  const buffId = opts.buffId || null;
+  const buffIds = opts.buffIds || (buffId ? [buffId] : []);
+
+  const effectOpts = {
+    state,
+    sourceAbilityId,
+    abilityId: sourceAbilityId,
+    sourceType: 'npc_ability',
+    sourceKind: isEnemyCaster ? 'enemy' : 'friendly',
+    sourceCasterId: caster.id || caster._id || null,
+    sourceCasterName: caster.name || caster.variant || (isEnemyCaster ? 'Enemy' : 'Ally')
+  };
 
   for(let i=targets.length-1; i>=0; i--){
     const t = targets[i];
@@ -2589,6 +2602,10 @@ function npcAreaDamage(state, caster, cx, cy, radius, dmg, opts={}){
         if(enemyIndex >= 0) killEnemy(state, enemyIndex, true);
       }
     }
+
+    // Apply debuffs/dots from the ability to hit targets
+    if(dotId) applyDotTo(t, dotId, effectOpts);
+    for(const bid of buffIds) applyBuffTo(t, bid, effectOpts);
     
     // Audit: log applied damage per target
     if(sourceAbilityId){
@@ -2637,7 +2654,7 @@ function npcCastSupportAbility(state, u, id, target){
         });
       }
 
-      npcAreaDamage(state, u, x, y, radius, dmg, {sourceAbilityId: 'meteor_slam'});
+      npcAreaDamage(state, u, x, y, radius, dmg, {sourceAbilityId: 'meteor_slam', dotId: 'burn', buffIds: ['slow']});
       if(state.effects && state.effects.flashes) state.effects.flashes.push({ x, y, r: radius, life: 0.9, color: '#ff9a3c' });
       if(state.effects && state.effects.slashes) state.effects.slashes.push({ x, y, range: radius, arc: Math.PI*2, dir: 0, t: 0.12, color: '#ff4500' });
 
@@ -2863,7 +2880,7 @@ function npcCastSupportAbility(state, u, id, target){
       u.x = clamp(u.x + Math.cos(angle) * actualDist, 0, state.mapWidth || state.engine.canvas.width);
       u.y = clamp(u.y + Math.sin(angle) * actualDist, 0, state.mapHeight || state.engine.canvas.height);
       // AoE damage and stun at new position
-      npcAreaDamage(state, u, u.x, u.y, 90, 14 + (u.atk||10)*1.1, {sourceAbilityId: 'shoulder_charge'});
+      npcAreaDamage(state, u, u.x, u.y, 90, 14 + (u.atk||10)*1.1, {sourceAbilityId: 'shoulder_charge', buffIds: ['stun']});
       if(state.effects && state.effects.flashes) {
         state.effects.flashes.push({ x: u.x, y: u.y, r: 90, life: 0.7, color: '#9b7bff' });
       }
@@ -8785,6 +8802,20 @@ function updateWells(state, dt){
                 amount: actualDmg
               });
             }
+            // Apply debuffs from enemy wells to player/friendlies (slow + curse)
+            const wellEffectOpts = {
+              state,
+              sourceAbilityId: w.sourceAbilityId || null,
+              abilityId: w.sourceAbilityId || null,
+              sourceType: w.sourceType || 'well',
+              sourceKind: w.sourceKind || w.team || null,
+              sourceCasterId: w.sourceCasterId || null,
+              sourceCasterName: w.sourceCasterName || null,
+              casterId: w.sourceCasterId || null,
+              casterName: w.sourceCasterName || null
+            };
+            applyBuffTo(t, 'slow', wellEffectOpts);
+            applyBuffTo(t, 'curse', wellEffectOpts);
           }
         }
       } else {
