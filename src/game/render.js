@@ -1058,11 +1058,14 @@ export function render(state){
   }
   // draw player orb
   const pOrb = cssVar('--player');
-  ctx.globalAlpha = 0.96;
+  // Stealth check: make player 50% transparent when stealthed
+  const pStealthed = Array.isArray(state.player.buffs) && state.player.buffs.some(b => b.id === 'stealth');
+  ctx.globalAlpha = pStealthed ? 0.45 : 0.96;
   ctx.fillStyle = pOrb;
   ctx.beginPath(); ctx.arc(state.player.x,state.player.y,state.player.r,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(state.player.x,state.player.y,state.player.r,0,Math.PI*2); ctx.stroke();
-  ctx.globalAlpha=1;
+  ctx.strokeStyle = pStealthed ? '#555588' : '#000';
+  ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(state.player.x,state.player.y,state.player.r,0,Math.PI*2); ctx.stroke();
+  ctx.globalAlpha = pStealthed ? 0.45 : 1;
   // draw class image in the center of the player orb
   const pClass = state.player.class || 'warrior';
   const pPath = getAssetPath(`assets/char/${pClass}.svg`);
@@ -1076,7 +1079,7 @@ export function render(state){
   ctx.font = 'bold 22px Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
-  ctx.globalAlpha = 0.95;
+  ctx.globalAlpha = pStealthed ? 0.45 : 0.95;
   ctx.fillText('👑', state.player.x, state.player.y - state.player.r - 18);
   ctx.restore();
   ctx.globalAlpha=1;

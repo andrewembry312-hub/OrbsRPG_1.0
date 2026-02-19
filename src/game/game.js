@@ -7385,7 +7385,7 @@ function updateEnemies(state, dt){
     if(!e.guard) {
       // Find nearest enemy (player or friendlies)
       const near = {e: null, d: Infinity};
-      if(!state.player.dead){
+      if(!state.player.dead && !isPlayerStealthed(state)){
         const d = Math.hypot(state.player.x - e.x, state.player.y - e.y);
         if(d < near.d){ near.d = d; near.e = state.player; }
       }
@@ -7509,8 +7509,8 @@ function updateEnemies(state, dt){
     // contact attack: attempt to hit nearest hostile (player, friendly, enemy of other teams, or hostile creature)
     if(e.hitCd<=0 && !(getCcState(e).stunned)){
       let bestTarget = null, bestD = Infinity, bestType = null;
-      // player
-      if(!state.player.dead){ const d=Math.hypot(state.player.x - e.x, state.player.y - e.y); if(d < bestD){ bestD = d; bestTarget = state.player; bestType='player'; } }
+      // player (skip if stealthed — invisible to enemies)
+      if(!state.player.dead && !isPlayerStealthed(state)){ const d=Math.hypot(state.player.x - e.x, state.player.y - e.y); if(d < bestD){ bestD = d; bestTarget = state.player; bestType='player'; } }
       // friendlies
       for(const f of state.friendlies){ if(f.respawnT>0) continue; const d=Math.hypot(f.x - e.x, f.y - e.y); if(d < bestD){ bestD = d; bestTarget = f; bestType='friendly'; } }
       // other-team enemies (only if emperor rules allow it)
@@ -8436,6 +8436,175 @@ function tryCastSlot(state, idx){
       break;
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // GUILD — ASSAULT (buff-only)
+    // ═══════════════════════════════════════════════════════════════════════
+    case 'assault_bloodlust':{
+      applyBuffSelf('berserker_rage');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'berserker_rage');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.6, color: '#ff4444' });
+      playPositionalSound(state, 'castingMagic3', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Bloodlust!');
+      break;
+    }
+    case 'assault_battle_cry':{
+      applyBuffSelf('battle_fury');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'battle_fury');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.6, color: '#ff8800' });
+      playPositionalSound(state, 'castingMagic2', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Battle Cry!');
+      break;
+    }
+    case 'assault_fortune':{
+      applyBuffSelf('lucky');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'lucky');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.6, color: '#ffd700' });
+      playPositionalSound(state, 'castingMagic4', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Fortune\'s Favor!');
+      break;
+    }
+    case 'assault_rampage':{
+      applyBuffSelf('berserk');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'berserk');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.6, color: '#ff2222' });
+      playPositionalSound(state, 'magicalWhooshFast', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Rampage!');
+      break;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // GUILD — SUPPORT (buff-only)
+    // ═══════════════════════════════════════════════════════════════════════
+    case 'support_iron_resolve':{
+      applyBuffSelf('iron_will');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'iron_will');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.6, color: '#aaccff' });
+      playPositionalSound(state, 'bufferSpell', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Iron Resolve!');
+      break;
+    }
+    case 'support_defensive_stance':{
+      applyBuffSelf('guardian_stance');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'guardian_stance');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.6, color: '#6ec0ff' });
+      playPositionalSound(state, 'bufferSpell', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Defensive Stance!');
+      break;
+    }
+    case 'support_fortify':{
+      applyBuffSelf('fortified');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'fortified');
+      shieldAlliesAround(state.player.x, state.player.y, 160, 30 + st.def * 0.8);
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.6, color: '#ffb347' });
+      playPositionalSound(state, 'bufferSpell', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Fortify!');
+      break;
+    }
+    case 'support_enduring_spirit':{
+      applyBuffSelf('endurance');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'endurance');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#88cc88' });
+      playPositionalSound(state, 'castingMagic1', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Enduring Spirit!');
+      break;
+    }
+    case 'support_divine_protection':{
+      applyBuffSelf('divine_shield');
+      applyBuffAlliesAround(state.player.x, state.player.y, 140, 'divine_shield');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 140, life: 0.8, color: '#ffffff' });
+      playPositionalSound(state, 'enchantedCast', state.player.x, state.player.y, 700, 0.6);
+      state.ui.toast('Divine Protection!');
+      break;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // RESTORATION (buff-only sustain)
+    // ═══════════════════════════════════════════════════════════════════════
+    case 'resto_rejuvenation':{
+      applyBuffSelf('regeneration');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'regeneration');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#5fd86b' });
+      playPositionalSound(state, 'healingSpell1', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Rejuvenation!');
+      break;
+    }
+    case 'resto_vitality':{
+      applyBuffSelf('vigor');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'vigor');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#ffd760' });
+      playPositionalSound(state, 'healingSpell1', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Vitality Surge!');
+      break;
+    }
+    case 'resto_mana_flow':{
+      applyBuffSelf('mana_surge');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'mana_surge');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#66bbff' });
+      playPositionalSound(state, 'castingMagic5', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Mana Flow!');
+      break;
+    }
+    case 'resto_spiritual_attunement':{
+      applyBuffSelf('spirit');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'spirit');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#cc88ff' });
+      playPositionalSound(state, 'castingMagic4', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Spiritual Attunement!');
+      break;
+    }
+    case 'resto_vampiric_aura':{
+      applyBuffSelf('lifesteal_boost');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'lifesteal_boost');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.6, color: '#cc3333' });
+      playPositionalSound(state, 'castingMagic3', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Vampiric Aura!');
+      break;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // ARCANE ARTS (utility buffs)
+    // ═══════════════════════════════════════════════════════════════════════
+    case 'arcane_concentration':{
+      applyBuffSelf('focus');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'focus');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#88aaff' });
+      playPositionalSound(state, 'castingMagic5', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Concentration!');
+      break;
+    }
+    case 'arcane_mental_clarity':{
+      applyBuffSelf('clarity');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'clarity');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#ffdd88' });
+      playPositionalSound(state, 'enchantedCast', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Mental Clarity!');
+      break;
+    }
+    case 'arcane_shadow_veil':{
+      applyBuffSelf('stealth');
+      applyBuffAlliesAround(state.player.x, state.player.y, 140, 'stealth');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 140, life: 0.7, color: '#333366' });
+      playPositionalSound(state, 'castingMagic1', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Shadow Veil — stealthed!');
+      break;
+    }
+    case 'arcane_power_surge':{
+      applyBuffSelf('arcane_power');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'arcane_power');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#9b7bff' });
+      playPositionalSound(state, 'castingMagic5', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Arcane Power!');
+      break;
+    }
+    case 'arcane_swiftness':{
+      applyBuffSelf('haste');
+      applyBuffAlliesAround(state.player.x, state.player.y, 160, 'haste');
+      state.effects.flashes.push({ x: state.player.x, y: state.player.y, r: 160, life: 0.5, color: '#66ffcc' });
+      playPositionalSound(state, 'magicalWhooshFast', state.player.x, state.player.y, 650, 0.5);
+      state.ui.toast('Swiftness!');
+      break;
+    }
+
     default:
       state.ui.toast(`Cast ${sk.name}`);
   }
@@ -9324,6 +9493,21 @@ function getCcState(unit){
   return res;
 }
 
+/** Check if player currently has the stealth buff */
+function isPlayerStealthed(state){
+  if(!state?.player?.buffs || !Array.isArray(state.player.buffs)) return false;
+  return state.player.buffs.some(b => b.id === 'stealth');
+}
+
+/** Remove stealth buff from the player (break on attack / sprint / damage) */
+function breakStealth(state, reason){
+  if(!state?.player?.buffs || !Array.isArray(state.player.buffs)) return;
+  const idx = state.player.buffs.findIndex(b => b.id === 'stealth');
+  if(idx === -1) return;
+  state.player.buffs.splice(idx, 1);
+  if(state.ui?.toast) state.ui.toast(`Stealth broken: ${reason || 'revealed'}`);
+}
+
 function updateBuffs(state, dt){
   const tickBuffs = (unit)=>{
     if(!unit || !unit.buffs || unit.buffs.length===0) return;
@@ -9850,6 +10034,8 @@ function fireLightOrHeavy(state, heldMs){
   if(state.player.dead || state.campaignEnded) return;
   // do not allow attacks while in UI or map
   if(state.showInventory || state.inMenu || state.mapOpen) return;
+  // Break stealth on any attack
+  if(isPlayerStealthed(state)) breakStealth(state, 'attacked');
 
   const weaponType = (state.player.equip?.weapon?.weaponType || '').toLowerCase();
   const hasWeapon = !!state.player.equip?.weapon;
@@ -11055,6 +11241,9 @@ export function updateGame(state, dt){
   // stamina / sprint / block
   const sprinting = state.input.keysDown.has(state.binds.sprint) && state.player.stam>0 && !state.input.mouse.rDown && !state.player.dead;
   const blocking = state.input.mouse.rDown && !state.player.dead;
+
+  // Break stealth while sprinting
+  if(sprinting && isPlayerStealthed(state)) breakStealth(state, 'sprinting');
 
   // Regenerate stamina when not sprinting
   if(!sprinting && !state.player.dead){
