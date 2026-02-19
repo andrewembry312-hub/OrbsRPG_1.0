@@ -3406,8 +3406,9 @@ function npcUpdateAbilities(state, u, dt, kind){
       if(hostile) hostileCreatures.push(c);
     }
   }
+  const _pStealthed = isPlayerStealthed(state);
   const candidates = kind==='enemy'
-    ? [state.player, ...state.friendlies.filter(f=>f.respawnT<=0), ...hostileCreatures]
+    ? [... (_pStealthed ? [] : [state.player]), ...state.friendlies.filter(f=>f.respawnT<=0), ...hostileCreatures]
     : [...state.enemies, ...hostileCreatures];
   let target = null, bestD = Infinity;
   if(u._lockUntil && u._lockUntil > now && u._lockId){
@@ -4246,7 +4247,7 @@ function npcUpdateAbilities(state, u, dt, kind){
         } else if(chosen.meta.type === 'melee'){
           const range = chosen.meta.range;
           const arc = chosen.meta.arc || 1.2;
-          const targets = kind==='enemy' ? [state.player, ...state.friendlies] : state.enemies;
+          const targets = kind==='enemy' ? [...(isPlayerStealthed(state) ? [] : [state.player]), ...state.friendlies] : state.enemies;
           
           const slashColor = kind==='enemy' ? 'rgba(229, 89, 89, 0.6)' : 'rgba(186, 150, 255, 0.6)';
           state.effects.slashes.push({t:0.12, arc, range, dir:ang, x:u.x, y:u.y, color:slashColor, dmg:chosen.meta.dmg});
@@ -4353,7 +4354,7 @@ function npcUpdateAbilities(state, u, dt, kind){
       // Melee attack with visual slash effect
       const range = meta.range;
       const arc = meta.arc || 1.2;
-      const targets = kind==='enemy' ? [state.player, ...state.friendlies] : state.enemies;
+      const targets = kind==='enemy' ? [...(isPlayerStealthed(state) ? [] : [state.player]), ...state.friendlies] : state.enemies;
       
       // Create visual slash effect
       const slashColor = kind==='enemy' ? 'rgba(229, 89, 89, 0.6)' : 'rgba(186, 150, 255, 0.6)';
@@ -4402,7 +4403,7 @@ function npcUpdateAbilities(state, u, dt, kind){
       // Melee light attack
       const range = 70;
       const arc = 0.9;
-      const targets = kind==='enemy' ? [state.player, ...state.friendlies] : state.enemies;
+      const targets = kind==='enemy' ? [...(isPlayerStealthed(state) ? [] : [state.player]), ...state.friendlies] : state.enemies;
       const slashColor = kind==='enemy' ? 'rgba(229, 89, 89, 0.4)' : 'rgba(186, 150, 255, 0.4)';
       
       state.effects.slashes.push({t:0.1, arc, range, dir:ang, x:u.x, y:u.y, color:slashColor, dmg:5});
@@ -6956,7 +6957,7 @@ function updateEnemies(state, dt){
           let best = null;
           let bestScore = -Infinity;
           const candidates = [];
-          if(state.player && !state.player.dead && state.player.hp > 0) candidates.push(state.player);
+          if(state.player && !state.player.dead && state.player.hp > 0 && !isPlayerStealthed(state)) candidates.push(state.player);
           for(const f of state.friendlies){
             if(f && f.respawnT <= 0) candidates.push(f);
           }
@@ -7066,7 +7067,7 @@ function updateEnemies(state, dt){
       if(e._committedTarget && now < e._targetCommitUntil){
         // Look for committed target in player or friendlies
         let committed = null;
-        if(!state.player.dead && state.player.hp > 0 && 
+        if(!state.player.dead && state.player.hp > 0 && !isPlayerStealthed(state) &&
            (state.player.id || state.player._id) === e._committedTarget){
           committed = state.player;
         } else {
@@ -7124,8 +7125,8 @@ function updateEnemies(state, dt){
       if(!priorityTarget && now - e._lastMacroTick >= MACRO_TICK){
         e._lastMacroTick = now;
         
-        // Check player
-        if(!state.player.dead && state.player.hp > 0){
+        // Check player (skip if stealthed — invisible to guards)
+        if(!state.player.dead && state.player.hp > 0 && !isPlayerStealthed(state)){
           const distToPlayer = Math.hypot(state.player.x - e.x, state.player.y - e.y);
           const distPlayerFromFlag = guardSite ? Math.hypot(state.player.x - guardSite.x, state.player.y - guardSite.y) : Infinity;
           const distPlayerFromSpawn = Math.hypot(state.player.x - spawnX, state.player.y - spawnY);
@@ -7193,7 +7194,7 @@ function updateEnemies(state, dt){
       if(!priorityTarget && guardSite && guardSite._sharedTargetUntil > now){
         // Look for shared target in player or friendlies
         let sharedTarget = null;
-        if(!state.player.dead && state.player.hp > 0 && 
+        if(!state.player.dead && state.player.hp > 0 && !isPlayerStealthed(state) &&
            (state.player.id || state.player._id) === guardSite._sharedTargetId){
           sharedTarget = state.player;
         } else {
@@ -12137,7 +12138,7 @@ function updateCreatures(state, dt){
         }
       } else if(c.guardRole === 'damage'){
         // Damage dealers prioritize closest target (player or friendlies)
-        if(!state.player.dead){
+        if(!state.player.dead && !isPlayerStealthed(state)){
           const d = Math.hypot(state.player.x - c.x, state.player.y - c.y);
           if(d < nearestD && d <= agro_dist){ nearestD = d; nearest = state.player; }
         }
