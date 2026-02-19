@@ -10,6 +10,10 @@ import { SKILLS, getSkillById, ABILITIES, ABILITY_CATEGORIES, TARGET_TYPE_INFO, 
 import { showCharSelect } from "./charselect.js";
 import { spawnGuardsForSite } from "./world.js";
 import { getAssetPath } from "../config.js";
+import { getFighterImageUrl, getLoadoutImageUrl } from "./fighter-placeholders.js";
+import { getCodexData, recordCardAcquired, recordDuplicateSold } from "./collection-codex.js";
+import { FACTIONS, getCollectionSummary, getActiveFactionBonuses } from "./fighter-factions.js";
+import { sellCard, openCardPack, CARD_PACKS, getCardSources } from "./fighter-cards.js";
 
 // Expose ABILITIES to window for console commands TESTING
 window.ABILITIES = ABILITIES;
@@ -1370,6 +1374,15 @@ export function buildUI(state){
 
         <!-- Tab 9: Fighter Cards Collection -->
         <div class="tab-content" data-tab="9" style="margin-top:10px; display:none;">
+          <!-- Sub-tabs: Cards | Codex | Packs -->
+          <div style="display:flex; gap:4px; margin-bottom:8px;">
+            <button id="fighterSubTabCards" onclick="ui._switchFighterSubTab('cards')" style="flex:1; padding:8px; background:#d4af37; color:#000; border:none; border-radius:4px 4px 0 0; cursor:pointer; font-size:13px; font-weight:bold;">🎴 My Cards</button>
+            <button id="fighterSubTabCodex" onclick="ui._switchFighterSubTab('codex')" style="flex:1; padding:8px; background:rgba(212,175,55,0.3); color:#d4af37; border:none; border-radius:4px 4px 0 0; cursor:pointer; font-size:13px;">📖 Collection Codex</button>
+            <button id="fighterSubTabPacks" onclick="ui._switchFighterSubTab('packs')" style="flex:1; padding:8px; background:rgba(212,175,55,0.3); color:#d4af37; border:none; border-radius:4px 4px 0 0; cursor:pointer; font-size:13px;">📦 Card Packs</button>
+          </div>
+          
+          <!-- Sub-tab: My Cards -->
+          <div id="fighterSubCards" style="display:block;">
           <div class="box" style="border-color:#d4af37; background:rgba(0,0,0,0.3);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div>
@@ -1393,6 +1406,21 @@ export function buildUI(state){
           <!-- Fighter Cards Grid -->
           <div id="fighterCardsGrid" style="margin-top:12px; display:grid; grid-template-columns:repeat(5, calc((100% - 80px) / 5)); gap:20px; padding:20px; background:rgba(0,0,0,0.3); border-radius:6px; min-height:600px; max-height:800px; overflow-y:auto; width:100%; box-sizing:border-box;">
             <!-- Cards rendered here -->
+          </div>
+          </div>
+          
+          <!-- Sub-tab: Collection Codex -->
+          <div id="fighterSubCodex" style="display:none;">
+            <div id="codexContent" style="padding:8px;">
+              <!-- Rendered by ui.renderCodex() -->
+            </div>
+          </div>
+          
+          <!-- Sub-tab: Card Packs -->
+          <div id="fighterSubPacks" style="display:none;">
+            <div id="packsContent" style="padding:8px;">
+              <!-- Rendered by ui.renderCardPacks() -->
+            </div>
           </div>
         </div>
       </div>
@@ -2268,11 +2296,7 @@ function bindUI(state){
       }
       
       const displayCard = cardsToShow[cycleIndex % cardsToShow.length];
-      let cardImage = 'assets/fighter player cards/card_template.svg';
-      if(displayCard.fighterImage){
-        // Use the filename directly - images are just name.png files
-        cardImage = `assets/fighter player cards/${displayCard.fighterImage}`;
-      }
+      const cardImage = getFighterImageUrl(displayCard) || 'assets/fighter player cards/card_template.svg';
       
       cardContainer.innerHTML = `
         <div style="text-align:center;">
@@ -2287,12 +2311,7 @@ function bindUI(state){
   
   // Show final card reveal at 2x size
   ui.showFinalCardReveal = (cardContainer, card, notification, textEl, numberEl) => {
-    // Build proper asset path for fighter card image
-    let cardImage = 'assets/fighter player cards/card_template.svg';
-    if(card.fighterImage){
-      // Use the filename directly - it's already just the name
-      cardImage = `assets/fighter player cards/${card.fighterImage}`;
-    }
+    const cardImage = getFighterImageUrl(card) || 'assets/fighter player cards/card_template.svg';
     
     cardContainer.innerHTML = `
       <div style="text-align:center; animation:cardRevealPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
@@ -2503,7 +2522,7 @@ function bindUI(state){
         randomCard = {name: 'Unknown', rarity: 'common', fighterImage: '', level: 1, role: 'dps', rating: 3};
       }
       const randomRarityColor = rarityColors[randomCard.rarity] || '#888';
-      const imageUrl = randomCard.fighterImage ? getAssetPath(`assets/fighter player cards/${randomCard.fighterImage}`) : '';
+      const imageUrl = getFighterImageUrl(randomCard);
       
       cyclingImg.innerHTML = `
         <div style="
@@ -2542,7 +2561,7 @@ function bindUI(state){
       const rarityColor = rarityColors[card.rarity];
       const rarityBgOpacity = {common: 0.1, uncommon: 0.15, rare: 0.2, epic: 0.25, legendary: 0.3};
       const ratingStars = '★'.repeat(card.rating) + '☆'.repeat(5 - card.rating);
-      const imageUrl = card.fighterImage ? getAssetPath(`assets/fighter player cards/${card.fighterImage}`) : '';
+      const imageUrl = getFighterImageUrl(card);
       
       finalStats.innerHTML = `
         <div style="
@@ -2828,7 +2847,7 @@ function bindUI(state){
       const rarityBorders = {common: '#fff', uncommon: '#00ff00', rare: '#0099ff', epic: '#cc66ff', legendary: '#ff8800'};
       const rarityColor = rarityBorders[card.rarity] || '#fff';
       const rarityBgOpacity = {common: 0.1, uncommon: 0.15, rare: 0.2, epic: 0.25, legendary: 0.3};
-      const imageUrl = card.fighterImage ? getAssetPath(`assets/fighter player cards/${card.fighterImage}`) : '';
+      const imageUrl = getFighterImageUrl(card);
       const cardPowerRating = ui._calculateCardRating(card);
       const isEquipped = equippedLoadoutIds.has(card.loadoutId);
       
@@ -5939,6 +5958,340 @@ function bindUI(state){
     ui.currentCardSort = 'rating'; 
     ui.renderFighterCards(); 
   };
+  
+  // Fighter sub-tab switching
+  ui._currentFighterSubTab = 'cards';
+  ui._switchFighterSubTab = (tab) => {
+    ui._currentFighterSubTab = tab;
+    const panels = { cards: 'fighterSubCards', codex: 'fighterSubCodex', packs: 'fighterSubPacks' };
+    const buttons = { cards: 'fighterSubTabCards', codex: 'fighterSubTabCodex', packs: 'fighterSubTabPacks' };
+    
+    for (const [key, id] of Object.entries(panels)) {
+      const el = document.getElementById(id);
+      if (el) el.style.display = key === tab ? 'block' : 'none';
+    }
+    for (const [key, id] of Object.entries(buttons)) {
+      const btn = document.getElementById(id);
+      if (btn) {
+        if (key === tab) {
+          btn.style.background = '#d4af37';
+          btn.style.color = '#000';
+          btn.style.fontWeight = 'bold';
+        } else {
+          btn.style.background = 'rgba(212,175,55,0.3)';
+          btn.style.color = '#d4af37';
+          btn.style.fontWeight = 'normal';
+        }
+      }
+    }
+    
+    if (tab === 'codex') ui.renderCodex();
+    if (tab === 'packs') ui.renderCardPacks();
+    if (tab === 'cards') ui.renderFighterCards();
+  };
+  
+  // ═════════════════════════════════════════════════════════════════════════
+  // COLLECTION CODEX RENDERER
+  // ═════════════════════════════════════════════════════════════════════════
+  ui.renderCodex = () => {
+    const container = document.getElementById('codexContent');
+    if (!container) return;
+    
+    try {
+      const data = getCodexData(state);
+      
+      let html = `
+        <!-- Collection Overview -->
+        <div class="box" style="border-color:#d4af37; background:rgba(0,0,0,0.4); margin-bottom:12px;">
+          <div style="text-align:center; margin-bottom:12px;">
+            <div style="font-size:20px; font-weight:bold; color:#d4af37;">📖 Collection Codex</div>
+            <div style="font-size:14px; color:#ccc; margin-top:4px;">
+              ${data.totalDiscovered}/${data.totalFighters} Fighters Discovered (${data.completionPercent}%)
+            </div>
+            <div style="margin-top:8px; background:rgba(50,50,60,0.5); border-radius:10px; overflow:hidden; height:20px;">
+              <div style="height:100%; width:${data.completionPercent}%; background:linear-gradient(90deg, #d4af37, #f5d680); border-radius:10px; transition:width 0.5s;"></div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-around; text-align:center; font-size:12px; color:#aaa;">
+            <div>🃏 ${data.totalCardsEver} Total Cards</div>
+            <div>👑 ${data.legendariesFound} Legendaries</div>
+            <div>🏅 ${data.milestonesCompleted}/${data.milestonesTotal} Milestones</div>
+          </div>
+        </div>
+        
+        <!-- Faction Grid -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:10px; margin-bottom:12px;">
+      `;
+      
+      for (const faction of data.factions) {
+        const percent = faction.percent;
+        html += `
+          <div class="box" style="border-color:${faction.color}40; background:${faction.bgColor || 'rgba(0,0,0,0.3)'}; cursor:pointer; transition:all 0.2s;" 
+               onmouseover="this.style.borderColor='${faction.color}'" onmouseout="this.style.borderColor='${faction.color}40'"
+               onclick="ui._showFactionDetail('${faction.id}')">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div>
+                <span style="font-size:18px;">${faction.icon}</span>
+                <span style="color:${faction.color}; font-weight:bold; font-size:14px; margin-left:4px;">${faction.name}</span>
+              </div>
+              <div style="color:${percent === 100 ? '#4ade80' : '#ccc'}; font-size:13px; font-weight:bold;">
+                ${faction.collected}/${faction.total} ${percent === 100 ? '✅' : ''}
+              </div>
+            </div>
+            <div style="font-size:11px; color:#888; margin-bottom:6px;">${faction.description || ''}</div>
+            <div style="background:rgba(50,50,60,0.5); border-radius:6px; overflow:hidden; height:8px;">
+              <div style="height:100%; width:${percent}%; background:${faction.color}; border-radius:6px; transition:width 0.5s;"></div>
+            </div>
+            <div style="display:flex; gap:4px; margin-top:8px; flex-wrap:wrap;">
+              ${faction.fighters.map(f => `
+                <div style="width:28px; height:28px; border-radius:4px; border:2px solid ${f.collected ? faction.color : '#333'}; 
+                     background:${f.collected ? faction.color + '30' : 'rgba(30,30,30,0.5)'}; display:flex; align-items:center; justify-content:center;
+                     font-size:10px; color:${f.collected ? '#fff' : '#444'};" title="${f.collected ? f.name : '???'}">
+                  ${f.collected ? (f.name ? f.name[0] : '?') : '?'}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      html += `</div>`;
+      
+      // Milestones section
+      html += `
+        <div class="box" style="border-color:rgba(212,175,55,0.3); background:rgba(0,0,0,0.3);">
+          <div style="font-size:16px; font-weight:bold; color:#d4af37; margin-bottom:10px;">🏅 Milestones</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:8px;">
+      `;
+      
+      for (const m of data.milestones) {
+        const claimed = m.claimed;
+        html += `
+          <div style="padding:8px; background:${claimed ? 'rgba(74,222,128,0.1)' : 'rgba(30,30,40,0.5)'}; border:1px solid ${claimed ? '#4ade80' : '#333'}; border-radius:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:${claimed ? '#4ade80' : '#ccc'}; font-weight:bold; font-size:12px;">${claimed ? '✅' : '🔒'} ${m.title}</span>
+              <span style="color:#d4af37; font-size:11px;">${m.reward?.gold ? m.reward.gold + 'g' : ''}</span>
+            </div>
+            <div style="font-size:11px; color:#888; margin-top:2px;">${m.desc}</div>
+            <div style="background:rgba(50,50,60,0.5); border-radius:4px; overflow:hidden; height:4px; margin-top:4px;">
+              <div style="height:100%; width:${m.percent}%; background:${claimed ? '#4ade80' : '#d4af37'}; border-radius:4px;"></div>
+            </div>
+            <div style="font-size:10px; color:#666; margin-top:2px; text-align:right;">${m.current}/${m.target}</div>
+          </div>
+        `;
+      }
+      
+      html += `</div></div>`;
+      
+      container.innerHTML = html;
+    } catch (e) {
+      console.error('[Codex] Render error:', e);
+      container.innerHTML = '<div style="color:#f44; padding:20px;">Error loading codex data</div>';
+    }
+  };
+  
+  // Show faction detail overlay
+  ui._showFactionDetail = (factionId) => {
+    try {
+      const data = getCodexData(state);
+      const faction = data.factions.find(f => f.id === factionId);
+      if (!faction) return;
+      
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center; animation:fadeIn 0.2s;';
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+      
+      let html = `
+        <div style="max-width:600px; width:90%; max-height:85vh; overflow-y:auto; background:#1a1a2e; border:2px solid ${faction.color}; border-radius:12px; padding:24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <span style="font-size:28px;">${faction.icon}</span>
+              <span style="color:${faction.color}; font-weight:bold; font-size:22px; margin-left:8px;">${faction.name}</span>
+            </div>
+            <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none; border:none; color:#888; font-size:24px; cursor:pointer;">✕</button>
+          </div>
+          <div style="color:#aaa; font-size:13px; margin-bottom:12px; font-style:italic;">${faction.lore || faction.description}</div>
+          <div style="color:${faction.complete ? '#4ade80' : '#ccc'}; font-size:14px; font-weight:bold; margin-bottom:16px;">
+            ${faction.collected}/${faction.total} Collected (${faction.percent}%) ${faction.complete ? '✅ COMPLETE!' : ''}
+          </div>
+      `;
+      
+      // Bonuses
+      if (faction.bonuses && faction.bonuses.length > 0) {
+        html += `<div style="margin-bottom:16px;">
+          <div style="color:#d4af37; font-weight:bold; margin-bottom:6px;">Faction Bonuses:</div>`;
+        for (const bonus of faction.bonuses) {
+          const active = faction.collected >= bonus.count;
+          html += `<div style="padding:4px 8px; margin:3px 0; background:${active ? 'rgba(74,222,128,0.1)' : 'rgba(30,30,40,0.5)'}; border:1px solid ${active ? '#4ade80' : '#333'}; border-radius:4px; font-size:12px; color:${active ? '#4ade80' : '#666'};">
+            ${active ? '✅' : '🔒'} (${bonus.count}/${faction.total}) ${bonus.desc}
+          </div>`;
+        }
+        html += `</div>`;
+      }
+      
+      // Fighter list
+      html += `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:8px;">`;
+      for (const f of faction.fighters) {
+        html += `
+          <div style="padding:10px; background:${f.collected ? faction.color + '15' : 'rgba(20,20,30,0.8)'}; border:2px solid ${f.collected ? faction.color : '#222'}; border-radius:8px; text-align:center;">
+            <div style="font-size:24px; margin-bottom:4px;">${f.collected ? (f.role === 'dps' ? '⚔️' : f.role === 'tank' ? '🛡️' : '💚') : '❓'}</div>
+            <div style="color:${f.collected ? '#fff' : '#444'}; font-weight:bold; font-size:12px;">${f.collected ? f.name : '???'}</div>
+            <div style="font-size:10px; color:${f.collected ? '#aaa' : '#333'}; margin-top:2px;">
+              ${f.collected ? `${f.role?.toUpperCase()} • Lv${f.unlockLevel || 1}` : `Unlocks Lv${f.unlockLevel || 1}`}
+            </div>
+            ${f.collected && f.cardCount > 1 ? `<div style="font-size:10px; color:#d4af37; margin-top:2px;">×${f.cardCount}</div>` : ''}
+          </div>
+        `;
+      }
+      html += `</div></div>`;
+      
+      overlay.innerHTML = html;
+      document.body.appendChild(overlay);
+    } catch (e) {
+      console.error('[Codex] Faction detail error:', e);
+    }
+  };
+  
+  // ═════════════════════════════════════════════════════════════════════════
+  // CARD PACKS RENDERER
+  // ═════════════════════════════════════════════════════════════════════════
+  ui.renderCardPacks = () => {
+    const container = document.getElementById('packsContent');
+    if (!container) return;
+    
+    try {
+      const gold = state.player?.gold || 0;
+      
+      let html = `
+        <div class="box" style="border-color:#d4af37; background:rgba(0,0,0,0.4); margin-bottom:12px;">
+          <div style="text-align:center;">
+            <div style="font-size:20px; font-weight:bold; color:#d4af37;">📦 Card Packs</div>
+            <div style="font-size:14px; color:#ccc; margin-top:4px;">Spend gold to acquire new fighters</div>
+            <div style="font-size:16px; color:#ffd700; margin-top:8px; font-weight:bold;">💰 ${gold.toLocaleString()} Gold</div>
+          </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px;">
+      `;
+      
+      for (const [packId, pack] of Object.entries(CARD_PACKS)) {
+        const canAfford = gold >= pack.cost;
+        html += `
+          <div class="box" style="border-color:${canAfford ? '#d4af37' : '#333'}; background:rgba(0,0,0,0.4); text-align:center; transition:all 0.2s; ${canAfford ? 'cursor:pointer;' : 'opacity:0.6;'}"
+               ${canAfford ? `onclick="ui._openCardPack('${packId}')" onmouseover="this.style.borderColor='#ffd700'; this.style.boxShadow='0 0 20px rgba(212,175,55,0.3)';" onmouseout="this.style.borderColor='#d4af37'; this.style.boxShadow='none';"` : ''}>
+            <div style="font-size:36px; margin-bottom:8px;">${pack.icon}</div>
+            <div style="font-size:16px; font-weight:bold; color:#d4af37;">${pack.name}</div>
+            <div style="font-size:12px; color:#aaa; margin:6px 0;">${pack.description}</div>
+            <div style="font-size:14px; color:#ffd700; font-weight:bold; margin-top:8px;">
+              💰 ${pack.cost.toLocaleString()} Gold
+            </div>
+            ${!canAfford ? '<div style="font-size:11px; color:#f44; margin-top:4px;">Not enough gold</div>' : ''}
+          </div>
+        `;
+      }
+      
+      html += `</div>`;
+      
+      // Card sources info
+      const sources = getCardSources();
+      html += `
+        <div class="box" style="border-color:rgba(212,175,55,0.2); background:rgba(0,0,0,0.3); margin-top:12px;">
+          <div style="font-size:14px; font-weight:bold; color:#d4af37; margin-bottom:8px;">Ways to Earn Cards</div>
+          ${sources.map(s => `
+            <div style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12px;">
+              <span style="font-size:16px;">${s.icon}</span>
+              <div>
+                <span style="color:#fff; font-weight:bold;">${s.name}</span>
+                <span style="color:#888;"> — ${s.desc}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      
+      container.innerHTML = html;
+    } catch (e) {
+      console.error('[Packs] Render error:', e);
+      container.innerHTML = '<div style="color:#f44; padding:20px;">Error loading pack data</div>';
+    }
+  };
+  
+  // Open a card pack
+  ui._openCardPack = (packId) => {
+    try {
+      const pack = CARD_PACKS[packId];
+      if (!pack) return;
+      
+      const gold = state.player?.gold || 0;
+      if (gold < pack.cost) {
+        state.ui?.toast?.('❌ Not enough gold!');
+        return;
+      }
+      
+      state.player.gold -= pack.cost;
+      
+      const cards = openCardPack(state, packId);
+      if (!cards || cards.length === 0) {
+        state.ui?.toast?.('❌ Failed to open pack');
+        state.player.gold += pack.cost;
+        return;
+      }
+      
+      // Add cards & track in codex
+      let newDiscoveries = 0;
+      for (const card of cards) {
+        if (state.fighterCardInventory) {
+          state.fighterCardInventory.cards.push(card);
+        }
+        const discovery = recordCardAcquired(state, card);
+        if (discovery && discovery.isNew) newDiscoveries++;
+      }
+      
+      ui._showPackResults(pack, cards, newDiscoveries);
+      ui.renderCardPacks();
+    } catch (e) {
+      console.error('[Packs] Error opening pack:', e);
+    }
+  };
+  
+  // Show pack opening results overlay
+  ui._showPackResults = (pack, cards, newDiscoveries = 0) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10001; display:flex; align-items:center; justify-content:center; animation:fadeIn 0.3s;';
+    
+    const rarityColors = { common: '#9CA3AF', uncommon: '#10B981', rare: '#3B82F6', epic: '#8B5CF6', legendary: '#F59E0B' };
+    
+    let html = `
+      <div style="max-width:700px; width:95%; text-align:center;">
+        <div style="font-size:28px; margin-bottom:8px;">${pack.icon}</div>
+        <div style="font-size:22px; font-weight:bold; color:#d4af37; margin-bottom:4px;">${pack.name} Opened!</div>
+        ${newDiscoveries > 0 ? `<div style="color:#4ade80; font-size:14px; margin-bottom:12px;">🆕 ${newDiscoveries} New Discovery${newDiscoveries > 1 ? 'ies' : ''}!</div>` : ''}
+        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:20px 0;">
+    `;
+    
+    for (const card of cards) {
+      const rarityColor = rarityColors[card.rarity] || '#888';
+      const imageUrl = getFighterImageUrl(card);
+      html += `
+        <div style="width:120px; text-align:center; animation:cardRevealPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
+          <div style="width:120px; height:160px; border:3px solid ${rarityColor}; border-radius:8px; overflow:hidden; box-shadow:0 0 15px ${rarityColor}40;">
+            <img src="${imageUrl}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none';">
+          </div>
+          <div style="color:#fff; font-size:11px; font-weight:bold; margin-top:6px;">${card.name}</div>
+          <div style="color:${rarityColor}; font-size:10px; text-transform:uppercase;">${card.rarity}</div>
+        </div>
+      `;
+    }
+    
+    html += `
+        </div>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="padding:12px 32px; background:#d4af37; color:#000; border:none; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; margin-top:12px;">Continue</button>
+      </div>
+    `;
+    
+    overlay.innerHTML = html;
+    document.body.appendChild(overlay);
+  };
 
   // Show/hide main HUD while keeping bottom stats visible
   ui.toggleHud = (on)=>{
@@ -8298,9 +8651,9 @@ function bindUI(state){
             ${loadoutData ? 'cursor: pointer;' : ''}
             transition: all 0.2s;
           " ${loadoutData ? `onclick="event.stopPropagation(); ui._showFighterPreview(${JSON.stringify(loadoutId)})" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='#d4af37';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='${roleStyle.border}';" title="Click to view full fighter details"` : ''}>
-            ${loadoutData && loadoutData.fighterImage && !loadoutData.fighterImage.includes('placeholder') ? 
-              `<img src="${getAssetPath('assets/fighter player cards/' + loadoutData.fighterImage)}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none';" alt="${loadoutData.name}"/>` :
-              loadoutData ? loadoutData.name || 'Fighter' : '?'
+            ${loadoutData ? 
+              `<img src="${getLoadoutImageUrl(loadoutId, 'common')}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.parentElement.textContent='${(loadoutData.name || 'Fighter').replace(/'/g, '\\\'')}';" alt="${loadoutData.name}"/>` :
+              '?'
             }
             ${loadoutData && level > 0 ? `<div style="position:absolute; top:4px; left:4px; width:24px; height:24px; border-radius:50%; background:#1a1a1a; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; color:#d4af37; box-shadow:0 2px 4px rgba(0,0,0,0.8);">${level}</div>` : ''}
           </div>
@@ -8639,7 +8992,7 @@ function bindUI(state){
       }
       
       cardEl.innerHTML = `
-        ${card.fighterImage ? `<img src="${getAssetPath(`assets/fighter player cards/${card.fighterImage}`)}" alt="fighter" style="width: 100%; height: 100%; object-fit: contain;">` : ''}
+        <img src="${getFighterImageUrl(card)}" alt="fighter" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none';">
         ${comparisonBadge}
       `;
       
@@ -9229,7 +9582,7 @@ function bindUI(state){
               position: relative;
             ">
               <img 
-                src="${getAssetPath('assets/fighter player cards/' + (loadout.fighterImage || 'default.png'))}" 
+                src="${getLoadoutImageUrl(loadoutId, 'common')}" 
                 style="
                   max-width: 100%;
                   max-height: 100%;

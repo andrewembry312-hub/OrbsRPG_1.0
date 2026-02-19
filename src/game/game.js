@@ -8,7 +8,10 @@ import { META_LOADOUTS } from "./loadouts.js";
 import { LEVEL_CONFIG, getZoneForPosition, scaleAllyToPlayerLevel } from "./leveling.js";
 import * as LoadoutRegistry from "./loadout-registry.js";
 import { getAssetPath } from "../config.js";
-import { generateFighterCard, addFighterCard } from "./fighter-cards.js";
+import { generateFighterCard, addFighterCard, openCardPack, generateNewDiscoveryCard, sellCard, CARD_PACKS } from "./fighter-cards.js";
+import { initCodex, recordCardAcquired, recordDuplicateSold, getCodexData } from "./collection-codex.js";
+import { getActiveFactionBonuses, getCollectionSummary } from "./fighter-factions.js";
+import { getFighterImageUrl, getLoadoutImageUrl, pregeneratePlaceholders } from "./fighter-placeholders.js";
 
 // Diagnostic systems (Phase 1, 2, 3)
 import { debugCoordSanity, debugCoordRanges, coordinateDiagnosticSnapshot } from "./coordinate-sanity.js";
@@ -174,6 +177,12 @@ export function hardResetGameState(state){
   
   // Initialize Emperor Mode system
   initializeEmperorSystem(state);
+  
+  // Initialize Collection Codex (preserves across resets if already exists)
+  initCodex(state);
+  
+  // Pre-generate placeholder images for new fighters (deferred to avoid blocking)
+  try { pregeneratePlaceholders(); } catch(e) { console.warn('[Placeholders] Pregeneration failed:', e.message); }
 }
 
 function ensureEntityId(state, ent, opts={}){
@@ -2129,6 +2138,17 @@ export function awardXP(state, amount){
     const newCard = generateFighterCard(newLevel, state.fighterCardInventory.nextCardId++);
     if (newCard) {
       addFighterCard(state, newCard);
+      // Track in codex
+      const discovery = recordCardAcquired(state, newCard);
+      if (discovery && discovery.isNew) {
+        console.log(`[Codex] 🆕 NEW discovery: ${newCard.name} (${discovery.totalDiscovered}/${discovery.totalPossible})`);
+        if (discovery.newMilestones.length > 0) {
+          for (const m of discovery.newMilestones) {
+            state.ui?.toast?.(`🏅 Milestone: <b>${m.title}</b> — ${m.desc}`);
+            console.log(`[Codex] 🏅 Milestone reached: ${m.title}`);
+          }
+        }
+      }
       console.log('[FighterCards] ✅ Card Awarded:', newCard.name, `(${newCard.rarity})`, '★'.repeat(newCard.rating), '- Total cards:', state.fighterCardInventory.cards.length);
     } else {
       console.warn('[FighterCards] ⚠️ Failed to generate card at level', newLevel);
@@ -13015,6 +13035,13 @@ function showVictoryRewardUI(state, onComplete) {
       // Add all loot to inventory
       for (const card of legendaryCards) {
         addFighterCard(state, card);
+        // Track in codex
+        const discovery = recordCardAcquired(state, card);
+        if (discovery && discovery.isNew && discovery.newMilestones.length > 0) {
+          for (const m of discovery.newMilestones) {
+            state.ui?.toast?.(`🏅 Milestone: <b>${m.title}</b> — ${m.desc}`);
+          }
+        }
       }
       
       for (const item of legendaryItems) {
@@ -16219,6 +16246,17 @@ function collectTreasureChest(state, chest) {
     
     if (card) {
       addFighterCard(state, card);
+      
+      // Track in codex
+      const discovery = recordCardAcquired(state, card);
+      if (discovery && discovery.isNew) {
+        state.ui?.toast?.(`🆕 New fighter discovered: <b>${card.name}</b>!`);
+        if (discovery.newMilestones.length > 0) {
+          for (const m of discovery.newMilestones) {
+            state.ui?.toast?.(`🏅 Milestone: <b>${m.title}</b> — ${m.desc}`);
+          }
+        }
+      }
       
       // Visual feedback
       state.ui.toast?.(`🎉 Treasure Chest! Received: <b>${card.name}</b>`);
