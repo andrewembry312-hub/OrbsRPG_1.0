@@ -8497,6 +8497,14 @@ function bindUI(state){
     const loadoutId = slot.loadoutId || null;
     const sp = state.progression?.skillPoints || 0;
     
+    // Resolve unique card ID → base registry key
+    let slotCard = null;
+    let baseLoadoutId = loadoutId;
+    if (loadoutId) {
+      slotCard = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
+      if (slotCard) baseLoadoutId = slotCard.loadoutBaseId || loadoutId;
+    }
+    
     // Role styling
     const roleColors = {
       tank: { bg: 'rgba(255,200,120,0.15)', border: 'rgba(255,200,120,0.5)', text: '#ffc878' },
@@ -8510,17 +8518,10 @@ function bindUI(state){
     
     // Loadout info
     let loadoutName = 'None';
-    let loadoutInfo = '';
     if (loadoutId && window.LOADOUTS) {
-      // loadoutId is now the unique card ID - look up the card to get the base loadout
-      const card = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
-      const baseLoadoutId = card?.loadoutBaseId || loadoutId;
       const loadout = window.LOADOUTS.getLoadout(baseLoadoutId);
       if (loadout) {
         loadoutName = loadout.name;
-        const weapon = loadout.weapon?.name || 'No weapon';
-        const abilities = loadout.abilities?.map(a => a.name || 'Unknown').join(', ') || 'No abilities';
-        loadoutInfo = `<div class="small" style="color:#999; margin-top:2px;">${weapon} • ${abilities}</div>`;
       }
     }
     
@@ -8553,9 +8554,6 @@ function bindUI(state){
     // Get full loadout details for portrait and tooltip
     let loadoutData = null;
     if (loadoutId && window.LOADOUTS) {
-      // loadoutId is now the unique card ID - look up the card to get the base loadout
-      const card = (state.fighterCardInventory?.cards || []).find(c => c.loadoutId === loadoutId);
-      const baseLoadoutId = card?.loadoutBaseId || loadoutId;
       loadoutData = window.LOADOUTS.getLoadout(baseLoadoutId);
     }
     
@@ -8652,7 +8650,7 @@ function bindUI(state){
             transition: all 0.2s;
           " ${loadoutData ? `onclick="event.stopPropagation(); ui._showFighterPreview(${JSON.stringify(loadoutId)})" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='#d4af37';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='${roleStyle.border}';" title="Click to view full fighter details"` : ''}>
             ${loadoutData ? 
-              `<img src="${getLoadoutImageUrl(loadoutId, 'common')}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.parentElement.textContent='${(loadoutData.name || 'Fighter').replace(/'/g, '\\\'')}';" alt="${loadoutData.name}"/>` :
+              `<img src="${slotCard ? getFighterImageUrl(slotCard) : getLoadoutImageUrl(baseLoadoutId, 'common')}" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; this.parentElement.textContent='${(loadoutData.name || 'Fighter').replace(/'/g, '\\\'')}';" alt="${loadoutData.name}"/>` :
               '?'
             }
             ${loadoutData && level > 0 ? `<div style="position:absolute; top:4px; left:4px; width:24px; height:24px; border-radius:50%; background:#1a1a1a; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; color:#d4af37; box-shadow:0 2px 4px rgba(0,0,0,0.8);">${level}</div>` : ''}
@@ -8686,7 +8684,7 @@ function bindUI(state){
             ${loadoutData?.abilities ? `
               <div style="display:flex; gap:4px; margin-top:8px; padding:6px; background:rgba(0,0,0,0.3); border-radius:4px;">
                 <div style="color:#888; font-size:10px; margin-right:4px; align-self:center;">Abilities:</div>
-                ${loadoutData.abilities.slice(0, 5).map((abilityId, i) => {
+                ${[...new Set(loadoutData.abilities)].slice(0, 5).map((abilityId, i) => {
                   const ABILITIES = window.ABILITIES || {};
                   const skillData = ABILITIES[abilityId];
                   const iconPath = skillData?.icon ? getAssetPath(`assets/skill icons/${skillData.icon}`) : '';
@@ -9582,7 +9580,7 @@ function bindUI(state){
               position: relative;
             ">
               <img 
-                src="${getLoadoutImageUrl(loadoutId, 'common')}" 
+                src="${card ? getFighterImageUrl(card) : getLoadoutImageUrl(baseLoadoutId, rarity)}" 
                 style="
                   max-width: 100%;
                   max-height: 100%;
