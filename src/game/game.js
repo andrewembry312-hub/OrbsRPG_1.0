@@ -2166,6 +2166,15 @@ function killEnemy(state, index, fromPlayer=true){
   // Check if this is the zone boss
   if (e.boss && state.zoneConfig.bossActive && state.zoneConfig.bossEntity === e) {
     handleZoneBossDefeat(state);
+    // Boss does not respawn — just award XP, loot drop, remove from array and return
+    if(fromPlayer) {
+      awardXP(state, e.xp);
+      state.player.kills = (state.player.kills || 0) + 1;
+    }
+    if(Math.random()<0.85) state.loot.push(spawnLootAt(state, e.x, e.y));
+    else state.player.gold += randi(1,4);
+    state.enemies.splice(index,1);
+    return;
   }
   
   // Track kills for player
@@ -13002,17 +13011,21 @@ function showVictoryRewardUI(state, onComplete) {
   };
   
   acceptBtn.onclick = () => {
-    // Add all loot to inventory
-    for (const card of legendaryCards) {
-      addFighterCard(state, card);
+    try {
+      // Add all loot to inventory
+      for (const card of legendaryCards) {
+        addFighterCard(state, card);
+      }
+      
+      for (const item of legendaryItems) {
+        addToInventory(state, item, 0);
+      }
+      
+      // Add gold
+      state.player.gold += goldReward;
+    } catch(err) {
+      console.error('[VICTORY] Error adding rewards:', err);
     }
-    
-    for (const item of legendaryItems) {
-      addToInventory(state, item, 0);
-    }
-    
-    // Add gold
-    state.player.gold += goldReward;
     
     // Close modal
     overlay.style.animation = 'fadeOut 0.3s';
@@ -13310,7 +13323,20 @@ function handleZoneBossDefeat(state) {
   showVictoryRewardUI(state, () => {
     // After player accepts loot, advance to next zone after short delay
     setTimeout(() => {
-      advanceToNextZone(state);
+      try {
+        advanceToNextZone(state);
+      } catch(err) {
+        console.error('%c[ZONE ADVANCE] CRITICAL ERROR during zone transition:', 'color: #ff0000; font-weight: bold', err);
+        // Emergency fallback: if enemies are empty, try to re-seed
+        if (state.enemies.length === 0) {
+          console.log('[ZONE ADVANCE] Emergency re-seed after error...');
+          try {
+            seedTeamForces(state, 'teamA', MAX_DEFENDERS_PER_TEAM);
+            seedTeamForces(state, 'teamB', MAX_DEFENDERS_PER_TEAM);
+            seedTeamForces(state, 'teamC', MAX_DEFENDERS_PER_TEAM);
+          } catch(e2) { console.error('[ZONE ADVANCE] Emergency re-seed also failed:', e2); }
+        }
+      }
     }, 1000);
   });
 }
@@ -13333,6 +13359,11 @@ function advanceToNextZone(state) {
     state.zoneConfig.zoneComplete = false;
     state.zoneConfig.bossActive = false;
     state.zoneConfig.bossEntity = null;
+    
+    // Reset campaign state for fresh run
+    state.campaign.playerPoints = 0;
+    state.campaign.enemyPoints = 0;
+    state.campaign.time = 0;
     
     // Scale zone levels up by prestige tier (each prestige adds +5 to all zone ranges)
     const prestigeOffset = prestigeLevel * 5;
@@ -13397,6 +13428,19 @@ function advanceToNextZone(state) {
     state.player.mana = st.maxMana;
     state.player.stam = st.maxStam;
     
+    // Respawn remaining allies near player
+    for (const ally of state.friendlies) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 50 + Math.random() * 30;
+      ally.x = state.player.x + Math.cos(angle) * dist;
+      ally.y = state.player.y + Math.sin(angle) * dist;
+      ally.respawnT = 0;
+      ally.dead = false;
+      ally.hp = ally.maxHp || 100;
+      ally.mana = ally.maxMana || 40;
+      ally.stam = ally.maxStam || 100;
+    }
+    
     // Re-seed enemy forces and base guards for fresh zone
     console.log('[ZONE RESET] Re-seeding enemy teams for new prestige zone...');
     seedTeamForces(state, 'teamA', MAX_DEFENDERS_PER_TEAM);
@@ -13420,6 +13464,13 @@ function advanceToNextZone(state) {
   state.zoneConfig.currentZone += 1;
   state.zoneConfig.maxZone = Math.max(state.zoneConfig.maxZone, state.zoneConfig.currentZone);
   state.zoneConfig.zoneComplete = false;
+  state.zoneConfig.bossActive = false;   // Defensive reset
+  state.zoneConfig.bossEntity = null;    // Defensive reset
+  
+  // Reset campaign state for fresh zone
+  state.campaign.playerPoints = 0;
+  state.campaign.enemyPoints = 0;
+  state.campaign.time = 0;
   
   // Reset emperor status
   state.emperorTeam = null;
@@ -13485,10 +13536,9 @@ function advanceToNextZone(state) {
     ally.y = state.player.y + Math.sin(angle) * dist;
     ally.respawnT = 0;
     ally.dead = false;
-    const allyStats = npcGetCurrentStats(ally, state);
-    ally.hp = allyStats.maxHp;
-    ally.mana = allyStats.maxMana;
-    ally.stam = allyStats.maxStam;
+    ally.hp = ally.maxHp || 100;
+    ally.mana = ally.maxMana || 40;
+    ally.stam = ally.maxStam || 100;
   }
   
   // Re-seed enemy forces and base guards for fresh zone
