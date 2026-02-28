@@ -1,10 +1,15 @@
 // Mobile UI - Complete touch control system
 import { isMobile } from "../engine/mobile.js";
 
+// Force mobile mode flag (set from title screen toggle)
+let forceMobileMode = false;
+export function setForceMobile(val) { forceMobileMode = val; }
+export function isMobileActive() { return forceMobileMode || isMobile(); }
+
 // Create all mobile UI elements
 export function createMobileUI(state) {
-  const mobile = isMobile();
-  console.log(`[MOBILE UI] createMobileUI called, isMobile=${mobile}, window.innerWidth=${window.innerWidth}, userAgent=${navigator.userAgent.substring(0, 50)}`);
+  const mobile = isMobileActive();
+  console.log(`[MOBILE UI] createMobileUI called, isMobileActive=${mobile}, isMobile=${isMobile()}, forceMobile=${forceMobileMode}`);
   
   if (!mobile) {
     console.log('[MOBILE UI] Not mobile, skipping mobile UI creation');
@@ -24,31 +29,34 @@ export function createMobileUI(state) {
   document.documentElement.appendChild(container);
   console.log('[MOBILE UI] Mobile UI container created and added to documentElement');
 
-  // Create action buttons (A/B/X/Y style)
+  // Create attack/block buttons (bottom-right, 2 large buttons)
   createActionButtons(container, state);
-  
-  // Create ability buttons (top bar)
+
+  // Create ability buttons (vertical column on right side)
   createAbilityButtons(container, state);
+
+  // Create secondary action buttons (interact, dodge - above attack/block)
+  createSecondaryActions(container, state);
   
   // Create menu buttons (top-left corner)
   createMenuButtons(container, state);
+
+  // Create ESC/close button (top-right corner)
+  createCloseButton(container, state);
   
   return container;
 }
 
-// Action buttons (bottom-right) - A/B/X/Y style for attack, dodge, block, interact
+// Attack + Block buttons (bottom-right corner, 2 large buttons side by side)
 function createActionButtons(container, state) {
-  console.log('[MOBILE UI] Creating action buttons');
+  console.log('[MOBILE UI] Creating attack/block buttons');
   const actionContainer = document.createElement('div');
   actionContainer.id = 'mobileActionButtons';
   actionContainer.className = 'mobile-action-container';
-  
-  // Button configuration: [label, key, color, position]
+
   const buttons = [
-    { label: 'A', key: null, action: 'attack', color: '#ff6b6b', emoji: '⚔️', top: '50%', left: '85%' }, // Attack (mouse)
-    { label: 'B', key: 'KeyF', action: 'interact', color: '#4aa3ff', emoji: '💬', top: '20%', left: '60%' }, // Interact
-    { label: 'X', key: null, action: 'block', color: '#b56cff', emoji: '🛡️', top: '80%', left: '60%' }, // Block (right mouse)
-    { label: 'Y', key: 'Space', action: 'dodge', color: '#7dff9b', emoji: '💨', top: '50%', left: '35%' } // Dodge/Dash
+    { label: 'ATK', action: 'attack', color: '#ff6b6b', emoji: '⚔️' },
+    { label: 'BLK', action: 'block', color: '#b56cff', emoji: '🛡️' }
   ];
 
   buttons.forEach(config => {
@@ -56,40 +64,36 @@ function createActionButtons(container, state) {
     btn.className = 'mobile-action-btn';
     btn.dataset.action = config.action;
     btn.innerHTML = `<span class="action-emoji">${config.emoji}</span><span class="action-label">${config.label}</span>`;
-    btn.style.top = config.top;
-    btn.style.left = config.left;
     btn.style.borderColor = config.color;
     btn.style.setProperty('--btn-color', config.color);
 
-    // Touch handlers
     btn.addEventListener('touchstart', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      
       if (config.action === 'attack') {
         state.input.mouse.lDown = true;
         state.input.mouse.lHeldMs = 0;
       } else if (config.action === 'block') {
         state.input.mouse.rDown = true;
-      } else if (config.key) {
-        state.input.keysDown.add(config.key);
       }
-      
       btn.classList.add('active');
     });
 
     btn.addEventListener('touchend', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      
       if (config.action === 'attack') {
         state.input.mouse.lDown = false;
       } else if (config.action === 'block') {
         state.input.mouse.rDown = false;
-      } else if (config.key) {
-        state.input.keysDown.delete(config.key);
       }
-      
+      btn.classList.remove('active');
+    });
+
+    btn.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      if (config.action === 'attack') state.input.mouse.lDown = false;
+      else if (config.action === 'block') state.input.mouse.rDown = false;
       btn.classList.remove('active');
     });
 
@@ -97,10 +101,56 @@ function createActionButtons(container, state) {
   });
 
   container.appendChild(actionContainer);
-  console.log('[MOBILE UI] Action buttons created and appended (4 buttons: A/B/X/Y)');
+  console.log('[MOBILE UI] Attack/Block buttons created (2 large buttons, bottom-right)');
 }
 
-// Ability buttons (horizontal bar at top)
+// Secondary action buttons (Interact + Dodge, positioned above attack/block)
+function createSecondaryActions(container, state) {
+  const secContainer = document.createElement('div');
+  secContainer.id = 'mobileSecondaryActions';
+  secContainer.className = 'mobile-secondary-container';
+
+  const buttons = [
+    { label: 'Talk', key: 'KeyF', action: 'interact', color: '#4aa3ff', emoji: '💬' },
+    { label: 'Dodge', key: 'Space', action: 'dodge', color: '#7dff9b', emoji: '💨' }
+  ];
+
+  buttons.forEach(config => {
+    const btn = document.createElement('button');
+    btn.className = 'mobile-secondary-btn';
+    btn.dataset.action = config.action;
+    btn.innerHTML = `<span class="action-emoji">${config.emoji}</span><span class="action-label">${config.label}</span>`;
+    btn.style.borderColor = config.color;
+    btn.style.setProperty('--btn-color', config.color);
+
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      state.input.keysDown.add(config.key);
+      btn.classList.add('active');
+    });
+
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      state.input.keysDown.delete(config.key);
+      btn.classList.remove('active');
+    });
+
+    btn.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      state.input.keysDown.delete(config.key);
+      btn.classList.remove('active');
+    });
+
+    secContainer.appendChild(btn);
+  });
+
+  container.appendChild(secContainer);
+  console.log('[MOBILE UI] Secondary action buttons created (Interact + Dodge)');
+}
+
+// Ability buttons (vertical column on right side of screen)
 function createAbilityButtons(container, state) {
   const abilityContainer = document.createElement('div');
   abilityContainer.id = 'mobileAbilityBar';
@@ -141,10 +191,10 @@ function createAbilityButtons(container, state) {
   });
 
   container.appendChild(abilityContainer);
-  console.log('[MOBILE UI] Ability buttons created and appended (6 buttons: abilities + potion)');
+  console.log('[MOBILE UI] Ability buttons created (vertical right-side bar, 6 buttons)');
 }
 
-// Menu buttons (top-left corner) - Inventory, Skills, Map, etc.
+// Menu buttons (top-left corner) - Inventory, Skills, Map, Level Up
 function createMenuButtons(container, state) {
   const menuContainer = document.createElement('div');
   menuContainer.id = 'mobileMenuButtons';
@@ -178,18 +228,41 @@ function createMenuButtons(container, state) {
   });
 
   container.appendChild(menuContainer);
-  console.log('[MOBILE UI] Menu buttons created and appended (4 buttons: I/M/K/L)');
+  console.log('[MOBILE UI] Menu buttons created (4 buttons: Inventory/Map/Skills/LevelUp)');
 }
 
-// Update ability cooldowns
+// ESC/Close button (top-right corner) - acts as Escape key for closing overlays + opening menu
+function createCloseButton(container, state) {
+  const btn = document.createElement('button');
+  btn.id = 'mobileEscBtn';
+  btn.className = 'mobile-esc-btn';
+  btn.innerHTML = '✕';
+  btn.title = 'Close / Menu';
+
+  btn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Simulate Escape key press
+    state.input.keysDown.add(state.binds?.menu || 'Escape');
+    btn.classList.add('active');
+    setTimeout(() => {
+      state.input.keysDown.delete(state.binds?.menu || 'Escape');
+      btn.classList.remove('active');
+    }, 100);
+  });
+
+  container.appendChild(btn);
+  console.log('[MOBILE UI] ESC/Close button created (top-right)');
+}
+
+// Update ability cooldowns visually
 export function updateMobileAbilityIcons(state) {
-  if (!isMobile()) return;
+  if (!isMobileActive()) return;
   
   const buttons = document.querySelectorAll('.mobile-ability-btn');
   if (!buttons.length) return;
 
   buttons.forEach((btn) => {
-    const key = btn.dataset.key;
     const slot = btn.dataset.slot;
     
     // Check cooldown based on ability slot

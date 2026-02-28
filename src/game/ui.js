@@ -35,6 +35,9 @@ export function buildUI(state){
             <button id="btnNewGame" style="flex:1; padding:12px 14px; background:#050505; color:#e7c76c; border:2px solid rgba(212,175,55,0.85); border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">New Game</button>
             <button id="btnLoadGame" class="secondary" style="flex:1; padding:12px 14px; background:#0a0a0a; color:#f5d878; border:2px solid rgba(212,175,55,0.7); border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Load Game</button>
           </div>
+          <div style="text-align:center; margin-top:6px;">
+            <button id="btnMobileToggle">📱 Enable Mobile Mode</button>
+          </div>
         </div>
       </div>
     </div>

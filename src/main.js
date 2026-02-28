@@ -8,7 +8,7 @@ import { showCharSelect } from "./game/charselect.js";
 import { render, updateAbilityCastDisplay } from "./game/render.js";
 import { getAssetPath } from "./config.js";
 import { isMobile } from "./engine/mobile.js";
-import { createMobileUI, updateMobileAbilityIcons } from "./game/mobile-ui.js";
+import { createMobileUI, updateMobileAbilityIcons, isMobileActive, setForceMobile } from "./game/mobile-ui.js";
 import "./loadMapInit.js"; // Initialize map loader helper
 import initializeTutorialSystem from "./tutorial/tutorialSystem.js"; // Tutorial system
 
@@ -358,12 +358,30 @@ function startGameLoop(){
       try{ ui.updateCrownIconsHUD(); }catch(e){ console.error('updateCrownIconsHUD', e); }
       try{ ui.updateAiFeed && ui.updateAiFeed(); }catch(e){ console.error('updateAiFeed', e); }
       try{ ui.renderGroupPanel(); }catch(e){ console.error('renderGroupPanel', e); }
+      try{ updateMobileAbilityIcons(state); }catch(e){ console.error('updateMobileAbilityIcons', e); }
     }
   });
 }
 
 // Setup event handlers
 function setupEventHandlers(){
+  // Wire mobile toggle button on title screen
+  const mobileToggleBtn = document.getElementById('btnMobileToggle');
+  if (mobileToggleBtn) {
+    // Auto-detect: if already mobile, show active state
+    if (isMobile()) {
+      setForceMobile(true);
+      mobileToggleBtn.textContent = '📱 Mobile Mode: ON';
+      mobileToggleBtn.classList.add('mobile-active');
+    }
+    mobileToggleBtn.addEventListener('click', () => {
+      const isActive = mobileToggleBtn.classList.toggle('mobile-active');
+      setForceMobile(isActive);
+      mobileToggleBtn.textContent = isActive ? '📱 Mobile Mode: ON' : '📱 Enable Mobile Mode';
+      console.log(`[MOBILE] Force mobile mode: ${isActive}`);
+    });
+  }
+
   // Wire main menu callbacks
   ui.onNewGame = async (heroName)=>{
     try{

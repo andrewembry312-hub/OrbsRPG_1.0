@@ -372,29 +372,27 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   z-index: 200;
 }
 
-/* Mobile Action Buttons (A/B/X/Y style - bottom right) */
+/* ---- Attack + Block: 2 large buttons, bottom-right corner ---- */
 .mobile-action-container {
   position: fixed;
-  bottom: 8px;
-  right: 8px;
-  width: 120px;
-  height: 120px;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  gap: 10px;
   z-index: 300;
   pointer-events: none;
 }
 
 .mobile-action-btn {
-  position: absolute;
-  width: 40px;
-  height: 40px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  border: 2px solid;
-  background: rgba(0, 0, 0, 0.85);
+  border: 2.5px solid;
+  background: rgba(0, 0, 0, 0.88);
   backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 12px var(--btn-color, #fff);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7), 0 0 14px var(--btn-color, #fff);
   cursor: pointer;
   transition: all 0.1s ease;
-  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -405,50 +403,102 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
 }
 
 .mobile-action-btn .action-emoji {
-  font-size: 16px;
+  font-size: 22px;
   margin-bottom: 1px;
-  filter: drop-shadow(0 0 2px var(--btn-color));
+  filter: drop-shadow(0 0 3px var(--btn-color));
 }
 
 .mobile-action-btn .action-label {
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 900;
   color: var(--btn-color);
   text-shadow: 0 0 4px var(--btn-color);
+  letter-spacing: 0.5px;
 }
 
 .mobile-action-btn:active,
 .mobile-action-btn.active {
-  transform: translate(-50%, -50%) scale(0.85);
+  transform: scale(0.85);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), inset 0 0 12px var(--btn-color);
+  background: rgba(0, 0, 0, 0.95);
+}
+
+/* ---- Secondary actions (Interact + Dodge) above attack/block ---- */
+.mobile-secondary-container {
+  position: fixed;
+  bottom: 90px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 300;
+  pointer-events: none;
+}
+
+.mobile-secondary-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 10px var(--btn-color, #fff);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-secondary-btn .action-emoji {
+  font-size: 16px;
+  filter: drop-shadow(0 0 2px var(--btn-color));
+}
+
+.mobile-secondary-btn .action-label {
+  font-size: 7px;
+  font-weight: 900;
+  color: var(--btn-color);
+  text-shadow: 0 0 3px var(--btn-color);
+}
+
+.mobile-secondary-btn:active,
+.mobile-secondary-btn.active {
+  transform: scale(0.85);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), inset 0 0 10px var(--btn-color);
   background: rgba(0, 0, 0, 0.95);
 }
 
-/* Mobile Ability Bar (horizontal at top) */
+/* ---- Ability Bar: vertical column on RIGHT side ---- */
 .mobile-ability-bar {
   position: fixed;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
-  gap: 4px;
-  padding: 4px 8px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
   background: rgba(0, 0, 0, 0.85);
   border: 1px solid rgba(212, 175, 55, 0.5);
-  border-radius: 8px;
+  border-radius: 10px;
   backdrop-filter: blur(6px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   z-index: 250;
+  pointer-events: none;
 }
 
 .mobile-ability-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid rgba(212, 175, 55, 0.6);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(212, 175, 55, 0.6);
   background: rgba(10, 10, 10, 0.9);
   color: #d4af37;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 900;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   cursor: pointer;
@@ -456,6 +506,7 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   padding: 0;
+  pointer-events: all;
 }
 
 .mobile-ability-btn:active,
@@ -471,25 +522,26 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   color: #555;
 }
 
-/* Mobile Menu Buttons (top-left corner) */
+/* ---- Menu Buttons (top-left corner): Inventory, Map, Skills, LevelUp ---- */
 .mobile-menu-buttons {
   position: fixed;
   top: 8px;
   left: 8px;
   display: flex;
-  gap: 4px;
+  gap: 6px;
   z-index: 250;
+  pointer-events: none;
 }
 
 .mobile-menu-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid rgba(74, 163, 255, 0.6);
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(74, 163, 255, 0.6);
   background: rgba(0, 0, 0, 0.85);
   color: #4aa3ff;
-  font-size: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  font-size: 18px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
   cursor: pointer;
   transition: all 0.12s ease;
   display: flex;
@@ -498,6 +550,7 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   padding: 0;
+  pointer-events: all;
 }
 
 .mobile-menu-btn:active {
@@ -506,72 +559,120 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), inset 0 0 8px rgba(74, 163, 255, 0.4);
 }
 
-/* Mobile Responsive Adjustments - AGGRESSIVE SCALING */
+/* ---- ESC / Close button (top-right corner) ---- */
+.mobile-esc-btn {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 100, 100, 0.6);
+  background: rgba(0, 0, 0, 0.85);
+  color: #ff6464;
+  font-size: 20px;
+  font-weight: 900;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+  pointer-events: all;
+  z-index: 260;
+}
+
+.mobile-esc-btn:active,
+.mobile-esc-btn.active {
+  transform: scale(0.85);
+  background: rgba(255, 100, 100, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), inset 0 0 8px rgba(255, 100, 100, 0.4);
+}
+
+/* ---- Mobile toggle button on title screen ---- */
+#btnMobileToggle {
+  margin-top: 8px;
+  font-size: 12px !important;
+  padding: 8px 14px !important;
+  min-height: 32px !important;
+  background: #0a0a0a;
+  color: #7dff9b;
+  border: 1.5px solid rgba(125, 255, 155, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+#btnMobileToggle:hover,
+#btnMobileToggle:active {
+  background: rgba(125, 255, 155, 0.15);
+  border-color: rgba(125, 255, 155, 0.8);
+}
+
+#btnMobileToggle.mobile-active {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.5);
+}
+
+#btnMobileToggle.mobile-active:hover,
+#btnMobileToggle.mobile-active:active {
+  background: rgba(255, 107, 107, 0.15);
+  border-color: rgba(255, 107, 107, 0.8);
+}
+
+/* ============================================
+   MOBILE RESPONSIVE - Single unified media query
+   ============================================ */
 @media (max-width: 768px), (hover: none) {
-  /* Hide desktop HUD elements to save space */
-  .hud {
-    width: 200px !important;
-    padding: 4px !important;
-    font-size: 8px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    top: 60px !important;
-    max-width: 85vw !important;
-  }
-
-  .hud .row {
-    gap: 4px !important;
-  }
-
-  .hud .bar {
-    height: 8px !important;
-  }
-
-  .hud .small {
-    font-size: 8px !important;
-  }
-
-  /* Bottom ability bar - hide on mobile (replaced by mobile ability bar) */
+  /* Desktop ability bar replaced by mobile ability bar */
   .abilBar {
     display: none !important;
   }
 
-  /* Bottom stats - ultra compact */
+  /* HUD - compact top-center */
+  .hud {
+    width: 85vw !important;
+    max-width: 320px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: 50px !important;
+    padding: 4px 6px !important;
+    font-size: 9px !important;
+  }
+
+  .hud .row { gap: 4px !important; }
+  .hud .bar { height: 8px !important; }
+  .hud .small { font-size: 8px !important; }
+  .hint { display: none !important; }
+
+  /* Bottom stats - compact */
   .bottomStats {
     bottom: 8px !important;
-    padding: 2px 4px !important;
-    font-size: 7px !important;
+    padding: 2px 6px !important;
+    font-size: 8px !important;
     gap: 4px !important;
   }
+  .bottomStats .bar { height: 6px !important; }
+  .bottomStats .pill { font-size: 8px !important; padding: 1px 4px !important; }
 
-  .bottomStats .bar {
-    height: 6px !important;
-  }
-
-  .bottomStats .pill {
-    font-size: 7px !important;
-    padding: 1px 4px !important;
-  }
-
-  /* Buff icons - tiny */
+  /* Buff icons */
   .buffIconsHud {
+    top: auto !important;
     bottom: 40px !important;
+    right: 4px !important;
+    max-width: 180px !important;
     gap: 2px !important;
   }
+  .buffIcon { width: 24px !important; height: 24px !important; font-size: 12px !important; }
+  .buffIcon .timer, .buffIcon .stack { font-size: 6px !important; padding: 1px 2px !important; }
 
-  .buffIcon {
-    width: 24px !important;
-    height: 24px !important;
-    font-size: 12px !important;
-  }
-
-  .buffIcon .timer,
-  .buffIcon .stack {
-    font-size: 6px !important;
-    padding: 1px 2px !important;
-  }
-
-  /* Minimap - tiny */
+  /* Minimap - small, bottom-left */
   #miniMap {
     width: 80px !important;
     height: 80px !important;
@@ -579,331 +680,103 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
     left: 8px !important;
   }
 
-  /* Toast messages - top center, small */
+  /* Toast messages */
   .toast {
     left: 50% !important;
     transform: translateX(-50%) !important;
-    top: 120px !important;
-    font-size: 9px !important;
-    max-width: 75vw !important;
-    padding: 6px 10px !important;
+    top: 110px !important;
+    font-size: 11px !important;
+    max-width: 80vw !important;
+    padding: 8px 12px !important;
   }
 
-  /* Overlays - full screen */
+  /* Overlays - full screen on mobile */
   .overlay .panel {
     width: 100vw !important;
     height: 100vh !important;
     max-height: 100vh !important;
     border-radius: 0 !important;
-    padding: 8px !important;
+    padding: 10px !important;
     font-size: 12px !important;
+    overflow-y: auto !important;
   }
 
-  /* Character select overlay - very compact */
-  #charSelectOverlay .panel {
-    padding: 4px !important;
-  }
+  /* Panels */
+  .panel { padding: 10px !important; font-size: 12px !important; }
+  .panel h2 { font-size: 15px !important; margin-bottom: 6px !important; }
 
-  #charSelectOverlay h2 {
-    font-size: 14px !important;
-    margin-bottom: 4px !important;
-  }
+  /* Buttons - touch friendly */
+  button { min-height: 40px !important; padding: 8px 12px !important; font-size: 12px !important; }
 
-  #charSelectOverlay button {
-    padding: 8px 12px !important;
-    font-size: 11px !important;
-    min-height: 36px !important;
-  }
+  /* Input fields - prevent iOS zoom */
+  input, select, textarea { font-size: 16px !important; min-height: 40px !important; padding: 6px !important; }
 
-  #charSelectOverlay input {
-    padding: 6px !important;
-    font-size: 12px !important;
-  }
+  /* Inventory grid */
+  .inventoryGrid { gap: 10px !important; }
+  .invSlot { min-width: 54px !important; min-height: 54px !important; font-size: 9px !important; }
 
-  /* Panels - smaller on mobile */
-  .panel h2 {
-    font-size: 14px !important;
-    margin-bottom: 4px !important;
-  }
+  /* Ability slots in skill panel */
+  .abilSlot { width: 120px !important; height: 44px !important; padding: 6px !important; }
+  .abilName { font-size: 10px !important; margin-top: 8px !important; }
+  .abilMeta { font-size: 9px !important; }
+  .abilKey { font-size: 10px !important; }
 
-  .panel {
-    padding: 8px !important;
-    font-size: 11px !important;
-  }
-
-  /* Button styles - touch friendly but smaller */
-  button {
-    min-height: 36px !important;
-    padding: 6px 10px !important;
-    font-size: 11px !important;
-  }
-
-  /* Input fields */
-  input, select, textarea {
-    font-size: 14px !important;
-    min-height: 36px !important;
-    padding: 6px !important;
-  }
-
-  /* Inventory grid - compact */
-  .invSlot {
-    min-width: 50px !important;
-    min-height: 50px !important;
-    font-size: 9px !important;
-  }
-
-  /* Ability slots */
-  .abilSlot {
-    width: 120px !important;
-    height: 44px !important;
-    padding: 6px !important;
-  }
-
-  .abilName {
-    font-size: 10px !important;
-    margin-top: 8px !important;
-  }
-
-  .abilMeta {
-    font-size: 9px !important;
-  }
-
-  .abilKey {
-    font-size: 10px !important;
-  }
+  /* Character select - stack vertically */
+  #charSelectOverlay .panel { padding: 6px !important; }
+  #charSelectOverlay h2 { font-size: 15px !important; margin-bottom: 4px !important; }
+  #charSelectOverlay button { padding: 8px 12px !important; font-size: 12px !important; min-height: 38px !important; }
+  #charSelectOverlay input { padding: 6px !important; font-size: 14px !important; }
+  #charSelectOverlay > div > div { flex-direction: column !important; gap: 16px !important; }
 }
 
-/* Landscape mode - ULTRA AGGRESSIVE */
+/* Landscape mode */
 @media (max-width: 900px) and (orientation: landscape) {
-  .hud {
-    top: 8px !important;
-    width: 160px !important;
-    font-size: 7px !important;
-    padding: 2px !important;
-  }
+  .hud { top: 4px !important; width: 200px !important; font-size: 8px !important; padding: 2px 4px !important; }
 
-  .mobile-ability-bar {
-    top: 4px !important;
-    padding: 2px 6px !important;
-    gap: 2px !important;
-  }
+  .mobile-ability-bar { right: 8px !important; padding: 4px !important; gap: 4px !important; }
+  .mobile-ability-btn { width: 32px !important; height: 32px !important; font-size: 13px !important; }
 
-  .mobile-ability-btn {
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 12px !important;
-  }
+  .mobile-action-container { bottom: 6px !important; right: 8px !important; gap: 6px !important; }
+  .mobile-action-btn { width: 50px !important; height: 50px !important; }
+  .mobile-action-btn .action-emoji { font-size: 18px !important; }
 
-  .mobile-action-container {
-    width: 100px !important;
-    height: 100px !important;
-    bottom: 4px !important;
-    right: 4px !important;
-  }
+  .mobile-secondary-container { bottom: 68px !important; right: 10px !important; gap: 6px !important; }
+  .mobile-secondary-btn { width: 38px !important; height: 38px !important; }
+  .mobile-secondary-btn .action-emoji { font-size: 13px !important; }
 
-  .mobile-action-btn {
-    width: 32px !important;
-    height: 32px !important;
-  }
+  .mobile-menu-btn { width: 30px !important; height: 30px !important; font-size: 15px !important; }
+  .mobile-esc-btn { width: 30px !important; height: 30px !important; font-size: 16px !important; }
 
-  .mobile-action-btn .action-emoji {
-    font-size: 14px !important;
-  }
-
-  .mobile-menu-btn {
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 14px !important;
-  }
-
-  .buffIcon {
-    width: 20px !important;
-    height: 20px !important;
-  }
-
-  #miniMap {
-    width: 60px !important;
-    height: 60px !important;
-  }
-
-  .bottomStats {
-    font-size: 6px !important;
-    padding: 2px !important;
-  }
+  .buffIcon { width: 20px !important; height: 20px !important; }
+  #miniMap { width: 60px !important; height: 60px !important; }
+  .bottomStats { font-size: 7px !important; padding: 2px !important; }
+  .panel { max-height: 80vh; }
 }
 
 /* Safe area padding for notched devices (iPhone X+, etc.) */
 @supports (padding: env(safe-area-inset-bottom)) {
   .mobile-action-container {
-    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
-    right: calc(8px + env(safe-area-inset-right)) !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    right: calc(12px + env(safe-area-inset-right)) !important;
   }
-
+  .mobile-secondary-container {
+    bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+    right: calc(16px + env(safe-area-inset-right)) !important;
+  }
+  .mobile-ability-bar {
+    right: calc(12px + env(safe-area-inset-right)) !important;
+  }
   .mobile-menu-buttons {
     top: calc(8px + env(safe-area-inset-top)) !important;
     left: calc(8px + env(safe-area-inset-left)) !important;
   }
-
-  .mobile-ability-bar {
+  .mobile-esc-btn {
     top: calc(8px + env(safe-area-inset-top)) !important;
+    right: calc(8px + env(safe-area-inset-right)) !important;
   }
-
   #miniMap {
     bottom: calc(8px + env(safe-area-inset-bottom)) !important;
     left: calc(8px + env(safe-area-inset-left)) !important;
-  }
-}
-
-/* Mobile-specific styles */
-@media (max-width: 768px), (hover: none) {
-  /* Scale HUD for mobile - more compact */
-  .hud {
-    width: 85vw !important;
-    max-width: 350px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    top: 4px !important;
-    padding: 6px !important;
-    font-size: 11px !important;
-  }
-
-  /* Larger touch-friendly buttons */
-  button {
-    min-height: 44px;
-    font-size: 14px;
-    padding: 12px 16px !important;
-  }
-
-  /* Compact ability bar for mobile - smaller and centered */
-  .abilBar {
-    bottom: 4px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    gap: 4px !important;
-    padding: 4px 6px !important;
-    max-width: 90vw !important;
-  }
-
-  .abilBtn {
-    width: 40px !important;
-    height: 40px !important;
-    font-size: 11px !important;
-    padding: 2px !important;
-  }
-
-  /* Minimap - much smaller on mobile */
-  #miniMap {
-    width: 120px !important;
-    height: 120px !important;
-    right: 4px !important;
-    top: 4px !important;
-  }
-
-  /* Hide cooldown numbers on mobile ability buttons - show icon only */
-  .abilBar .small {
-    display: none !important;
-  }
-
-  /* Mobile-friendly panels */
-  .panel {
-    width: 95vw;
-    max-height: 85vh;
-    padding: 12px;
-    font-size: 14px;
-  }
-
-  /* Enlarge input fields for mobile */
-  input, select, textarea {
-    font-size: 16px !important; /* Prevents zoom on iOS */
-    min-height: 44px;
-  }
-
-  /* Hide non-essential UI elements on mobile */
-  .hint {
-    display: none;
-  }
-
-  /* Bottom stats bar - compact for mobile */
-  .bottomStats {
-    font-size: 10px !important;
-    padding: 4px !important;
-    gap: 4px !important;
-  }
-
-  .bottomStats .pill {
-    padding: 2px 6px !important;
-    font-size: 10px !important;
-  }
-
-  /* Buff icons - smaller on mobile */
-  .buffIconsHud {
-    top: auto !important;
-    bottom: 52px !important;
-    right: 4px !important;
-    max-width: 200px !important;
-  }
-
-  .buffIcon {
-    width: 28px !important;
-    height: 28px !important;
-  }
-
-  /* Inventory grid - larger touch targets */
-  .inventoryGrid {
-    gap: 12px !important;
-  }
-
-  .invSlot {
-    min-width: 60px !important;
-    min-height: 60px !important;
-  }
-
-  /* Toast notifications - larger for mobile */
-  .toast {
-    font-size: 14px;
-    padding: 12px 16px;
-    max-width: 90vw;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-  }
-
-  /* Character select - stack vertically on mobile */
-  #charSelectOverlay > div > div {
-    flex-direction: column !important;
-    gap: 20px !important;
-  }
-
-  /* Hide mobile ability buttons when UI is hidden */
-  body.ui-hidden #mobileAbilityButtons {
-    display: none !important;
-  }
-}
-
-/* Landscape mobile devices */
-@media (max-width: 900px) and (orientation: landscape) {
-  .hud {
-    width: 280px !important;
-    font-size: 10px !important;
-    padding: 4px !important;
-  }
-
-  .abilBar {
-    bottom: 2px !important;
-    padding: 3px 5px !important;
-  }
-
-  .abilBtn {
-    width: 36px !important;
-    height: 36px !important;
-  }
-
-  #miniMap {
-    width: 100px !important;
-    height: 100px !important;
-  }
-
-  .panel {
-    max-height: 75vh;
   }
 }
 
@@ -914,8 +787,6 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
     user-select: none;
     -webkit-touch-callout: none;
   }
-
-  /* Allow selection in input fields */
   input, textarea {
     -webkit-user-select: text;
     user-select: text;
