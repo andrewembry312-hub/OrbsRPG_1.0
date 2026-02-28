@@ -9896,9 +9896,14 @@ function showBossIntro(state, bossIcon, dungeonName, bossProfile, onComplete){
     animation: fadeIn 0.5s;
   `;
   
-  // Boss image
+  // Boss image - map boss key to actual filename (files use capitalized names)
+  const bossIconFileMap = {
+    archmage: 'Archmage.PNG', balrogath: 'Balrogath.PNG', bloodfang: 'Bloodfang.PNG',
+    gorothar: 'Gorothar.PNG', malakir: 'Malakir.PNG', tarrasque: 'Tarrasque.PNG',
+    venomQueen: 'venom_queen.png', vorrak: 'Vorrak.PNG', zalthor: 'Zalthor.PNG'
+  };
   const img = document.createElement('img');
-  img.src = getAssetPath(`assets/boss icons/${bossIcon}.PNG`);
+  img.src = getAssetPath(`assets/boss icons/${bossIconFileMap[bossIcon] || bossIcon + '.PNG'}`);
   img.style.cssText = `
     width: 300px;
     height: 300px;

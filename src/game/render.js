@@ -93,15 +93,15 @@ function loadBossIcons(){
   };
   
   Promise.all([
-    loadImage(getAssetPath('assets/boss icons/archmage.png')),
-    loadImage(getAssetPath('assets/boss icons/balrogath.png')),
-    loadImage(getAssetPath('assets/boss icons/bloodfang.png')),
-    loadImage(getAssetPath('assets/boss icons/gorothar.png')),
-    loadImage(getAssetPath('assets/boss icons/malakir.png')),
-    loadImage(getAssetPath('assets/boss icons/tarrasque.png')),
+    loadImage(getAssetPath('assets/boss icons/Archmage.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Balrogath.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Bloodfang.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Gorothar.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Malakir.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Tarrasque.PNG')),
     loadImage(getAssetPath('assets/boss icons/venom_queen.png')),
-    loadImage(getAssetPath('assets/boss icons/vorrak.png')),
-    loadImage(getAssetPath('assets/boss icons/zalthor.png'))
+    loadImage(getAssetPath('assets/boss icons/Vorrak.PNG')),
+    loadImage(getAssetPath('assets/boss icons/Zalthor.PNG'))
   ]).then(([archmage, balrogath, bloodfang, gorothar, malakir, tarrasque, venomQueen, vorrak, zalthor]) => {
     if(archmage) bossIcons.archmage = archmage;
     if(balrogath) bossIcons.balrogath = balrogath;

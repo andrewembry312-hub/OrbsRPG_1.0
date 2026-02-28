@@ -272,14 +272,18 @@ function createZoomControls(container, state) {
   zoomOut.className = 'mobile-zoom-btn';
   zoomOut.textContent = '−';
   zoomOut.title = 'Zoom Out';
-  zoomOut.addEventListener('touchstart', (e) => {
+  
+  function doZoomOut(e) {
     e.preventDefault();
     e.stopPropagation();
     if (state.camera) {
       state.camera.zoom = Math.max(MIN_ZOOM, (state.camera.zoom || 1) - ZOOM_STEP);
+      console.log('[ZOOM] Out ->', state.camera.zoom.toFixed(2));
       updateZoomLabel();
     }
-  });
+  }
+  zoomOut.addEventListener('touchstart', doZoomOut);
+  zoomOut.addEventListener('click', doZoomOut);
 
   const zoomLabel = document.createElement('span');
   zoomLabel.className = 'mobile-zoom-label';
@@ -289,14 +293,18 @@ function createZoomControls(container, state) {
   zoomIn.className = 'mobile-zoom-btn';
   zoomIn.textContent = '+';
   zoomIn.title = 'Zoom In';
-  zoomIn.addEventListener('touchstart', (e) => {
+  
+  function doZoomIn(e) {
     e.preventDefault();
     e.stopPropagation();
     if (state.camera) {
       state.camera.zoom = Math.min(MAX_ZOOM, (state.camera.zoom || 1) + ZOOM_STEP);
+      console.log('[ZOOM] In ->', state.camera.zoom.toFixed(2));
       updateZoomLabel();
     }
-  });
+  }
+  zoomIn.addEventListener('touchstart', doZoomIn);
+  zoomIn.addEventListener('click', doZoomIn);
 
   function updateZoomLabel() {
     zoomLabel.textContent = Math.round((state.camera?.zoom || 1) * 100) + '%';
