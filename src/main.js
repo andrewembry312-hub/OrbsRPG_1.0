@@ -379,6 +379,10 @@ function setupEventHandlers(){
       setForceMobile(isActive);
       mobileToggleBtn.textContent = isActive ? '📱 Mobile Mode: ON' : '📱 Enable Mobile Mode';
       console.log(`[MOBILE] Force mobile mode: ${isActive}`);
+      // Late-init joystick controls when force-mobile is toggled on
+      if (isActive && state.input && state.input.lateInitMobile) {
+        state.input.lateInitMobile();
+      }
     });
   }
 

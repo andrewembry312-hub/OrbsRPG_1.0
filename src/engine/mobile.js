@@ -22,19 +22,34 @@ export function isMobile() {
   return result;
 }
 
-export function initMobileControls(canvas, input) {
-  if (!isMobile()) return null;
+// Try to lock screen to landscape orientation
+export function lockLandscape() {
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {
+        console.log('[MOBILE] Orientation lock not supported by browser');
+      });
+    }
+  } catch(e) { /* not supported */ }
+}
+
+export function initMobileControls(canvas, input, force = false) {
+  if (!force && !isMobile()) return null;
+
+  console.log('[MOBILE] Initializing mobile touch controls (joystick)');
+  lockLandscape();
 
   const mobile = {
     joystick: { active: false, startX: 0, startY: 0, currentX: 0, currentY: 0, dx: 0, dy: 0 },
-    actionButtons: new Map(), // A/B/X/Y buttons
+    actionButtons: new Map(),
     activeActionTouch: null,
     isBlocking: false,
     isSprinting: false
   };
 
-  // Virtual joystick for movement
+  // Virtual joystick for movement — entire left 45% of screen, any Y position
   let joystickTouch = null;
+  const JOYSTICK_RADIUS = 70; // larger radius for bigger thumb area
   
   canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
@@ -44,8 +59,8 @@ export function initMobileControls(canvas, input) {
       const x = touch.clientX - rect.left;
       const y = touch.clientY - rect.top;
       
-      // Left bottom quarter = movement joystick
-      if (x < canvas.width * 0.35 && y > canvas.height * 0.5) {
+      // Left 45% of screen = movement joystick (any Y position)
+      if (x < rect.width * 0.45) {
         if (!joystickTouch) {
           joystickTouch = touch.identifier;
           mobile.joystick.active = true;
@@ -73,17 +88,16 @@ export function initMobileControls(canvas, input) {
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         // Normalize and clamp to max radius
-        const maxRadius = 50;
-        if (distance > maxRadius) {
-          mobile.joystick.dx = (dx / distance) * maxRadius;
-          mobile.joystick.dy = (dy / distance) * maxRadius;
+        if (distance > JOYSTICK_RADIUS) {
+          mobile.joystick.dx = (dx / distance) * JOYSTICK_RADIUS;
+          mobile.joystick.dy = (dy / distance) * JOYSTICK_RADIUS;
         } else {
           mobile.joystick.dx = dx;
           mobile.joystick.dy = dy;
         }
         
         // Convert to WASD input
-        const threshold = 12;
+        const threshold = 15;
         // Clear only movement keys
         input.keysDown.delete('KeyW');
         input.keysDown.delete('KeyS');
@@ -98,7 +112,7 @@ export function initMobileControls(canvas, input) {
         }
         
         // Enable sprint when joystick is pushed to edge
-        if (distance > maxRadius * 0.8) {
+        if (distance > JOYSTICK_RADIUS * 0.8) {
           if (!mobile.isSprinting) {
             input.keysDown.add('ShiftLeft');
             mobile.isSprinting = true;
@@ -122,7 +136,6 @@ export function initMobileControls(canvas, input) {
         mobile.joystick.active = false;
         mobile.joystick.dx = 0;
         mobile.joystick.dy = 0;
-        // Clear movement keys only
         input.keysDown.delete('KeyW');
         input.keysDown.delete('KeyS');
         input.keysDown.delete('KeyA');
@@ -155,13 +168,15 @@ export function renderMobileControls(ctx, mobile) {
   if (!mobile || !mobile.joystick.active) return;
 
   const { startX, startY, currentX, currentY } = mobile.joystick;
+  const baseR = 70;
+  const stickR = 30;
 
   // Draw base circle
   ctx.save();
-  ctx.globalAlpha = 0.25;
+  ctx.globalAlpha = 0.22;
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
-  ctx.arc(startX, startY, 50, 0, Math.PI * 2);
+  ctx.arc(startX, startY, baseR, 0, Math.PI * 2);
   ctx.fill();
 
   // Draw outer ring
@@ -169,14 +184,14 @@ export function renderMobileControls(ctx, mobile) {
   ctx.strokeStyle = '#00aaff';
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(startX, startY, 50, 0, Math.PI * 2);
+  ctx.arc(startX, startY, baseR, 0, Math.PI * 2);
   ctx.stroke();
 
   // Draw stick
   ctx.globalAlpha = 0.7;
   ctx.fillStyle = '#00aaff';
   ctx.beginPath();
-  ctx.arc(currentX, currentY, 22, 0, Math.PI * 2);
+  ctx.arc(currentX, currentY, stickR, 0, Math.PI * 2);
   ctx.fill();
   
   // Draw stick border
@@ -184,7 +199,7 @@ export function renderMobileControls(ctx, mobile) {
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(currentX, currentY, 22, 0, Math.PI * 2);
+  ctx.arc(currentX, currentY, stickR, 0, Math.PI * 2);
   ctx.stroke();
   
   ctx.restore();

@@ -36,7 +36,18 @@ export function initInput(canvas){
   addEventListener('keyup',e=>{ if(isTypingIntoUi(e)) return; keysDown.delete(e.code); });
 
   // Initialize mobile controls if on mobile device
-  const mobileControls = initMobileControls(canvas, { keysDown, mouse });
+  const inputObj = { keysDown, mouse };
+  const mobileControls = initMobileControls(canvas, inputObj);
 
-  return { keysDown, mouse, mobile: mobileControls };
+  // Expose method to late-init mobile controls (for force-mobile toggle)
+  inputObj.mobile = mobileControls;
+  inputObj.lateInitMobile = () => {
+    if (!inputObj.mobile) {
+      inputObj.mobile = initMobileControls(canvas, inputObj, true);
+      console.log('[INPUT] Late-initialized mobile controls via force toggle');
+    }
+    return inputObj.mobile;
+  };
+
+  return inputObj;
 }
