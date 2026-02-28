@@ -3,9 +3,18 @@ export function initCanvas(id){
   const ctx = canvas.getContext('2d');
 
   function resize(){
-    // Set canvas size to match window dimensions (CSS pixels)
-    const displayWidth = window.innerWidth;
-    const displayHeight = window.innerHeight;
+    // When CSS rotates the page (portrait on mobile), swap width/height
+    let displayWidth = window.innerWidth;
+    let displayHeight = window.innerHeight;
+    
+    // Detect if CSS portrait-to-landscape rotation is active
+    // (html element is rotated 90deg when portrait on mobile)
+    const isPortraitRotated = window.matchMedia('(orientation: portrait) and (hover: none)').matches;
+    if (isPortraitRotated) {
+      // CSS rotates the html element, so swap dimensions
+      displayWidth = window.innerHeight;
+      displayHeight = window.innerWidth;
+    }
     
     // Update canvas logical size to fill viewport
     canvas.width = displayWidth;

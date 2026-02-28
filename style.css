@@ -32,6 +32,25 @@ body{margin:0; background:radial-gradient(1200px 700px at 30% 0%, #121b3a 0%, va
     touch-action: none;
   }
 }
+
+/* Force landscape: rotate body when device is in portrait */
+@media (orientation: portrait) and (hover: none) {
+  html {
+    width: 100vh;
+    height: 100vw;
+    overflow: hidden;
+    transform: rotate(90deg);
+    transform-origin: top left;
+    position: absolute;
+    top: 0;
+    left: 100vw;
+  }
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+}
 canvas{display:block}
 .hud{
   position:fixed; left:12px; top:12px; width:392px; padding:10px;
@@ -519,6 +538,58 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   color: #555;
 }
 
+/* ---- Zoom Controls (top-center) ---- */
+.mobile-zoom-container {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 260;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1.5px solid rgba(212, 175, 55, 0.5);
+  border-radius: 10px;
+  padding: 4px 8px;
+  backdrop-filter: blur(4px);
+}
+
+.mobile-zoom-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(212, 175, 55, 0.6);
+  background: rgba(10, 10, 10, 0.9);
+  color: #d4af37;
+  font-size: 28px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+  transition: all 0.1s ease;
+}
+
+.mobile-zoom-btn:active {
+  transform: scale(0.85);
+  background: rgba(212, 175, 55, 0.2);
+}
+
+.mobile-zoom-label {
+  color: #d4af37;
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 48px;
+  text-align: center;
+  text-shadow: 0 0 4px rgba(212, 175, 55, 0.5);
+}
+
 /* ---- Menu Buttons (top-left corner): Inventory, Map, Skills, LevelUp ---- */
 .mobile-menu-buttons {
   position: fixed;
@@ -745,6 +816,10 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   .mobile-menu-btn { width: 48px !important; height: 48px !important; font-size: 24px !important; }
   .mobile-esc-btn { width: 48px !important; height: 48px !important; font-size: 26px !important; }
 
+  .mobile-zoom-container { top: 4px !important; padding: 2px 6px !important; }
+  .mobile-zoom-btn { width: 36px !important; height: 36px !important; font-size: 22px !important; }
+  .mobile-zoom-label { font-size: 11px !important; min-width: 36px !important; }
+
   .buffIcon { width: 20px !important; height: 20px !important; }
   #miniMap { width: 60px !important; height: 60px !important; }
   .bottomStats { font-size: 7px !important; padding: 2px !important; }
@@ -771,6 +846,9 @@ button.danger:hover{background:rgba(60,10,10,0.9); outline:2px solid rgba(255,10
   .mobile-esc-btn {
     top: calc(8px + env(safe-area-inset-top)) !important;
     right: calc(8px + env(safe-area-inset-right)) !important;
+  }
+  .mobile-zoom-container {
+    top: calc(10px + env(safe-area-inset-top)) !important;
   }
   #miniMap {
     bottom: calc(8px + env(safe-area-inset-bottom)) !important;

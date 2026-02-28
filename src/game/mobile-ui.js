@@ -43,6 +43,9 @@ export function createMobileUI(state) {
 
   // Create ESC/close button (top-right corner)
   createCloseButton(container, state);
+
+  // Create zoom controls (top-center)
+  createZoomControls(container, state);
   
   return container;
 }
@@ -253,6 +256,60 @@ function createCloseButton(container, state) {
 
   container.appendChild(btn);
   console.log('[MOBILE UI] ESC/Close button created (top-right)');
+}
+
+// Zoom controls (top-center) - zoom in / zoom out for mobile
+function createZoomControls(container, state) {
+  const zoomContainer = document.createElement('div');
+  zoomContainer.id = 'mobileZoomControls';
+  zoomContainer.className = 'mobile-zoom-container';
+
+  const MIN_ZOOM = 0.4;
+  const MAX_ZOOM = 1.8;
+  const ZOOM_STEP = 0.15;
+
+  const zoomOut = document.createElement('button');
+  zoomOut.className = 'mobile-zoom-btn';
+  zoomOut.textContent = '−';
+  zoomOut.title = 'Zoom Out';
+  zoomOut.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (state.camera) {
+      state.camera.zoom = Math.max(MIN_ZOOM, (state.camera.zoom || 1) - ZOOM_STEP);
+      updateZoomLabel();
+    }
+  });
+
+  const zoomLabel = document.createElement('span');
+  zoomLabel.className = 'mobile-zoom-label';
+  zoomLabel.textContent = '100%';
+
+  const zoomIn = document.createElement('button');
+  zoomIn.className = 'mobile-zoom-btn';
+  zoomIn.textContent = '+';
+  zoomIn.title = 'Zoom In';
+  zoomIn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (state.camera) {
+      state.camera.zoom = Math.min(MAX_ZOOM, (state.camera.zoom || 1) + ZOOM_STEP);
+      updateZoomLabel();
+    }
+  });
+
+  function updateZoomLabel() {
+    zoomLabel.textContent = Math.round((state.camera?.zoom || 1) * 100) + '%';
+  }
+
+  // Auto-update the label periodically
+  setInterval(updateZoomLabel, 500);
+
+  zoomContainer.appendChild(zoomOut);
+  zoomContainer.appendChild(zoomLabel);
+  zoomContainer.appendChild(zoomIn);
+  container.appendChild(zoomContainer);
+  console.log('[MOBILE UI] Zoom controls created (top-center: − / % / +)');
 }
 
 // Update ability cooldowns visually
